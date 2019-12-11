@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html class="no-js" lang="en">
+
+<head>
+<title>Producer · Alpakka Kafka connector</title>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta name="description" content="Alpakka is a Reactive Enterprise Integration library for Java and Scala, based on Reactive Streams and Akka."/><link rel="canonical" href="https://doc.akka.io/docs/alpakka-kafka/current/producer.html"/>
+<link href="https://fonts.googleapis.com/css?family=Roboto:100normal,100italic,300normal,300italic,400normal,400italic,500normal,500italic,700normal,700italic,900normal,900italicc" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="lib/jquery/jquery.min.js"></script>
+<script type="text/javascript" src="js/page.js"></script>
+<script type="text/javascript" src="js/warnOldVersion.js"></script>
+<script type="text/javascript" src="js/groups.js"></script>
+<link rel="stylesheet" type="text/css" href="lib/normalize.css/normalize.css"/>
+<link rel="stylesheet" type="text/css" href="lib/foundation/dist/foundation.min.css"/>
+<link rel="stylesheet" type="text/css" href="css/page.css"/>
+
+<!--
+<link rel="shortcut icon" href="images/favicon.ico" />
+-->
+</head>
+
+<body>
+<div class="off-canvas-wrapper">
+<div class="off-canvas-wrapper-inner" data-off-canvas-wrapper>
+
+<div class="off-canvas position-left" id="off-canvas-menu" data-off-canvas>
+<nav class="off-canvas-nav">
+<div class="nav-home">
+<a href="home.html" >
+<span class="home-icon">⌂</span>Alpakka Kafka connector
+</a>
+<div class="version-number">
+0.22
+</div>
+</div>
+<select class="supergroup" name="Language"><option class="group" value="group-java">Java</option><option class="group" value="group-scala">Scala</option></select>
+<div class="nav-toc">
+<ul>
+  <li><a href="producer.html" class="active page">Producer</a></li>
+  <li><a href="consumer.html" class="page">Consumer</a></li>
+  <li><a href="consumer-metadata.html" class="page">Consumer Metadata</a></li>
+  <li><a href="errorhandling.html" class="page">Error handling</a></li>
+  <li><a href="atleastonce.html" class="page">At-Least-Once Delivery</a></li>
+  <li><a href="transactions.html" class="page">Transactions</a></li>
+  <li><a href="snapshots.html" class="page">Snapshots</a></li>
+</ul>
+</div>
+
+</nav>
+</div>
+
+<div class="off-canvas-content" data-off-canvas-content>
+
+<header class="site-header expanded row">
+<div class="small-12 column">
+<a href="#" class="off-canvas-toggle hide-for-medium" data-toggle="off-canvas-menu"><svg class="svg-icon svg-icon-menu" version="1.1" id="Menu" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 20 20" enable-background="new 0 0 20 20" xml:space="preserve"> <path class="svg-icon-menu-path" fill="#53CDEC" d="M16.4,9H3.6C3.048,9,3,9.447,3,10c0,0.553,0.048,1,0.6,1H16.4c0.552,0,0.6-0.447,0.6-1C17,9.447,16.952,9,16.4,9z M16.4,13
+H3.6C3.048,13,3,13.447,3,14c0,0.553,0.048,1,0.6,1H16.4c0.552,0,0.6-0.447,0.6-1C17,13.447,16.952,13,16.4,13z M3.6,7H16.4
+C16.952,7,17,6.553,17,6c0-0.553-0.048-1-0.6-1H3.6C3.048,5,3,5.447,3,6C3,6.553,3.048,7,3.6,7z"/></svg>
+</a>
+<div class="title"><a href="home.html" class="logo" style="margin-top: 15px;"><svg class="svg-icon svg-icon-logo" style="height: 45px; width: 184px;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1070 262"><title>akka-stream-kafka</title><g id="akka-stream-kafka" class="svg-icon-logo-text" fill="#fff"><path d="M349.6 105.5v-12.2h19.9v58.4c0 7.1 1.7 9.8 6.1 9.8 1.2 0 2.7-.2 4.1-.3v16.1c-2.2.8-5.5 1.3-9.8 1.3-4.8 0-8.6-.8-11.6-2.7-3.7-2.5-6-5.8-6.8-10.1-5.8 8.8-15.4 13.1-28.7 13.1-11.8 0-21.7-4.1-29.9-12.6-8-8.5-12-18.8-12-31.2s4-22.7 12-31c8.1-8.5 18.1-12.6 29.9-12.6 13.6 0 23.7 6 26.8 14zm-5.9 47.9c5-4.8 7.5-11 7.5-18.3s-2.5-13.4-7.5-18.3c-4.8-4.8-11-7.3-18.1-7.3-7.1 0-12.9 2.5-17.8 7.3-4.6 4.8-7 11-7 18.3s2.3 13.4 7 18.3c4.8 4.8 10.6 7.3 17.8 7.3 7.1 0 13.3-2.5 18.1-7.3zM388.5 177v-115.7h19.8v67.6l30.9-35.5h22.8l-32.7 37.4 36.2 46.3h-22.6l-26.4-33.7-8.3 9.3v24.3h-19.7zM470.8 177v-115.7h19.8v67.6l30.9-35.5h22.9l-32.7 37.4 36.2 46.3h-22.6l-26.4-33.7-8.3 9.3v24.3h-19.8zM607.9 105.5v-12.2h19.9v58.4c0 7.1 1.7 9.8 6.1 9.8 1.2 0 2.7-.2 4.1-.3v16.1c-2.2.8-5.5 1.3-9.8 1.3-4.8 0-8.6-.8-11.6-2.7-3.7-2.5-6-5.8-6.8-10.1-5.8 8.8-15.4 13.1-28.7 13.1-11.8 0-21.7-4.1-29.9-12.6-8-8.5-12-18.8-12-31.2s4-22.7 12-31c8.1-8.5 18.1-12.6 29.9-12.6 13.5 0 23.6 6 26.8 14zm-6 47.9c5-4.8 7.5-11 7.5-18.3s-2.5-13.4-7.5-18.3c-4.8-4.8-11-7.3-18.1-7.3-7.1 0-12.9 2.5-17.8 7.3-4.6 4.8-7 11-7 18.3s2.3 13.4 7 18.3c4.8 4.8 10.6 7.3 17.8 7.3 7.1 0 13.3-2.5 18.1-7.3z"/></g><path fill="#0B5567" d="M230.3 212.8c35.9 28.7 58.9-57 1.7-72.8-48-13.3-96.3 9.5-144.7 62.7 0 0 89.4-32.7 143 10.1z"/><path fill="#15A9CE" d="M88.1 202c34.4-35.7 91.6-75.5 144.9-60.8 12.4 3.5 21.2 10.7 26.9 19.3l-50.4-101.7c-7.2-11.5-25.6-9.1-36-.3l-133.2 111.6c-12.1 10.4-12.8 28.9-1.6 40.1 9.9 9.9 25.6 10.8 36.5 2l12.9-10.2z"/></g></svg>
+</a></div>
+
+<!--
+<a href="https://www.example.com" class="logo show-for-medium">logo</a>
+-->
+</div>
+</header>
+
+<div class="expanded row">
+
+<div class="medium-3 large-2 show-for-medium column">
+<nav class="site-nav">
+<div class="nav-home">
+<a href="home.html" >
+<span class="home-icon">⌂</span>Alpakka Kafka connector
+</a>
+<div class="version-number">
+0.22
+</div>
+</div>
+<select class="supergroup" name="Language"><option class="group" value="group-java">Java</option><option class="group" value="group-scala">Scala</option></select>
+<div class="nav-toc">
+<ul>
+  <li><a href="producer.html" class="active page">Producer</a></li>
+  <li><a href="consumer.html" class="page">Consumer</a></li>
+  <li><a href="consumer-metadata.html" class="page">Consumer Metadata</a></li>
+  <li><a href="errorhandling.html" class="page">Error handling</a></li>
+  <li><a href="atleastonce.html" class="page">At-Least-Once Delivery</a></li>
+  <li><a href="transactions.html" class="page">Transactions</a></li>
+  <li><a href="snapshots.html" class="page">Snapshots</a></li>
+</ul>
+</div>
+
+</nav>
+</div>
+
+<div class="small-12 medium-9 large-10 column">
+<section class="site-content">
+
+<span id="version-warning"></span>
+
+<div class="page-header row">
+<div class="medium-12 show-for-medium column">
+<div class="nav-breadcrumbs">
+<ul>
+  <li><a href="home.html">Alpakka Kafka connector</a></li>
+  <li>Producer</li>
+</ul>
+</div>
+</div>
+</div>
+
+<div class="page-content row">
+<div class="small-12 large-9 column" id="docs">
+<h1><a href="#producer" name="producer" class="anchor"><span class="anchor-link"></span></a>Producer</h1>
+<p>A producer publishes messages to Kafka topics. The message itself contains information about what topic and partition to publish to so you can publish to different topics with the same producer.</p>
+<p>The underlying implementation is using the <code>KafkaProducer</code>, see the <a href="https://kafka.apache.org/10/javadoc/?org/apache/kafka/clients/producer/KafkaProducer.html">Kafka API</a> for details.</p>
+<h2><a href="#settings" name="settings" class="anchor"><span class="anchor-link"></span></a>Settings</h2>
+<p>When creating a producer stream you need to pass in <code>ProducerSettings</code> (<a href="https://doc.akka.io/api/akka-stream-kafka/0.22/akka/kafka/ProducerSettings.html">API</a>) that define things like:</p>
+<ul>
+  <li>bootstrap servers of the Kafka cluster</li>
+  <li>serializers for the keys and values</li>
+  <li>tuning parameters</li>
+</ul>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-scala">val config = system.settings.config.getConfig(&quot;akka.kafka.producer&quot;)
+val producerSettings =
+  ProducerSettings(config, new StringSerializer, new StringSerializer)
+    .withBootstrapServers(&quot;localhost:9092&quot;)</code></pre><a href="https://github.com/akka/reactive-kafka/tree/v0.22/docs/src/test/scala/sample/scaladsl/ProducerExample.scala#L30-L33">Full source at GitHub</a></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-java">final Config config = system.settings().config().getConfig(&quot;akka.kafka.producer&quot;);
+final ProducerSettings&lt;String, String&gt; producerSettings =
+    ProducerSettings
+        .create(config, new StringSerializer(), new StringSerializer())
+        .withBootstrapServers(&quot;localhost:9092&quot;);</code></pre><a href="https://github.com/akka/reactive-kafka/tree/v0.22/docs/src/test/java/sample/javadsl/ProducerExample.java#L33-L37">Full source at GitHub</a></dd>
+</dl>
+<p>In addition to programmatic construction of the <code>ProducerSettings</code> (<a href="https://doc.akka.io/api/akka-stream-kafka/0.22/akka/kafka/ProducerSettings.html">API</a>) it can also be created from configuration (<code>application.conf</code>). </p>
+<p>When creating <code>ProducerSettings</code> with the <code>ActorSystem</code> (<a href="https://doc.akka.io/api/akka/2.5.13/akka/actor/ActorSystem.html">API</a>) settings it uses the config section <code>akka.kafka.producer</code>. The format of these settings files are described in the <a href="https://github.com/lightbend/config#using-hocon-the-json-superset">Typesafe Config Documentation</a>.</p>
+<pre class="prettyprint"><code class="language-conf"># Properties for akka.kafka.ProducerSettings can be
+# defined in this section or a configuration section with
+# the same layout. 
+akka.kafka.producer {
+  # Tuning parameter of how many sends that can run in parallel.
+  parallelism = 100
+  
+  # How long to wait for `KafkaProducer.close`
+  close-timeout = 60s
+  
+  # Fully qualified config path which holds the dispatcher configuration
+  # to be used by the producer stages. Some blocking may occur.
+  # When this value is empty, the dispatcher configured for the stream
+  # will be used.
+  use-dispatcher = &quot;akka.kafka.default-dispatcher&quot;
+
+  # The time interval to commit a transaction when using the `Transactional.sink` or `Transactional.flow`
+  eos-commit-interval = 100ms
+
+  # Properties defined by org.apache.kafka.clients.producer.ProducerConfig
+  # can be defined in this configuration section.
+  kafka-clients {
+  }
+}</code></pre><a href="https://github.com/akka/reactive-kafka/tree/v0.22/core/src/main/resources/reference.conf#L3-L26">Full source at GitHub</a>
+<p><code>ProducerSettings</code> (<a href="https://doc.akka.io/api/akka-stream-kafka/0.22/akka/kafka/ProducerSettings.html">API</a>) can also be created from any other <code>Config</code> section with the same layout as above.</p>
+<p>See <a href="https://kafka.apache.org/10/javadoc/?org/apache/kafka/clients/producer/KafkaProducer.html">KafkaProducer API</a> and <a href="https://kafka.apache.org/10/javadoc/?org/apache/kafka/clients/producer/ProducerConfig.html">ProducerConfig API</a> for more details regarding settings.</p>
+<h2><a href="#producer-as-a-sink" name="producer-as-a-sink" class="anchor"><span class="anchor-link"></span></a>Producer as a Sink</h2>
+<p><code>Producer.plainSink</code> (<span class="group-scala"><a href="https://doc.akka.io/api/akka-stream-kafka/0.22/akka/kafka/scaladsl/Producer$.html">Producer API</a></span><span class="group-java"><a href="https://doc.akka.io/api/akka-stream-kafka/0.22/akka/kafka/javadsl/Producer$.html">Producer API</a></span>) is the easiest way to publish messages. The sink consumes the Kafka type <code>ProducerRecord</code> (<a href="https://kafka.apache.org/10/javadoc/?org/apache/kafka/clients/producer/ProducerRecord.html">Kafka API</a>) which contains </p>
+<ol>
+  <li>a topic name to which the record is being sent,</li>
+  <li>an optional partition number,</li>
+  <li>an optional key, and</li>
+  <li>a value.</li>
+</ol>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-scala">val done: Future[Done] =
+  Source(1 to 100)
+    .map(_.toString)
+    .map(value =&gt; new ProducerRecord[String, String](&quot;topic1&quot;, value))
+    .runWith(Producer.plainSink(producerSettings))</code></pre><a href="https://github.com/akka/reactive-kafka/tree/v0.22/docs/src/test/scala/sample/scaladsl/ProducerExample.scala#L53-L57">Full source at GitHub</a> The materialized value of the sink is a <code>Future[Done]</code> which is completed with <code>Done</code> when the stream completes, or with with an exception in case an error occurs.</dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-java">CompletionStage&lt;Done&gt; done =
+  Source.range(1, 100)
+    .map(number -&gt; number.toString())
+    .map(value -&gt; new ProducerRecord&lt;String, String&gt;(&quot;topic1&quot;, value))
+    .runWith(Producer.plainSink(producerSettings), materializer);</code></pre><a href="https://github.com/akka/reactive-kafka/tree/v0.22/docs/src/test/java/sample/javadsl/ProducerExample.java#L60-L64">Full source at GitHub</a> The materialized value of the sink is a <code>CompletionStage&lt;Done&gt;</code> which is completed with <code>Done</code> when the stream completes, or with an exception in case an error occurs.</dd>
+</dl>
+<h2><a href="#producing-messages" name="producing-messages" class="anchor"><span class="anchor-link"></span></a>Producing messages</h2>
+<p>Sinks and flows accept implementations of <code>ProducerMessage.Envelope</code> (<a href="https://doc.akka.io/api/akka-stream-kafka/0.22/akka/kafka/ProducerMessage$$Envelope.html">API</a>) as input. They contain an extra field to pass through data, the so called <code>passThrough</code>. Its value is passed through the flow and becomes available in the <code>ProducerMessage.Results</code>&rsquo;s <code>passThrough()</code>. It can for example hold a <code>ConsumerMessage.CommittableOffset</code> or <code>ConsumerMessage.CommittableOffsetBatch</code> (from a <code>Consumer.committableSource</code>) that can be committed after publishing to Kafka. </p>
+<h3><a href="#produce-a-single-message-to-kafka" name="produce-a-single-message-to-kafka" class="anchor"><span class="anchor-link"></span></a>Produce a single message to Kafka</h3>
+<p>To create one message to a Kafka topic, use the <code>ProducerMessage.Message</code> type as in</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-scala">new ProducerMessage.Message[KeyType, ValueType, PassThroughType](
+  new ProducerRecord(&quot;topicName&quot;, key, value),
+  passThrough
+)</code></pre><a href="https://github.com/akka/reactive-kafka/tree/v0.22/docs/src/test/scala/sample/scaladsl/ProducerExample.scala#L93-L96">Full source at GitHub</a></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-java">new ProducerMessage.Message&lt;KeyType, ValueType, PassThroughType&gt;(
+        new ProducerRecord&lt;&gt;(&quot;topicName&quot;, key, value),
+        passThrough
+);</code></pre><a href="https://github.com/akka/reactive-kafka/tree/v0.22/docs/src/test/java/sample/javadsl/ProducerExample.java#L110-L113">Full source at GitHub</a></dd>
+</dl>
+<p>For flows the <code>ProducerMessage.Message</code>s continue as <code>ProducerMessage.Result</code> elements containing: </p>
+<ol>
+  <li>the original input message,</li>
+  <li>the record metadata (<a href="https://kafka.apache.org/10/javadoc/?org/apache/kafka/clients/producer/RecordMetadata.html">Kafka RecordMetadata API</a>), and</li>
+  <li>access to the <code>passThrough</code> within the message.</li>
+</ol>
+<h3><a href="#let-one-stream-element-produce-multiple-messages-to-kafka" name="let-one-stream-element-produce-multiple-messages-to-kafka" class="anchor"><span class="anchor-link"></span></a>Let one stream element produce multiple messages to Kafka</h3>
+<p>The <code>ProducerMessage.MultiMessage</code> contains a list of <code>ProducerRecords</code> to produce multiple messages to Kafka topics.</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-scala">new ProducerMessage.MultiMessage[KeyType, ValueType, PassThroughType](
+  immutable.Seq(
+    new ProducerRecord(&quot;topicName&quot;, key, value),
+    new ProducerRecord(&quot;anotherTopic&quot;, key, value)
+  ),
+  passThrough
+)</code></pre><a href="https://github.com/akka/reactive-kafka/tree/v0.22/docs/src/test/scala/sample/scaladsl/ProducerExample.scala#L104-L110">Full source at GitHub</a></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-java">new ProducerMessage.MultiMessage&lt;KeyType, ValueType, PassThroughType&gt;(
+        Arrays.asList(
+                new ProducerRecord&lt;&gt;(&quot;topicName&quot;, key, value),
+                new ProducerRecord&lt;&gt;(&quot;anotherTopic&quot;, key, value)
+        ),
+        passThrough
+);</code></pre><a href="https://github.com/akka/reactive-kafka/tree/v0.22/docs/src/test/java/sample/javadsl/ProducerExample.java#L121-L127">Full source at GitHub</a></dd>
+</dl>
+<p>For flows the <code>ProducerMessage.MultiMessage</code>s continue as <code>ProducerMessage.MultiResult</code> elements containing: </p>
+<ol>
+  <li>a list of <code>MultiResultPart</code> with
+    <ol>
+      <li>the original input message,</li>
+      <li>the record metadata (<a href="https://kafka.apache.org/10/javadoc/?org/apache/kafka/clients/producer/RecordMetadata.html">Kafka RecordMetadata API</a>), and</li>
+    </ol>
+  </li>
+  <li>the <code>passThrough</code> data.</li>
+</ol>
+<h3><a href="#let-a-stream-element-pass-through-without-producing-a-message-to-kafka" name="let-a-stream-element-pass-through-without-producing-a-message-to-kafka" class="anchor"><span class="anchor-link"></span></a>Let a stream element pass through, without producing a message to Kafka</h3>
+<p>The <code>ProducerMessage.PassThroughMessage</code> allows to let an element pass through a Kafka flow without producing a new message to a Kafka topic. This is primarily useful with Kafka commit offsets and transactions, so that these can be committed without producing new messages.</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-scala">new ProducerMessage.PassThroughMessage(
+  passThrough
+)</code></pre><a href="https://github.com/akka/reactive-kafka/tree/v0.22/docs/src/test/scala/sample/scaladsl/ProducerExample.scala#L119-L121">Full source at GitHub</a></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-java">new ProducerMessage.PassThroughMessage&lt;&gt;(
+        passThrough
+);</code></pre><a href="https://github.com/akka/reactive-kafka/tree/v0.22/docs/src/test/java/sample/javadsl/ProducerExample.java#L136-L138">Full source at GitHub</a></dd>
+</dl>
+<p>For flows the <code>ProducerMessage.PassThroughMessage</code>s continue as <code>ProducerMessage.PassThroughResult</code> elements containing the <code>passThrough</code> data. </p>
+<h2><a href="#producer-as-a-flow" name="producer-as-a-flow" class="anchor"><span class="anchor-link"></span></a>Producer as a Flow</h2>
+<p><code>Producer.flexiFlow</code> allows the stream to continue after publishing messages to Kafka. It accepts implementations of <code>ProducerMessage.Envelope</code> (<a href="https://doc.akka.io/api/akka-stream-kafka/0.22/akka/kafka/ProducerMessage$$Envelope.html">API</a>) as input, which continue in the flow as implementations of <code>ProducerMessage.Results</code> (<a href="https://doc.akka.io/api/akka-stream-kafka/0.22/akka/kafka/ProducerMessage$$Results.html">API</a>). </p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-scala">val done = Source(1 to 100)
+  .map { number =&gt;
+    val partition = 0
+    val value = number.toString
+    ProducerMessage.Message(
+      new ProducerRecord(&quot;topic1&quot;, partition, &quot;key&quot;, value),
+      number
+    )
+  }
+  .via(Producer.flexiFlow(producerSettings))
+  .map {
+    case ProducerMessage.Result(metadata, message) =&gt;
+      val record = message.record
+      s&quot;${metadata.topic}/${metadata.partition} ${metadata.offset}: ${record.value}&quot;
+
+    case ProducerMessage.MultiResult(parts, passThrough) =&gt;
+      parts
+        .map {
+          case MultiResultPart(metadata, record) =&gt;
+            s&quot;${metadata.topic}/${metadata.partition} ${metadata.offset}: ${record.value}&quot;
+        }
+        .mkString(&quot;, &quot;)
+
+    case ProducerMessage.PassThroughResult(passThrough) =&gt;
+      s&quot;passed through&quot;
+  }
+  .runWith(Sink.foreach(println(_)))</code></pre><a href="https://github.com/akka/reactive-kafka/tree/v0.22/docs/src/test/scala/sample/scaladsl/ProducerExample.scala#L128-L154">Full source at GitHub</a></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-java">CompletionStage&lt;Done&gt; done =
+        Source.range(1, 100)
+                .map(number -&gt; {
+                    int partition = 0;
+                    String value = String.valueOf(number);
+                    ProducerMessage.Envelope&lt;String, String, Integer&gt; msg =
+                            new ProducerMessage.Message&lt;String, String, Integer&gt;(
+                                    new ProducerRecord&lt;&gt;(&quot;topic1&quot;, partition, &quot;key&quot;, value),
+                                    number
+                            );
+                    return msg;
+                })
+
+                .via(Producer.flexiFlow(producerSettings))
+
+                .map(result -&gt; {
+                    if (result instanceof ProducerMessage.Result) {
+                        ProducerMessage.Result&lt;String, String, Integer&gt; res = (ProducerMessage.Result&lt;String, String, Integer&gt;) result;
+                        ProducerRecord&lt;String, String&gt; record = res.message().record();
+                        RecordMetadata meta = res.metadata();
+                        return meta.topic() + &quot;/&quot; + meta.partition() + &quot; &quot; + res.offset() + &quot;: &quot; + record.value();
+                    } else if (result instanceof ProducerMessage.MultiResult) {
+                        ProducerMessage.MultiResult&lt;String, String, Integer&gt; res = (ProducerMessage.MultiResult&lt;String, String, Integer&gt;) result;
+                        return res.getParts() .stream().map( part -&gt; {
+                            RecordMetadata meta = part.metadata();
+                            return meta.topic() + &quot;/&quot; + meta.partition() + &quot; &quot; + part.metadata().offset() + &quot;: &quot; + part.record().value();
+                        }).reduce((acc, s) -&gt; acc + &quot;, &quot; + s);
+                    } else {
+                        return &quot;passed through&quot;;
+                    }
+                })
+                .runWith(Sink.foreach(System.out::println), materializer);</code></pre><a href="https://github.com/akka/reactive-kafka/tree/v0.22/docs/src/test/java/sample/javadsl/ProducerExample.java#L145-L176">Full source at GitHub</a></dd>
+</dl>
+<p>The <code>passThrough</code> can for example hold a <code>ConsumerMessage.CommittableOffset</code> or <code>ConsumerMessage.CommittableOffsetBatch</code> that can be committed after publishing to Kafka. </p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-scala">val control = Consumer
+  .committableSource(consumerSettings, Subscriptions.topics(&quot;topic1&quot;))
+  .map { msg =&gt;
+    ProducerMessage.Message[String, Array[Byte], ConsumerMessage.CommittableOffset](
+      new ProducerRecord(&quot;topic2&quot;, msg.record.value),
+      passThrough = msg.committableOffset
+    )
+  }
+  .via(Producer.flexiFlow(producerSettings))
+  .mapAsync(producerSettings.parallelism) { result =&gt;
+    val committable = result.passThrough
+    committable.commitScaladsl()
+  }
+  .toMat(Sink.ignore)(Keep.both)
+  .mapMaterializedValue(DrainingControl.apply)
+  .run()</code></pre><a href="https://github.com/akka/reactive-kafka/tree/v0.22/docs/src/test/scala/sample/scaladsl/ConsumerExample.scala#L221-L236">Full source at GitHub</a></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-java">Consumer.DrainingControl&lt;Done&gt; control =
+    Consumer.committableSource(consumerSettings, Subscriptions.topics(&quot;topic1&quot;))
+        .map(msg -&gt; {
+          ProducerMessage.Envelope&lt;String, byte[], ConsumerMessage.Committable&gt; prodMsg =
+              new ProducerMessage.Message&lt;&gt;(
+                  new ProducerRecord&lt;&gt;(&quot;topic2&quot;, msg.record().value()),
+                  msg.committableOffset() // the passThrough
+              );
+          return prodMsg;
+        })
+
+        .via(Producer.flexiFlow(producerSettings))
+
+        .mapAsync(producerSettings.parallelism(), result -&gt; {
+            ConsumerMessage.Committable committable = result.passThrough();
+            return committable.commitJavadsl();
+        })
+        .toMat(Sink.ignore(), Keep.both())
+        .mapMaterializedValue(Consumer::createDrainingControl)
+        .run(materializer);</code></pre><a href="https://github.com/akka/reactive-kafka/tree/v0.22/docs/src/test/java/sample/javadsl/ConsumerExample.java#L243-L262">Full source at GitHub</a></dd>
+</dl>
+<h2><a href="#connecting-a-producer-to-a-consumer" name="connecting-a-producer-to-a-consumer" class="anchor"><span class="anchor-link"></span></a>Connecting a Producer to a Consumer</h2>
+<p>See the <a href="consumer.html#connecting-producer-and-consumer">Consumer page</a>.</p>
+<h2><a href="#sharing-the-kafkaproducer-instance" name="sharing-the-kafkaproducer-instance" class="anchor"><span class="anchor-link"></span></a>Sharing the KafkaProducer instance</h2>
+<p>The underlying <code>KafkaProducer</code> (<a href="https://kafka.apache.org/10/javadoc/?org/apache/kafka/clients/producer/KafkaProducer.html">Kafka API</a>) is thread safe and sharing a single producer instance across streams will generally be faster than having multiple instances.</p>
+<p>To create a <code>KafkaProducer</code> from the Kafka connector settings described <a href="#settings">above</a>, the <code>ProducerSettings</code> contain a factory method <code>createKafkaProducer</code>.</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-scala">val config = system.settings.config.getConfig(&quot;akka.kafka.producer&quot;)
+val producerSettings =
+  ProducerSettings(config, new StringSerializer, new StringSerializer)
+    .withBootstrapServers(&quot;localhost:9092&quot;)
+val kafkaProducer = producerSettings.createKafkaProducer()</code></pre><a href="https://github.com/akka/reactive-kafka/tree/v0.22/docs/src/test/scala/sample/scaladsl/ProducerExample.scala#L30-L35">Full source at GitHub</a></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-java">final Config config = system.settings().config().getConfig(&quot;akka.kafka.producer&quot;);
+final ProducerSettings&lt;String, String&gt; producerSettings =
+    ProducerSettings
+        .create(config, new StringSerializer(), new StringSerializer())
+        .withBootstrapServers(&quot;localhost:9092&quot;);
+final KafkaProducer&lt;String, String&gt; kafkaProducer =
+    producerSettings.createKafkaProducer();</code></pre><a href="https://github.com/akka/reactive-kafka/tree/v0.22/docs/src/test/java/sample/javadsl/ProducerExample.java#L33-L40">Full source at GitHub</a></dd>
+</dl>
+<p>The <code>KafkaProducer</code> instance is passed as a parameter to the <code>Producer</code> factory methods.</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-scala">val done = Source(1 to 100)
+  .map(_.toString)
+  .map(value =&gt; new ProducerRecord[String, String](&quot;topic1&quot;, value))
+  .runWith(Producer.plainSink(producerSettings, kafkaProducer))</code></pre><a href="https://github.com/akka/reactive-kafka/tree/v0.22/docs/src/test/scala/sample/scaladsl/ProducerExample.scala#L67-L70">Full source at GitHub</a></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-java">CompletionStage&lt;Done&gt; done =
+    Source.range(1, 100)
+        .map(number -&gt; number.toString())
+        .map(value -&gt; new ProducerRecord&lt;String, String&gt;(&quot;topic1&quot;, value))
+        .runWith(Producer.plainSink(producerSettings, kafkaProducer), materializer);</code></pre><a href="https://github.com/akka/reactive-kafka/tree/v0.22/docs/src/test/java/sample/javadsl/ProducerExample.java#L78-L82">Full source at GitHub</a></dd>
+</dl>
+<h2><a href="#accessing-kafkaproducer-metrics" name="accessing-kafkaproducer-metrics" class="anchor"><span class="anchor-link"></span></a>Accessing KafkaProducer metrics</h2>
+<p>By passing an explicit reference to a <code>KafkaProducer</code> (as shown in the previous section) its metrics become accessible. Refer to the <a href="https://kafka.apache.org/10/javadoc/?org/apache/kafka/common/MetricName.html">Kafka MetricName API</a> for more details.</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-scala">val metrics: util.Map[org.apache.kafka.common.MetricName, _ &lt;: org.apache.kafka.common.Metric] =
+  kafkaProducer.metrics() // observe metrics</code></pre><a href="https://github.com/akka/reactive-kafka/tree/v0.22/docs/src/test/scala/sample/scaladsl/ProducerExample.scala#L81-L82">Full source at GitHub</a></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-java">Map&lt;org.apache.kafka.common.MetricName, ? extends org.apache.kafka.common.Metric&gt; metrics =
+        kafkaProducer.metrics();// observe metrics</code></pre><a href="https://github.com/akka/reactive-kafka/tree/v0.22/docs/src/test/java/sample/javadsl/ProducerExample.java#L96-L97">Full source at GitHub</a></dd>
+</dl>
+<div class="source-github">
+The source code for this page can be found <a href="https://github.com/akka/reactive-kafka/tree/master/docs/src/main/paradox/producer.md">here</a>.
+</div>
+
+<div class="nav-next">
+<p><strong>Next:</strong> <a href="consumer.html">Consumer</a></p>
+</div>
+</div>
+<div class="large-3 show-for-large column" data-sticky-container>
+<nav class="sidebar sticky" data-sticky data-anchor="docs" data-sticky-on="large">
+<div class="page-nav">
+<div class="nav-title">On this page:</div>
+<div class="nav-toc">
+<ul>
+  <li><a href="producer.html#producer" class="header">Producer</a>
+  <ul>
+    <li><a href="producer.html#settings" class="header">Settings</a></li>
+    <li><a href="producer.html#producer-as-a-sink" class="header">Producer as a Sink</a></li>
+    <li><a href="producer.html#producing-messages" class="header">Producing messages</a>
+    <ul>
+      <li><a href="producer.html#produce-a-single-message-to-kafka" class="header">Produce a single message to Kafka</a></li>
+      <li><a href="producer.html#let-one-stream-element-produce-multiple-messages-to-kafka" class="header">Let one stream element produce multiple messages to Kafka</a></li>
+      <li><a href="producer.html#let-a-stream-element-pass-through-without-producing-a-message-to-kafka" class="header">Let a stream element pass through, without producing a message to Kafka</a></li>
+    </ul></li>
+    <li><a href="producer.html#producer-as-a-flow" class="header">Producer as a Flow</a></li>
+    <li><a href="producer.html#connecting-a-producer-to-a-consumer" class="header">Connecting a Producer to a Consumer</a></li>
+    <li><a href="producer.html#sharing-the-kafkaproducer-instance" class="header">Sharing the KafkaProducer instance</a></li>
+    <li><a href="producer.html#accessing-kafkaproducer-metrics" class="header">Accessing KafkaProducer metrics</a></li>
+  </ul></li>
+</ul>
+</div>
+</div>
+</nav>
+</div>
+</div>
+
+</section>
+</div>
+
+</div>
+
+<footer class="site-footer">
+
+<section class="site-footer-nav">
+<div class="expanded row">
+<div class="small-12 large-offset-2 large-10 column">
+<div class="row site-footer-content">
+
+<div class="small-12 medium-4 large-3 text-center column">
+<div class="nav-links">
+<ul>
+<!-- <li><a href="https://www.example.com/products/">Products</a> -->
+</ul>
+</div>
+</div>
+
+</div>
+</div>
+</div>
+</section>
+
+<section class="site-footer-base">
+<div class="expanded row">
+<div class="small-12 large-offset-2 large-10 column">
+<div class="row site-footer-content">
+
+<div class="small-12 text-center large-9 column">
+
+<!--
+<div class="copyright">
+<span class="text">&copy; 2018</span>
+<a href="https://www.example.com" class="logo">logo</a>
+</div>
+-->
+</div>
+
+</div>
+</div>
+</div>
+</section>
+</footer>
+
+</div>
+</div>
+</div>
+</body>
+
+<script type="text/javascript" src="lib/foundation/dist/foundation.min.js"></script>
+<script type="text/javascript">jQuery(document).foundation();</script>
+<script type="text/javascript" src="js/magellan.js"></script>
+
+<style type="text/css">@import "lib/prettify/prettify.css";</style>
+<script type="text/javascript" src="lib/prettify/prettify.js"></script>
+<script type="text/javascript" src="lib/prettify/lang-scala.js"></script>
+<script type="text/javascript">jQuery(function(){window.prettyPrint && prettyPrint()});</script>
+<script type="text/javascript">jQuery(function(jq){initOldVersionWarnings(jq, '0.22', 'https://doc.akka.io/docs/akka-stream-kafka/current/')});</script>
+
+
+</html>

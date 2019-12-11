@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html class="no-js" lang="en">
+
+<head>
+<title>Consumer · Akka Streams Kafka</title>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta name="description" content="Alpakka is a Reactive Enterprise Integration library for Java and Scala, based on Reactive Streams and Akka."/><link rel="canonical" href="https://doc.akka.io/docs/alpakka-kafka/current/consumer.html"/>
+<link href="https://fonts.googleapis.com/css?family=Roboto:100normal,100italic,300normal,300italic,400normal,400italic,500normal,500italic,700normal,700italic,900normal,900italicc" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="lib/jquery/jquery.min.js"></script>
+<script type="text/javascript" src="js/page.js"></script>
+<link rel="stylesheet" type="text/css" href="lib/normalize.css/normalize.css"/>
+<link rel="stylesheet" type="text/css" href="lib/foundation/dist/foundation.min.css"/>
+<link rel="stylesheet" type="text/css" href="css/page.css"/>
+
+<!--
+<link rel="shortcut icon" href="images/favicon.ico" />
+-->
+</head>
+
+<body>
+<div class="off-canvas-wrapper">
+<div class="off-canvas-wrapper-inner" data-off-canvas-wrapper>
+
+<div class="off-canvas position-left" id="off-canvas-menu" data-off-canvas>
+<nav class="off-canvas-nav">
+<div class="nav-home">
+<a href="home.html" >
+<span class="home-icon">⌂</span>Akka Streams Kafka
+</a>
+<div class="version-number">
+0.11
+</div>
+</div>
+<div class="nav-toc">
+<ul>
+  <li><a href="introduction.html">Introduction</a></li>
+  <li><a href="producer.html">Producer</a></li>
+  <li><a href="consumer.html" class="active">Consumer</a></li>
+</ul>
+</div>
+
+</nav>
+</div>
+
+<div class="off-canvas-content" data-off-canvas-content>
+
+<header class="site-header expanded row">
+<div class="small-12 column">
+<a href="#" class="off-canvas-toggle hide-for-medium" data-toggle="off-canvas-menu"><svg class="svg-icon svg-icon-menu" version="1.1" id="Menu" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 20 20" enable-background="new 0 0 20 20" xml:space="preserve"> <path class="svg-icon-menu-path" fill="#53CDEC" d="M16.4,9H3.6C3.048,9,3,9.447,3,10c0,0.553,0.048,1,0.6,1H16.4c0.552,0,0.6-0.447,0.6-1C17,9.447,16.952,9,16.4,9z M16.4,13
+H3.6C3.048,13,3,13.447,3,14c0,0.553,0.048,1,0.6,1H16.4c0.552,0,0.6-0.447,0.6-1C17,13.447,16.952,13,16.4,13z M3.6,7H16.4
+C16.952,7,17,6.553,17,6c0-0.553-0.048-1-0.6-1H3.6C3.048,5,3,5.447,3,6C3,6.553,3.048,7,3.6,7z"/></svg>
+</a>
+<div class="title"><a href="home.html" class="logo" style="margin-top: 15px;"><svg class="svg-icon svg-icon-logo" style="height: 45px; width: 184px;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1070 262"><title>akka-stream-kafka</title><g id="akka-stream-kafka" class="svg-icon-logo-text" fill="#fff"><path d="M349.6 105.5v-12.2h19.9v58.4c0 7.1 1.7 9.8 6.1 9.8 1.2 0 2.7-.2 4.1-.3v16.1c-2.2.8-5.5 1.3-9.8 1.3-4.8 0-8.6-.8-11.6-2.7-3.7-2.5-6-5.8-6.8-10.1-5.8 8.8-15.4 13.1-28.7 13.1-11.8 0-21.7-4.1-29.9-12.6-8-8.5-12-18.8-12-31.2s4-22.7 12-31c8.1-8.5 18.1-12.6 29.9-12.6 13.6 0 23.7 6 26.8 14zm-5.9 47.9c5-4.8 7.5-11 7.5-18.3s-2.5-13.4-7.5-18.3c-4.8-4.8-11-7.3-18.1-7.3-7.1 0-12.9 2.5-17.8 7.3-4.6 4.8-7 11-7 18.3s2.3 13.4 7 18.3c4.8 4.8 10.6 7.3 17.8 7.3 7.1 0 13.3-2.5 18.1-7.3zM388.5 177v-115.7h19.8v67.6l30.9-35.5h22.8l-32.7 37.4 36.2 46.3h-22.6l-26.4-33.7-8.3 9.3v24.3h-19.7zM470.8 177v-115.7h19.8v67.6l30.9-35.5h22.9l-32.7 37.4 36.2 46.3h-22.6l-26.4-33.7-8.3 9.3v24.3h-19.8zM607.9 105.5v-12.2h19.9v58.4c0 7.1 1.7 9.8 6.1 9.8 1.2 0 2.7-.2 4.1-.3v16.1c-2.2.8-5.5 1.3-9.8 1.3-4.8 0-8.6-.8-11.6-2.7-3.7-2.5-6-5.8-6.8-10.1-5.8 8.8-15.4 13.1-28.7 13.1-11.8 0-21.7-4.1-29.9-12.6-8-8.5-12-18.8-12-31.2s4-22.7 12-31c8.1-8.5 18.1-12.6 29.9-12.6 13.5 0 23.6 6 26.8 14zm-6 47.9c5-4.8 7.5-11 7.5-18.3s-2.5-13.4-7.5-18.3c-4.8-4.8-11-7.3-18.1-7.3-7.1 0-12.9 2.5-17.8 7.3-4.6 4.8-7 11-7 18.3s2.3 13.4 7 18.3c4.8 4.8 10.6 7.3 17.8 7.3 7.1 0 13.3-2.5 18.1-7.3z"/></g><path fill="#0B5567" d="M230.3 212.8c35.9 28.7 58.9-57 1.7-72.8-48-13.3-96.3 9.5-144.7 62.7 0 0 89.4-32.7 143 10.1z"/><path fill="#15A9CE" d="M88.1 202c34.4-35.7 91.6-75.5 144.9-60.8 12.4 3.5 21.2 10.7 26.9 19.3l-50.4-101.7c-7.2-11.5-25.6-9.1-36-.3l-133.2 111.6c-12.1 10.4-12.8 28.9-1.6 40.1 9.9 9.9 25.6 10.8 36.5 2l12.9-10.2z"/></g></svg>
+</a></div>
+
+<!--
+<a href="https://www.example.com" class="logo show-for-medium">logo</a>
+-->
+</div>
+</header>
+
+<div class="expanded row">
+
+<div class="medium-3 large-2 show-for-medium column">
+<nav class="site-nav">
+<div class="nav-home">
+<a href="home.html" >
+<span class="home-icon">⌂</span>Akka Streams Kafka
+</a>
+<div class="version-number">
+0.11
+</div>
+</div>
+<div class="nav-toc">
+<ul>
+  <li><a href="introduction.html">Introduction</a></li>
+  <li><a href="producer.html">Producer</a></li>
+  <li><a href="consumer.html" class="active">Consumer</a></li>
+</ul>
+</div>
+
+</nav>
+</div>
+
+<div class="small-12 medium-9 large-10 column">
+<section class="site-content">
+
+<div class="page-header row">
+<div class="medium-12 show-for-medium column">
+<div class="nav-breadcrumbs">
+<ul>
+  <li><a href="home.html">Akka Streams Kafka</a></li>
+  <li>Consumer</li>
+</ul>
+</div>
+</div>
+</div>
+
+<div class="page-content row">
+<div class="small-12 large-9 column" id="docs">
+<h1><a href="#consumer" name="consumer" class="anchor"><span class="anchor-link"></span></a>Consumer</h1>
+<p>A consumer is used for subscribing to Kafka topics.</p>
+<p>The underlaying implementation is using the <code>KafkaConsumer</code>, see <a href="http://kafka.apache.org/0100/javadoc/index.html?org/apache/kafka/clients/consumer/KafkaConsumer.html">Javadoc</a> for description of consumer groups, offsets, and other details.</p>
+<h2><a href="#example-code" name="example-code" class="anchor"><span class="anchor-link"></span></a>Example Code</h2>
+<p>For the examples in this section we use the following two dummy classes to illustrate how messages can be consumed.</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-scala">class DB {
+
+  private val offset = new AtomicLong
+
+  def save(record: ConsumerRecord[Array[Byte], String]): Future[Done] = {
+    println(s&quot;DB.save: ${record.value}&quot;)
+    offset.set(record.offset)
+    Future.successful(Done)
+  }
+
+  def loadOffset(): Future[Long] =
+    Future.successful(offset.get)
+
+  def update(data: String): Future[Done] = {
+    println(s&quot;DB.update: $data&quot;)
+    Future.successful(Done)
+  }
+}</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-java">static class DB {
+  private final AtomicLong offset = new AtomicLong();
+
+  public CompletionStage&lt;Done&gt; save(ConsumerRecord&lt;byte[], String&gt; record) {
+    System.out.println(&quot;DB.save: &quot; + record.value());
+    offset.set(record.offset());
+    return CompletableFuture.completedFuture(Done.getInstance());
+  }
+
+  public CompletionStage&lt;Long&gt; loadOffset() {
+    return CompletableFuture.completedFuture(offset.get());
+  }
+
+  public CompletionStage&lt;Done&gt; update(String data) {
+    System.out.println(&quot;DB.update: &quot; + data);
+    return CompletableFuture.completedFuture(Done.getInstance());
+  }
+}</code></pre></dd>
+</dl>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-scala">class Rocket {
+  def launch(destination: String): Future[Done] = {
+    println(s&quot;Rocket launched to $destination&quot;)
+    Future.successful(Done)
+  }
+}</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-java">static class Rocket {
+  public CompletionStage&lt;Done&gt; launch(String destination) {
+    System.out.println(&quot;Rocket launched to &quot; + destination);
+    return CompletableFuture.completedFuture(Done.getInstance());
+  }
+}</code></pre></dd>
+</dl>
+<h2><a href="#settings" name="settings" class="anchor"><span class="anchor-link"></span></a>Settings</h2>
+<p>When creating a consumer stream you need to pass in <code>ConsumerSettings</code> that define things like:</p>
+<ul>
+  <li>bootstrap servers of the Kafka cluster</li>
+  <li>group id for the consumer, note that offsets are always committed for a given consumer group</li>
+  <li>serializers for the keys and values</li>
+  <li>tuning parameters</li>
+</ul>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-scala">val consumerSettings = ConsumerSettings(system, new ByteArrayDeserializer, new StringDeserializer)
+  .withBootstrapServers(&quot;localhost:9092&quot;)
+  .withGroupId(&quot;group1&quot;)
+  .withProperty(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, &quot;earliest&quot;)</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-java">protected final ConsumerSettings&lt;byte[], String&gt; consumerSettings =
+    ConsumerSettings.create(system, new ByteArrayDeserializer(), new StringDeserializer())
+  .withBootstrapServers(&quot;localhost:9092&quot;)
+  .withGroupId(&quot;group1&quot;)
+  .withProperty(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, &quot;earliest&quot;);</code></pre></dd>
+</dl>
+<p>In addition to programmatic construction of the <code>ConsumerSettings</code> it can also be created from configuration (<code>application.conf</code>). By default when creating <code>ConsumerSettings</code> with the <code>ActorSystem</code> parameter it uses the config section <code>akka.kafka.consumer</code>.</p>
+<pre class="prettyprint"><code class="language-conf"># Properties for akka.kafka.ConsumerSettings can be
+# defined in this section or a configuration section with
+# the same layout. 
+akka.kafka.consumer {
+  # Tuning property of scheduled polls.
+  poll-interval = 50ms
+  
+  # Tuning property of the `KafkaConsumer.poll` parameter.
+  # Note that non-zero value means that blocking of the thread that
+  # is executing the stage will be blocked.
+  poll-timeout = 50ms
+  
+  # The stage will be await outstanding offset commit requests before
+  # shutting down, but if that takes longer than this timeout it will
+  # stop forcefully.
+  stop-timeout = 30s
+  
+  # How long to wait for `KafkaConsumer.close`
+  close-timeout = 20s
+  
+  # If offset commit requests are not completed within this timeout
+  # the returned Future is completed `TimeoutException`.
+  commit-timeout = 15s
+  
+  # If the KafkaConsumer can&#39;t connect to the broker the poll will be
+  # aborted after this timeout. The KafkaConsumerActor will throw
+  # org.apache.kafka.common.errors.WakeupException, which can be handled
+  # with Actor supervision strategy.
+  wakeup-timeout = 10s
+  
+  # Fully qualified config path which holds the dispatcher configuration
+  # to be used by the KafkaConsumerActor. Some blocking may occur.
+  use-dispatcher = &quot;akka.kafka.default-dispatcher&quot;
+
+  # Properties defined by org.apache.kafka.clients.consumer.ConsumerConfig
+  # can be defined in this configuration section.
+  kafka-clients {
+    # Disable auto-commit by default
+    enable.auto.commit = false
+  }
+}</code></pre>
+<p><code>ConsumerSettings</code> can also be created from any other <code>Config</code> section with the same layout as above.</p>
+<p>See <a href="http://kafka.apache.org/0100/javadoc/index.html?org/apache/kafka/clients/consumer/KafkaConsumer.html">KafkaConsumer Javadoc</a> and <a href="http://kafka.apache.org/0100/javadoc/index.html?org/apache/kafka/clients/consumer/ConsumerConfig.html">ConsumerConfig Javadoc</a> for details.</p>
+<h2><a href="#external-offset-storage" name="external-offset-storage" class="anchor"><span class="anchor-link"></span></a>External Offset Storage</h2>
+<p>The <code>Consumer.plainSource</code> emits <code>ConsumerRecord</code> elements (as received from the underlying <code>KafkaConsumer</code>).<br/>It has not support for committing offsets to Kafka. It can be used when offset is stored externally<br/>or with auto-commit (note that auto-commit is by default disabled).</p>
+<p>The consumer application doesn&rsquo;t need to use Kafka&rsquo;s built-in offset storage, it can store offsets in a store of its own<br/>choosing. The primary use case for this is allowing the application to store both the offset and the results of the<br/>consumption in the same system in a way that both the results and offsets are stored atomically. This is not always<br/>possible, but when it is it will make the consumption fully atomic and give &ldquo;exactly once&rdquo; semantics that are<br/>stronger than the &ldquo;at-least once&rdquo; semantics you get with Kafka&rsquo;s offset commit functionality.</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-scala">val db = new DB
+db.loadOffset().foreach { fromOffset =&gt;
+  val partition = 0
+  val subscription = Subscriptions.assignmentWithOffset(
+    new TopicPartition(&quot;topic1&quot;, partition) -&gt; fromOffset
+  )
+  val done =
+    Consumer.plainSource(consumerSettings, subscription)
+      .mapAsync(1)(db.save)
+      .runWith(Sink.ignore)</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-java">final DB db = new DB();
+
+db.loadOffset().thenAccept(fromOffset -&gt; {
+  Consumer.plainSource(
+    consumerSettings,
+    Subscriptions.assignmentWithOffset(new TopicPartition(&quot;topic1&quot;, 0), fromOffset)
+  ).mapAsync(1, record -&gt; db.save(record))
+  .runWith(Sink.ignore(), materializer);
+});</code></pre></dd>
+</dl>
+<p>Note how the starting point (offset) is assigned for a given consumer group id,<br/>topic and partition. The group id is defined in the <code>ConsumerSettings</code>.</p>
+<h2><a href="#offset-storage-in-kafka" name="offset-storage-in-kafka" class="anchor"><span class="anchor-link"></span></a>Offset Storage in Kafka</h2>
+<p>The <code>Consumer.committableSource</code> makes it possible to commit offset positions to Kafka.</p>
+<p>Compared to auto-commit this gives exact control of when a message is considered consumed.</p>
+<p>If you need to store offsets in anything other than Kafka, <code>plainSource</code> should be used instead of this API.</p>
+<p>This is useful when &ldquo;at-least once delivery&rdquo; is desired, as each message will likely be delivered one time but in failure cases could be duplicated.</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-scala">val db = new DB
+
+val done =
+  Consumer.committableSource(consumerSettings, Subscriptions.topics(&quot;topic1&quot;))
+    .mapAsync(1) { msg =&gt;
+      db.update(msg.record.value).map(_ =&gt; msg)
+    }
+    .mapAsync(1) { msg =&gt;
+      msg.committableOffset.commitScaladsl()
+    }
+    .runWith(Sink.ignore)</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-java">final DB db = new DB();
+
+Consumer.committableSource(consumerSettings, Subscriptions.topics(&quot;topic1&quot;))
+  .mapAsync(1, msg -&gt; db.update(msg.record().value())
+    .thenApply(done -&gt; msg))
+  .mapAsync(1, msg -&gt; msg.committableOffset().commitJavadsl())
+  .runWith(Sink.ignore(), materializer);</code></pre></dd>
+</dl>
+<p>The above example uses separate <code>mapAsync</code> stages for processing and committing. This guarantees that for <code>parallelism</code> higher than 1 we will keep correct ordering of messages sent for commit. </p>
+<p>Committing the offset for each message as illustrated above is rather slow. It is recommended to batch the commits for better throughput, with the trade-off that more messages may be re-delivered in case of failures.</p>
+<p>You can use the Akka Stream <code>batch</code> combinator to perform the batching. Note that it will only aggregate elements into batches if the downstream consumer is slower than the upstream producer.</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-scala">val db = new DB
+
+val done =
+  Consumer.committableSource(consumerSettings, Subscriptions.topics(&quot;topic1&quot;))
+    .mapAsync(1) { msg =&gt;
+      db.update(msg.record.value).map(_ =&gt; msg.committableOffset)
+    }
+    .batch(max = 20, first =&gt; CommittableOffsetBatch.empty.updated(first)) { (batch, elem) =&gt;
+      batch.updated(elem)
+    }
+    .mapAsync(3)(_.commitScaladsl())
+    .runWith(Sink.ignore)</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-java">final DB db = new DB();
+
+Consumer.committableSource(consumerSettings, Subscriptions.topics(&quot;topic1&quot;))
+  .mapAsync(1, msg -&gt;
+    db.update(msg.record().value()).thenApply(done -&gt; msg.committableOffset()))
+  .batch(20,
+    first -&gt; ConsumerMessage.emptyCommittableOffsetBatch().updated(first),
+    (batch, elem) -&gt; batch.updated(elem))
+    .mapAsync(3, c -&gt; c.commitJavadsl())
+  .runWith(Sink.ignore(), materializer);</code></pre></dd>
+</dl>
+<p><code>groupedWithin</code> is an alternative way of aggregating elements:</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-scala">.groupedWithin(10, 5.seconds)
+.map(group =&gt; group.foldLeft(CommittableOffsetBatch.empty) { (batch, elem) =&gt; batch.updated(elem) })
+.mapAsync(3)(_.commitScaladsl())</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-java">    source
+      .groupedWithin(20, Duration.create(5, TimeUnit.SECONDS))
+      .map(group -&gt; foldLeft(group))
+      .mapAsync(3, c -&gt; c.commitJavadsl())
+
+private ConsumerMessage.CommittableOffsetBatch foldLeft(List&lt;ConsumerMessage.CommittableOffset&gt; group) {
+  ConsumerMessage.CommittableOffsetBatch batch = ConsumerMessage.emptyCommittableOffsetBatch();
+  for (ConsumerMessage.CommittableOffset elem: group) {
+    batch = batch.updated(elem);
+  }
+  return batch;
+}</code></pre></dd>
+</dl>
+<p>If you commit the offset before processing the message you get &ldquo;at-most once delivery&rdquo; semantics, and for that there is a <code>Consumer.atMostOnceSource</code>. However, <code>atMostOnceSource</code> commits the offset for each message and that is rather slow, batching of commits is recommended.</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-scala">val rocket = new Rocket
+
+val done = Consumer.atMostOnceSource(consumerSettings, Subscriptions.topics(&quot;topic1&quot;))
+  .mapAsync(1) { record =&gt;
+    rocket.launch(record.value)
+  }
+  .runWith(Sink.ignore)</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-java">final Rocket rocket = new Rocket();
+
+Consumer.atMostOnceSource(consumerSettings, Subscriptions.topics(&quot;topic1&quot;))
+  .mapAsync(1, record -&gt; rocket.launch(record.value()))
+  .runWith(Sink.ignore(), materializer);</code></pre></dd>
+</dl>
+<h2><a href="#connecting-producer-and-consumer" name="connecting-producer-and-consumer" class="anchor"><span class="anchor-link"></span></a>Connecting Producer and Consumer</h2>
+<p>For cases when you need to read messages from one topic, transform or enrich them, and then write to another topic you can use <code>Consumer.committableSource</code> and connect it to a <code>Producer.commitableSink</code>. The <code>commitableSink</code> will commit the offset back to the consumer when it has successfully published the message.</p>
+<p>Note that there is a risk that something fails after publishing but before committing, so <code>commitableSink</code> has &ldquo;at-least once delivery&rdquo; semantics.</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-scala">Consumer.committableSource(consumerSettings, Subscriptions.topics(&quot;topic1&quot;))
+  .map { msg =&gt;
+    println(s&quot;topic1 -&gt; topic2: $msg&quot;)
+    ProducerMessage.Message(new ProducerRecord[Array[Byte], String](
+      &quot;topic2&quot;,
+      msg.record.value
+    ), msg.committableOffset)
+  }
+  .runWith(Producer.commitableSink(producerSettings))</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-java">Consumer.committableSource(consumerSettings, Subscriptions.topics(&quot;topic1&quot;))
+  .map(msg -&gt;
+    new ProducerMessage.Message&lt;byte[], String, ConsumerMessage.Committable&gt;(
+        new ProducerRecord&lt;&gt;(&quot;topic2&quot;, msg.record().value()), msg.committableOffset()))
+  .runWith(Producer.commitableSink(producerSettings), materializer);</code></pre></dd>
+</dl>
+<p>As mentioned earlier, committing each message is rather slow and we can batch the commits to get higher throughput.</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-scala">val done =
+  Consumer.committableSource(consumerSettings, Subscriptions.topics(&quot;topic1&quot;))
+    .map(msg =&gt;
+      ProducerMessage.Message(new ProducerRecord[Array[Byte], String](&quot;topic2&quot;, msg.record.value), msg.committableOffset))
+    .via(Producer.flow(producerSettings))
+    .map(_.message.passThrough)
+    .batch(max = 20, first =&gt; CommittableOffsetBatch.empty.updated(first)) { (batch, elem) =&gt;
+      batch.updated(elem)
+    }
+    .mapAsync(3)(_.commitScaladsl())
+    .runWith(Sink.ignore)</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-java">Source&lt;ConsumerMessage.CommittableOffset, Consumer.Control&gt; source =
+  Consumer.committableSource(consumerSettings, Subscriptions.topics(&quot;topic1&quot;))
+  .map(msg -&gt;
+      new ProducerMessage.Message&lt;byte[], String, ConsumerMessage.CommittableOffset&gt;(
+          new ProducerRecord&lt;&gt;(&quot;topic2&quot;, msg.record().value()), msg.committableOffset()))
+  .via(Producer.flow(producerSettings))
+  .map(result -&gt; result.message().passThrough());
+
+  source.batch(20,
+      first -&gt; ConsumerMessage.emptyCommittableOffsetBatch().updated(first),
+      (batch, elem) -&gt; batch.updated(elem))
+    .mapAsync(3, c -&gt; c.commitJavadsl())
+    .runWith(Sink.ignore(), materializer);</code></pre></dd>
+</dl>
+<h2><a href="#source-per-partition" name="source-per-partition" class="anchor"><span class="anchor-link"></span></a>Source per partition</h2>
+<p><code>Consumer.plainPartitionedSource</code> and <code>Consumer.committablePartitionedSource</code> supports tracking the automatic partition assignment from Kafka. When topic-partition is assigned to a consumer this source will emit tuple with assigned topic-partition and a corresponding source. When topic-partition is revoked then corresponding source completes.</p>
+<p>Backpressure per partition with batch commit:</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-scala">val done = Consumer.committablePartitionedSource(consumerSettings, Subscriptions.topics(&quot;topic1&quot;))
+  .flatMapMerge(maxPartitions, _._2)
+  .via(business)
+  .batch(max = 20, first =&gt; CommittableOffsetBatch.empty.updated(first.committableOffset)) { (batch, elem) =&gt;
+    batch.updated(elem.committableOffset)
+  }
+  .mapAsync(3)(_.commitScaladsl())
+  .runWith(Sink.ignore)</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-java">Consumer
+  .committablePartitionedSource(consumerSettings, Subscriptions.topics(&quot;topic1&quot;))
+  .flatMapMerge(maxPartitions, Pair::second)
+  .via(business())
+  .batch(
+      100,
+      first -&gt; ConsumerMessage.emptyCommittableOffsetBatch().updated(first.committableOffset()),
+      (batch, elem) -&gt; batch.updated(elem.committableOffset())
+  )
+  .mapAsync(3, x -&gt; x.commitJavadsl())
+  .runWith(Sink.ignore(), materializer);</code></pre></dd>
+</dl>
+<p>Separate streams per partition:</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-scala">//Consumer group represented as Source[(TopicPartition, Source[Messages])]
+val consumerGroup =
+  Consumer.committablePartitionedSource(consumerSettings, Subscriptions.topics(&quot;topic1&quot;))
+//Process each assigned partition separately
+consumerGroup.map {
+  case (topicPartition, source) =&gt;
+    source
+      .via(business)
+      .toMat(Sink.ignore)(Keep.both)
+      .run()
+}
+  .mapAsyncUnordered(maxPartitions)(_._2)
+  .runWith(Sink.ignore)</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-java">Consumer.Control c =
+  Consumer.committablePartitionedSource(consumerSettings, Subscriptions.topics(&quot;topic1&quot;))
+    .map(pair -&gt; pair.second().via(business()).toMat(Sink.ignore(), Keep.both()).run(materializer))
+    .mapAsyncUnordered(maxPartitions, (pair) -&gt; pair.second()).to(Sink.ignore()).run(materializer);</code></pre></dd>
+</dl>
+<p>Join flows based on automatically assigned partitions:</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-scala">type Msg = CommittableMessage[Array[Byte], String]
+def zipper(left: Source[Msg, _], right: Source[Msg, _]): Source[(Msg, Msg), NotUsed] = ???
+
+Consumer.committablePartitionedSource(consumerSettings, Subscriptions.topics(&quot;topic1&quot;))
+  .map {
+    case (topicPartition, source) =&gt;
+      // get corresponding partition from other topic
+      val otherSource = {
+        val otherTopicPartition = new TopicPartition(&quot;otherTopic&quot;, topicPartition.partition())
+        Consumer.committableSource(consumerSettings, Subscriptions.assignment(otherTopicPartition))
+      }
+      zipper(source, otherSource)
+  }
+  .flatMapMerge(maxPartitions, identity)
+  .via(business)
+  //build commit offsets
+  .batch(max = 20, {
+    case (l, r) =&gt; (
+      CommittableOffsetBatch.empty.updated(l.committableOffset),
+      CommittableOffsetBatch.empty.updated(r.committableOffset)
+    )
+  }) {
+    case ((batchL, batchR), (l, r)) =&gt;
+      batchL.updated(l.committableOffset)
+      batchR.updated(r.committableOffset)
+      (batchL, batchR)
+  }
+  .mapAsync(1) { case (l, r) =&gt; l.commitScaladsl().map(_ =&gt; r) }
+  .mapAsync(1)(_.commitScaladsl())
+  .runWith(Sink.ignore)</code></pre></dd>
+</dl>
+<h2><a href="#sharing-kafkaconsumer" name="sharing-kafkaconsumer" class="anchor"><span class="anchor-link"></span></a>Sharing KafkaConsumer</h2>
+<p>If you have many streams it can be more efficient to share the underlying <code>KafkaConsumer</code>. That can be shared via the <code>KafkaConsumerActor</code>. You need to create the actor and stop it when it is not needed any longer. You pass the <code>ActorRef</code> as a parameter to the <code>Consumer</code> factory methods.</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-scala">//Consumer is represented by actor
+val consumer: ActorRef = system.actorOf(KafkaConsumerActor.props(consumerSettings))
+
+//Manually assign topic partition to it
+Consumer
+  .plainExternalSource[Array[Byte], String](consumer, Subscriptions.assignment(new TopicPartition(&quot;topic1&quot;, 1)))
+  .via(business)
+  .runWith(Sink.ignore)
+
+//Manually assign another topic partition
+Consumer
+  .plainExternalSource[Array[Byte], String](consumer, Subscriptions.assignment(new TopicPartition(&quot;topic1&quot;, 2)))
+  .via(business)
+  .runWith(Sink.ignore)</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-java">//Consumer is represented by actor
+ActorRef consumer = system.actorOf((KafkaConsumerActor.props(consumerSettings)));
+
+//Manually assign topic partition to it
+Consumer
+  .plainExternalSource(consumer, Subscriptions.assignment(new TopicPartition(&quot;topic1&quot;, 1)))
+  .via(business())
+  .runWith(Sink.ignore(), materializer);
+
+//Manually assign another topic partition
+Consumer
+  .plainExternalSource(consumer, Subscriptions.assignment(new TopicPartition(&quot;topic1&quot;, 2)))
+  .via(business())
+  .runWith(Sink.ignore(), materializer);</code></pre></dd>
+</dl>
+</div>
+<div class="large-3 show-for-large column" data-sticky-container>
+<nav class="sidebar sticky" data-sticky data-anchor="docs" data-sticky-on="large">
+<div class="page-nav">
+<div class="nav-title">On this page:</div>
+<div class="nav-toc">
+<ul>
+  <li><a href="consumer.html#consumer">Consumer</a>
+  <ul>
+    <li><a href="consumer.html#example-code">Example Code</a></li>
+    <li><a href="consumer.html#settings">Settings</a></li>
+    <li><a href="consumer.html#external-offset-storage">External Offset Storage</a></li>
+    <li><a href="consumer.html#offset-storage-in-kafka">Offset Storage in Kafka</a></li>
+    <li><a href="consumer.html#connecting-producer-and-consumer">Connecting Producer and Consumer</a></li>
+    <li><a href="consumer.html#source-per-partition">Source per partition</a></li>
+    <li><a href="consumer.html#sharing-kafkaconsumer">Sharing KafkaConsumer</a></li>
+  </ul></li>
+</ul>
+</div>
+</div>
+</nav>
+</div>
+</div>
+
+</section>
+</div>
+
+</div>
+
+<footer class="site-footer">
+
+<section class="site-footer-nav">
+<div class="expanded row">
+<div class="small-12 large-offset-2 large-10 column">
+<div class="row site-footer-content">
+
+<div class="small-12 medium-4 large-3 text-center column">
+<div class="nav-links">
+<ul>
+<!-- <li><a href="https://www.example.com/products/">Products</a> -->
+<ul>
+</div>
+</div>
+
+</div>
+</div>
+</div>
+</section>
+
+<section class="site-footer-base">
+<div class="expanded row">
+<div class="small-12 large-offset-2 large-10 column">
+<div class="row site-footer-content">
+
+<div class="small-12 text-center large-9 column">
+
+<!--
+<div class="copyright">
+<span class="text">&copy; 2016</span>
+<a href="https://www.example.com" class="logo">logo</a>
+</div>
+-->
+</div>
+
+</div>
+</div>
+</div>
+</section>
+</footer>
+
+</div>
+</div>
+</div>
+</body>
+
+<script type="text/javascript" src="lib/foundation/dist/foundation.min.js"></script>
+<script type="text/javascript">jQuery(document).foundation();</script>
+<script type="text/javascript" src="js/magellan.js"></script>
+
+<style type="text/css">@import "lib/prettify/prettify.css";</style>
+<script type="text/javascript" src="lib/prettify/prettify.js"></script>
+<script type="text/javascript" src="lib/prettify/lang-scala.js"></script>
+<script type="text/javascript">jQuery(function(){window.prettyPrint && prettyPrint()});</script>
+
+</html>

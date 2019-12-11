@@ -1,0 +1,882 @@
+<!DOCTYPE html>
+<html class="no-js" lang="en">
+
+<head>
+<title>Consumer · Alpakka Kafka connector</title>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta name="description" content="Alpakka is a Reactive Enterprise Integration library for Java and Scala, based on Reactive Streams and Akka."/><link rel="canonical" href="https://doc.akka.io/docs/alpakka-kafka/current/consumer.html"/>
+<link href="https://fonts.googleapis.com/css?family=Roboto:100normal,100italic,300normal,300italic,400normal,400italic,500normal,500italic,700normal,700italic,900normal,900italicc" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="lib/jquery/jquery.min.js"></script>
+<script type="text/javascript" src="js/page.js"></script>
+<script type="text/javascript" src="js/groups.js"></script>
+<link rel="stylesheet" type="text/css" href="lib/normalize.css/normalize.css"/>
+<link rel="stylesheet" type="text/css" href="lib/foundation/dist/foundation.min.css"/>
+<link rel="stylesheet" type="text/css" href="css/page.css"/>
+
+<!--
+<link rel="shortcut icon" href="images/favicon.ico" />
+-->
+</head>
+
+<body>
+<div class="off-canvas-wrapper">
+<div class="off-canvas-wrapper-inner" data-off-canvas-wrapper>
+
+<div class="off-canvas position-left" id="off-canvas-menu" data-off-canvas>
+<nav class="off-canvas-nav">
+<div class="nav-home">
+<a href="home.html" >
+<span class="home-icon">⌂</span>Alpakka Kafka connector
+</a>
+<div class="version-number">
+0.21
+</div>
+</div>
+<select class="supergroup" name="Language"><option class="group" value="group-java">Java</option><option class="group" value="group-scala">Scala</option></select>
+<div class="nav-toc">
+<ul>
+  <li><a href="producer.html" class="page">Producer</a></li>
+  <li><a href="consumer.html" class="active page">Consumer</a></li>
+  <li><a href="consumer-metadata.html" class="page">Consumer Metadata</a></li>
+  <li><a href="errorhandling.html" class="page">Error handling</a></li>
+  <li><a href="atleastonce.html" class="page">At-Least-Once Delivery</a></li>
+  <li><a href="transactions.html" class="page">Transactions</a></li>
+  <li><a href="snapshots.html" class="page">Snapshots</a></li>
+</ul>
+</div>
+
+</nav>
+</div>
+
+<div class="off-canvas-content" data-off-canvas-content>
+
+<header class="site-header expanded row">
+<div class="small-12 column">
+<a href="#" class="off-canvas-toggle hide-for-medium" data-toggle="off-canvas-menu"><svg class="svg-icon svg-icon-menu" version="1.1" id="Menu" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 20 20" enable-background="new 0 0 20 20" xml:space="preserve"> <path class="svg-icon-menu-path" fill="#53CDEC" d="M16.4,9H3.6C3.048,9,3,9.447,3,10c0,0.553,0.048,1,0.6,1H16.4c0.552,0,0.6-0.447,0.6-1C17,9.447,16.952,9,16.4,9z M16.4,13
+H3.6C3.048,13,3,13.447,3,14c0,0.553,0.048,1,0.6,1H16.4c0.552,0,0.6-0.447,0.6-1C17,13.447,16.952,13,16.4,13z M3.6,7H16.4
+C16.952,7,17,6.553,17,6c0-0.553-0.048-1-0.6-1H3.6C3.048,5,3,5.447,3,6C3,6.553,3.048,7,3.6,7z"/></svg>
+</a>
+<div class="title"><a href="home.html" class="logo" style="margin-top: 15px;"><svg class="svg-icon svg-icon-logo" style="height: 45px; width: 184px;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1070 262"><title>akka-stream-kafka</title><g id="akka-stream-kafka" class="svg-icon-logo-text" fill="#fff"><path d="M349.6 105.5v-12.2h19.9v58.4c0 7.1 1.7 9.8 6.1 9.8 1.2 0 2.7-.2 4.1-.3v16.1c-2.2.8-5.5 1.3-9.8 1.3-4.8 0-8.6-.8-11.6-2.7-3.7-2.5-6-5.8-6.8-10.1-5.8 8.8-15.4 13.1-28.7 13.1-11.8 0-21.7-4.1-29.9-12.6-8-8.5-12-18.8-12-31.2s4-22.7 12-31c8.1-8.5 18.1-12.6 29.9-12.6 13.6 0 23.7 6 26.8 14zm-5.9 47.9c5-4.8 7.5-11 7.5-18.3s-2.5-13.4-7.5-18.3c-4.8-4.8-11-7.3-18.1-7.3-7.1 0-12.9 2.5-17.8 7.3-4.6 4.8-7 11-7 18.3s2.3 13.4 7 18.3c4.8 4.8 10.6 7.3 17.8 7.3 7.1 0 13.3-2.5 18.1-7.3zM388.5 177v-115.7h19.8v67.6l30.9-35.5h22.8l-32.7 37.4 36.2 46.3h-22.6l-26.4-33.7-8.3 9.3v24.3h-19.7zM470.8 177v-115.7h19.8v67.6l30.9-35.5h22.9l-32.7 37.4 36.2 46.3h-22.6l-26.4-33.7-8.3 9.3v24.3h-19.8zM607.9 105.5v-12.2h19.9v58.4c0 7.1 1.7 9.8 6.1 9.8 1.2 0 2.7-.2 4.1-.3v16.1c-2.2.8-5.5 1.3-9.8 1.3-4.8 0-8.6-.8-11.6-2.7-3.7-2.5-6-5.8-6.8-10.1-5.8 8.8-15.4 13.1-28.7 13.1-11.8 0-21.7-4.1-29.9-12.6-8-8.5-12-18.8-12-31.2s4-22.7 12-31c8.1-8.5 18.1-12.6 29.9-12.6 13.5 0 23.6 6 26.8 14zm-6 47.9c5-4.8 7.5-11 7.5-18.3s-2.5-13.4-7.5-18.3c-4.8-4.8-11-7.3-18.1-7.3-7.1 0-12.9 2.5-17.8 7.3-4.6 4.8-7 11-7 18.3s2.3 13.4 7 18.3c4.8 4.8 10.6 7.3 17.8 7.3 7.1 0 13.3-2.5 18.1-7.3z"/></g><path fill="#0B5567" d="M230.3 212.8c35.9 28.7 58.9-57 1.7-72.8-48-13.3-96.3 9.5-144.7 62.7 0 0 89.4-32.7 143 10.1z"/><path fill="#15A9CE" d="M88.1 202c34.4-35.7 91.6-75.5 144.9-60.8 12.4 3.5 21.2 10.7 26.9 19.3l-50.4-101.7c-7.2-11.5-25.6-9.1-36-.3l-133.2 111.6c-12.1 10.4-12.8 28.9-1.6 40.1 9.9 9.9 25.6 10.8 36.5 2l12.9-10.2z"/></g></svg>
+</a></div>
+
+<!--
+<a href="https://www.example.com" class="logo show-for-medium">logo</a>
+-->
+</div>
+</header>
+
+<div class="expanded row">
+
+<div class="medium-3 large-2 show-for-medium column">
+<nav class="site-nav">
+<div class="nav-home">
+<a href="home.html" >
+<span class="home-icon">⌂</span>Alpakka Kafka connector
+</a>
+<div class="version-number">
+0.21
+</div>
+</div>
+<select class="supergroup" name="Language"><option class="group" value="group-java">Java</option><option class="group" value="group-scala">Scala</option></select>
+<div class="nav-toc">
+<ul>
+  <li><a href="producer.html" class="page">Producer</a></li>
+  <li><a href="consumer.html" class="active page">Consumer</a></li>
+  <li><a href="consumer-metadata.html" class="page">Consumer Metadata</a></li>
+  <li><a href="errorhandling.html" class="page">Error handling</a></li>
+  <li><a href="atleastonce.html" class="page">At-Least-Once Delivery</a></li>
+  <li><a href="transactions.html" class="page">Transactions</a></li>
+  <li><a href="snapshots.html" class="page">Snapshots</a></li>
+</ul>
+</div>
+
+</nav>
+</div>
+
+<div class="small-12 medium-9 large-10 column">
+<section class="site-content">
+
+<div class="page-header row">
+<div class="medium-12 show-for-medium column">
+<div class="nav-breadcrumbs">
+<ul>
+  <li><a href="home.html">Alpakka Kafka connector</a></li>
+  <li>Consumer</li>
+</ul>
+</div>
+</div>
+</div>
+
+<div class="page-content row">
+<div class="small-12 large-9 column" id="docs">
+<h1><a href="#consumer" name="consumer" class="anchor"><span class="anchor-link"></span></a>Consumer</h1>
+<p>A consumer subscribes to Kafka topics and passes the messages into an Akka Stream.</p>
+<p>The underlying implementation is using the <code>KafkaConsumer</code>, see <a href="https://kafka.apache.org/10/javadoc/?org/apache/kafka/clients/consumer/KafkaConsumer.html">Kafka API</a> for a description of consumer groups, offsets, and other details.</p>
+<h2><a href="#settings" name="settings" class="anchor"><span class="anchor-link"></span></a>Settings</h2>
+<p>When creating a consumer stream you need to pass in <code>ConsumerSettings</code> (<a href="https://doc.akka.io/api/akka-stream-kafka/0.21/akka/kafka/ConsumerSettings.html">API</a>) that define things like:</p>
+<ul>
+  <li>de-serializers for the keys and values</li>
+  <li>bootstrap servers of the Kafka cluster</li>
+  <li>group id for the consumer, note that offsets are always committed for a given consumer group</li>
+  <li>Kafka consumer tuning parameters</li>
+</ul>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-scala">val config = system.settings.config
+val consumerSettings =
+  ConsumerSettings(config, new StringDeserializer, new ByteArrayDeserializer)
+    .withBootstrapServers(&quot;localhost:9092&quot;)
+    .withGroupId(&quot;group1&quot;)
+    .withProperty(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, &quot;earliest&quot;)</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-java">final Config config = system.settings().config();
+final ConsumerSettings&lt;String, byte[]&gt; consumerSettings =
+    ConsumerSettings.create(config, new StringDeserializer(), new ByteArrayDeserializer())
+        .withBootstrapServers(&quot;localhost:9092&quot;)
+        .withGroupId(&quot;group1&quot;)
+        .withProperty(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, &quot;earliest&quot;);</code></pre></dd>
+</dl>
+<p>In addition to programmatic construction of the <code>ConsumerSettings</code> (<a href="https://doc.akka.io/api/akka-stream-kafka/0.21/akka/kafka/ConsumerSettings.html">API</a>) it can also be created from configuration (<code>application.conf</code>). </p>
+<p>When creating <code>ConsumerSettings</code> with the <code>ActorSystem</code> (<a href="https://doc.akka.io/api/akka/2.5.13/akka/actor/ActorSystem.html">API</a>) settings it uses the config section <code>akka.kafka.consumer</code>. The format of these settings files are described in the <a href="https://github.com/lightbend/config#using-hocon-the-json-superset">Typesafe Config Documentation</a>.</p>
+<pre class="prettyprint"><code class="language-conf"># Properties for akka.kafka.ConsumerSettings can be
+# defined in this section or a configuration section with
+# the same layout. 
+akka.kafka.consumer {
+  # Tuning property of scheduled polls.
+  poll-interval = 50ms
+  
+  # Tuning property of the `KafkaConsumer.poll` parameter.
+  # Note that non-zero value means that the thread that
+  # is executing the stage will be blocked.
+  poll-timeout = 50ms
+  
+  # The stage will await outstanding offset commit requests before
+  # shutting down, but if that takes longer than this timeout it will
+  # stop forcefully.
+  stop-timeout = 30s
+  
+  # How long to wait for `KafkaConsumer.close`
+  close-timeout = 20s
+  
+  # If offset commit requests are not completed within this timeout
+  # the returned Future is completed `CommitTimeoutException`.
+  commit-timeout = 15s
+
+  # If commits take longer than this time a warning is logged
+  commit-time-warning = 1s
+  
+  # If for any reason `KafkaConsumer.poll` blocks for longer than the configured
+  # poll-timeout then it is forcefully woken up with `KafkaConsumer.wakeup`.
+  # The KafkaConsumerActor will throw
+  # `org.apache.kafka.common.errors.WakeupException` which will be ignored
+  # until `max-wakeups` limit gets exceeded.
+  wakeup-timeout = 3s
+
+  # After exceeding maxinum wakeups the consumer will stop and the stage and fail.
+  # Setting it to 0 will let it ignore the wakeups and try to get the polling done forever.
+  max-wakeups = 10
+
+  # If set to a finite duration, the consumer will re-send the last committed offsets periodically
+  # for all assigned partitions. See https://issues.apache.org/jira/browse/KAFKA-4682.
+  commit-refresh-interval = infinite
+
+  # If enabled, log stack traces before waking up the KafkaConsumer to give
+  # some indication why the KafkaConsumer is not honouring the `poll-timeout`
+  wakeup-debug = true
+  
+  # Fully qualified config path which holds the dispatcher configuration
+  # to be used by the KafkaConsumerActor. Some blocking may occur.
+  use-dispatcher = &quot;akka.kafka.default-dispatcher&quot;
+
+  # Properties defined by org.apache.kafka.clients.consumer.ConsumerConfig
+  # can be defined in this configuration section.
+  kafka-clients {
+    # Disable auto-commit by default
+    enable.auto.commit = false
+  }
+
+  # Time to wait for pending requests when a partition is closed
+  wait-close-partition = 500ms
+}</code></pre>
+<p><code>ConsumerSettings</code> (<a href="https://doc.akka.io/api/akka-stream-kafka/0.21/akka/kafka/ConsumerSettings.html">API</a>) can also be created from any other <code>Config</code> section with the same layout as above.</p>
+<p>See <a href="https://kafka.apache.org/10/javadoc/?org/apache/kafka/clients/consumer/KafkaConsumer.html">KafkaConsumer API</a> and <a href="https://kafka.apache.org/10/javadoc/?org/apache/kafka/clients/consumer/ConsumerConfig.html">ConsumerConfig API</a> for more details regarding settings.</p>
+<h2><a href="#offset-storage-external-to-kafka" name="offset-storage-external-to-kafka" class="anchor"><span class="anchor-link"></span></a>Offset Storage external to Kafka</h2>
+<p>The Kafka read offset can either be stored in Kafka (see below), or at a data store of your choice.</p>
+<p><code>Consumer.plainSource</code> (<span class="group-scala"><a href="https://doc.akka.io/api/akka-stream-kafka/0.21/akka/kafka/scaladsl/Consumer$.html">Consumer API</a></span><span class="group-java"><a href="https://doc.akka.io/api/akka-stream-kafka/0.21/akka/kafka/javadsl/Consumer$.html">Consumer API</a></span>) and <code>Consumer.plainPartitionedManualOffsetSource</code> can be used to emit <code>ConsumerRecord</code> (<a href="https://kafka.apache.org/10/javadoc/?org/apache/kafka/clients/consumer/ConsumerRecord.html">Kafka API</a>) elements as received from the underlying <code>KafkaConsumer</code>. They do not have support for committing offsets to Kafka. When using these Sources, either store an offset externally, or use auto-commit (note that auto-commit is disabled by default).</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-scala">consumerSettings
+  .withProperty(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, &quot;true&quot;)
+  .withProperty(ConsumerConfig.AUTO_COMMIT_INTERVAL_MS_CONFIG, &quot;5000&quot;)</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-java">consumerSettings
+        .withProperty(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, &quot;true&quot;)
+        .withProperty(ConsumerConfig.AUTO_COMMIT_INTERVAL_MS_CONFIG, &quot;5000&quot;);</code></pre></dd>
+</dl>
+<p>The consumer application doesn&rsquo;t need to use Kafka&rsquo;s built-in offset storage, it can store offsets in a store of its own choosing. The primary use case for this is allowing the application to store both the offset and the results of the consumption in the same system in a way that both the results and offsets are stored atomically. This is not always possible, but when it is it will make the consumption fully atomic and give &ldquo;exactly once&rdquo; semantics that are stronger than the &ldquo;at-least-once&rdquo; semantics you get with Kafka&rsquo;s offset commit functionality.</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-scala">  val db = new OffsetStore
+  val control = db.loadOffset().map { fromOffset =&gt;
+    Consumer
+      .plainSource(consumerSettings,
+                   Subscriptions.assignmentWithOffset(
+                     new TopicPartition(&quot;topic1&quot;, /* partition = */ 0) -&gt; fromOffset
+                   ))
+      .mapAsync(1)(db.businessLogicAndStoreOffset)
+      .to(Sink.ignore)
+      .run()
+  }
+
+class OffsetStore {
+  def businessLogicAndStoreOffset(record: ConsumerRecord[String, Array[Byte]]): Future[Done] = // ...
+  def loadOffset(): Future[Long] = // ...
+}</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-java">  final OffsetStorage db = new OffsetStorage();
+
+  CompletionStage&lt;Consumer.Control&gt; controlCompletionStage =
+      db.loadOffset().thenApply(fromOffset -&gt; {
+          return Consumer
+              .plainSource(
+                  consumerSettings,
+                  Subscriptions.assignmentWithOffset(
+                      new TopicPartition(&quot;topic1&quot;, /* partition: */  0),
+                      fromOffset
+                  )
+              )
+              .mapAsync(1, db::businessLogicAndStoreOffset)
+              .to(Sink.ignore())
+              .run(materializer);
+      });
+
+
+class OffsetStorage {
+  public CompletionStage&lt;Done&gt; businessLogicAndStoreOffset(ConsumerRecord&lt;String, byte[]&gt; record) { // ... }
+  public CompletionStage&lt;Long&gt; loadOffset() { // ... }
+}</code></pre></dd>
+</dl>
+<p>For <code>Consumer.plainSource</code> the <code>Subscriptions.assignmentWithOffset</code> specifies the starting point (offset) for a given consumer group id, topic and partition. The group id is defined in the <code>ConsumerSettings</code>.</p>
+<p>Alternatively, with <code>Consumer.plainPartitionedManualOffsetSource</code> (<span class="group-scala"><a href="https://doc.akka.io/api/akka-stream-kafka/0.21/akka/kafka/scaladsl/Consumer.html">Consumer API</a></span><span class="group-java"><a href="https://doc.akka.io/api/akka-stream-kafka/0.21/akka/kafka/javadsl/Consumer.html">Consumer API</a></span>), only the consumer group id and the topic are required on creation. The starting point is fetched by calling the <code>getOffsetsOnAssign</code> function passed in by the user. This function should return a <code>Map</code> of <code>TopicPartition</code> (<a href="https://kafka.apache.org/10/javadoc/?org/apache/kafka/common/TopicPartition.html">API</a>) to <code>Long</code>, with the <code>Long</code> representing the starting point. If a consumer is assigned a partition that is not included in the <code>Map</code> that results from <code>getOffsetsOnAssign</code>, the default starting position will be used, according to the consumer configuration value <code>auto.offset.reset</code>. Also note that <code>Consumer.plainPartitionedManualOffsetSource</code> emits tuples of assigned topic-partition and a corresponding source, as in <a href="#source-per-partition">Source per partition</a>.</p>
+<h2><a href="#offset-storage-in-kafka-committing" name="offset-storage-in-kafka-committing" class="anchor"><span class="anchor-link"></span></a>Offset Storage in Kafka - committing</h2>
+<p>The <code>Consumer.committableSource</code> (<span class="group-scala"><a href="https://doc.akka.io/api/akka-stream-kafka/0.21/akka/kafka/scaladsl/Consumer$.html">Consumer API</a></span><span class="group-java"><a href="https://doc.akka.io/api/akka-stream-kafka/0.21/akka/kafka/javadsl/Consumer$.html">Consumer API</a></span>) makes it possible to commit offset positions to Kafka. Compared to auto-commit this gives exact control of when a message is considered consumed.</p>
+<p>This is useful when &ldquo;at-least-once&rdquo; delivery is desired, as each message will likely be delivered one time, but in failure cases could be received more than once.</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-scala">  val control =
+    Consumer
+      .committableSource(consumerSettings, Subscriptions.topics(&quot;topic1&quot;))
+      .mapAsync(10) { msg =&gt;
+        business(msg.record.key, msg.record.value).map(_ =&gt; msg.committableOffset)
+      }
+      .mapAsync(5)(offset =&gt; offset.commitScaladsl())
+      .toMat(Sink.ignore)(Keep.both)
+      .mapMaterializedValue(DrainingControl.apply)
+      .run()
+
+def business(key: String, value: Array[Byte]): Future[Done] = ???</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-java">  Consumer.Control control =
+      Consumer
+          .committableSource(consumerSettings, Subscriptions.topics(&quot;topic1&quot;))
+          .mapAsync(1, msg -&gt;
+              business(msg.record().key(), msg.record().value())
+                  .thenApply(done -&gt; msg.committableOffset()))
+          .mapAsync(1, offset -&gt; offset.commitJavadsl())
+          .to(Sink.ignore())
+          .run(materializer);
+
+CompletionStage&lt;String&gt; business(String key, byte[] value) { // .... }</code></pre></dd>
+</dl>
+<p>The above example uses separate <code>mapAsync</code> stages for processing and committing. This guarantees that for <code>parallelism</code> higher than 1 we will keep correct ordering of messages sent for commit. </p>
+<p>Committing the offset for each message as illustrated above is rather slow. It is recommended to batch the commits for better throughput, with the trade-off that more messages may be re-delivered in case of failures.</p>
+<p>You can use the Akka Stream <code>batch</code> combinator to perform the batching. Note that it will only aggregate elements into batches if the downstream consumer is slower than the upstream producer.</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-scala">val control =
+  Consumer
+    .committableSource(consumerSettings, Subscriptions.topics(&quot;topic1&quot;))
+    .mapAsync(1) { msg =&gt;
+      business(msg.record.key, msg.record.value)
+        .map(_ =&gt; msg.committableOffset)
+    }
+    .batch(
+      max = 20,
+      CommittableOffsetBatch.apply
+    )(_.updated(_))
+    .mapAsync(3)(_.commitScaladsl())
+    .toMat(Sink.ignore)(Keep.both)
+    .mapMaterializedValue(DrainingControl.apply)
+    .run()</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-java">Consumer.Control control =
+    Consumer.committableSource(consumerSettings, Subscriptions.topics(&quot;topic1&quot;))
+        .mapAsync(1, msg -&gt;
+            business(msg.record().key(), msg.record().value())
+                    .thenApply(done -&gt; msg.committableOffset())
+        )
+        .batch(
+            20,
+            ConsumerMessage::createCommittableOffsetBatch,
+            ConsumerMessage.CommittableOffsetBatch::updated
+        )
+        .mapAsync(3, c -&gt; c.commitJavadsl())
+        .to(Sink.ignore())
+        .run(materializer);</code></pre></dd>
+</dl>
+<p>If you consume from a topic with low activity, and possibly no messages arrive for more than 24 hours, consider enabling periodical commit refresh (<code>akka.kafka.consumer.commit-refresh-interval</code> configuration parameters), otherwise offsets might expire in the Kafka storage.</p>
+<p>For less active topics timing-based aggregation with <code>groupedWithin</code> might be a better choice than the <code>batch</code> operator.</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-scala">source
+  .groupedWithin(10, 5.seconds)
+  .map(CommittableOffsetBatch(_))
+  .mapAsync(3)(_.commitScaladsl())</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-java">source
+  .groupedWithin(20, java.time.Duration.of(5, ChronoUnit.SECONDS))
+  .map(ConsumerMessage::createCommittableOffsetBatch)
+  .mapAsync(3, c -&gt; c.commitJavadsl())</code></pre></dd>
+</dl>
+<p>If you commit the offset before processing the message you get &ldquo;at-most-once&rdquo; delivery semantics, this is provided by <code>Consumer.atMostOnceSource</code>. However, <code>atMostOnceSource</code> commits the offset for each message and that is rather slow, batching of commits is recommended.</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-scala">  val control =
+    Consumer
+      .atMostOnceSource(consumerSettings, Subscriptions.topics(&quot;topic1&quot;))
+      .mapAsync(1)(record =&gt; business(record.key, record.value()))
+      .to(Sink.foreach(it =&gt; println(s&quot;Done with $it&quot;)))
+      .run()
+
+def business(key: String, value: Array[Byte]): Future[Done] = ???</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-java">  Consumer.Control control =
+      Consumer
+          .atMostOnceSource(consumerSettings, Subscriptions.topics(&quot;topic1&quot;))
+          .mapAsync(10, record -&gt; business(record.key(), record.value()))
+          .to(Sink.foreach(it -&gt; System.out.println(&quot;Done with &quot; + it)))
+          .run(materializer);
+
+CompletionStage&lt;String&gt; business(String key, byte[] value) { // .... }</code></pre></dd>
+</dl>
+<p>Maintaining at-least-once delivery semantics requires care, many risks and solutions are covered in <a href="atleastonce.html">At-Least-Once Delivery</a>.</p>
+<h2><a href="#connecting-producer-and-consumer" name="connecting-producer-and-consumer" class="anchor"><span class="anchor-link"></span></a>Connecting Producer and Consumer</h2>
+<p>For cases when you need to read messages from one topic, transform or enrich them, and then write to another topic you can use <code>Consumer.committableSource</code> and connect it to a <code>Producer.commitableSink</code>. The <code>commitableSink</code> will commit the offset back to the consumer when it has successfully published the message.</p>
+<p>The <code>committableSink</code> accepts implementations <code>ProducerMessage.Envelope</code> (<a href="https://doc.akka.io/api/akka-stream-kafka/0.21/akka/kafka/ProducerMessage$$Envelope.html">API</a>) that contain the offset to commit the consumption of the originating message (of type <code>ConsumerMessage.Committable</code> (<a href="https://doc.akka.io/api/akka-stream-kafka/0.21/akka/kafka/ConsumerMessage$$Committable.html">API</a>)). See <a href="producer.html#producing-messages">Producing messages</a> about different implementations of <code>Envelope</code> supported.</p>
+<p>Note that there is a risk that something fails after publishing but before committing, so <code>commitableSink</code> has &ldquo;at-least-once&rdquo; delivery semantics. </p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-scala">val control =
+  Consumer
+    .committableSource(consumerSettings, Subscriptions.topics(&quot;topic1&quot;, &quot;topic2&quot;))
+    .map { msg =&gt;
+      ProducerMessage.Message[String, Array[Byte], ConsumerMessage.CommittableOffset](
+        new ProducerRecord(&quot;targetTopic&quot;, msg.record.value),
+        msg.committableOffset
+      )
+    }
+    .toMat(Producer.commitableSink(producerSettings))(Keep.both)
+    .mapMaterializedValue(DrainingControl.apply)
+    .run()</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-java">Consumer.Control control =
+    Consumer.committableSource(consumerSettings, Subscriptions.topics(&quot;topic1&quot;, &quot;topic2&quot;))
+      .map(msg -&gt;
+          new ProducerMessage.Message&lt;String, byte[], ConsumerMessage.Committable&gt;(
+              new ProducerRecord&lt;&gt;(&quot;targetTopic&quot;, msg.record().key(), msg.record().value()),
+              msg.committableOffset()
+          )
+      )
+      .to(Producer.commitableSink(producerSettings))
+      .run(materializer);</code></pre></dd>
+</dl>
+<p>As <code>Producer.committableSink</code>&rsquo;s committing of messages one-by-one is rather slow, prefer a flow together with batching of commits.</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-scala">val control = Consumer
+  .committableSource(consumerSettings, Subscriptions.topics(&quot;topic1&quot;))
+  .map(
+    msg =&gt;
+      ProducerMessage.Message[String, Array[Byte], ConsumerMessage.CommittableOffset](
+        new ProducerRecord(&quot;topic2&quot;, msg.record.value),
+        msg.committableOffset
+    )
+  )
+  .via(Producer.flexiFlow(producerSettings))
+  .map(_.passThrough)
+  .batch(max = 20, CommittableOffsetBatch.apply)(_.updated(_))
+  .mapAsync(3)(_.commitScaladsl())
+  .toMat(Sink.ignore)(Keep.both)
+  .mapMaterializedValue(DrainingControl.apply)
+  .run()</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-java">Source&lt;ConsumerMessage.CommittableOffset, Consumer.Control&gt; source =
+  Consumer.committableSource(consumerSettings, Subscriptions.topics(&quot;topic1&quot;))
+  .map(msg -&gt; {
+      ProducerMessage.Envelope&lt;String, byte[], ConsumerMessage.CommittableOffset&gt; prodMsg =
+          new ProducerMessage.Message&lt;&gt;(
+              new ProducerRecord&lt;&gt;(&quot;topic2&quot;, msg.record().value()),
+              msg.committableOffset()
+          );
+      return prodMsg;
+  })
+  .via(Producer.flexiFlow(producerSettings))
+  .map(result -&gt; result.passThrough());
+
+source
+    .batch(
+      20,
+      ConsumerMessage::createCommittableOffsetBatch,
+      ConsumerMessage.CommittableOffsetBatch::updated
+    )
+    .mapAsync(3, c -&gt; c.commitJavadsl())
+    .runWith(Sink.ignore(), materializer);</code></pre></dd>
+</dl><div class="callout note "><div class="callout-title">Note</div>
+<p>There is a risk that something fails after publishing, but before committing, so <code>commitableSink</code> has &ldquo;at-least-once&rdquo; delivery semantics.</p>
+<p>To get delivery guarantees, please read about <a href="transactions.html">transactions</a>.</p></div>
+<h2><a href="#source-per-partition" name="source-per-partition" class="anchor"><span class="anchor-link"></span></a>Source per partition</h2>
+<p><code>Consumer.plainPartitionedSource</code> (<span class="group-scala"><a href="https://doc.akka.io/api/akka-stream-kafka/0.21/akka/kafka/scaladsl/Consumer$.html">Consumer API</a></span><span class="group-java"><a href="https://doc.akka.io/api/akka-stream-kafka/0.21/akka/kafka/javadsl/Consumer$.html">Consumer API</a></span>) and <code>Consumer.committablePartitionedSource</code> support tracking the automatic partition assignment from Kafka. When a topic-partition is assigned to a consumer, this source will emit a tuple with the assigned topic-partition and a corresponding source. When a topic-partition is revoked, the corresponding source completes.</p>
+<p>Backpressure per partition with batch commit:</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-scala">val control = Consumer
+  .committablePartitionedSource(consumerSettings, Subscriptions.topics(&quot;topic1&quot;))
+  .flatMapMerge(maxPartitions, _._2)
+  .via(business)
+  .map(_.committableOffset)
+  .batch(max = 100, CommittableOffsetBatch.apply)(_.updated(_))
+  .mapAsync(3)(_.commitScaladsl())
+  .to(Sink.ignore)
+  .run()</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-java">Consumer.DrainingControl&lt;Done&gt; control =
+    Consumer
+        .committablePartitionedSource(consumerSettings, Subscriptions.topics(&quot;topic1&quot;))
+        .flatMapMerge(maxPartitions, Pair::second)
+        .via(business())
+        .map(msg -&gt; msg.committableOffset())
+        .batch(
+            100,
+            ConsumerMessage::createCommittableOffsetBatch,
+            ConsumerMessage.CommittableOffsetBatch::updated
+        )
+        .mapAsync(3, offsets -&gt; offsets.commitJavadsl())
+        .toMat(Sink.ignore(), Keep.both())
+        .mapMaterializedValue(Consumer::createDrainingControl)
+        .run(materializer);</code></pre></dd>
+</dl>
+<p>Separate streams per partition:</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-scala">val control = Consumer
+  .committablePartitionedSource(consumerSettings, Subscriptions.topics(&quot;topic1&quot;))
+  .map {
+    case (topicPartition, source) =&gt;
+      source
+        .via(business)
+        .mapAsync(1)(_.committableOffset.commitScaladsl())
+        .runWith(Sink.ignore)
+  }
+  .mapAsyncUnordered(maxPartitions)(identity)
+  .to(Sink.ignore)
+  .run()</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-java">Consumer.DrainingControl&lt;Done&gt; control =
+    Consumer
+        .committablePartitionedSource(consumerSettings, Subscriptions.topics(&quot;topic1&quot;))
+        .map(pair -&gt; {
+            Source&lt;ConsumerMessage.CommittableMessage&lt;String, byte[]&gt;, NotUsed&gt; source = pair.second();
+            return source
+                .via(business())
+                .mapAsync(1, message -&gt; message.committableOffset().commitJavadsl())
+                .runWith(Sink.ignore(), materializer);
+        })
+        .mapAsyncUnordered(maxPartitions, completion -&gt; completion)
+        .toMat(Sink.ignore(), Keep.both())
+        .mapMaterializedValue(Consumer::createDrainingControl)
+        .run(materializer);</code></pre></dd>
+</dl>
+<p>Join flows based on automatically assigned partitions:</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-scala">type Msg = CommittableMessage[String, Array[Byte]]
+
+def zipper(left: Source[Msg, _], right: Source[Msg, _]): Source[(Msg, Msg), NotUsed] = ???
+
+Consumer
+  .committablePartitionedSource(consumerSettings, Subscriptions.topics(&quot;topic1&quot;))
+  .map {
+    case (topicPartition, source) =&gt;
+      // get corresponding partition from other topic
+      val otherTopicPartition = new TopicPartition(&quot;otherTopic&quot;, topicPartition.partition())
+      val otherSource = Consumer.committableSource(consumerSettings, Subscriptions.assignment(otherTopicPartition))
+      zipper(source, otherSource)
+  }
+  .flatMapMerge(maxPartitions, identity)
+  .via(business)
+  //build commit offsets
+  .batch(
+    max = 20,
+    seed = {
+      case (left, right) =&gt;
+        (
+          CommittableOffsetBatch(left.committableOffset),
+          CommittableOffsetBatch(right.committableOffset)
+        )
+    }
+  )(
+    aggregate = {
+      case ((batchL, batchR), (l, r)) =&gt;
+        batchL.updated(l.committableOffset)
+        batchR.updated(r.committableOffset)
+        (batchL, batchR)
+    }
+  )
+  .mapAsync(1) { case (l, r) =&gt; l.commitScaladsl().map(_ =&gt; r) }
+  .mapAsync(1)(_.commitScaladsl())
+  .runWith(Sink.ignore)</code></pre></dd>
+</dl>
+<h2><a href="#sharing-the-kafkaconsumer-instance" name="sharing-the-kafkaconsumer-instance" class="anchor"><span class="anchor-link"></span></a>Sharing the KafkaConsumer instance</h2>
+<p>If you have many streams it can be more efficient to share the underlying <code>KafkaConsumer</code> (<a href="https://kafka.apache.org/10/javadoc/?org/apache/kafka/clients/consumer/KafkaConsumer.html">Kafka API</a>) instance. It is shared by creating a <code>KafkaConsumerActor</code> (<a href="https://doc.akka.io/api/akka-stream-kafka/0.21/akka/kafka/KafkaConsumerActor$.html">API</a>). You need to create the actor and stop it by sending <code>KafkaConsumerActor.Stop</code> when it is not needed any longer. You pass the <code>ActorRef</code> as a parameter to the <code>Consumer</code> (<span class="group-scala"><a href="https://doc.akka.io/api/akka-stream-kafka/0.21/akka/kafka/scaladsl/Consumer$.html">Consumer API</a></span><span class="group-java"><a href="https://doc.akka.io/api/akka-stream-kafka/0.21/akka/kafka/javadsl/Consumer$.html">Consumer API</a></span>)  factory methods.</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-scala">//Consumer is represented by actor
+val consumer: ActorRef = system.actorOf(KafkaConsumerActor.props(consumerSettings))
+
+//Manually assign topic partition to it
+val controlPartition1 = Consumer
+  .plainExternalSource[String, Array[Byte]](
+    consumer,
+    Subscriptions.assignment(new TopicPartition(&quot;topic1&quot;, 1))
+  )
+  .via(business)
+  .to(Sink.ignore)
+  .run()
+
+//Manually assign another topic partition
+val controlPartition2 = Consumer
+  .plainExternalSource[String, Array[Byte]](
+    consumer,
+    Subscriptions.assignment(new TopicPartition(&quot;topic1&quot;, 2))
+  )
+  .via(business)
+  .to(Sink.ignore)
+  .run()
+
+consumer ! KafkaConsumerActor.Stop</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-java">//Consumer is represented by actor
+ActorRef consumer = system.actorOf((KafkaConsumerActor.props(consumerSettings)));
+
+//Manually assign topic partition to it
+Consumer.Control controlPartition1 = Consumer
+    .plainExternalSource(
+        consumer,
+        Subscriptions.assignment(new TopicPartition(&quot;topic1&quot;, 1))
+    )
+    .via(business())
+    .to(Sink.ignore())
+    .run(materializer);
+
+//Manually assign another topic partition
+Consumer.Control controlPartition2 = Consumer
+    .plainExternalSource(
+        consumer,
+        Subscriptions.assignment(new TopicPartition(&quot;topic1&quot;, 2))
+    )
+    .via(business())
+    .to(Sink.ignore())
+    .run(materializer);
+
+consumer.tell(KafkaConsumerActor.stop(), self);</code></pre></dd>
+</dl>
+<h2><a href="#accessing-kafkaconsumer-metrics" name="accessing-kafkaconsumer-metrics" class="anchor"><span class="anchor-link"></span></a>Accessing KafkaConsumer metrics</h2>
+<p>You can access the underlying consumer metrics via the materialized <code>Control</code> instance: </p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-scala">val control: Consumer.Control = Consumer
+  .plainSource(consumerSettings, Subscriptions.assignment(new TopicPartition(&quot;topic1&quot;, 1)))
+  .via(business)
+  .to(Sink.ignore)
+  .run()
+
+val metrics: Future[Map[MetricName, Metric]] = control.metrics
+metrics.foreach(map =&gt; println(s&quot;metrics: ${map}&quot;))</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-java">// run the stream to obtain the materialized Control value
+Consumer.Control control = Consumer
+    .plainSource(consumerSettings, Subscriptions.assignment(new TopicPartition(&quot;topic1&quot;, 2)))
+    .via(business())
+    .to(Sink.ignore())
+    .run(materializer);
+
+CompletionStage&lt;Map&lt;MetricName, Metric&gt;&gt; metrics = control.getMetrics();
+metrics.thenAccept(map -&gt; System.out.println(&quot;Metrics: &quot; + map));</code></pre></dd>
+</dl>
+<h2><a href="#accessing-kafkaconsumer-metadata" name="accessing-kafkaconsumer-metadata" class="anchor"><span class="anchor-link"></span></a>Accessing KafkaConsumer metadata</h2>
+<p>Accessing of Kafka consumer metadata is possible as described in <a href="consumer-metadata.html">Consumer Metadata</a>.</p>
+<h2><a href="#listening-for-rebalance-events" name="listening-for-rebalance-events" class="anchor"><span class="anchor-link"></span></a>Listening for rebalance events</h2>
+<p>You may set up an rebalance event listener actor that will be notified when your consumer will be assigned or revoked from consuming from specific topic partitions. Two kinds of messages will be sent to this listener actor </p>
+<ul>
+  <li><code>akka.kafka.TopicPartitionsAssigned</code> and</li>
+  <li><code>akka.kafka.TopicPartitionsRevoked</code>, like this:</li>
+</ul>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-scala">import akka.kafka.TopicPartitionsAssigned
+import akka.kafka.TopicPartitionsRevoked
+
+class RebalanceListener extends Actor with ActorLogging {
+  def receive: Receive = {
+    case TopicPartitionsAssigned(sub, assigned) ⇒
+      log.info(&quot;Assigned: {}&quot;, assigned)
+
+    case TopicPartitionsRevoked(sub, revoked) ⇒
+      log.info(&quot;Revoked: {}&quot;, revoked)
+  }
+}
+
+  val rebalanceListener = system.actorOf(Props[RebalanceListener])
+
+  val subscription = Subscriptions
+    .topics(Set(&quot;topic&quot;))
+    // additionally, pass the actor reference:
+    .withRebalanceListener(rebalanceListener)
+
+  // use the subscription as usual:
+  Consumer
+    .plainSource(consumerSettings, subscription)</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-java">class RebalanceListener extends AbstractLoggingActor {
+
+  @Override
+  public Receive createReceive() {
+    return receiveBuilder()
+        .match(akka.kafka.TopicPartitionsAssigned.class, assigned -&gt; {
+          log().info(&quot;Assigned: {}&quot;, assigned);
+        })
+        .match(akka.kafka.TopicPartitionsRevoked.class, revoked -&gt; {
+          log().info(&quot;Revoked: {}&quot;, revoked);
+        })
+        .build();
+  }
+}
+
+  ActorRef rebalanceListener = this.system.actorOf(Props.create(RebalanceListener.class));
+
+  Subscription subscription = Subscriptions.topics(&quot;topic&quot;)
+      // additionally, pass the actor reference:
+      .withRebalanceListener(rebalanceListener);
+
+  // use the subscription as usual:
+  Consumer
+    .plainSource(consumerSettings, subscription);</code></pre></dd>
+</dl>
+<h2><a href="#controlled-shutdown" name="controlled-shutdown" class="anchor"><span class="anchor-link"></span></a>Controlled shutdown</h2>
+<p>The <code>Source</code> created with <code>Consumer.plainSource</code> and similar methods materializes to a <code>Consumer.Control</code> (<span class="group-scala"><a href="https://doc.akka.io/api/akka-stream-kafka/0.21/akka/kafka/scaladsl/Consumer$$Control.html">API</a></span><span class="group-java"><a href="https://doc.akka.io/api/akka-stream-kafka/0.21/akka/kafka/javadsl/Consumer$$Control.html">API</a></span>) instance. This can be used to stop the stream in a controlled manner.</p>
+<p>When using external offset storage, a call to <code>Consumer.Control.shutdown()</code> suffices to complete the <code>Source</code>, which starts the completion of the stream.</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-scala">val (consumerControl, streamComplete) =
+  Consumer
+    .plainSource(consumerSettings,
+                 Subscriptions.assignmentWithOffset(
+                   new TopicPartition(&quot;topic1&quot;, 0) -&gt; offset
+                 ))
+    .mapAsync(1)(businessLogic)
+    .toMat(Sink.ignore)(Keep.both)
+    .run()
+
+consumerControl.shutdown()</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-java">final OffsetStorage db = new OffsetStorage();
+
+db.loadOffset().thenAccept(fromOffset -&gt; {
+  Consumer.Control control = Consumer
+      .plainSource(
+          consumerSettings,
+          Subscriptions.assignmentWithOffset(new TopicPartition(&quot;topic1&quot;, 0), fromOffset)
+      )
+      .mapAsync(10, record -&gt; {
+          return business(record.key(), record.value())
+              .thenApply(res -&gt; db.storeProcessedOffset(record.offset()));
+      })
+      .toMat(Sink.ignore(), Keep.left())
+      .run(materializer);
+
+  // Shutdown the consumer when desired
+  control.shutdown();
+});</code></pre></dd>
+</dl>
+<p>When you are using offset storage in Kafka, the shutdown process involves several steps:</p>
+<ol>
+  <li><code>Consumer.Control.stop()</code> to stop producing messages from the <code>Source</code>. This does not stop the underlying Kafka Consumer.</li>
+  <li>Wait for the stream to complete, so that a commit request has been made for all offsets of all processed messages (via <code>commitScaladsl()</code> or <code>commitJavadsl()</code>).</li>
+  <li><code>Consumer.Control.shutdown()</code> to wait for all outstanding commit requests to finish and stop the Kafka Consumer.</li>
+</ol>
+<p>To manage this shutdown process, use the <code>Consumer.DrainingControl</code> (<span class="group-scala"><a href="https://doc.akka.io/api/akka-stream-kafka/0.21/akka/kafka/scaladsl/Consumer$$DrainingControl.html">API</a></span><span class="group-java"><a href="https://doc.akka.io/api/akka-stream-kafka/0.21/akka/kafka/javadsl/Consumer$$DrainingControl.html">API</a></span>) by combining the <code>Consumer.Control</code> with the sink&rsquo;s materialized completion future in <code>mapMaterializedValue&#39;. That control offers the method</code>drainAndShutdown` which implements the process descibed above. It is recommended to use the same shutdown mechanism also when not using batching to avoid potential race conditions, depending on the exact layout of the stream.</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-scala">val drainingControl =
+  Consumer
+    .committableSource(consumerSettings, Subscriptions.topics(&quot;topic1&quot;))
+    .mapAsync(1) { msg =&gt;
+      businessLogic(msg.record).map(_ =&gt; msg.committableOffset)
+    }
+    .batch(max = 20, first =&gt; CommittableOffsetBatch(first)) { (batch, elem) =&gt;
+      batch.updated(elem)
+    }
+    .mapAsync(3)(_.commitScaladsl())
+    .toMat(Sink.ignore)(Keep.both)
+    .mapMaterializedValue(DrainingControl.apply)
+    .run()
+
+val streamComplete = drainingControl.drainAndShutdown()
+</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-java">final Executor ec = Executors.newCachedThreadPool();
+
+Consumer.DrainingControl&lt;Done&gt; control =
+    Consumer.committableSource(consumerSettings, Subscriptions.topics(&quot;topic1&quot;))
+        .mapAsync(1, msg -&gt;
+            business(msg.record().key(), msg.record().value()).thenApply(done -&gt; msg.committableOffset()))
+        .batch(20,
+            first -&gt; ConsumerMessage.createCommittableOffsetBatch(first),
+            (batch, elem) -&gt; batch.updated(elem)
+        )
+        .mapAsync(3, c -&gt; c.commitJavadsl())
+        .toMat(Sink.ignore(), Keep.both())
+        .mapMaterializedValue(Consumer::createDrainingControl)
+        .run(materializer);
+
+control.drainAndShutdown(ec);</code></pre></dd>
+</dl>
+<div class="source-github">
+The source code for this page can be found <a href="https://github.com/akka/reactive-kafka/tree/master/docs/src/main/paradox/consumer.md">here</a>.
+</div>
+
+<div class="nav-next">
+<p><strong>Next:</strong> <a href="consumer-metadata.html">Consumer Metadata</a></p>
+</div>
+</div>
+<div class="large-3 show-for-large column" data-sticky-container>
+<nav class="sidebar sticky" data-sticky data-anchor="docs" data-sticky-on="large">
+<div class="page-nav">
+<div class="nav-title">On this page:</div>
+<div class="nav-toc">
+<ul>
+  <li><a href="consumer.html#consumer" class="header">Consumer</a>
+  <ul>
+    <li><a href="consumer.html#settings" class="header">Settings</a></li>
+    <li><a href="consumer.html#offset-storage-external-to-kafka" class="header">Offset Storage external to Kafka</a></li>
+    <li><a href="consumer.html#offset-storage-in-kafka-committing" class="header">Offset Storage in Kafka - committing</a></li>
+    <li><a href="consumer.html#connecting-producer-and-consumer" class="header">Connecting Producer and Consumer</a></li>
+    <li><a href="consumer.html#source-per-partition" class="header">Source per partition</a></li>
+    <li><a href="consumer.html#sharing-the-kafkaconsumer-instance" class="header">Sharing the KafkaConsumer instance</a></li>
+    <li><a href="consumer.html#accessing-kafkaconsumer-metrics" class="header">Accessing KafkaConsumer metrics</a></li>
+    <li><a href="consumer.html#accessing-kafkaconsumer-metadata" class="header">Accessing KafkaConsumer metadata</a></li>
+    <li><a href="consumer.html#listening-for-rebalance-events" class="header">Listening for rebalance events</a></li>
+    <li><a href="consumer.html#controlled-shutdown" class="header">Controlled shutdown</a></li>
+  </ul></li>
+</ul>
+</div>
+</div>
+</nav>
+</div>
+</div>
+
+</section>
+</div>
+
+</div>
+
+<footer class="site-footer">
+
+<section class="site-footer-nav">
+<div class="expanded row">
+<div class="small-12 large-offset-2 large-10 column">
+<div class="row site-footer-content">
+
+<div class="small-12 medium-4 large-3 text-center column">
+<div class="nav-links">
+<ul>
+<!-- <li><a href="https://www.example.com/products/">Products</a> -->
+</ul>
+</div>
+</div>
+
+</div>
+</div>
+</div>
+</section>
+
+<section class="site-footer-base">
+<div class="expanded row">
+<div class="small-12 large-offset-2 large-10 column">
+<div class="row site-footer-content">
+
+<div class="small-12 text-center large-9 column">
+
+<!--
+<div class="copyright">
+<span class="text">&copy; 2018</span>
+<a href="https://www.example.com" class="logo">logo</a>
+</div>
+-->
+</div>
+
+</div>
+</div>
+</div>
+</section>
+</footer>
+
+</div>
+</div>
+</div>
+</body>
+
+<script type="text/javascript" src="lib/foundation/dist/foundation.min.js"></script>
+<script type="text/javascript">jQuery(document).foundation();</script>
+<script type="text/javascript" src="js/magellan.js"></script>
+
+<style type="text/css">@import "lib/prettify/prettify.css";</style>
+<script type="text/javascript" src="lib/prettify/prettify.js"></script>
+<script type="text/javascript" src="lib/prettify/lang-scala.js"></script>
+<script type="text/javascript">jQuery(function(){window.prettyPrint && prettyPrint()});</script>
+
+</html>

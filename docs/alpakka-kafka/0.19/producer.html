@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html class="no-js" lang="en">
+
+<head>
+<title>Producer · Akka Streams Kafka</title>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta name="description" content="Alpakka is a Reactive Enterprise Integration library for Java and Scala, based on Reactive Streams and Akka."/><link rel="canonical" href="https://doc.akka.io/docs/alpakka-kafka/current/producer.html"/>
+<link href="https://fonts.googleapis.com/css?family=Roboto:100normal,100italic,300normal,300italic,400normal,400italic,500normal,500italic,700normal,700italic,900normal,900italicc" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="lib/jquery/jquery.min.js"></script>
+<script type="text/javascript" src="js/page.js"></script>
+<link rel="stylesheet" type="text/css" href="lib/normalize.css/normalize.css"/>
+<link rel="stylesheet" type="text/css" href="lib/foundation/dist/foundation.min.css"/>
+<link rel="stylesheet" type="text/css" href="css/page.css"/>
+
+<!--
+<link rel="shortcut icon" href="images/favicon.ico" />
+-->
+</head>
+
+<body>
+<div class="off-canvas-wrapper">
+<div class="off-canvas-wrapper-inner" data-off-canvas-wrapper>
+
+<div class="off-canvas position-left" id="off-canvas-menu" data-off-canvas>
+<nav class="off-canvas-nav">
+<div class="nav-home">
+<a href="home.html" >
+<span class="home-icon">⌂</span>Akka Streams Kafka
+</a>
+<div class="version-number">
+0.19
+</div>
+</div>
+<div class="nav-toc">
+<ul>
+  <li><a href="producer.html" class="active">Producer</a></li>
+  <li><a href="consumer.html">Consumer</a></li>
+  <li><a href="errorhandling.html">Error handling</a></li>
+  <li><a href="atleastonce.html">At-Least-Once Delivery</a></li>
+</ul>
+</div>
+
+</nav>
+</div>
+
+<div class="off-canvas-content" data-off-canvas-content>
+
+<header class="site-header expanded row">
+<div class="small-12 column">
+<a href="#" class="off-canvas-toggle hide-for-medium" data-toggle="off-canvas-menu"><svg class="svg-icon svg-icon-menu" version="1.1" id="Menu" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 20 20" enable-background="new 0 0 20 20" xml:space="preserve"> <path class="svg-icon-menu-path" fill="#53CDEC" d="M16.4,9H3.6C3.048,9,3,9.447,3,10c0,0.553,0.048,1,0.6,1H16.4c0.552,0,0.6-0.447,0.6-1C17,9.447,16.952,9,16.4,9z M16.4,13
+H3.6C3.048,13,3,13.447,3,14c0,0.553,0.048,1,0.6,1H16.4c0.552,0,0.6-0.447,0.6-1C17,13.447,16.952,13,16.4,13z M3.6,7H16.4
+C16.952,7,17,6.553,17,6c0-0.553-0.048-1-0.6-1H3.6C3.048,5,3,5.447,3,6C3,6.553,3.048,7,3.6,7z"/></svg>
+</a>
+<div class="title"><a href="home.html" class="logo" style="margin-top: 15px;"><svg class="svg-icon svg-icon-logo" style="height: 45px; width: 184px;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1070 262"><title>akka-stream-kafka</title><g id="akka-stream-kafka" class="svg-icon-logo-text" fill="#fff"><path d="M349.6 105.5v-12.2h19.9v58.4c0 7.1 1.7 9.8 6.1 9.8 1.2 0 2.7-.2 4.1-.3v16.1c-2.2.8-5.5 1.3-9.8 1.3-4.8 0-8.6-.8-11.6-2.7-3.7-2.5-6-5.8-6.8-10.1-5.8 8.8-15.4 13.1-28.7 13.1-11.8 0-21.7-4.1-29.9-12.6-8-8.5-12-18.8-12-31.2s4-22.7 12-31c8.1-8.5 18.1-12.6 29.9-12.6 13.6 0 23.7 6 26.8 14zm-5.9 47.9c5-4.8 7.5-11 7.5-18.3s-2.5-13.4-7.5-18.3c-4.8-4.8-11-7.3-18.1-7.3-7.1 0-12.9 2.5-17.8 7.3-4.6 4.8-7 11-7 18.3s2.3 13.4 7 18.3c4.8 4.8 10.6 7.3 17.8 7.3 7.1 0 13.3-2.5 18.1-7.3zM388.5 177v-115.7h19.8v67.6l30.9-35.5h22.8l-32.7 37.4 36.2 46.3h-22.6l-26.4-33.7-8.3 9.3v24.3h-19.7zM470.8 177v-115.7h19.8v67.6l30.9-35.5h22.9l-32.7 37.4 36.2 46.3h-22.6l-26.4-33.7-8.3 9.3v24.3h-19.8zM607.9 105.5v-12.2h19.9v58.4c0 7.1 1.7 9.8 6.1 9.8 1.2 0 2.7-.2 4.1-.3v16.1c-2.2.8-5.5 1.3-9.8 1.3-4.8 0-8.6-.8-11.6-2.7-3.7-2.5-6-5.8-6.8-10.1-5.8 8.8-15.4 13.1-28.7 13.1-11.8 0-21.7-4.1-29.9-12.6-8-8.5-12-18.8-12-31.2s4-22.7 12-31c8.1-8.5 18.1-12.6 29.9-12.6 13.5 0 23.6 6 26.8 14zm-6 47.9c5-4.8 7.5-11 7.5-18.3s-2.5-13.4-7.5-18.3c-4.8-4.8-11-7.3-18.1-7.3-7.1 0-12.9 2.5-17.8 7.3-4.6 4.8-7 11-7 18.3s2.3 13.4 7 18.3c4.8 4.8 10.6 7.3 17.8 7.3 7.1 0 13.3-2.5 18.1-7.3z"/></g><path fill="#0B5567" d="M230.3 212.8c35.9 28.7 58.9-57 1.7-72.8-48-13.3-96.3 9.5-144.7 62.7 0 0 89.4-32.7 143 10.1z"/><path fill="#15A9CE" d="M88.1 202c34.4-35.7 91.6-75.5 144.9-60.8 12.4 3.5 21.2 10.7 26.9 19.3l-50.4-101.7c-7.2-11.5-25.6-9.1-36-.3l-133.2 111.6c-12.1 10.4-12.8 28.9-1.6 40.1 9.9 9.9 25.6 10.8 36.5 2l12.9-10.2z"/></g></svg>
+</a></div>
+
+<!--
+<a href="https://www.example.com" class="logo show-for-medium">logo</a>
+-->
+</div>
+</header>
+
+<div class="expanded row">
+
+<div class="medium-3 large-2 show-for-medium column">
+<nav class="site-nav">
+<div class="nav-home">
+<a href="home.html" >
+<span class="home-icon">⌂</span>Akka Streams Kafka
+</a>
+<div class="version-number">
+0.19
+</div>
+</div>
+<div class="nav-toc">
+<ul>
+  <li><a href="producer.html" class="active">Producer</a></li>
+  <li><a href="consumer.html">Consumer</a></li>
+  <li><a href="errorhandling.html">Error handling</a></li>
+  <li><a href="atleastonce.html">At-Least-Once Delivery</a></li>
+</ul>
+</div>
+
+</nav>
+</div>
+
+<div class="small-12 medium-9 large-10 column">
+<section class="site-content">
+
+<div class="page-header row">
+<div class="medium-12 show-for-medium column">
+<div class="nav-breadcrumbs">
+<ul>
+  <li><a href="home.html">Akka Streams Kafka</a></li>
+  <li>Producer</li>
+</ul>
+</div>
+</div>
+</div>
+
+<div class="page-content row">
+<div class="small-12 large-9 column" id="docs">
+<h1><a href="#producer" name="producer" class="anchor"><span class="anchor-link"></span></a>Producer</h1>
+<p>A producer publishes messages to Kafka topics. The message itself contains information about what topic and partition to publish to so you can publish to different topics with the same producer.</p>
+<p>The underlying implementation is using the <code>KafkaProducer</code>, see <a href="http://kafka.apache.org/0100/javadoc/index.html?org/apache/kafka/clients/producer/KafkaProducer.html">Javadoc</a> for details.</p>
+<h2><a href="#settings" name="settings" class="anchor"><span class="anchor-link"></span></a>Settings</h2>
+<p>When creating a producer stream you need to pass in <code>ProducerSettings</code> that define things like:</p>
+<ul>
+  <li>bootstrap servers of the Kafka cluster</li>
+  <li>serializers for the keys and values</li>
+  <li>tuning parameters</li>
+</ul>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-scala">val producerSettings = ProducerSettings(system, new ByteArraySerializer, new StringSerializer)
+  .withBootstrapServers(&quot;localhost:9092&quot;)</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-java">protected final ProducerSettings&lt;byte[], String&gt; producerSettings = ProducerSettings
+  .create(system, new ByteArraySerializer(), new StringSerializer())
+  .withBootstrapServers(&quot;localhost:9092&quot;);</code></pre></dd>
+</dl>
+<p>In addition to programmatic construction of the <code>ProducerSettings</code> it can also be created from configuration (<code>application.conf</code>). By default when creating <code>ProducerSettings</code> with the <code>ActorSystem</code> parameter it uses the config section <code>akka.kafka.producer</code>.</p>
+<pre class="prettyprint"><code class="language-conf"># Properties for akka.kafka.ProducerSettings can be
+# defined in this section or a configuration section with
+# the same layout. 
+akka.kafka.producer {
+  # Tuning parameter of how many sends that can run in parallel.
+  parallelism = 100
+  
+  # How long to wait for `KafkaProducer.close`
+  close-timeout = 60s
+  
+  # Fully qualified config path which holds the dispatcher configuration
+  # to be used by the producer stages. Some blocking may occur.
+  # When this value is empty, the dispatcher configured for the stream
+  # will be used.
+  use-dispatcher = &quot;akka.kafka.default-dispatcher&quot;
+
+  # Properties defined by org.apache.kafka.clients.producer.ProducerConfig
+  # can be defined in this configuration section.
+  kafka-clients {
+  }
+}</code></pre>
+<p><code>ProducerSettings</code> can also be created from any other <code>Config</code> section with the same layout as above.</p>
+<p>See <a href="http://kafka.apache.org/0100/javadoc/index.html?org/apache/kafka/clients/producer/KafkaProducer.html">KafkaProducer Javadoc</a> and <a href="http://kafka.apache.org/0100/javadoc/index.html?org/apache/kafka/clients/producer/ProducerConfig.html">ProducerConfig Javadoc</a> for details.</p>
+<h2><a href="#producer-as-a-sink" name="producer-as-a-sink" class="anchor"><span class="anchor-link"></span></a>Producer as a Sink</h2>
+<p><code>Producer.plainSink</code> is the easiest way to publish messages. The sink consumes <code>ProducerRecord</code> elements which contains a topic name to which the record is being sent, an optional partition number, and an optional key and value.</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-scala">val done = Source(1 to 100)
+  .map(_.toString)
+  .map { elem =&gt;
+    new ProducerRecord[Array[Byte], String](&quot;topic1&quot;, elem)
+  }
+  .runWith(Producer.plainSink(producerSettings))</code></pre> The materialized value of the sink is a <code>Future[Done]</code> which is completed with <code>Done</code> when the stream completes or with exception if an error occurs.</dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-java">CompletionStage&lt;Done&gt; done =
+  Source.range(1, 100)
+    .map(n -&gt; n.toString()).map(elem -&gt; new ProducerRecord&lt;byte[], String&gt;(&quot;topic1&quot;, elem))
+    .runWith(Producer.plainSink(producerSettings), materializer);</code></pre> The materialized value of the sink is a <code>CompletionStage[Done]</code> which is completed with <code>Done</code> when the stream completes or with exception if an error occurs.</dd>
+</dl>
+<p>There is another variant of a producer sink named <code>Producer.commitableSink</code> that is useful when connecting a consumer to a producer and let the sink commit the offset back to the consumer when it has successfully published the message.</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-scala">Consumer.committableSource(consumerSettings, Subscriptions.topics(&quot;topic1&quot;))
+  .map { msg =&gt;
+    println(s&quot;topic1 -&gt; topic2: $msg&quot;)
+    ProducerMessage.Message(new ProducerRecord[Array[Byte], String](
+      &quot;topic2&quot;,
+      msg.record.value
+    ), msg.committableOffset)
+  }
+  .runWith(Producer.commitableSink(producerSettings))</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-java">Consumer.committableSource(consumerSettings, Subscriptions.topics(&quot;topic1&quot;))
+  .map(msg -&gt;
+    new ProducerMessage.Message&lt;byte[], String, ConsumerMessage.Committable&gt;(
+        new ProducerRecord&lt;&gt;(&quot;topic2&quot;, msg.record().value()), msg.committableOffset()))
+  .runWith(Producer.commitableSink(producerSettings), materializer);</code></pre></dd>
+</dl>
+<p>Note that there is a risk that something fails after publishing but before committing, so <code>commitableSink</code> has &ldquo;at-least once delivery&rdquo; semantics.</p>
+<h2><a href="#producer-as-a-flow" name="producer-as-a-flow" class="anchor"><span class="anchor-link"></span></a>Producer as a Flow</h2>
+<p>Sometimes there is a need for publishing messages in the middle of the stream processing, not as the last step, and then you can use <code>Producer.flow</code></p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-scala">val done = Source(1 to 100)
+  .map { n =&gt;
+    // val partition = math.abs(n) % 2
+    val partition = 0
+    ProducerMessage.Message(new ProducerRecord[Array[Byte], String](
+      &quot;topic1&quot;, partition, null, n.toString
+    ), n)
+  }
+  .via(Producer.flow(producerSettings))
+  .map { result =&gt;
+    val record = result.message.record
+    println(s&quot;${record.topic}/${record.partition} ${result.offset}: ${record.value}&quot; +
+      s&quot;(${result.message.passThrough})&quot;)
+    result
+  }
+  .runWith(Sink.ignore)</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-java">CompletionStage&lt;Done&gt; done =
+  Source.range(1, 100)
+    .map(n -&gt; {
+      //int partition = Math.abs(n) % 2;
+      int partition = 0;
+      String elem = String.valueOf(n);
+      return new ProducerMessage.Message&lt;byte[], String, Integer&gt;(
+        new ProducerRecord&lt;&gt;(&quot;topic1&quot;, partition, null, elem), n);
+    })
+    .via(Producer.flow(producerSettings))
+    .map(result -&gt; {
+      ProducerRecord&lt;byte[], String&gt; record = result.message().record();
+      System.out.println(record);
+      return result;
+    })
+    .runWith(Sink.ignore(), materializer);</code></pre></dd>
+</dl>
+<p>It is possible to pass through a message, which can for example be a <code>ConsumerMessage.CommittableOffset</code> or <code>ConsumerMessage.CommittableOffsetBatch</code> that can be committed later in the flow. Here is an example illustrating that:</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-scala">val done =
+  Consumer.committableSource(consumerSettings, Subscriptions.topics(&quot;topic1&quot;))
+    .map { msg =&gt;
+      println(s&quot;topic1 -&gt; topic2: $msg&quot;)
+      ProducerMessage.Message(new ProducerRecord[Array[Byte], String](
+        &quot;topic2&quot;,
+        msg.record.value
+      ), msg.committableOffset)
+    }
+    .via(Producer.flow(producerSettings))
+    .mapAsync(producerSettings.parallelism) { result =&gt;
+      result.message.passThrough.commitScaladsl()
+    }
+    .runWith(Sink.ignore)</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-java">Consumer.committableSource(consumerSettings, Subscriptions.topics(&quot;topic1&quot;))
+  .map(msg -&gt;
+    new ProducerMessage.Message&lt;byte[], String, ConsumerMessage.Committable&gt;(
+      new ProducerRecord&lt;&gt;(&quot;topic2&quot;, msg.record().value()), msg.committableOffset()))
+  .via(Producer.flow(producerSettings))
+  .mapAsync(producerSettings.parallelism(), result -&gt;
+    result.message().passThrough().commitJavadsl())
+  .runWith(Sink.ignore(), materializer);</code></pre></dd>
+</dl>
+<h2><a href="#sharing-kafkaproducer" name="sharing-kafkaproducer" class="anchor"><span class="anchor-link"></span></a>Sharing KafkaProducer</h2>
+<p>If you have many streams it can be more efficient to share the underlying <code>KafkaProducer</code>.</p>
+<p>You can create a <code>KafkaProducer</code> instance from <code>ProducerSettings</code>.</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-scala">val producerSettings = ProducerSettings(system, new ByteArraySerializer, new StringSerializer)
+  .withBootstrapServers(&quot;localhost:9092&quot;)
+val kafkaProducer = producerSettings.createKafkaProducer()</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-java">protected final ProducerSettings&lt;byte[], String&gt; producerSettings = ProducerSettings
+  .create(system, new ByteArraySerializer(), new StringSerializer())
+  .withBootstrapServers(&quot;localhost:9092&quot;);
+protected final KafkaProducer&lt;byte[], String&gt; kafkaProducer = producerSettings.createKafkaProducer();</code></pre></dd>
+</dl>
+<p>The <code>KafkaProducer</code> is passed as a parameter to the <code>Producer</code> factory methods.</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-scala">val done = Source(1 to 100)
+  .map(_.toString)
+  .map { elem =&gt;
+    new ProducerRecord[Array[Byte], String](&quot;topic1&quot;, elem)
+  }
+  .runWith(Producer.plainSink(producerSettings, kafkaProducer))</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-java">CompletionStage&lt;Done&gt; done =
+        Source.range(1, 100)
+                .map(n -&gt; n.toString()).map(elem -&gt; new ProducerRecord&lt;byte[], String&gt;(&quot;topic1&quot;, elem))
+                .runWith(Producer.plainSink(producerSettings, kafkaProducer), materializer);</code></pre></dd>
+</dl>
+<div class="source-github">
+The source code for this page can be found <a href="https://github.com/chbatey/reactive-kafka/tree/master/docs/src/main/paradox/producer.md">here</a>.
+</div>
+
+<div class="nav-next">
+<p><strong>Next:</strong> <a href="consumer.html">Consumer</a></p>
+</div>
+</div>
+<div class="large-3 show-for-large column" data-sticky-container>
+<nav class="sidebar sticky" data-sticky data-anchor="docs" data-sticky-on="large">
+<div class="page-nav">
+<div class="nav-title">On this page:</div>
+<div class="nav-toc">
+<ul>
+  <li><a href="producer.html#producer">Producer</a>
+  <ul>
+    <li><a href="producer.html#settings">Settings</a></li>
+    <li><a href="producer.html#producer-as-a-sink">Producer as a Sink</a></li>
+    <li><a href="producer.html#producer-as-a-flow">Producer as a Flow</a></li>
+    <li><a href="producer.html#sharing-kafkaproducer">Sharing KafkaProducer</a></li>
+  </ul></li>
+</ul>
+</div>
+</div>
+</nav>
+</div>
+</div>
+
+</section>
+</div>
+
+</div>
+
+<footer class="site-footer">
+
+<section class="site-footer-nav">
+<div class="expanded row">
+<div class="small-12 large-offset-2 large-10 column">
+<div class="row site-footer-content">
+
+<div class="small-12 medium-4 large-3 text-center column">
+<div class="nav-links">
+<ul>
+<!-- <li><a href="https://www.example.com/products/">Products</a> -->
+</ul>
+</div>
+</div>
+
+</div>
+</div>
+</div>
+</section>
+
+<section class="site-footer-base">
+<div class="expanded row">
+<div class="small-12 large-offset-2 large-10 column">
+<div class="row site-footer-content">
+
+<div class="small-12 text-center large-9 column">
+
+<!--
+<div class="copyright">
+<span class="text">&copy; 2018</span>
+<a href="https://www.example.com" class="logo">logo</a>
+</div>
+-->
+</div>
+
+</div>
+</div>
+</div>
+</section>
+</footer>
+
+</div>
+</div>
+</div>
+</body>
+
+<script type="text/javascript" src="lib/foundation/dist/foundation.min.js"></script>
+<script type="text/javascript">jQuery(document).foundation();</script>
+<script type="text/javascript" src="js/magellan.js"></script>
+
+<style type="text/css">@import "lib/prettify/prettify.css";</style>
+<script type="text/javascript" src="lib/prettify/prettify.js"></script>
+<script type="text/javascript" src="lib/prettify/lang-scala.js"></script>
+<script type="text/javascript">jQuery(function(){window.prettyPrint && prettyPrint()});</script>
+
+</html>

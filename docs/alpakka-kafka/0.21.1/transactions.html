@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html class="no-js" lang="en">
+
+<head>
+<title>Transactions · Alpakka Kafka connector</title>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta name="description" content="Alpakka is a Reactive Enterprise Integration library for Java and Scala, based on Reactive Streams and Akka."/><link rel="canonical" href="https://doc.akka.io/docs/alpakka-kafka/current/transactions.html"/>
+<link href="https://fonts.googleapis.com/css?family=Roboto:100normal,100italic,300normal,300italic,400normal,400italic,500normal,500italic,700normal,700italic,900normal,900italicc" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="lib/jquery/jquery.min.js"></script>
+<script type="text/javascript" src="js/page.js"></script>
+<script type="text/javascript" src="js/groups.js"></script>
+<link rel="stylesheet" type="text/css" href="lib/normalize.css/normalize.css"/>
+<link rel="stylesheet" type="text/css" href="lib/foundation/dist/foundation.min.css"/>
+<link rel="stylesheet" type="text/css" href="css/page.css"/>
+
+<!--
+<link rel="shortcut icon" href="images/favicon.ico" />
+-->
+</head>
+
+<body>
+<div class="off-canvas-wrapper">
+<div class="off-canvas-wrapper-inner" data-off-canvas-wrapper>
+
+<div class="off-canvas position-left" id="off-canvas-menu" data-off-canvas>
+<nav class="off-canvas-nav">
+<div class="nav-home">
+<a href="home.html" >
+<span class="home-icon">⌂</span>Alpakka Kafka connector
+</a>
+<div class="version-number">
+0.21.1
+</div>
+</div>
+<select class="supergroup" name="Language"><option class="group" value="group-java">Java</option><option class="group" value="group-scala">Scala</option></select>
+<div class="nav-toc">
+<ul>
+  <li><a href="producer.html" class="page">Producer</a></li>
+  <li><a href="consumer.html" class="page">Consumer</a></li>
+  <li><a href="consumer-metadata.html" class="page">Consumer Metadata</a></li>
+  <li><a href="errorhandling.html" class="page">Error handling</a></li>
+  <li><a href="atleastonce.html" class="page">At-Least-Once Delivery</a></li>
+  <li><a href="transactions.html" class="active page">Transactions</a></li>
+  <li><a href="snapshots.html" class="page">Snapshots</a></li>
+</ul>
+</div>
+
+</nav>
+</div>
+
+<div class="off-canvas-content" data-off-canvas-content>
+
+<header class="site-header expanded row">
+<div class="small-12 column">
+<a href="#" class="off-canvas-toggle hide-for-medium" data-toggle="off-canvas-menu"><svg class="svg-icon svg-icon-menu" version="1.1" id="Menu" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 20 20" enable-background="new 0 0 20 20" xml:space="preserve"> <path class="svg-icon-menu-path" fill="#53CDEC" d="M16.4,9H3.6C3.048,9,3,9.447,3,10c0,0.553,0.048,1,0.6,1H16.4c0.552,0,0.6-0.447,0.6-1C17,9.447,16.952,9,16.4,9z M16.4,13
+H3.6C3.048,13,3,13.447,3,14c0,0.553,0.048,1,0.6,1H16.4c0.552,0,0.6-0.447,0.6-1C17,13.447,16.952,13,16.4,13z M3.6,7H16.4
+C16.952,7,17,6.553,17,6c0-0.553-0.048-1-0.6-1H3.6C3.048,5,3,5.447,3,6C3,6.553,3.048,7,3.6,7z"/></svg>
+</a>
+<div class="title"><a href="home.html" class="logo" style="margin-top: 15px;"><svg class="svg-icon svg-icon-logo" style="height: 45px; width: 184px;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1070 262"><title>akka-stream-kafka</title><g id="akka-stream-kafka" class="svg-icon-logo-text" fill="#fff"><path d="M349.6 105.5v-12.2h19.9v58.4c0 7.1 1.7 9.8 6.1 9.8 1.2 0 2.7-.2 4.1-.3v16.1c-2.2.8-5.5 1.3-9.8 1.3-4.8 0-8.6-.8-11.6-2.7-3.7-2.5-6-5.8-6.8-10.1-5.8 8.8-15.4 13.1-28.7 13.1-11.8 0-21.7-4.1-29.9-12.6-8-8.5-12-18.8-12-31.2s4-22.7 12-31c8.1-8.5 18.1-12.6 29.9-12.6 13.6 0 23.7 6 26.8 14zm-5.9 47.9c5-4.8 7.5-11 7.5-18.3s-2.5-13.4-7.5-18.3c-4.8-4.8-11-7.3-18.1-7.3-7.1 0-12.9 2.5-17.8 7.3-4.6 4.8-7 11-7 18.3s2.3 13.4 7 18.3c4.8 4.8 10.6 7.3 17.8 7.3 7.1 0 13.3-2.5 18.1-7.3zM388.5 177v-115.7h19.8v67.6l30.9-35.5h22.8l-32.7 37.4 36.2 46.3h-22.6l-26.4-33.7-8.3 9.3v24.3h-19.7zM470.8 177v-115.7h19.8v67.6l30.9-35.5h22.9l-32.7 37.4 36.2 46.3h-22.6l-26.4-33.7-8.3 9.3v24.3h-19.8zM607.9 105.5v-12.2h19.9v58.4c0 7.1 1.7 9.8 6.1 9.8 1.2 0 2.7-.2 4.1-.3v16.1c-2.2.8-5.5 1.3-9.8 1.3-4.8 0-8.6-.8-11.6-2.7-3.7-2.5-6-5.8-6.8-10.1-5.8 8.8-15.4 13.1-28.7 13.1-11.8 0-21.7-4.1-29.9-12.6-8-8.5-12-18.8-12-31.2s4-22.7 12-31c8.1-8.5 18.1-12.6 29.9-12.6 13.5 0 23.6 6 26.8 14zm-6 47.9c5-4.8 7.5-11 7.5-18.3s-2.5-13.4-7.5-18.3c-4.8-4.8-11-7.3-18.1-7.3-7.1 0-12.9 2.5-17.8 7.3-4.6 4.8-7 11-7 18.3s2.3 13.4 7 18.3c4.8 4.8 10.6 7.3 17.8 7.3 7.1 0 13.3-2.5 18.1-7.3z"/></g><path fill="#0B5567" d="M230.3 212.8c35.9 28.7 58.9-57 1.7-72.8-48-13.3-96.3 9.5-144.7 62.7 0 0 89.4-32.7 143 10.1z"/><path fill="#15A9CE" d="M88.1 202c34.4-35.7 91.6-75.5 144.9-60.8 12.4 3.5 21.2 10.7 26.9 19.3l-50.4-101.7c-7.2-11.5-25.6-9.1-36-.3l-133.2 111.6c-12.1 10.4-12.8 28.9-1.6 40.1 9.9 9.9 25.6 10.8 36.5 2l12.9-10.2z"/></g></svg>
+</a></div>
+
+<!--
+<a href="https://www.example.com" class="logo show-for-medium">logo</a>
+-->
+</div>
+</header>
+
+<div class="expanded row">
+
+<div class="medium-3 large-2 show-for-medium column">
+<nav class="site-nav">
+<div class="nav-home">
+<a href="home.html" >
+<span class="home-icon">⌂</span>Alpakka Kafka connector
+</a>
+<div class="version-number">
+0.21.1
+</div>
+</div>
+<select class="supergroup" name="Language"><option class="group" value="group-java">Java</option><option class="group" value="group-scala">Scala</option></select>
+<div class="nav-toc">
+<ul>
+  <li><a href="producer.html" class="page">Producer</a></li>
+  <li><a href="consumer.html" class="page">Consumer</a></li>
+  <li><a href="consumer-metadata.html" class="page">Consumer Metadata</a></li>
+  <li><a href="errorhandling.html" class="page">Error handling</a></li>
+  <li><a href="atleastonce.html" class="page">At-Least-Once Delivery</a></li>
+  <li><a href="transactions.html" class="active page">Transactions</a></li>
+  <li><a href="snapshots.html" class="page">Snapshots</a></li>
+</ul>
+</div>
+
+</nav>
+</div>
+
+<div class="small-12 medium-9 large-10 column">
+<section class="site-content">
+
+<div class="page-header row">
+<div class="medium-12 show-for-medium column">
+<div class="nav-breadcrumbs">
+<ul>
+  <li><a href="home.html">Alpakka Kafka connector</a></li>
+  <li>Transactions</li>
+</ul>
+</div>
+</div>
+</div>
+
+<div class="page-content row">
+<div class="small-12 large-9 column" id="docs">
+<h1><a href="#transactions" name="transactions" class="anchor"><span class="anchor-link"></span></a>Transactions</h1>
+<p>Kafka Transactions provide guarantees that messages processed in a consume-transform-produce workflow (consumed from a source topic, transformed, and produced to a destination topic) are processed exactly once or not at all. This is achieved through coordination between the Kafka consumer group coordinator, transaction coordinator, and the consumer and producer clients used in the user application. The Kafka producer marks messages that are consumed from the source topic as &ldquo;committed&rdquo; only once the transformed messages are successfully produced to the sink. </p>
+<p>For full details on how transactions are achieved in Kafka you may wish to review the Kafka Improvement Proposal <a href="https://cwiki.apache.org/confluence/display/KAFKA/KIP-98+-+Exactly+Once+Delivery+and+Transactional+Messaging">KIP-98: Exactly Once Delivery and Transactional Messaging</a> and its associated <a href="https://docs.google.com/document/d/11Jqy_GjUGtdXJK94XGsEIK7CP1SnQGdp2eF0wSw9ra8/edit#heading=h.xq0ee1vnpz4o">design document</a>. </p>
+<h2><a href="#transactional-source" name="transactional-source" class="anchor"><span class="anchor-link"></span></a>Transactional Source</h2>
+<p>The <code>Transactional.source</code> emits a <code>ConsumerMessage.TransactionalMessage</code> (<a href="https://doc.akka.io/api/akka-stream-kafka/0.21.1/akka/kafka/ConsumerMessage$$TransactionalMessage.html">API</a>) which contains topic, partition, and offset information required by the producer during the commit process. Unlike with <code>ConsumerMessage.CommittableMessage</code>, the user is not responsible for committing transactions, this is handled by <code>Transactional.flow</code> or <code>Transactional.sink</code>.</p>
+<p>This source overrides the Kafka consumer property <code>isolation.level</code> to <code>read_committed</code>, so that only committed messages can be consumed.</p>
+<p>A consumer group ID must be provided.</p>
+<p>Only use this source if you have the intention to connect it to <code>Transactional.flow</code> or <code>Transactional.sink</code>.</p>
+<h2><a href="#transactional-sink-and-flow" name="transactional-sink-and-flow" class="anchor"><span class="anchor-link"></span></a>Transactional Sink and Flow</h2>
+<p>The <code>Transactional.sink</code> is similar to the <code>Consumer.commitableSink</code> in that messages will be automatically committed as part of a transaction. The <code>Transactional.sink</code> or <code>Transactional.flow</code> are required when connecting a consumer to a producer to achieve a transactional workflow.</p>
+<p>They override producer properties <code>enable.idempotence</code> to <code>true</code> and <code>max.in.flight.requests.per.connection</code> to <code>1</code> as required by the Kafka producer to enable transactions.</p>
+<p>A <code>transactional.id</code> must be defined and unique for each instance of the application.</p>
+<h2><a href="#consume-transform-produce-workflow" name="consume-transform-produce-workflow" class="anchor"><span class="anchor-link"></span></a>Consume-Transform-Produce Workflow</h2>
+<p>Kafka transactions are handled transparently to the user. The <code>Transactional.source</code> will enforce that a consumer group id is specified and the <code>Transactional.flow</code> or <code>Transactional.sink</code> will enforce that a <code>transactional.id</code> is specified. All other Kafka consumer and producer properties required to enable transactions are overridden.</p>
+<p>Transactions are committed on an interval which can be controlled with the producer config <code>akka.kafka.producer.eos-commit-interval</code>, similar to how exactly once works with Kafka Streams. The default value is <code>100ms</code>. The larger commit interval is the more records will need to be reprocessed in the event of failure and the transaction is aborted.</p>
+<p>When the stream is materialized the producer will initialize the transaction for the provided <code>transactional.id</code> and a transaction will begin. Every commit interval (<code>eos-commit-interval</code>) we check if there are any offsets available to commit. If offsets exist then we suspend backpressured demand while we drain all outstanding messages that have not yet been successfully acknowledged (if any) and then commit the transaction. After the commit succeeds a new transaction is begun and we re-initialize demand for upstream messages.</p>
+<p>To gracefully shutdown the stream and commit the current transaction you must call <code>shutdown()</code> on the <code>Control</code> (<span class="group-scala"><a href="https://doc.akka.io/api/akka-stream-kafka/0.21.1/akka/kafka/scaladsl/Consumer$$Control.html">API</a></span><span class="group-java"><a href="https://doc.akka.io/api/akka-stream-kafka/0.21.1/akka/kafka/javadsl/Consumer$$Control.html">API</a></span>) materialized value to await all produced message acknowledgements and commit the final transaction. </p>
+<h3><a href="#simple-example" name="simple-example" class="anchor"><span class="anchor-link"></span></a>Simple Example</h3>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-scala">val control =
+  Transactional
+    .source(consumerSettings, Subscriptions.topics(&quot;source-topic&quot;))
+    .via(business)
+    .map { msg =&gt;
+      ProducerMessage.Message(new ProducerRecord[String, Array[Byte]](&quot;sink-topic&quot;, msg.record.value),
+                              msg.partitionOffset)
+    }
+    .to(Transactional.sink(producerSettings, &quot;transactional-id&quot;))
+    .run()
+
+// ...
+
+control.shutdown()</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-java">Consumer.Control control =
+    Transactional
+        .source(consumerSettings, Subscriptions.topics(&quot;source-topic&quot;))
+        .via(business())
+        .map(msg -&gt;
+                new ProducerMessage.Message&lt;String, byte[], ConsumerMessage.PartitionOffset&gt;(
+                        new ProducerRecord&lt;&gt;(&quot;sink-topic&quot;, msg.record().value()), msg.partitionOffset()))
+        .to(Transactional.sink(producerSettings, &quot;transactional-id&quot;))
+        .run(materializer);
+
+// ...
+
+control.shutdown();</code></pre></dd>
+</dl>
+<h3><a href="#recovery-from-failure" name="recovery-from-failure" class="anchor"><span class="anchor-link"></span></a>Recovery From Failure</h3>
+<p>When any stage in the stream fails the whole stream will be torn down. In the general case it&rsquo;s desirable to allow transient errors to fail the whole stream because they cannot be recovered from within the application. Transient errors can be caused by network partitions, Kafka broker failures, <code>ProducerFencedException</code>&rsquo;s from other application instances, and so on. When the stream encounters transient errors then the current transaction will be aborted before the stream is torn down. Any produced messages that were not committed will not be available to downstream consumers as long as those consumers are configured with <code>isolation.level = read_committed</code>.</p>
+<p>For transient errors we can choose to rely on the Kafka producer&rsquo;s configuration to retry, or we can handle it ourselves at the Akka Streams or Application layer. Using the <code>RestartSource</code> (<a href="https://doc.akka.io/docs/akka/2.5.13/stream/stream-error.html#delayed-restarts-with-a-backoff-stage">Akka docs</a>) we can backoff connection attempts so that we don&rsquo;t hammer the Kafka cluster in a tight loop.</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-scala">var innerControl: Control = null
+
+val stream = RestartSource.onFailuresWithBackoff(
+  minBackoff = 1.seconds,
+  maxBackoff = 30.seconds,
+  randomFactor = 0.2
+) { () =&gt;
+  Transactional
+    .source(consumerSettings, Subscriptions.topics(&quot;source-topic&quot;))
+    .via(business)
+    .map { msg =&gt;
+      ProducerMessage.Message(new ProducerRecord[String, Array[Byte]](&quot;sink-topic&quot;, msg.record.value),
+                              msg.partitionOffset)
+    }
+    // side effect out the `Control` materialized value because it can&#39;t be propagated through the `RestartSource`
+    .mapMaterializedValue(innerControl = _)
+    .via(Transactional.flow(producerSettings, &quot;transactional-id&quot;))
+}
+
+stream.runWith(Sink.ignore)
+
+// Add shutdown hook to respond to SIGTERM and gracefully shutdown stream
+sys.ShutdownHookThread {
+  Await.result(innerControl.shutdown(), 10.seconds)
+}</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-java">AtomicReference&lt;Consumer.Control&gt; innerControl = null;
+
+Source&lt;ProducerMessage.Results&lt;String, byte[], ConsumerMessage.PartitionOffset&gt;,NotUsed&gt; stream =
+    RestartSource.onFailuresWithBackoff(
+        java.time.Duration.of(3, ChronoUnit.SECONDS), // min backoff
+        java.time.Duration.of(30, ChronoUnit.SECONDS), // max backoff
+        0.2, // adds 20% &quot;noise&quot; to vary the intervals slightly
+        () -&gt; Transactional.source(consumerSettings, Subscriptions.topics(&quot;source-topic&quot;))
+            .via(business())
+            .map(msg -&gt;
+                new ProducerMessage.Message&lt;String, byte[], ConsumerMessage.PartitionOffset&gt;(
+                    new ProducerRecord&lt;&gt;(&quot;sink-topic&quot;, msg.record().value()), msg.partitionOffset()))
+            // side effect out the `Control` materialized value because it can&#39;t be propagated through the `RestartSource`
+            .mapMaterializedValue(control -&gt; {
+                innerControl.set(control);
+                return control;
+            })
+            .via(Transactional.flow(producerSettings, &quot;transactional-id&quot;)));
+
+stream.runWith(Sink.ignore(), materializer);
+
+// Add shutdown hook to respond to SIGTERM and gracefully shutdown stream
+Runtime.getRuntime().addShutdownHook(new Thread(() -&gt; innerControl.get().shutdown()));</code></pre></dd>
+</dl>
+<h2><a href="#caveats" name="caveats" class="anchor"><span class="anchor-link"></span></a>Caveats</h2>
+<p>There are several scenarios that this library&rsquo;s implementation of Kafka transactions does not automatically account for.</p>
+<p>All of the scenarios covered in the <a href="atleastonce.html">At-Least-Once Delivery documentation</a> (Multiple Effects per Commit, Non-Sequential Processing, and Conditional Message Processing) are applicable to transactional scenarios as well.</p>
+<p>Only one application instance per <code>transactional.id</code> is allowed. If two application instances with the same <code>transactional.id</code> are run at the same time then the instance that registers with Kafka&rsquo;s transaction coordinator second will throw a <code>ProducerFencedException</code> so it doesn&rsquo;t interfere with transactions in process by the first instance. To distribute multiple transactional workflows for the same subscription the user must manually subdivide the subscription across multiple instances of the application. This may be handled internally in future versions.</p>
+<p>Any state in the transformation logic is not part of a transaction. It&rsquo;s left to the user to rebuild state when applying stateful operations with transaction. It&rsquo;s possible to encode state into messages produced to topics during a transaction. For example you could produce messages to a topic that represents an event log as part of a transaction. This event log can be replayed to reconsititue the correct state before the stateful stream resumes consuming again at startup.</p>
+<p>Any side effects that occur in the transformation logic is not part of a transaction (i.e. writes to an database). </p>
+<h2><a href="#further-reading" name="further-reading" class="anchor"><span class="anchor-link"></span></a>Further Reading</h2>
+<p>For more information on exactly once and transactions in Kafka please consult the following resources.</p>
+<ul>
+  <li><a href="https://cwiki.apache.org/confluence/display/KAFKA/KIP-98+-+Exactly+Once+Delivery+and+Transactional+Messaging">KIP-98: Exactly Once Delivery and Transactional Messaging</a> (<a href="https://docs.google.com/document/d/11Jqy_GjUGtdXJK94XGsEIK7CP1SnQGdp2eF0wSw9ra8/edit#heading=h.xq0ee1vnpz4o">Design Document</a>)</li>
+  <li><a href="https://cwiki.apache.org/confluence/display/KAFKA/KIP-129%3A+Streams+Exactly-Once+Semantics">KIP-129: Streams Exactly-Once Semantics</a> (<a href="https://docs.google.com/document/d/1pGZ8xtOOyGwDYgH5vA6h19zOMMaduFK1DAB8_gBYA2c/edit#heading=h.vkrkjfth3p8p">Design Document</a>)</li>
+  <li><a href="http://bravenewgeek.com/you-cannot-have-exactly-once-delivery-redux/">You Cannot Have Exactly-Once Delivery Redux</a> by Tyler Treat</li>
+  <li><a href="https://www.confluent.io/blog/exactly-once-semantics-are-possible-heres-how-apache-kafka-does-it/">Exactly-once Semantics are Possible: Here’s How Kafka Does it</a></li>
+</ul>
+<div class="source-github">
+The source code for this page can be found <a href="https://github.com/akka/reactive-kafka/tree/master/docs/src/main/paradox/transactions.md">here</a>.
+</div>
+
+<div class="nav-next">
+<p><strong>Next:</strong> <a href="snapshots.html">Snapshots</a></p>
+</div>
+</div>
+<div class="large-3 show-for-large column" data-sticky-container>
+<nav class="sidebar sticky" data-sticky data-anchor="docs" data-sticky-on="large">
+<div class="page-nav">
+<div class="nav-title">On this page:</div>
+<div class="nav-toc">
+<ul>
+  <li><a href="transactions.html#transactions" class="header">Transactions</a>
+  <ul>
+    <li><a href="transactions.html#transactional-source" class="header">Transactional Source</a></li>
+    <li><a href="transactions.html#transactional-sink-and-flow" class="header">Transactional Sink and Flow</a></li>
+    <li><a href="transactions.html#consume-transform-produce-workflow" class="header">Consume-Transform-Produce Workflow</a>
+    <ul>
+      <li><a href="transactions.html#simple-example" class="header">Simple Example</a></li>
+      <li><a href="transactions.html#recovery-from-failure" class="header">Recovery From Failure</a></li>
+    </ul></li>
+    <li><a href="transactions.html#caveats" class="header">Caveats</a></li>
+    <li><a href="transactions.html#further-reading" class="header">Further Reading</a></li>
+  </ul></li>
+</ul>
+</div>
+</div>
+</nav>
+</div>
+</div>
+
+</section>
+</div>
+
+</div>
+
+<footer class="site-footer">
+
+<section class="site-footer-nav">
+<div class="expanded row">
+<div class="small-12 large-offset-2 large-10 column">
+<div class="row site-footer-content">
+
+<div class="small-12 medium-4 large-3 text-center column">
+<div class="nav-links">
+<ul>
+<!-- <li><a href="https://www.example.com/products/">Products</a> -->
+</ul>
+</div>
+</div>
+
+</div>
+</div>
+</div>
+</section>
+
+<section class="site-footer-base">
+<div class="expanded row">
+<div class="small-12 large-offset-2 large-10 column">
+<div class="row site-footer-content">
+
+<div class="small-12 text-center large-9 column">
+
+<!--
+<div class="copyright">
+<span class="text">&copy; 2018</span>
+<a href="https://www.example.com" class="logo">logo</a>
+</div>
+-->
+</div>
+
+</div>
+</div>
+</div>
+</section>
+</footer>
+
+</div>
+</div>
+</div>
+</body>
+
+<script type="text/javascript" src="lib/foundation/dist/foundation.min.js"></script>
+<script type="text/javascript">jQuery(document).foundation();</script>
+<script type="text/javascript" src="js/magellan.js"></script>
+
+<style type="text/css">@import "lib/prettify/prettify.css";</style>
+<script type="text/javascript" src="lib/prettify/prettify.js"></script>
+<script type="text/javascript" src="lib/prettify/lang-scala.js"></script>
+<script type="text/javascript">jQuery(function(){window.prettyPrint && prettyPrint()});</script>
+
+</html>

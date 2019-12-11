@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html class="no-js" lang="en">
+
+<head>
+<title>Error handling · Akka Streams Kafka</title>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta name="description" content="Alpakka is a Reactive Enterprise Integration library for Java and Scala, based on Reactive Streams and Akka."/><link rel="canonical" href="https://doc.akka.io/docs/alpakka-kafka/current/errorhandling.html"/>
+<link href="https://fonts.googleapis.com/css?family=Roboto:100normal,100italic,300normal,300italic,400normal,400italic,500normal,500italic,700normal,700italic,900normal,900italicc" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="lib/jquery/jquery.min.js"></script>
+<script type="text/javascript" src="js/page.js"></script>
+<link rel="stylesheet" type="text/css" href="lib/normalize.css/normalize.css"/>
+<link rel="stylesheet" type="text/css" href="lib/foundation/dist/foundation.min.css"/>
+<link rel="stylesheet" type="text/css" href="css/page.css"/>
+
+<!--
+<link rel="shortcut icon" href="images/favicon.ico" />
+-->
+</head>
+
+<body>
+<div class="off-canvas-wrapper">
+<div class="off-canvas-wrapper-inner" data-off-canvas-wrapper>
+
+<div class="off-canvas position-left" id="off-canvas-menu" data-off-canvas>
+<nav class="off-canvas-nav">
+<div class="nav-home">
+<a href="home.html" >
+<span class="home-icon">⌂</span>Akka Streams Kafka
+</a>
+<div class="version-number">
+0.18
+</div>
+</div>
+<div class="nav-toc">
+<ul>
+  <li><a href="producer.html">Producer</a></li>
+  <li><a href="consumer.html">Consumer</a></li>
+  <li><a href="errorhandling.html" class="active">Error handling</a></li>
+  <li><a href="atleastonce.html">At-Least-Once Delivery</a></li>
+</ul>
+</div>
+
+</nav>
+</div>
+
+<div class="off-canvas-content" data-off-canvas-content>
+
+<header class="site-header expanded row">
+<div class="small-12 column">
+<a href="#" class="off-canvas-toggle hide-for-medium" data-toggle="off-canvas-menu"><svg class="svg-icon svg-icon-menu" version="1.1" id="Menu" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 20 20" enable-background="new 0 0 20 20" xml:space="preserve"> <path class="svg-icon-menu-path" fill="#53CDEC" d="M16.4,9H3.6C3.048,9,3,9.447,3,10c0,0.553,0.048,1,0.6,1H16.4c0.552,0,0.6-0.447,0.6-1C17,9.447,16.952,9,16.4,9z M16.4,13
+H3.6C3.048,13,3,13.447,3,14c0,0.553,0.048,1,0.6,1H16.4c0.552,0,0.6-0.447,0.6-1C17,13.447,16.952,13,16.4,13z M3.6,7H16.4
+C16.952,7,17,6.553,17,6c0-0.553-0.048-1-0.6-1H3.6C3.048,5,3,5.447,3,6C3,6.553,3.048,7,3.6,7z"/></svg>
+</a>
+<div class="title"><a href="home.html" class="logo" style="margin-top: 15px;"><svg class="svg-icon svg-icon-logo" style="height: 45px; width: 184px;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1070 262"><title>akka-stream-kafka</title><g id="akka-stream-kafka" class="svg-icon-logo-text" fill="#fff"><path d="M349.6 105.5v-12.2h19.9v58.4c0 7.1 1.7 9.8 6.1 9.8 1.2 0 2.7-.2 4.1-.3v16.1c-2.2.8-5.5 1.3-9.8 1.3-4.8 0-8.6-.8-11.6-2.7-3.7-2.5-6-5.8-6.8-10.1-5.8 8.8-15.4 13.1-28.7 13.1-11.8 0-21.7-4.1-29.9-12.6-8-8.5-12-18.8-12-31.2s4-22.7 12-31c8.1-8.5 18.1-12.6 29.9-12.6 13.6 0 23.7 6 26.8 14zm-5.9 47.9c5-4.8 7.5-11 7.5-18.3s-2.5-13.4-7.5-18.3c-4.8-4.8-11-7.3-18.1-7.3-7.1 0-12.9 2.5-17.8 7.3-4.6 4.8-7 11-7 18.3s2.3 13.4 7 18.3c4.8 4.8 10.6 7.3 17.8 7.3 7.1 0 13.3-2.5 18.1-7.3zM388.5 177v-115.7h19.8v67.6l30.9-35.5h22.8l-32.7 37.4 36.2 46.3h-22.6l-26.4-33.7-8.3 9.3v24.3h-19.7zM470.8 177v-115.7h19.8v67.6l30.9-35.5h22.9l-32.7 37.4 36.2 46.3h-22.6l-26.4-33.7-8.3 9.3v24.3h-19.8zM607.9 105.5v-12.2h19.9v58.4c0 7.1 1.7 9.8 6.1 9.8 1.2 0 2.7-.2 4.1-.3v16.1c-2.2.8-5.5 1.3-9.8 1.3-4.8 0-8.6-.8-11.6-2.7-3.7-2.5-6-5.8-6.8-10.1-5.8 8.8-15.4 13.1-28.7 13.1-11.8 0-21.7-4.1-29.9-12.6-8-8.5-12-18.8-12-31.2s4-22.7 12-31c8.1-8.5 18.1-12.6 29.9-12.6 13.5 0 23.6 6 26.8 14zm-6 47.9c5-4.8 7.5-11 7.5-18.3s-2.5-13.4-7.5-18.3c-4.8-4.8-11-7.3-18.1-7.3-7.1 0-12.9 2.5-17.8 7.3-4.6 4.8-7 11-7 18.3s2.3 13.4 7 18.3c4.8 4.8 10.6 7.3 17.8 7.3 7.1 0 13.3-2.5 18.1-7.3z"/></g><path fill="#0B5567" d="M230.3 212.8c35.9 28.7 58.9-57 1.7-72.8-48-13.3-96.3 9.5-144.7 62.7 0 0 89.4-32.7 143 10.1z"/><path fill="#15A9CE" d="M88.1 202c34.4-35.7 91.6-75.5 144.9-60.8 12.4 3.5 21.2 10.7 26.9 19.3l-50.4-101.7c-7.2-11.5-25.6-9.1-36-.3l-133.2 111.6c-12.1 10.4-12.8 28.9-1.6 40.1 9.9 9.9 25.6 10.8 36.5 2l12.9-10.2z"/></g></svg>
+</a></div>
+
+<!--
+<a href="https://www.example.com" class="logo show-for-medium">logo</a>
+-->
+</div>
+</header>
+
+<div class="expanded row">
+
+<div class="medium-3 large-2 show-for-medium column">
+<nav class="site-nav">
+<div class="nav-home">
+<a href="home.html" >
+<span class="home-icon">⌂</span>Akka Streams Kafka
+</a>
+<div class="version-number">
+0.18
+</div>
+</div>
+<div class="nav-toc">
+<ul>
+  <li><a href="producer.html">Producer</a></li>
+  <li><a href="consumer.html">Consumer</a></li>
+  <li><a href="errorhandling.html" class="active">Error handling</a></li>
+  <li><a href="atleastonce.html">At-Least-Once Delivery</a></li>
+</ul>
+</div>
+
+</nav>
+</div>
+
+<div class="small-12 medium-9 large-10 column">
+<section class="site-content">
+
+<div class="page-header row">
+<div class="medium-12 show-for-medium column">
+<div class="nav-breadcrumbs">
+<ul>
+  <li><a href="home.html">Akka Streams Kafka</a></li>
+  <li>Error handling</li>
+</ul>
+</div>
+</div>
+</div>
+
+<div class="page-content row">
+<div class="small-12 large-9 column" id="docs">
+<h1><a href="#error-handling" name="error-handling" class="anchor"><span class="anchor-link"></span></a>Error handling</h1>
+<h2><a href="#failing-consumer" name="failing-consumer" class="anchor"><span class="anchor-link"></span></a>Failing consumer</h2>
+<p>When a consumer fails to read from Kafka due to connection problems, it throws a WakeupException which is handled internally with retries. Refer to consumer configuration <a href="consumer.html#settings">settings</a> for details on <code>wakeup-timeout</code> and <code>max-wakeups</code> if you&rsquo;re interested in tweaking the retry handling parameters. When the last retry fails, source stage will be failed with an exception.</p>
+<h2><a href="#failing-producer" name="failing-producer" class="anchor"><span class="anchor-link"></span></a>Failing producer</h2>
+<p>Retry handling in case of producer is built-in into Kafka. In case of failure when sending a message, an exception will be thrown, which should fail the stream. </p>
+<h2><a href="#restarting-the-stream" name="restarting-the-stream" class="anchor"><span class="anchor-link"></span></a>Restarting the stream</h2>
+<p>Typical approach is to run the stream inside an actor. When there&rsquo;s an exception, this actor should be stopped and a new one should be created. Stopping the actor on stream failure:</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-scala">val done =
+  Consumer.plainSource(consumerSettings, Subscriptions.topics(&quot;topic1&quot;))
+    .mapAsync(1)(msg =&gt; processingActor ? ProcessMsg(msg))
+    .runWith(Sink.ignore)
+
+done.onComplete {
+  case Failure(ex) =&gt;
+    log.error(ex, &quot;Stream failed, stopping the actor.&quot;)
+    self ! PoisonPill
+  case Success(ex) =&gt; // graceful stream shutdown handling
+}</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-java">CompletionStage&lt;Done&gt; done = Consumer.plainSource(
+        consumerSettings,
+        Subscriptions.topics(&quot;topic1&quot;))
+        .mapAsync(1, msg -&gt; ask(processingActor, msg, timeout)) // akka.pattern.PatternsCS.ask
+        .map(elem -&gt; (ConsumerRecord&lt;byte[], String&gt;) elem)
+        .runWith(Sink.ignore(), materializer);
+
+done.exceptionally(e -&gt; {
+    system.log().error(e, e.getMessage());
+    getSelf().tell(PoisonPill.getInstance(), getSelf());
+    return Done.getInstance();
+});
+
+return;</code></pre></dd>
+</dl>
+<p>In order to ensure that stopped actor gets re-created, it can be wrapped with a <a href="https://doc.akka.io/docs/akka/current/general/supervision.html#Delayed_restarts_with_the_BackoffSupervisor_pattern">BackoffSupervisor</a></p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-scala">import akka.pattern.{Backoff, BackoffSupervisor}
+
+val childProps = Props(classOf[StreamWrapperActor])
+
+val supervisorProps = BackoffSupervisor.props(
+  Backoff.onStop(
+    childProps,
+    childName = &quot;streamActor&quot;,
+    minBackoff = 3.seconds,
+    maxBackoff = 30.seconds,
+    randomFactor = 0.2
+  )
+)
+val supervisor = system.actorOf(supervisorProps, name = &quot;streamActorSupervisor&quot;)</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-java">Props childProps = Props.create(StreamWrapperActor.class);
+
+final Props supervisorProps = BackoffSupervisor.props(
+        Backoff.onStop(
+                childProps,
+                &quot;streamActor&quot;,
+                Duration.create(3, TimeUnit.SECONDS),
+                Duration.create(30, TimeUnit.SECONDS),
+                0.2));
+
+system.actorOf(supervisorProps, &quot;streamActorSupervisor&quot;);</code></pre></dd>
+</dl>
+<p>When a stream fails, library internals will handle all underlying resources.</p><div class="callout note "><div class="callout-title">(de)serialization</div>
+<p>If reading from Kafka failure is caused by other reasons, like <strong>deserialization problems</strong>, then the stage will fail immediately. If you expect such cases, consider consuming raw byte arrays and deserializing in a subsequent <code>map</code> stage where you can use supervision to skip failed elements. See also the <a href="atleastonce.html">&ldquo;At least once&rdquo;</a> page for more suggestions.</p></div>
+<div class="source-github">
+The source code for this page can be found <a href="https://github.com/akka/reactive-kafka/tree/master/docs/src/main/paradox/errorhandling.md">here</a>.
+</div>
+
+<div class="nav-next">
+<p><strong>Next:</strong> <a href="atleastonce.html">At-Least-Once Delivery</a></p>
+</div>
+</div>
+<div class="large-3 show-for-large column" data-sticky-container>
+<nav class="sidebar sticky" data-sticky data-anchor="docs" data-sticky-on="large">
+<div class="page-nav">
+<div class="nav-title">On this page:</div>
+<div class="nav-toc">
+<ul>
+  <li><a href="errorhandling.html#error-handling">Error handling</a>
+  <ul>
+    <li><a href="errorhandling.html#failing-consumer">Failing consumer</a></li>
+    <li><a href="errorhandling.html#failing-producer">Failing producer</a></li>
+    <li><a href="errorhandling.html#restarting-the-stream">Restarting the stream</a></li>
+  </ul></li>
+</ul>
+</div>
+</div>
+</nav>
+</div>
+</div>
+
+</section>
+</div>
+
+</div>
+
+<footer class="site-footer">
+
+<section class="site-footer-nav">
+<div class="expanded row">
+<div class="small-12 large-offset-2 large-10 column">
+<div class="row site-footer-content">
+
+<div class="small-12 medium-4 large-3 text-center column">
+<div class="nav-links">
+<ul>
+<!-- <li><a href="https://www.example.com/products/">Products</a> -->
+</ul>
+</div>
+</div>
+
+</div>
+</div>
+</div>
+</section>
+
+<section class="site-footer-base">
+<div class="expanded row">
+<div class="small-12 large-offset-2 large-10 column">
+<div class="row site-footer-content">
+
+<div class="small-12 text-center large-9 column">
+
+<!--
+<div class="copyright">
+<span class="text">&copy; 2017</span>
+<a href="https://www.example.com" class="logo">logo</a>
+</div>
+-->
+</div>
+
+</div>
+</div>
+</div>
+</section>
+</footer>
+
+</div>
+</div>
+</div>
+</body>
+
+<script type="text/javascript" src="lib/foundation/dist/foundation.min.js"></script>
+<script type="text/javascript">jQuery(document).foundation();</script>
+<script type="text/javascript" src="js/magellan.js"></script>
+
+<style type="text/css">@import "lib/prettify/prettify.css";</style>
+<script type="text/javascript" src="lib/prettify/prettify.js"></script>
+<script type="text/javascript" src="lib/prettify/lang-scala.js"></script>
+<script type="text/javascript">jQuery(function(){window.prettyPrint && prettyPrint()});</script>
+
+</html>
