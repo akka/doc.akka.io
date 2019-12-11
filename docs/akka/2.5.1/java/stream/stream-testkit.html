@@ -1,0 +1,448 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Testing streams &mdash; Akka Documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/style.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/prettify.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/base.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/docs.css" type="text/css" />
+    <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,600,700" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '2.5.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="../../_static/toc.js"></script>
+    <script type="text/javascript" src="../../_static/prettify.js"></script>
+    <script type="text/javascript" src="../../_static/highlightCode.js"></script>
+    <script type="text/javascript" src="../../_static/effects.core.js"></script>
+    <script type="text/javascript" src="../../_static/effects.highlight.js"></script>
+    <script type="text/javascript" src="../../_static/scrollTo.js"></script>
+    <script type="text/javascript" src="../../_static/contentsFix.js"></script>
+    <script type="text/javascript" src="../../_static/ga.js"></script>
+    <script type="text/javascript" src="../../_static/warnOldDocs.js"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/docsearch.js/1/docsearch.min.js"></script>
+    <link rel="shortcut icon" href="../../_static/favicon.ico"/>
+    <link rel="top" title="Akka Documentation" href="../../index.html" />
+    <link rel="up" title="Streams" href="index.html" />
+    <link rel="next" title="Overview of built-in stages and their semantics" href="stages-overview.html" />
+    <link rel="prev" title="Pipelining and Parallelism" href="stream-parallelism.html" />
+    <!-- Hint to search engines that the "canonical" page is under "current", which will boost it appearing in search results -->
+    
+      <link rel="canonical" href="https://doc.akka.io/docs/akka/current/stream/stream-testkit.html" />
+    
+
+    <!--Google Analytics-->
+    <script type="text/javascript">
+      var _gaq = _gaq || [];
+      _gaq.push(['_setAccount', 'UA-21117439-1']);
+      _gaq.push(['_setDomainName', 'akka.io']);
+      _gaq.push(['_trackPageview']);
+      (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+      })()
+    </script>
+    <!--Google Analytics & Marketo-->
+    <script type="text/javascript">
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+      (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+      m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+      ga('create', 'UA-23127719-1', 'lightbend.com', {'allowLinker': true, 'name': 'tsTracker'});
+      ga('tsTracker.require', 'linker');
+      ga('tsTracker.linker:autoLink', ['lightbend.com','playframework.com','scala-lang.org','scaladays.org','spray.io','akka.io','scala-sbt.org','scala-ide.org']);
+      ga('tsTracker.send', 'pageview');
+
+      (function() {
+          var didInit = false;
+          function initMunchkin() {
+          if(didInit === false) {
+            didInit = true;
+            Munchkin.init('558-NCX-702');
+          }
+          }
+          var s = document.createElement('script');
+          s.type = 'text/javascript';
+          s.async = true;
+          s.src = '//munchkin.marketo.net/munchkin.js';
+          s.onreadystatechange = function() {
+          if (this.readyState == 'complete' || this.readyState == 'loaded') {
+            initMunchkin();
+          }
+          };
+          s.onload = initMunchkin;
+          document.getElementsByTagName('head')[0].appendChild(s);
+        })();
+    </script>
+
+
+  </head>
+  <body role="document">
+  <div class="navbar">
+    <div class="navbar-inner">
+      <div class="container">
+        <div class="navbar-logo">
+          <a href="https://akka.io"><img class="svg-logo" src="../../_static/akka_full_color.svg" /></a>
+        </div>
+        <ul class="nav">
+          <li><a href="https://akka.io/docs">Documentation</a></li>
+          <li><a href="https://doc.akka.io/docs/akka/current/additional/faq.html">FAQ</a></li>
+          <li><a href="https://akka.io/downloads">Download</a></li>
+          <li><a href="http://groups.google.com/group/akka-user">Mailing List</a></li>
+          <li><a href="http://github.com/akka/akka">Code</a></li>
+          <li><a href="http://www.lightbend.com/how/subscription">Commercial Support</a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="main">
+    <div class="container">
+      <div class="page-title">Testing streams - Version 2.5.1</div>
+      <div class="pdf-link"><a href="../../AkkaScala.pdf" title="Akka Scala Documentation"><img src="../../_static/pdf-scala-icon.png" style="height: 40px;" /></a></div>
+      <div class="pdf-link"><a href="../../AkkaJava.pdf" title="Akka Java Documentation"><img src="../../_static/pdf-java-icon.png" style="height: 40px;" /></a></div>
+    </div>
+    <div class="main-container">
+      <div class="container">
+        <div class="row">
+          <div class="span12">
+            <div class="breadcrumb">
+              <div style="position: relative">
+                <input type="search" id="search" class="form-control" style="position: relative" placeholder="Search in the doc" />
+              </div>
+              <div>
+                <div>
+                  <span class="divider">«</span> <a href="stream-parallelism.html">Pipelining and Parallelism</a> <span class="divider">|</span>
+                </div>
+                <div>
+                  <a href="../../java.html">Java Contents</a> <span class="divider">|</span> <a href="../../scala.html">Scala Contents</a>
+                </div>
+                <div>
+                  <span class="divider">|</span> <a href="stages-overview.html">Overview of built-in stages and their semantics</a> <span class="divider">»</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="row">
+          <div class="span9">
+          </div><div class="span9">
+            
+  <div class="section" id="testing-streams">
+<span id="stream-testkit-java"></span><h1>Testing streams</h1>
+<p>Verifying behaviour of Akka Stream sources, flows and sinks can be done using
+various code patterns and libraries. Here we will discuss testing these
+elements using:</p>
+<ul class="simple">
+<li>simple sources, sinks and flows;</li>
+<li>sources and sinks in combination with <code class="xref py py-class docutils literal"><span class="pre">TestProbe</span></code> from the <code class="xref py py-mod docutils literal"><span class="pre">akka-testkit</span></code> module;</li>
+<li>sources and sinks specifically crafted for writing tests from the <code class="xref py py-mod docutils literal"><span class="pre">akka-stream-testkit</span></code> module.</li>
+</ul>
+<p>It is important to keep your data processing pipeline as separate sources,
+flows and sinks. This makes them easily testable by wiring them up to other
+sources or sinks, or some test harnesses that <code class="xref py py-mod docutils literal"><span class="pre">akka-testkit</span></code> or
+<code class="xref py py-mod docutils literal"><span class="pre">akka-stream-testkit</span></code> provide.</p>
+<div class="section" id="built-in-sources-sinks-and-combinators">
+<h2>Built in sources, sinks and combinators</h2>
+<p>Testing a custom sink can be as simple as attaching a source that emits
+elements from a predefined collection, running a constructed test flow and
+asserting on the results that sink produced. Here is an example of a test for a
+sink:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">final</span> <span class="nc">Sink</span><span class="o">&lt;</span><span class="nc">Integer</span><span class="o">,</span> <span class="nc">CompletionStage</span><span class="o">&lt;</span><span class="nc">Integer</span><span class="o">&gt;&gt;</span> <span class="n">sinkUnderTest</span> <span class="k">=</span> <span class="nc">Flow</span><span class="o">.</span><span class="n">of</span><span class="o">(</span><span class="nc">Integer</span><span class="o">.</span><span class="n">class</span><span class="o">)</span>
+  <span class="o">.</span><span class="n">map</span><span class="o">(</span><span class="n">i</span> <span class="o">-&gt;</span> <span class="n">i</span> <span class="o">*</span> <span class="mi">2</span><span class="o">)</span>
+  <span class="o">.</span><span class="n">toMat</span><span class="o">(</span><span class="nc">Sink</span><span class="o">.</span><span class="n">fold</span><span class="o">(</span><span class="mi">0</span><span class="o">,</span> <span class="o">(</span><span class="n">agg</span><span class="o">,</span> <span class="n">next</span><span class="o">)</span> <span class="o">-&gt;</span> <span class="n">agg</span> <span class="o">+</span> <span class="n">next</span><span class="o">),</span> <span class="nc">Keep</span><span class="o">.</span><span class="n">right</span><span class="o">());</span>
+
+<span class="k">final</span> <span class="nc">CompletionStage</span><span class="o">&lt;</span><span class="nc">Integer</span><span class="o">&gt;</span> <span class="n">future</span> <span class="k">=</span> <span class="nc">Source</span><span class="o">.</span><span class="n">from</span><span class="o">(</span><span class="nc">Arrays</span><span class="o">.</span><span class="n">asList</span><span class="o">(</span><span class="mi">1</span><span class="o">,</span> <span class="mi">2</span><span class="o">,</span> <span class="mi">3</span><span class="o">,</span> <span class="mi">4</span><span class="o">))</span>
+  <span class="o">.</span><span class="n">runWith</span><span class="o">(</span><span class="n">sinkUnderTest</span><span class="o">,</span> <span class="n">mat</span><span class="o">);</span>
+<span class="k">final</span> <span class="nc">Integer</span> <span class="n">result</span> <span class="k">=</span> <span class="n">future</span><span class="o">.</span><span class="n">toCompletableFuture</span><span class="o">().</span><span class="n">get</span><span class="o">(</span><span class="mi">3</span><span class="o">,</span> <span class="nc">TimeUnit</span><span class="o">.</span><span class="nc">SECONDS</span><span class="o">);</span>
+<span class="n">assert</span><span class="o">(</span><span class="n">result</span> <span class="o">==</span> <span class="mi">20</span><span class="o">);</span>
+</pre></div>
+</div>
+<p>The same strategy can be applied for sources as well. In the next example we
+have a source that produces an infinite stream of elements. Such source can be
+tested by asserting that first arbitrary number of elements hold some
+condition. Here the <code class="docutils literal"><span class="pre">take</span></code> combinator and <code class="docutils literal"><span class="pre">Sink.seq</span></code> are very useful.</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">final</span> <span class="nc">Source</span><span class="o">&lt;</span><span class="nc">Integer</span><span class="o">,</span> <span class="nc">NotUsed</span><span class="o">&gt;</span> <span class="n">sourceUnderTest</span> <span class="k">=</span> <span class="nc">Source</span><span class="o">.</span><span class="n">repeat</span><span class="o">(</span><span class="mi">1</span><span class="o">)</span>
+  <span class="o">.</span><span class="n">map</span><span class="o">(</span><span class="n">i</span> <span class="o">-&gt;</span> <span class="n">i</span> <span class="o">*</span> <span class="mi">2</span><span class="o">);</span>
+
+<span class="k">final</span> <span class="nc">CompletionStage</span><span class="o">&lt;</span><span class="nc">List</span><span class="o">&lt;</span><span class="nc">Integer</span><span class="o">&gt;&gt;</span> <span class="n">future</span> <span class="k">=</span> <span class="n">sourceUnderTest</span>
+  <span class="o">.</span><span class="n">take</span><span class="o">(</span><span class="mi">10</span><span class="o">)</span>
+  <span class="o">.</span><span class="n">runWith</span><span class="o">(</span><span class="nc">Sink</span><span class="o">.</span><span class="n">seq</span><span class="o">(),</span> <span class="n">mat</span><span class="o">);</span>
+<span class="k">final</span> <span class="nc">List</span><span class="o">&lt;</span><span class="nc">Integer</span><span class="o">&gt;</span> <span class="n">result</span> <span class="k">=</span> <span class="n">future</span><span class="o">.</span><span class="n">toCompletableFuture</span><span class="o">().</span><span class="n">get</span><span class="o">(</span><span class="mi">3</span><span class="o">,</span> <span class="nc">TimeUnit</span><span class="o">.</span><span class="nc">SECONDS</span><span class="o">);</span>
+<span class="n">assertEquals</span><span class="o">(</span><span class="n">result</span><span class="o">,</span> <span class="nc">Collections</span><span class="o">.</span><span class="n">nCopies</span><span class="o">(</span><span class="mi">10</span><span class="o">,</span> <span class="mi">2</span><span class="o">));</span>
+</pre></div>
+</div>
+<p>When testing a flow we need to attach a source and a sink. As both stream ends
+are under our control, we can choose sources that tests various edge cases of
+the flow and sinks that ease assertions.</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">final</span> <span class="nc">Flow</span><span class="o">&lt;</span><span class="nc">Integer</span><span class="o">,</span> <span class="nc">Integer</span><span class="o">,</span> <span class="nc">NotUsed</span><span class="o">&gt;</span> <span class="n">flowUnderTest</span> <span class="k">=</span> <span class="nc">Flow</span><span class="o">.</span><span class="n">of</span><span class="o">(</span><span class="nc">Integer</span><span class="o">.</span><span class="n">class</span><span class="o">)</span>
+  <span class="o">.</span><span class="n">takeWhile</span><span class="o">(</span><span class="n">i</span> <span class="o">-&gt;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="mi">5</span><span class="o">);</span>
+
+<span class="k">final</span> <span class="nc">CompletionStage</span><span class="o">&lt;</span><span class="nc">Integer</span><span class="o">&gt;</span> <span class="n">future</span> <span class="k">=</span> <span class="nc">Source</span><span class="o">.</span><span class="n">from</span><span class="o">(</span><span class="nc">Arrays</span><span class="o">.</span><span class="n">asList</span><span class="o">(</span><span class="mi">1</span><span class="o">,</span> <span class="mi">2</span><span class="o">,</span> <span class="mi">3</span><span class="o">,</span> <span class="mi">4</span><span class="o">,</span> <span class="mi">5</span><span class="o">,</span> <span class="mi">6</span><span class="o">))</span>
+  <span class="o">.</span><span class="n">via</span><span class="o">(</span><span class="n">flowUnderTest</span><span class="o">).</span><span class="n">runWith</span><span class="o">(</span><span class="nc">Sink</span><span class="o">.</span><span class="n">fold</span><span class="o">(</span><span class="mi">0</span><span class="o">,</span> <span class="o">(</span><span class="n">agg</span><span class="o">,</span> <span class="n">next</span><span class="o">)</span> <span class="o">-&gt;</span> <span class="n">agg</span> <span class="o">+</span> <span class="n">next</span><span class="o">),</span> <span class="n">mat</span><span class="o">);</span>
+<span class="k">final</span> <span class="nc">Integer</span> <span class="n">result</span> <span class="k">=</span> <span class="n">future</span><span class="o">.</span><span class="n">toCompletableFuture</span><span class="o">().</span><span class="n">get</span><span class="o">(</span><span class="mi">3</span><span class="o">,</span> <span class="nc">TimeUnit</span><span class="o">.</span><span class="nc">SECONDS</span><span class="o">);</span>
+<span class="n">assert</span><span class="o">(</span><span class="n">result</span> <span class="o">==</span> <span class="mi">10</span><span class="o">);</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="testkit">
+<h2>TestKit</h2>
+<p>Akka Stream offers integration with Actors out of the box. This support can be
+used for writing stream tests that use familiar <code class="xref py py-class docutils literal"><span class="pre">TestProbe</span></code> from the
+<code class="xref py py-mod docutils literal"><span class="pre">akka-testkit</span></code> API.</p>
+<p>One of the more straightforward tests would be to materialize stream to a
+<code class="xref py py-class docutils literal"><span class="pre">CompletionStage</span></code> and then use <code class="docutils literal"><span class="pre">PatternsCS.pipe</span></code> pattern to pipe the result of that future
+to the probe.</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">final</span> <span class="nc">Source</span><span class="o">&lt;</span><span class="nc">List</span><span class="o">&lt;</span><span class="nc">Integer</span><span class="o">&gt;,</span> <span class="nc">NotUsed</span><span class="o">&gt;</span> <span class="n">sourceUnderTest</span> <span class="k">=</span> <span class="nc">Source</span>
+  <span class="o">.</span><span class="n">from</span><span class="o">(</span><span class="nc">Arrays</span><span class="o">.</span><span class="n">asList</span><span class="o">(</span><span class="mi">1</span><span class="o">,</span> <span class="mi">2</span><span class="o">,</span> <span class="mi">3</span><span class="o">,</span> <span class="mi">4</span><span class="o">))</span>
+  <span class="o">.</span><span class="n">grouped</span><span class="o">(</span><span class="mi">2</span><span class="o">);</span>
+
+<span class="k">final</span> <span class="nc">TestProbe</span> <span class="n">probe</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">TestProbe</span><span class="o">(</span><span class="n">system</span><span class="o">);</span>
+<span class="k">final</span> <span class="nc">CompletionStage</span><span class="o">&lt;</span><span class="nc">List</span><span class="o">&lt;</span><span class="nc">List</span><span class="o">&lt;</span><span class="nc">Integer</span><span class="o">&gt;&gt;&gt;</span> <span class="n">future</span> <span class="k">=</span> <span class="n">sourceUnderTest</span>
+  <span class="o">.</span><span class="n">grouped</span><span class="o">(</span><span class="mi">2</span><span class="o">)</span>
+  <span class="o">.</span><span class="n">runWith</span><span class="o">(</span><span class="nc">Sink</span><span class="o">.</span><span class="n">head</span><span class="o">(),</span> <span class="n">mat</span><span class="o">);</span>
+<span class="n">akka</span><span class="o">.</span><span class="n">pattern</span><span class="o">.</span><span class="nc">PatternsCS</span><span class="o">.</span><span class="n">pipe</span><span class="o">(</span><span class="n">future</span><span class="o">,</span> <span class="n">system</span><span class="o">.</span><span class="n">dispatcher</span><span class="o">()).</span><span class="n">to</span><span class="o">(</span><span class="n">probe</span><span class="o">.</span><span class="n">ref</span><span class="o">());</span>
+<span class="n">probe</span><span class="o">.</span><span class="n">expectMsg</span><span class="o">(</span><span class="nc">Duration</span><span class="o">.</span><span class="n">create</span><span class="o">(</span><span class="mi">3</span><span class="o">,</span> <span class="nc">TimeUnit</span><span class="o">.</span><span class="nc">SECONDS</span><span class="o">),</span>
+  <span class="nc">Arrays</span><span class="o">.</span><span class="n">asList</span><span class="o">(</span><span class="nc">Arrays</span><span class="o">.</span><span class="n">asList</span><span class="o">(</span><span class="mi">1</span><span class="o">,</span> <span class="mi">2</span><span class="o">),</span> <span class="nc">Arrays</span><span class="o">.</span><span class="n">asList</span><span class="o">(</span><span class="mi">3</span><span class="o">,</span> <span class="mi">4</span><span class="o">))</span>
+<span class="o">);</span>
+</pre></div>
+</div>
+<p>Instead of materializing to a future, we can use a <code class="xref py py-class docutils literal"><span class="pre">Sink.actorRef</span></code> that
+sends all incoming elements to the given <code class="xref py py-class docutils literal"><span class="pre">ActorRef</span></code>. Now we can use
+assertion methods on <code class="xref py py-class docutils literal"><span class="pre">TestProbe</span></code> and expect elements one by one as they
+arrive. We can also assert stream completion by expecting for
+<code class="docutils literal"><span class="pre">onCompleteMessage</span></code> which was given to <code class="xref py py-class docutils literal"><span class="pre">Sink.actorRef</span></code>.</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">final</span> <span class="nc">Source</span><span class="o">&lt;</span><span class="nc">Tick</span><span class="o">,</span> <span class="nc">Cancellable</span><span class="o">&gt;</span> <span class="n">sourceUnderTest</span> <span class="k">=</span> <span class="nc">Source</span><span class="o">.</span><span class="n">tick</span><span class="o">(</span>
+  <span class="nc">FiniteDuration</span><span class="o">.</span><span class="n">create</span><span class="o">(</span><span class="mi">0</span><span class="o">,</span> <span class="nc">TimeUnit</span><span class="o">.</span><span class="nc">MILLISECONDS</span><span class="o">),</span>
+  <span class="nc">FiniteDuration</span><span class="o">.</span><span class="n">create</span><span class="o">(</span><span class="mi">200</span><span class="o">,</span> <span class="nc">TimeUnit</span><span class="o">.</span><span class="nc">MILLISECONDS</span><span class="o">),</span>
+  <span class="nc">Tick</span><span class="o">.</span><span class="nc">TOCK</span><span class="o">);</span>
+
+<span class="k">final</span> <span class="nc">TestProbe</span> <span class="n">probe</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">TestProbe</span><span class="o">(</span><span class="n">system</span><span class="o">);</span>
+<span class="k">final</span> <span class="nc">Cancellable</span> <span class="n">cancellable</span> <span class="k">=</span> <span class="n">sourceUnderTest</span>
+  <span class="o">.</span><span class="n">to</span><span class="o">(</span><span class="nc">Sink</span><span class="o">.</span><span class="n">actorRef</span><span class="o">(</span><span class="n">probe</span><span class="o">.</span><span class="n">ref</span><span class="o">(),</span> <span class="nc">Tick</span><span class="o">.</span><span class="nc">COMPLETED</span><span class="o">)).</span><span class="n">run</span><span class="o">(</span><span class="n">mat</span><span class="o">);</span>
+<span class="n">probe</span><span class="o">.</span><span class="n">expectMsg</span><span class="o">(</span><span class="nc">Duration</span><span class="o">.</span><span class="n">create</span><span class="o">(</span><span class="mi">3</span><span class="o">,</span> <span class="nc">TimeUnit</span><span class="o">.</span><span class="nc">SECONDS</span><span class="o">),</span> <span class="nc">Tick</span><span class="o">.</span><span class="nc">TOCK</span><span class="o">);</span>
+<span class="n">probe</span><span class="o">.</span><span class="n">expectNoMsg</span><span class="o">(</span><span class="nc">Duration</span><span class="o">.</span><span class="n">create</span><span class="o">(</span><span class="mi">100</span><span class="o">,</span> <span class="nc">TimeUnit</span><span class="o">.</span><span class="nc">MILLISECONDS</span><span class="o">));</span>
+<span class="n">probe</span><span class="o">.</span><span class="n">expectMsg</span><span class="o">(</span><span class="nc">Duration</span><span class="o">.</span><span class="n">create</span><span class="o">(</span><span class="mi">3</span><span class="o">,</span> <span class="nc">TimeUnit</span><span class="o">.</span><span class="nc">SECONDS</span><span class="o">),</span> <span class="nc">Tick</span><span class="o">.</span><span class="nc">TOCK</span><span class="o">);</span>
+<span class="n">cancellable</span><span class="o">.</span><span class="n">cancel</span><span class="o">();</span>
+<span class="n">probe</span><span class="o">.</span><span class="n">expectMsg</span><span class="o">(</span><span class="nc">Duration</span><span class="o">.</span><span class="n">create</span><span class="o">(</span><span class="mi">3</span><span class="o">,</span> <span class="nc">TimeUnit</span><span class="o">.</span><span class="nc">SECONDS</span><span class="o">),</span> <span class="nc">Tick</span><span class="o">.</span><span class="nc">COMPLETED</span><span class="o">);</span>
+</pre></div>
+</div>
+<p>Similarly to <code class="xref py py-class docutils literal"><span class="pre">Sink.actorRef</span></code> that provides control over received
+elements, we can use <code class="xref py py-class docutils literal"><span class="pre">Source.actorRef</span></code> and have full control over
+elements to be sent.</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">final</span> <span class="nc">Sink</span><span class="o">&lt;</span><span class="nc">Integer</span><span class="o">,</span> <span class="nc">CompletionStage</span><span class="o">&lt;</span><span class="nc">String</span><span class="o">&gt;&gt;</span> <span class="n">sinkUnderTest</span> <span class="k">=</span> <span class="nc">Flow</span><span class="o">.</span><span class="n">of</span><span class="o">(</span><span class="nc">Integer</span><span class="o">.</span><span class="n">class</span><span class="o">)</span>
+  <span class="o">.</span><span class="n">map</span><span class="o">(</span><span class="n">i</span> <span class="o">-&gt;</span> <span class="n">i</span><span class="o">.</span><span class="n">toString</span><span class="o">())</span>
+  <span class="o">.</span><span class="n">toMat</span><span class="o">(</span><span class="nc">Sink</span><span class="o">.</span><span class="n">fold</span><span class="o">(</span><span class="s">&quot;&quot;</span><span class="o">,</span> <span class="o">(</span><span class="n">agg</span><span class="o">,</span> <span class="n">next</span><span class="o">)</span> <span class="o">-&gt;</span> <span class="n">agg</span> <span class="o">+</span> <span class="n">next</span><span class="o">),</span> <span class="nc">Keep</span><span class="o">.</span><span class="n">right</span><span class="o">());</span>
+
+<span class="k">final</span> <span class="nc">Pair</span><span class="o">&lt;</span><span class="nc">ActorRef</span><span class="o">,</span> <span class="nc">CompletionStage</span><span class="o">&lt;</span><span class="nc">String</span><span class="o">&gt;&gt;</span> <span class="n">refAndCompletionStage</span> <span class="k">=</span>
+  <span class="nc">Source</span><span class="o">.&lt;</span><span class="nc">Integer</span><span class="o">&gt;</span><span class="n">actorRef</span><span class="o">(</span><span class="mi">8</span><span class="o">,</span> <span class="nc">OverflowStrategy</span><span class="o">.</span><span class="n">fail</span><span class="o">())</span>
+    <span class="o">.</span><span class="n">toMat</span><span class="o">(</span><span class="n">sinkUnderTest</span><span class="o">,</span> <span class="nc">Keep</span><span class="o">.</span><span class="n">both</span><span class="o">())</span>
+    <span class="o">.</span><span class="n">run</span><span class="o">(</span><span class="n">mat</span><span class="o">);</span>
+<span class="k">final</span> <span class="nc">ActorRef</span> <span class="n">ref</span> <span class="k">=</span> <span class="n">refAndCompletionStage</span><span class="o">.</span><span class="n">first</span><span class="o">();</span>
+<span class="k">final</span> <span class="nc">CompletionStage</span><span class="o">&lt;</span><span class="nc">String</span><span class="o">&gt;</span> <span class="n">future</span> <span class="k">=</span> <span class="n">refAndCompletionStage</span><span class="o">.</span><span class="n">second</span><span class="o">();</span>
+
+<span class="n">ref</span><span class="o">.</span><span class="n">tell</span><span class="o">(</span><span class="mi">1</span><span class="o">,</span> <span class="nc">ActorRef</span><span class="o">.</span><span class="n">noSender</span><span class="o">());</span>
+<span class="n">ref</span><span class="o">.</span><span class="n">tell</span><span class="o">(</span><span class="mi">2</span><span class="o">,</span> <span class="nc">ActorRef</span><span class="o">.</span><span class="n">noSender</span><span class="o">());</span>
+<span class="n">ref</span><span class="o">.</span><span class="n">tell</span><span class="o">(</span><span class="mi">3</span><span class="o">,</span> <span class="nc">ActorRef</span><span class="o">.</span><span class="n">noSender</span><span class="o">());</span>
+<span class="n">ref</span><span class="o">.</span><span class="n">tell</span><span class="o">(</span><span class="k">new</span> <span class="n">akka</span><span class="o">.</span><span class="n">actor</span><span class="o">.</span><span class="nc">Status</span><span class="o">.</span><span class="nc">Success</span><span class="o">(</span><span class="s">&quot;done&quot;</span><span class="o">),</span> <span class="nc">ActorRef</span><span class="o">.</span><span class="n">noSender</span><span class="o">());</span>
+
+<span class="k">final</span> <span class="nc">String</span> <span class="n">result</span> <span class="k">=</span> <span class="n">future</span><span class="o">.</span><span class="n">toCompletableFuture</span><span class="o">().</span><span class="n">get</span><span class="o">(</span><span class="mi">1</span><span class="o">,</span> <span class="nc">TimeUnit</span><span class="o">.</span><span class="nc">SECONDS</span><span class="o">);</span>
+<span class="n">assertEquals</span><span class="o">(</span><span class="n">result</span><span class="o">,</span> <span class="s">&quot;123&quot;</span><span class="o">);</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="streams-testkit">
+<h2>Streams TestKit</h2>
+<p>You may have noticed various code patterns that emerge when testing stream
+pipelines. Akka Stream has a separate <code class="xref py py-mod docutils literal"><span class="pre">akka-stream-testkit</span></code> module that
+provides tools specifically for writing stream tests. This module comes with
+two main components that are <code class="xref py py-class docutils literal"><span class="pre">TestSource</span></code> and <code class="xref py py-class docutils literal"><span class="pre">TestSink</span></code> which
+provide sources and sinks that materialize to probes that allow fluent API.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Be sure to add the module <code class="xref py py-mod docutils literal"><span class="pre">akka-stream-testkit</span></code> to your dependencies.</p>
+</div>
+<p>A sink returned by <code class="docutils literal"><span class="pre">TestSink.probe</span></code> allows manual control over demand and
+assertions over elements coming downstream.</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">final</span> <span class="nc">Source</span><span class="o">&lt;</span><span class="nc">Integer</span><span class="o">,</span> <span class="nc">NotUsed</span><span class="o">&gt;</span> <span class="n">sourceUnderTest</span> <span class="k">=</span> <span class="nc">Source</span><span class="o">.</span><span class="n">from</span><span class="o">(</span><span class="nc">Arrays</span><span class="o">.</span><span class="n">asList</span><span class="o">(</span><span class="mi">1</span><span class="o">,</span> <span class="mi">2</span><span class="o">,</span> <span class="mi">3</span><span class="o">,</span> <span class="mi">4</span><span class="o">))</span>
+  <span class="o">.</span><span class="n">filter</span><span class="o">(</span><span class="n">elem</span> <span class="o">-&gt;</span> <span class="n">elem</span> <span class="o">%</span> <span class="mi">2</span> <span class="o">==</span> <span class="mi">0</span><span class="o">)</span>
+  <span class="o">.</span><span class="n">map</span><span class="o">(</span><span class="n">elem</span> <span class="o">-&gt;</span> <span class="n">elem</span> <span class="o">*</span> <span class="mi">2</span><span class="o">);</span>
+
+<span class="n">sourceUnderTest</span>
+  <span class="o">.</span><span class="n">runWith</span><span class="o">(</span><span class="nc">TestSink</span><span class="o">.</span><span class="n">probe</span><span class="o">(</span><span class="n">system</span><span class="o">),</span> <span class="n">mat</span><span class="o">)</span>
+  <span class="o">.</span><span class="n">request</span><span class="o">(</span><span class="mi">2</span><span class="o">)</span>
+  <span class="o">.</span><span class="n">expectNext</span><span class="o">(</span><span class="mi">4</span><span class="o">,</span> <span class="mi">8</span><span class="o">)</span>
+  <span class="o">.</span><span class="n">expectComplete</span><span class="o">();</span>
+</pre></div>
+</div>
+<p>A source returned by <code class="docutils literal"><span class="pre">TestSource.probe</span></code> can be used for asserting demand or
+controlling when stream is completed or ended with an error.</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">final</span> <span class="nc">Sink</span><span class="o">&lt;</span><span class="nc">Integer</span><span class="o">,</span> <span class="nc">NotUsed</span><span class="o">&gt;</span> <span class="n">sinkUnderTest</span> <span class="k">=</span> <span class="nc">Sink</span><span class="o">.</span><span class="n">cancelled</span><span class="o">();</span>
+
+<span class="nc">TestSource</span><span class="o">.&lt;</span><span class="nc">Integer</span><span class="o">&gt;</span><span class="n">probe</span><span class="o">(</span><span class="n">system</span><span class="o">)</span>
+  <span class="o">.</span><span class="n">toMat</span><span class="o">(</span><span class="n">sinkUnderTest</span><span class="o">,</span> <span class="nc">Keep</span><span class="o">.</span><span class="n">left</span><span class="o">())</span>
+  <span class="o">.</span><span class="n">run</span><span class="o">(</span><span class="n">mat</span><span class="o">)</span>
+  <span class="o">.</span><span class="n">expectCancellation</span><span class="o">();</span>
+</pre></div>
+</div>
+<p>You can also inject exceptions and test sink behaviour on error conditions.</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">final</span> <span class="nc">Sink</span><span class="o">&lt;</span><span class="nc">Integer</span><span class="o">,</span> <span class="nc">CompletionStage</span><span class="o">&lt;</span><span class="nc">Integer</span><span class="o">&gt;&gt;</span> <span class="n">sinkUnderTest</span> <span class="k">=</span> <span class="nc">Sink</span><span class="o">.</span><span class="n">head</span><span class="o">();</span>
+
+<span class="k">final</span> <span class="nc">Pair</span><span class="o">&lt;</span><span class="nc">TestPublisher</span><span class="o">.</span><span class="nc">Probe</span><span class="o">&lt;</span><span class="nc">Integer</span><span class="o">&gt;,</span> <span class="nc">CompletionStage</span><span class="o">&lt;</span><span class="nc">Integer</span><span class="o">&gt;&gt;</span> <span class="n">probeAndCompletionStage</span> <span class="k">=</span>
+  <span class="nc">TestSource</span><span class="o">.&lt;</span><span class="nc">Integer</span><span class="o">&gt;</span><span class="n">probe</span><span class="o">(</span><span class="n">system</span><span class="o">)</span>
+    <span class="o">.</span><span class="n">toMat</span><span class="o">(</span><span class="n">sinkUnderTest</span><span class="o">,</span> <span class="nc">Keep</span><span class="o">.</span><span class="n">both</span><span class="o">())</span>
+    <span class="o">.</span><span class="n">run</span><span class="o">(</span><span class="n">mat</span><span class="o">);</span>
+<span class="k">final</span> <span class="nc">TestPublisher</span><span class="o">.</span><span class="nc">Probe</span><span class="o">&lt;</span><span class="nc">Integer</span><span class="o">&gt;</span> <span class="n">probe</span> <span class="k">=</span> <span class="n">probeAndCompletionStage</span><span class="o">.</span><span class="n">first</span><span class="o">();</span>
+<span class="k">final</span> <span class="nc">CompletionStage</span><span class="o">&lt;</span><span class="nc">Integer</span><span class="o">&gt;</span> <span class="n">future</span> <span class="k">=</span> <span class="n">probeAndCompletionStage</span><span class="o">.</span><span class="n">second</span><span class="o">();</span>
+<span class="n">probe</span><span class="o">.</span><span class="n">sendError</span><span class="o">(</span><span class="k">new</span> <span class="nc">Exception</span><span class="o">(</span><span class="s">&quot;boom&quot;</span><span class="o">));</span>
+
+<span class="k">try</span> <span class="o">{</span>
+  <span class="n">future</span><span class="o">.</span><span class="n">toCompletableFuture</span><span class="o">().</span><span class="n">get</span><span class="o">(</span><span class="mi">3</span><span class="o">,</span> <span class="nc">TimeUnit</span><span class="o">.</span><span class="nc">SECONDS</span><span class="o">);</span>
+  <span class="n">assert</span> <span class="kc">false</span><span class="o">;</span>
+<span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="nc">ExecutionException</span> <span class="n">ee</span><span class="o">)</span> <span class="o">{</span>
+  <span class="k">final</span> <span class="nc">Throwable</span> <span class="n">exception</span> <span class="k">=</span> <span class="n">ee</span><span class="o">.</span><span class="n">getCause</span><span class="o">();</span>
+  <span class="n">assertEquals</span><span class="o">(</span><span class="n">exception</span><span class="o">.</span><span class="n">getMessage</span><span class="o">(),</span> <span class="s">&quot;boom&quot;</span><span class="o">);</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<p>Test source and sink can be used together in combination when testing flows.</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">final</span> <span class="nc">Flow</span><span class="o">&lt;</span><span class="nc">Integer</span><span class="o">,</span> <span class="nc">Integer</span><span class="o">,</span> <span class="nc">NotUsed</span><span class="o">&gt;</span> <span class="n">flowUnderTest</span> <span class="k">=</span> <span class="nc">Flow</span><span class="o">.</span><span class="n">of</span><span class="o">(</span><span class="nc">Integer</span><span class="o">.</span><span class="n">class</span><span class="o">)</span>
+  <span class="o">.</span><span class="n">mapAsyncUnordered</span><span class="o">(</span><span class="mi">2</span><span class="o">,</span> <span class="n">sleep</span> <span class="o">-&gt;</span> <span class="n">akka</span><span class="o">.</span><span class="n">pattern</span><span class="o">.</span><span class="nc">PatternsCS</span><span class="o">.</span><span class="n">after</span><span class="o">(</span>
+    <span class="nc">Duration</span><span class="o">.</span><span class="n">create</span><span class="o">(</span><span class="mi">10</span><span class="o">,</span> <span class="nc">TimeUnit</span><span class="o">.</span><span class="nc">MILLISECONDS</span><span class="o">),</span>
+    <span class="n">system</span><span class="o">.</span><span class="n">scheduler</span><span class="o">(),</span>
+    <span class="n">system</span><span class="o">.</span><span class="n">dispatcher</span><span class="o">(),</span>
+    <span class="nc">CompletableFuture</span><span class="o">.</span><span class="n">completedFuture</span><span class="o">(</span><span class="n">sleep</span><span class="o">)</span>
+  <span class="o">));</span>
+
+<span class="k">final</span> <span class="nc">Pair</span><span class="o">&lt;</span><span class="nc">TestPublisher</span><span class="o">.</span><span class="nc">Probe</span><span class="o">&lt;</span><span class="nc">Integer</span><span class="o">&gt;,</span> <span class="nc">TestSubscriber</span><span class="o">.</span><span class="nc">Probe</span><span class="o">&lt;</span><span class="nc">Integer</span><span class="o">&gt;&gt;</span> <span class="n">pubAndSub</span> <span class="k">=</span>
+  <span class="nc">TestSource</span><span class="o">.&lt;</span><span class="nc">Integer</span><span class="o">&gt;</span><span class="n">probe</span><span class="o">(</span><span class="n">system</span><span class="o">)</span>
+    <span class="o">.</span><span class="n">via</span><span class="o">(</span><span class="n">flowUnderTest</span><span class="o">)</span>
+    <span class="o">.</span><span class="n">toMat</span><span class="o">(</span><span class="nc">TestSink</span><span class="o">.&lt;</span><span class="nc">Integer</span><span class="o">&gt;</span><span class="n">probe</span><span class="o">(</span><span class="n">system</span><span class="o">),</span> <span class="nc">Keep</span><span class="o">.</span><span class="n">both</span><span class="o">())</span>
+    <span class="o">.</span><span class="n">run</span><span class="o">(</span><span class="n">mat</span><span class="o">);</span>
+<span class="k">final</span> <span class="nc">TestPublisher</span><span class="o">.</span><span class="nc">Probe</span><span class="o">&lt;</span><span class="nc">Integer</span><span class="o">&gt;</span> <span class="n">pub</span> <span class="k">=</span> <span class="n">pubAndSub</span><span class="o">.</span><span class="n">first</span><span class="o">();</span>
+<span class="k">final</span> <span class="nc">TestSubscriber</span><span class="o">.</span><span class="nc">Probe</span><span class="o">&lt;</span><span class="nc">Integer</span><span class="o">&gt;</span> <span class="n">sub</span> <span class="k">=</span> <span class="n">pubAndSub</span><span class="o">.</span><span class="n">second</span><span class="o">();</span>
+
+<span class="n">sub</span><span class="o">.</span><span class="n">request</span><span class="o">(</span><span class="mi">3</span><span class="o">);</span>
+<span class="n">pub</span><span class="o">.</span><span class="n">sendNext</span><span class="o">(</span><span class="mi">3</span><span class="o">);</span>
+<span class="n">pub</span><span class="o">.</span><span class="n">sendNext</span><span class="o">(</span><span class="mi">2</span><span class="o">);</span>
+<span class="n">pub</span><span class="o">.</span><span class="n">sendNext</span><span class="o">(</span><span class="mi">1</span><span class="o">);</span>
+<span class="n">sub</span><span class="o">.</span><span class="n">expectNextUnordered</span><span class="o">(</span><span class="mi">1</span><span class="o">,</span> <span class="mi">2</span><span class="o">,</span> <span class="mi">3</span><span class="o">);</span>
+
+<span class="n">pub</span><span class="o">.</span><span class="n">sendError</span><span class="o">(</span><span class="k">new</span> <span class="nc">Exception</span><span class="o">(</span><span class="s">&quot;Power surge in the linear subroutine C-47!&quot;</span><span class="o">));</span>
+<span class="k">final</span> <span class="nc">Throwable</span> <span class="n">ex</span> <span class="k">=</span> <span class="n">sub</span><span class="o">.</span><span class="n">expectError</span><span class="o">();</span>
+<span class="n">assert</span><span class="o">(</span><span class="n">ex</span><span class="o">.</span><span class="n">getMessage</span><span class="o">().</span><span class="n">contains</span><span class="o">(</span><span class="s">&quot;C-47&quot;</span><span class="o">));</span>
+</pre></div>
+</div>
+</div>
+</div>
+
+
+          </div>
+          <div class="span3"><p class="contents-title">Contents</p>
+              <div id="scroller-anchor">
+                <div id="scroller">
+                  <div id="toc"></div>
+                </div>
+              </div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="footer">
+  <div class="container">
+    <ul>
+      <li><h5>Akka</h5></li>
+      <li><a href="https://akka.io/docs">Documentation</a></li>
+      <li><a href="https://doc.akka.io/docs/akka/current/additional/faq.html">FAQ</a></li>
+      <li><a href="https://akka.io/downloads">Downloads</a></li>
+      <li><a href="https://akka.io/news">News</a></li>
+      <li><a href="http://letitcrash.com">Blog</a></li>
+    </ul>
+    <ul>
+      <li><h5>Contribute</h5></li>
+      <li><a href="https://akka.io/community">Community Projects</a></li>
+      <li><a href="http://github.com/akka/akka">Source Code</a></li>
+      <li><a href="http://groups.google.com/group/akka-user">Mailing List</a></li>
+      <li><a href="https://doc.akka.io/docs/akka/current/project/issue-tracking.html">Report a Bug</a></li>
+    </ul>
+    <ul>
+      <li><h5>Company</h5></li>
+      <li><a href="http://www.lightbend.com/how/subscription">Commercial Support</a></li>
+      <li><a href="https://akka.io/team">Team</a></li>
+      <li><a href="mailto:info@lightbend.com">Contact</a></li>
+    </ul>
+    <ul>
+      <li><img src="../../_static/akka_icon_reverse.svg" align="center"/></li>
+    </ul>
+  </div>
+  <div class="container copyright">
+    <p style="float: left;">
+      © 2015 <a href="http://www.lightbend.com/">Lightbend Inc.</a> <span class="license">Akka is Open Source and available under the Apache 2 License.</span>
+    </p>
+    <p style="float: right; font-size: 12px;">
+      Last updated: May 02, 2017
+    </p>
+  </div>
+</div>
+<script type="text/javascript">
+  var $toc = $('#toc');
+  $toc.toc();
+
+  // show clickable section sign when section header hovered:
+  $('.section h2,.section h3,.section h4,.section h5').each(function(i, el) {
+      var $el = $(el);
+      $el.prepend($("<a class='section-marker' href='#" + $el.attr("id") + "'>&sect;</a>"))
+  });
+</script>
+
+<!-- Algolia docs search -->
+<script type="text/javascript">
+  var version = DOCUMENTATION_OPTIONS.VERSION;
+
+  var lang = "scala";
+  var path = window.location.pathname;
+  if (path.includes("/java/") || path.includes("java.html")) lang = "java";
+
+  console.log("Search configured for:", lang, "@", version);
+
+  docsearch({
+    apiKey: '543bad5ad786495d9ccd445ed34ed082',
+    indexName: 'akka_io',
+    inputSelector: '#search',
+    algoliaOptions: {
+      hitsPerPage: 5,
+      facetFilters: '[' + '["language:' + lang + '","language:general"]' + ',"version:' + version + '"]'
+    }
+  });
+
+  // set up "/" as global shortcut for focusing on search
+  $(document).keypress(function (event) {
+    if (event.keyCode == 47) {
+      $("#q").focus();
+      return false; // swallow key event, otherwise the / char would be input into the search box
+    }
+  });
+</script>
+
+  
+
+  </body>
+</html>

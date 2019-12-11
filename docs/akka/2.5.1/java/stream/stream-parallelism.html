@@ -1,0 +1,425 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Pipelining and Parallelism &mdash; Akka Documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/style.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/prettify.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/base.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/docs.css" type="text/css" />
+    <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,600,700" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '2.5.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="../../_static/toc.js"></script>
+    <script type="text/javascript" src="../../_static/prettify.js"></script>
+    <script type="text/javascript" src="../../_static/highlightCode.js"></script>
+    <script type="text/javascript" src="../../_static/effects.core.js"></script>
+    <script type="text/javascript" src="../../_static/effects.highlight.js"></script>
+    <script type="text/javascript" src="../../_static/scrollTo.js"></script>
+    <script type="text/javascript" src="../../_static/contentsFix.js"></script>
+    <script type="text/javascript" src="../../_static/ga.js"></script>
+    <script type="text/javascript" src="../../_static/warnOldDocs.js"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/docsearch.js/1/docsearch.min.js"></script>
+    <link rel="shortcut icon" href="../../_static/favicon.ico"/>
+    <link rel="top" title="Akka Documentation" href="../../index.html" />
+    <link rel="up" title="Streams" href="index.html" />
+    <link rel="next" title="Testing streams" href="stream-testkit.html" />
+    <link rel="prev" title="Working with streaming IO" href="stream-io.html" />
+    <!-- Hint to search engines that the "canonical" page is under "current", which will boost it appearing in search results -->
+    
+      <link rel="canonical" href="https://doc.akka.io/docs/akka/current/stream/stream-parallelism.html" />
+    
+
+    <!--Google Analytics-->
+    <script type="text/javascript">
+      var _gaq = _gaq || [];
+      _gaq.push(['_setAccount', 'UA-21117439-1']);
+      _gaq.push(['_setDomainName', 'akka.io']);
+      _gaq.push(['_trackPageview']);
+      (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+      })()
+    </script>
+    <!--Google Analytics & Marketo-->
+    <script type="text/javascript">
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+      (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+      m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+      ga('create', 'UA-23127719-1', 'lightbend.com', {'allowLinker': true, 'name': 'tsTracker'});
+      ga('tsTracker.require', 'linker');
+      ga('tsTracker.linker:autoLink', ['lightbend.com','playframework.com','scala-lang.org','scaladays.org','spray.io','akka.io','scala-sbt.org','scala-ide.org']);
+      ga('tsTracker.send', 'pageview');
+
+      (function() {
+          var didInit = false;
+          function initMunchkin() {
+          if(didInit === false) {
+            didInit = true;
+            Munchkin.init('558-NCX-702');
+          }
+          }
+          var s = document.createElement('script');
+          s.type = 'text/javascript';
+          s.async = true;
+          s.src = '//munchkin.marketo.net/munchkin.js';
+          s.onreadystatechange = function() {
+          if (this.readyState == 'complete' || this.readyState == 'loaded') {
+            initMunchkin();
+          }
+          };
+          s.onload = initMunchkin;
+          document.getElementsByTagName('head')[0].appendChild(s);
+        })();
+    </script>
+
+
+  </head>
+  <body role="document">
+  <div class="navbar">
+    <div class="navbar-inner">
+      <div class="container">
+        <div class="navbar-logo">
+          <a href="https://akka.io"><img class="svg-logo" src="../../_static/akka_full_color.svg" /></a>
+        </div>
+        <ul class="nav">
+          <li><a href="https://akka.io/docs">Documentation</a></li>
+          <li><a href="https://doc.akka.io/docs/akka/current/additional/faq.html">FAQ</a></li>
+          <li><a href="https://akka.io/downloads">Download</a></li>
+          <li><a href="http://groups.google.com/group/akka-user">Mailing List</a></li>
+          <li><a href="http://github.com/akka/akka">Code</a></li>
+          <li><a href="http://www.lightbend.com/how/subscription">Commercial Support</a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="main">
+    <div class="container">
+      <div class="page-title">Pipelining and Parallelism - Version 2.5.1</div>
+      <div class="pdf-link"><a href="../../AkkaScala.pdf" title="Akka Scala Documentation"><img src="../../_static/pdf-scala-icon.png" style="height: 40px;" /></a></div>
+      <div class="pdf-link"><a href="../../AkkaJava.pdf" title="Akka Java Documentation"><img src="../../_static/pdf-java-icon.png" style="height: 40px;" /></a></div>
+    </div>
+    <div class="main-container">
+      <div class="container">
+        <div class="row">
+          <div class="span12">
+            <div class="breadcrumb">
+              <div style="position: relative">
+                <input type="search" id="search" class="form-control" style="position: relative" placeholder="Search in the doc" />
+              </div>
+              <div>
+                <div>
+                  <span class="divider">«</span> <a href="stream-io.html">Working with streaming IO</a> <span class="divider">|</span>
+                </div>
+                <div>
+                  <a href="../../java.html">Java Contents</a> <span class="divider">|</span> <a href="../../scala.html">Scala Contents</a>
+                </div>
+                <div>
+                  <span class="divider">|</span> <a href="stream-testkit.html">Testing streams</a> <span class="divider">»</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="row">
+          <div class="span9">
+          </div><div class="span9">
+            
+  <div class="section" id="pipelining-and-parallelism">
+<span id="stream-parallelism-java"></span><h1>Pipelining and Parallelism</h1>
+<p>Akka Streams processing stages (be it simple operators on Flows and Sources or graph junctions) are &quot;fused&quot; together
+and executed sequentially by default. This avoids the overhead of events crossing asynchronous boundaries but
+limits the flow to execute at most one stage at any given time.</p>
+<p>In many cases it is useful to be able to concurrently execute the stages of a flow, this is done by explicitly marking
+them as asynchronous using the <code class="docutils literal"><span class="pre">async()</span></code> method. Each processing stage marked as asynchronous will run in a
+dedicated actor internally, while all stages not marked asynchronous will run in one single actor.</p>
+<p>We will illustrate through the example of pancake cooking how streams can be used for various processing patterns,
+exploiting the available parallelism on modern computers. The setting is the following: both Patrik and Roland
+like to make pancakes, but they need to produce sufficient amount in a cooking session to make all of the children
+happy. To increase their pancake production throughput they use two frying pans. How they organize their pancake
+processing is markedly different.</p>
+<div class="section" id="pipelining">
+<h2>Pipelining</h2>
+<p>Roland uses the two frying pans in an asymmetric fashion. The first pan is only used to fry one side of the
+pancake then the half-finished pancake is flipped into the second pan for the finishing fry on the other side.
+Once the first frying pan becomes available it gets a new scoop of batter. As an effect, most of the time there
+are two pancakes being cooked at the same time, one being cooked on its first side and the second being cooked to
+completion.
+This is how this setup would look like implemented as a stream:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="nc">Flow</span><span class="o">&lt;</span><span class="nc">ScoopOfBatter</span><span class="o">,</span> <span class="nc">HalfCookedPancake</span><span class="o">,</span> <span class="nc">NotUsed</span><span class="o">&gt;</span> <span class="n">fryingPan1</span> <span class="k">=</span>
+  <span class="nc">Flow</span><span class="o">.</span><span class="n">of</span><span class="o">(</span><span class="nc">ScoopOfBatter</span><span class="o">.</span><span class="n">class</span><span class="o">).</span><span class="n">map</span><span class="o">(</span><span class="n">batter</span> <span class="o">-&gt;</span> <span class="k">new</span> <span class="nc">HalfCookedPancake</span><span class="o">());</span>
+
+<span class="nc">Flow</span><span class="o">&lt;</span><span class="nc">HalfCookedPancake</span><span class="o">,</span> <span class="nc">Pancake</span><span class="o">,</span> <span class="nc">NotUsed</span><span class="o">&gt;</span> <span class="n">fryingPan2</span> <span class="k">=</span>
+  <span class="nc">Flow</span><span class="o">.</span><span class="n">of</span><span class="o">(</span><span class="nc">HalfCookedPancake</span><span class="o">.</span><span class="n">class</span><span class="o">).</span><span class="n">map</span><span class="o">(</span><span class="n">halfCooked</span> <span class="o">-&gt;</span> <span class="k">new</span> <span class="nc">Pancake</span><span class="o">());</span>
+
+<span class="c1">// With the two frying pans we can fully cook pancakes</span>
+<span class="nc">Flow</span><span class="o">&lt;</span><span class="nc">ScoopOfBatter</span><span class="o">,</span> <span class="nc">Pancake</span><span class="o">,</span> <span class="nc">NotUsed</span><span class="o">&gt;</span> <span class="n">pancakeChef</span> <span class="k">=</span>
+  <span class="n">fryingPan1</span><span class="o">.</span><span class="n">async</span><span class="o">().</span><span class="n">via</span><span class="o">(</span><span class="n">fryingPan2</span><span class="o">.</span><span class="n">async</span><span class="o">());</span>
+</pre></div>
+</div>
+<p>The two <code class="docutils literal"><span class="pre">map</span></code> stages in sequence (encapsulated in the &quot;frying pan&quot; flows) will be executed in a pipelined way,
+basically doing the same as Roland with his frying pans:</p>
+<blockquote>
+<div><ol class="arabic simple">
+<li>A <code class="docutils literal"><span class="pre">ScoopOfBatter</span></code> enters <code class="docutils literal"><span class="pre">fryingPan1</span></code></li>
+<li><code class="docutils literal"><span class="pre">fryingPan1</span></code> emits a HalfCookedPancake once <code class="docutils literal"><span class="pre">fryingPan2</span></code> becomes available</li>
+<li><code class="docutils literal"><span class="pre">fryingPan2</span></code> takes the HalfCookedPancake</li>
+<li>at this point fryingPan1 already takes the next scoop, without waiting for fryingPan2 to finish</li>
+</ol>
+</div></blockquote>
+<p>The benefit of pipelining is that it can be applied to any sequence of processing steps that are otherwise not
+parallelisable (for example because the result of a processing step depends on all the information from the previous
+step). One drawback is that if the processing times of the stages are very different then some of the stages will not
+be able to operate at full throughput because they will wait on a previous or subsequent stage most of the time. In the
+pancake example frying the second half of the pancake is usually faster than frying the first half, <code class="docutils literal"><span class="pre">fryingPan2</span></code> will
+not be able to operate at full capacity <a class="footnote-reference" href="#id2" id="id1">[1]</a>.</p>
+<dl class="docutils">
+<dt>note::</dt>
+<dd>Asynchronous stream processing stages have internal buffers to make communication between them more efficient.
+For more details about the behavior of these and how to add additional buffers refer to <a class="reference internal" href="../../scala/stream/stream-rate.html#stream-rate-scala"><span>Buffers and working with rate</span></a>.</dd>
+</dl>
+</div>
+<div class="section" id="parallel-processing">
+<h2>Parallel processing</h2>
+<p>Patrik uses the two frying pans symmetrically. He uses both pans to fully fry a pancake on both sides, then puts
+the results on a shared plate. Whenever a pan becomes empty, he takes the next scoop from the shared bowl of batter.
+In essence he parallelizes the same process over multiple pans. This is how this setup will look like if implemented
+using streams:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="nc">Flow</span><span class="o">&lt;</span><span class="nc">ScoopOfBatter</span><span class="o">,</span> <span class="nc">Pancake</span><span class="o">,</span> <span class="nc">NotUsed</span><span class="o">&gt;</span> <span class="n">fryingPan</span> <span class="k">=</span>
+  <span class="nc">Flow</span><span class="o">.</span><span class="n">of</span><span class="o">(</span><span class="nc">ScoopOfBatter</span><span class="o">.</span><span class="n">class</span><span class="o">).</span><span class="n">map</span><span class="o">(</span><span class="n">batter</span> <span class="o">-&gt;</span> <span class="k">new</span> <span class="nc">Pancake</span><span class="o">());</span>
+
+<span class="nc">Flow</span><span class="o">&lt;</span><span class="nc">ScoopOfBatter</span><span class="o">,</span> <span class="nc">Pancake</span><span class="o">,</span> <span class="nc">NotUsed</span><span class="o">&gt;</span> <span class="n">pancakeChef</span> <span class="k">=</span>
+  <span class="nc">Flow</span><span class="o">.</span><span class="n">fromGraph</span><span class="o">(</span><span class="nc">GraphDSL</span><span class="o">.</span><span class="n">create</span><span class="o">(</span><span class="n">b</span> <span class="o">-&gt;</span> <span class="o">{</span>
+    <span class="k">final</span> <span class="nc">UniformFanInShape</span><span class="o">&lt;</span><span class="nc">Pancake</span><span class="o">,</span> <span class="nc">Pancake</span><span class="o">&gt;</span> <span class="n">mergePancakes</span> <span class="k">=</span>
+      <span class="n">b</span><span class="o">.</span><span class="n">add</span><span class="o">(</span><span class="nc">Merge</span><span class="o">.</span><span class="n">create</span><span class="o">(</span><span class="mi">2</span><span class="o">));</span>
+    <span class="k">final</span> <span class="nc">UniformFanOutShape</span><span class="o">&lt;</span><span class="nc">ScoopOfBatter</span><span class="o">,</span> <span class="nc">ScoopOfBatter</span><span class="o">&gt;</span> <span class="n">dispatchBatter</span> <span class="k">=</span>
+      <span class="n">b</span><span class="o">.</span><span class="n">add</span><span class="o">(</span><span class="nc">Balance</span><span class="o">.</span><span class="n">create</span><span class="o">(</span><span class="mi">2</span><span class="o">));</span>
+
+    <span class="c1">// Using two frying pans in parallel, both fully cooking a pancake from the batter.</span>
+    <span class="c1">// We always put the next scoop of batter to the first frying pan that becomes available.</span>
+    <span class="n">b</span><span class="o">.</span><span class="n">from</span><span class="o">(</span><span class="n">dispatchBatter</span><span class="o">.</span><span class="n">out</span><span class="o">(</span><span class="mi">0</span><span class="o">)).</span><span class="n">via</span><span class="o">(</span><span class="n">b</span><span class="o">.</span><span class="n">add</span><span class="o">(</span><span class="n">fryingPan</span><span class="o">.</span><span class="n">async</span><span class="o">())).</span><span class="n">toInlet</span><span class="o">(</span><span class="n">mergePancakes</span><span class="o">.</span><span class="n">in</span><span class="o">(</span><span class="mi">0</span><span class="o">));</span>
+    <span class="c1">// Notice that we used the &quot;fryingPan&quot; flow without importing it via builder.add().</span>
+    <span class="c1">// Flows used this way are auto-imported, which in this case means that the two</span>
+    <span class="c1">// uses of &quot;fryingPan&quot; mean actually different stages in the graph.</span>
+    <span class="n">b</span><span class="o">.</span><span class="n">from</span><span class="o">(</span><span class="n">dispatchBatter</span><span class="o">.</span><span class="n">out</span><span class="o">(</span><span class="mi">1</span><span class="o">)).</span><span class="n">via</span><span class="o">(</span><span class="n">b</span><span class="o">.</span><span class="n">add</span><span class="o">(</span><span class="n">fryingPan</span><span class="o">.</span><span class="n">async</span><span class="o">())).</span><span class="n">toInlet</span><span class="o">(</span><span class="n">mergePancakes</span><span class="o">.</span><span class="n">in</span><span class="o">(</span><span class="mi">1</span><span class="o">));</span>
+
+    <span class="k">return</span> <span class="nc">FlowShape</span><span class="o">.</span><span class="n">of</span><span class="o">(</span><span class="n">dispatchBatter</span><span class="o">.</span><span class="n">in</span><span class="o">(),</span> <span class="n">mergePancakes</span><span class="o">.</span><span class="n">out</span><span class="o">());</span>
+  <span class="o">}));</span>
+</pre></div>
+</div>
+<p>The benefit of parallelizing is that it is easy to scale. In the pancake example
+it is easy to add a third frying pan with Patrik's method, but Roland cannot add a third frying pan,
+since that would require a third processing step, which is not practically possible in the case of frying pancakes.</p>
+<p>One drawback of the example code above that it does not preserve the ordering of pancakes. This might be a problem
+if children like to track their &quot;own&quot; pancakes. In those cases the <code class="docutils literal"><span class="pre">Balance</span></code> and <code class="docutils literal"><span class="pre">Merge</span></code> stages should be replaced
+by strict-round robing balancing and merging stages that put in and take out pancakes in a strict order.</p>
+<p>A more detailed example of creating a worker pool can be found in the cookbook: <a class="reference internal" href="../../scala/stream/stream-cookbook.html#cookbook-balance-scala"><span>Balancing jobs to a fixed pool of workers</span></a></p>
+</div>
+<div class="section" id="combining-pipelining-and-parallel-processing">
+<h2>Combining pipelining and parallel processing</h2>
+<p>The two concurrency patterns that we demonstrated as means to increase throughput are not exclusive.
+In fact, it is rather simple to combine the two approaches and streams provide
+a nice unifying language to express and compose them.</p>
+<p>First, let's look at how we can parallelize pipelined processing stages. In the case of pancakes this means that we
+will employ two chefs, each working using Roland's pipelining method, but we use the two chefs in parallel, just like
+Patrik used the two frying pans. This is how it looks like if expressed as streams:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="nc">Flow</span><span class="o">&lt;</span><span class="nc">ScoopOfBatter</span><span class="o">,</span> <span class="nc">Pancake</span><span class="o">,</span> <span class="nc">NotUsed</span><span class="o">&gt;</span> <span class="n">pancakeChef</span> <span class="k">=</span>
+  <span class="nc">Flow</span><span class="o">.</span><span class="n">fromGraph</span><span class="o">(</span><span class="nc">GraphDSL</span><span class="o">.</span><span class="n">create</span><span class="o">(</span><span class="n">b</span> <span class="o">-&gt;</span> <span class="o">{</span>
+    <span class="k">final</span> <span class="nc">UniformFanInShape</span><span class="o">&lt;</span><span class="nc">Pancake</span><span class="o">,</span> <span class="nc">Pancake</span><span class="o">&gt;</span> <span class="n">mergePancakes</span> <span class="k">=</span>
+      <span class="n">b</span><span class="o">.</span><span class="n">add</span><span class="o">(</span><span class="nc">Merge</span><span class="o">.</span><span class="n">create</span><span class="o">(</span><span class="mi">2</span><span class="o">));</span>
+    <span class="k">final</span> <span class="nc">UniformFanOutShape</span><span class="o">&lt;</span><span class="nc">ScoopOfBatter</span><span class="o">,</span> <span class="nc">ScoopOfBatter</span><span class="o">&gt;</span> <span class="n">dispatchBatter</span> <span class="k">=</span>
+      <span class="n">b</span><span class="o">.</span><span class="n">add</span><span class="o">(</span><span class="nc">Balance</span><span class="o">.</span><span class="n">create</span><span class="o">(</span><span class="mi">2</span><span class="o">));</span>
+
+    <span class="c1">// Using two pipelines, having two frying pans each, in total using</span>
+    <span class="c1">// four frying pans</span>
+    <span class="n">b</span><span class="o">.</span><span class="n">from</span><span class="o">(</span><span class="n">dispatchBatter</span><span class="o">.</span><span class="n">out</span><span class="o">(</span><span class="mi">0</span><span class="o">))</span>
+      <span class="o">.</span><span class="n">via</span><span class="o">(</span><span class="n">b</span><span class="o">.</span><span class="n">add</span><span class="o">(</span><span class="n">fryingPan1</span><span class="o">.</span><span class="n">async</span><span class="o">()))</span>
+      <span class="o">.</span><span class="n">via</span><span class="o">(</span><span class="n">b</span><span class="o">.</span><span class="n">add</span><span class="o">(</span><span class="n">fryingPan2</span><span class="o">.</span><span class="n">async</span><span class="o">()))</span>
+      <span class="o">.</span><span class="n">toInlet</span><span class="o">(</span><span class="n">mergePancakes</span><span class="o">.</span><span class="n">in</span><span class="o">(</span><span class="mi">0</span><span class="o">));</span>
+
+    <span class="n">b</span><span class="o">.</span><span class="n">from</span><span class="o">(</span><span class="n">dispatchBatter</span><span class="o">.</span><span class="n">out</span><span class="o">(</span><span class="mi">1</span><span class="o">))</span>
+      <span class="o">.</span><span class="n">via</span><span class="o">(</span><span class="n">b</span><span class="o">.</span><span class="n">add</span><span class="o">(</span><span class="n">fryingPan1</span><span class="o">.</span><span class="n">async</span><span class="o">()))</span>
+      <span class="o">.</span><span class="n">via</span><span class="o">(</span><span class="n">b</span><span class="o">.</span><span class="n">add</span><span class="o">(</span><span class="n">fryingPan2</span><span class="o">.</span><span class="n">async</span><span class="o">()))</span>
+      <span class="o">.</span><span class="n">toInlet</span><span class="o">(</span><span class="n">mergePancakes</span><span class="o">.</span><span class="n">in</span><span class="o">(</span><span class="mi">1</span><span class="o">));</span>
+
+    <span class="k">return</span> <span class="nc">FlowShape</span><span class="o">.</span><span class="n">of</span><span class="o">(</span><span class="n">dispatchBatter</span><span class="o">.</span><span class="n">in</span><span class="o">(),</span> <span class="n">mergePancakes</span><span class="o">.</span><span class="n">out</span><span class="o">());</span>
+  <span class="o">}));</span>
+</pre></div>
+</div>
+<p>The above pattern works well if there are many independent jobs that do not depend on the results of each other, but
+the jobs themselves need multiple processing steps where each step builds on the result of
+the previous one. In our case individual pancakes do not depend on each other, they can be cooked in parallel, on the
+other hand it is not possible to fry both sides of the same pancake at the same time, so the two sides have to be fried
+in sequence.</p>
+<p>It is also possible to organize parallelized stages into pipelines. This would mean employing four chefs:</p>
+<blockquote>
+<div><ul class="simple">
+<li>the first two chefs prepare half-cooked pancakes from batter, in parallel, then putting those on a large enough
+flat surface.</li>
+<li>the second two chefs take these and fry their other side in their own pans, then they put the pancakes on a shared
+plate.</li>
+</ul>
+</div></blockquote>
+<p>This is again straightforward to implement with the streams API:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="nc">Flow</span><span class="o">&lt;</span><span class="nc">ScoopOfBatter</span><span class="o">,</span> <span class="nc">HalfCookedPancake</span><span class="o">,</span> <span class="nc">NotUsed</span><span class="o">&gt;</span> <span class="n">pancakeChefs1</span> <span class="k">=</span>
+  <span class="nc">Flow</span><span class="o">.</span><span class="n">fromGraph</span><span class="o">(</span><span class="nc">GraphDSL</span><span class="o">.</span><span class="n">create</span><span class="o">(</span><span class="n">b</span> <span class="o">-&gt;</span> <span class="o">{</span>
+    <span class="k">final</span> <span class="nc">UniformFanInShape</span><span class="o">&lt;</span><span class="nc">HalfCookedPancake</span><span class="o">,</span> <span class="nc">HalfCookedPancake</span><span class="o">&gt;</span> <span class="n">mergeHalfCooked</span> <span class="k">=</span>
+      <span class="n">b</span><span class="o">.</span><span class="n">add</span><span class="o">(</span><span class="nc">Merge</span><span class="o">.</span><span class="n">create</span><span class="o">(</span><span class="mi">2</span><span class="o">));</span>
+    <span class="k">final</span> <span class="nc">UniformFanOutShape</span><span class="o">&lt;</span><span class="nc">ScoopOfBatter</span><span class="o">,</span> <span class="nc">ScoopOfBatter</span><span class="o">&gt;</span> <span class="n">dispatchBatter</span> <span class="k">=</span>
+      <span class="n">b</span><span class="o">.</span><span class="n">add</span><span class="o">(</span><span class="nc">Balance</span><span class="o">.</span><span class="n">create</span><span class="o">(</span><span class="mi">2</span><span class="o">));</span>
+
+    <span class="c1">// Two chefs work with one frying pan for each, half-frying the pancakes then putting</span>
+    <span class="c1">// them into a common pool</span>
+    <span class="n">b</span><span class="o">.</span><span class="n">from</span><span class="o">(</span><span class="n">dispatchBatter</span><span class="o">.</span><span class="n">out</span><span class="o">(</span><span class="mi">0</span><span class="o">)).</span><span class="n">via</span><span class="o">(</span><span class="n">b</span><span class="o">.</span><span class="n">add</span><span class="o">(</span><span class="n">fryingPan1</span><span class="o">.</span><span class="n">async</span><span class="o">())).</span><span class="n">toInlet</span><span class="o">(</span><span class="n">mergeHalfCooked</span><span class="o">.</span><span class="n">in</span><span class="o">(</span><span class="mi">0</span><span class="o">));</span>
+    <span class="n">b</span><span class="o">.</span><span class="n">from</span><span class="o">(</span><span class="n">dispatchBatter</span><span class="o">.</span><span class="n">out</span><span class="o">(</span><span class="mi">1</span><span class="o">)).</span><span class="n">via</span><span class="o">(</span><span class="n">b</span><span class="o">.</span><span class="n">add</span><span class="o">(</span><span class="n">fryingPan1</span><span class="o">.</span><span class="n">async</span><span class="o">())).</span><span class="n">toInlet</span><span class="o">(</span><span class="n">mergeHalfCooked</span><span class="o">.</span><span class="n">in</span><span class="o">(</span><span class="mi">1</span><span class="o">));</span>
+
+    <span class="k">return</span> <span class="nc">FlowShape</span><span class="o">.</span><span class="n">of</span><span class="o">(</span><span class="n">dispatchBatter</span><span class="o">.</span><span class="n">in</span><span class="o">(),</span> <span class="n">mergeHalfCooked</span><span class="o">.</span><span class="n">out</span><span class="o">());</span>
+  <span class="o">}));</span>
+
+<span class="nc">Flow</span><span class="o">&lt;</span><span class="nc">HalfCookedPancake</span><span class="o">,</span> <span class="nc">Pancake</span><span class="o">,</span> <span class="nc">NotUsed</span><span class="o">&gt;</span> <span class="n">pancakeChefs2</span> <span class="k">=</span>
+  <span class="nc">Flow</span><span class="o">.</span><span class="n">fromGraph</span><span class="o">(</span><span class="nc">GraphDSL</span><span class="o">.</span><span class="n">create</span><span class="o">(</span><span class="n">b</span> <span class="o">-&gt;</span> <span class="o">{</span>
+    <span class="k">final</span> <span class="nc">UniformFanInShape</span><span class="o">&lt;</span><span class="nc">Pancake</span><span class="o">,</span> <span class="nc">Pancake</span><span class="o">&gt;</span> <span class="n">mergePancakes</span> <span class="k">=</span>
+      <span class="n">b</span><span class="o">.</span><span class="n">add</span><span class="o">(</span><span class="nc">Merge</span><span class="o">.</span><span class="n">create</span><span class="o">(</span><span class="mi">2</span><span class="o">));</span>
+    <span class="k">final</span> <span class="nc">UniformFanOutShape</span><span class="o">&lt;</span><span class="nc">HalfCookedPancake</span><span class="o">,</span> <span class="nc">HalfCookedPancake</span><span class="o">&gt;</span> <span class="n">dispatchHalfCooked</span> <span class="k">=</span>
+      <span class="n">b</span><span class="o">.</span><span class="n">add</span><span class="o">(</span><span class="nc">Balance</span><span class="o">.</span><span class="n">create</span><span class="o">(</span><span class="mi">2</span><span class="o">));</span>
+
+    <span class="c1">// Two chefs work with one frying pan for each, finishing the pancakes then putting</span>
+    <span class="c1">// them into a common pool</span>
+    <span class="n">b</span><span class="o">.</span><span class="n">from</span><span class="o">(</span><span class="n">dispatchHalfCooked</span><span class="o">.</span><span class="n">out</span><span class="o">(</span><span class="mi">0</span><span class="o">)).</span><span class="n">via</span><span class="o">(</span><span class="n">b</span><span class="o">.</span><span class="n">add</span><span class="o">(</span><span class="n">fryingPan2</span><span class="o">.</span><span class="n">async</span><span class="o">())).</span><span class="n">toInlet</span><span class="o">(</span><span class="n">mergePancakes</span><span class="o">.</span><span class="n">in</span><span class="o">(</span><span class="mi">0</span><span class="o">));</span>
+    <span class="n">b</span><span class="o">.</span><span class="n">from</span><span class="o">(</span><span class="n">dispatchHalfCooked</span><span class="o">.</span><span class="n">out</span><span class="o">(</span><span class="mi">1</span><span class="o">)).</span><span class="n">via</span><span class="o">(</span><span class="n">b</span><span class="o">.</span><span class="n">add</span><span class="o">(</span><span class="n">fryingPan2</span><span class="o">.</span><span class="n">async</span><span class="o">())).</span><span class="n">toInlet</span><span class="o">(</span><span class="n">mergePancakes</span><span class="o">.</span><span class="n">in</span><span class="o">(</span><span class="mi">1</span><span class="o">));</span>
+
+    <span class="k">return</span> <span class="nc">FlowShape</span><span class="o">.</span><span class="n">of</span><span class="o">(</span><span class="n">dispatchHalfCooked</span><span class="o">.</span><span class="n">in</span><span class="o">(),</span> <span class="n">mergePancakes</span><span class="o">.</span><span class="n">out</span><span class="o">());</span>
+  <span class="o">}));</span>
+
+<span class="nc">Flow</span><span class="o">&lt;</span><span class="nc">ScoopOfBatter</span><span class="o">,</span> <span class="nc">Pancake</span><span class="o">,</span> <span class="nc">NotUsed</span><span class="o">&gt;</span> <span class="n">kitchen</span> <span class="k">=</span>
+    <span class="n">pancakeChefs1</span><span class="o">.</span><span class="n">via</span><span class="o">(</span><span class="n">pancakeChefs2</span><span class="o">);</span>
+</pre></div>
+</div>
+<p>This usage pattern is less common but might be usable if a certain step in the pipeline might take wildly different
+times to finish different jobs. The reason is that there are more balance-merge steps in this pattern
+compared to the parallel pipelines. This pattern rebalances after each step, while the previous pattern only balances
+at the entry point of the pipeline. This only matters however if the processing time distribution has a large
+deviation.</p>
+<table class="docutils footnote" frame="void" id="id2" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id1">[1]</a></td><td>Roland's reason for this seemingly suboptimal procedure is that he prefers the temperature of the second pan
+to be slightly lower than the first in order to achieve a more homogeneous result.</td></tr>
+</tbody>
+</table>
+</div>
+</div>
+
+
+          </div>
+          <div class="span3"><p class="contents-title">Contents</p>
+              <div id="scroller-anchor">
+                <div id="scroller">
+                  <div id="toc"></div>
+                </div>
+              </div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="footer">
+  <div class="container">
+    <ul>
+      <li><h5>Akka</h5></li>
+      <li><a href="https://akka.io/docs">Documentation</a></li>
+      <li><a href="https://doc.akka.io/docs/akka/current/additional/faq.html">FAQ</a></li>
+      <li><a href="https://akka.io/downloads">Downloads</a></li>
+      <li><a href="https://akka.io/news">News</a></li>
+      <li><a href="http://letitcrash.com">Blog</a></li>
+    </ul>
+    <ul>
+      <li><h5>Contribute</h5></li>
+      <li><a href="https://akka.io/community">Community Projects</a></li>
+      <li><a href="http://github.com/akka/akka">Source Code</a></li>
+      <li><a href="http://groups.google.com/group/akka-user">Mailing List</a></li>
+      <li><a href="https://doc.akka.io/docs/akka/current/project/issue-tracking.html">Report a Bug</a></li>
+    </ul>
+    <ul>
+      <li><h5>Company</h5></li>
+      <li><a href="http://www.lightbend.com/how/subscription">Commercial Support</a></li>
+      <li><a href="https://akka.io/team">Team</a></li>
+      <li><a href="mailto:info@lightbend.com">Contact</a></li>
+    </ul>
+    <ul>
+      <li><img src="../../_static/akka_icon_reverse.svg" align="center"/></li>
+    </ul>
+  </div>
+  <div class="container copyright">
+    <p style="float: left;">
+      © 2015 <a href="http://www.lightbend.com/">Lightbend Inc.</a> <span class="license">Akka is Open Source and available under the Apache 2 License.</span>
+    </p>
+    <p style="float: right; font-size: 12px;">
+      Last updated: May 02, 2017
+    </p>
+  </div>
+</div>
+<script type="text/javascript">
+  var $toc = $('#toc');
+  $toc.toc();
+
+  // show clickable section sign when section header hovered:
+  $('.section h2,.section h3,.section h4,.section h5').each(function(i, el) {
+      var $el = $(el);
+      $el.prepend($("<a class='section-marker' href='#" + $el.attr("id") + "'>&sect;</a>"))
+  });
+</script>
+
+<!-- Algolia docs search -->
+<script type="text/javascript">
+  var version = DOCUMENTATION_OPTIONS.VERSION;
+
+  var lang = "scala";
+  var path = window.location.pathname;
+  if (path.includes("/java/") || path.includes("java.html")) lang = "java";
+
+  console.log("Search configured for:", lang, "@", version);
+
+  docsearch({
+    apiKey: '543bad5ad786495d9ccd445ed34ed082',
+    indexName: 'akka_io',
+    inputSelector: '#search',
+    algoliaOptions: {
+      hitsPerPage: 5,
+      facetFilters: '[' + '["language:' + lang + '","language:general"]' + ',"version:' + version + '"]'
+    }
+  });
+
+  // set up "/" as global shortcut for focusing on search
+  $(document).keypress(function (event) {
+    if (event.keyCode == 47) {
+      $("#q").focus();
+      return false; // swallow key event, otherwise the / char would be input into the search box
+    }
+  });
+</script>
+
+  
+
+  </body>
+</html>

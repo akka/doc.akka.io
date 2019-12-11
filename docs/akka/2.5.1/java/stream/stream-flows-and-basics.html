@@ -1,0 +1,640 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Basics and working with Flows &mdash; Akka Documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/style.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/prettify.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/base.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/docs.css" type="text/css" />
+    <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,600,700" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '2.5.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="../../_static/toc.js"></script>
+    <script type="text/javascript" src="../../_static/prettify.js"></script>
+    <script type="text/javascript" src="../../_static/highlightCode.js"></script>
+    <script type="text/javascript" src="../../_static/effects.core.js"></script>
+    <script type="text/javascript" src="../../_static/effects.highlight.js"></script>
+    <script type="text/javascript" src="../../_static/scrollTo.js"></script>
+    <script type="text/javascript" src="../../_static/contentsFix.js"></script>
+    <script type="text/javascript" src="../../_static/ga.js"></script>
+    <script type="text/javascript" src="../../_static/warnOldDocs.js"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/docsearch.js/1/docsearch.min.js"></script>
+    <link rel="shortcut icon" href="../../_static/favicon.ico"/>
+    <link rel="top" title="Akka Documentation" href="../../index.html" />
+    <link rel="up" title="Streams" href="index.html" />
+    <link rel="next" title="Working with Graphs" href="stream-graphs.html" />
+    <link rel="prev" title="Design Principles behind Akka Streams" href="../../general/stream/stream-design.html" />
+    <!-- Hint to search engines that the "canonical" page is under "current", which will boost it appearing in search results -->
+    
+      <link rel="canonical" href="https://doc.akka.io/docs/akka/current/stream/stream-flows-and-basics.html" />
+    
+
+    <!--Google Analytics-->
+    <script type="text/javascript">
+      var _gaq = _gaq || [];
+      _gaq.push(['_setAccount', 'UA-21117439-1']);
+      _gaq.push(['_setDomainName', 'akka.io']);
+      _gaq.push(['_trackPageview']);
+      (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+      })()
+    </script>
+    <!--Google Analytics & Marketo-->
+    <script type="text/javascript">
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+      (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+      m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+      ga('create', 'UA-23127719-1', 'lightbend.com', {'allowLinker': true, 'name': 'tsTracker'});
+      ga('tsTracker.require', 'linker');
+      ga('tsTracker.linker:autoLink', ['lightbend.com','playframework.com','scala-lang.org','scaladays.org','spray.io','akka.io','scala-sbt.org','scala-ide.org']);
+      ga('tsTracker.send', 'pageview');
+
+      (function() {
+          var didInit = false;
+          function initMunchkin() {
+          if(didInit === false) {
+            didInit = true;
+            Munchkin.init('558-NCX-702');
+          }
+          }
+          var s = document.createElement('script');
+          s.type = 'text/javascript';
+          s.async = true;
+          s.src = '//munchkin.marketo.net/munchkin.js';
+          s.onreadystatechange = function() {
+          if (this.readyState == 'complete' || this.readyState == 'loaded') {
+            initMunchkin();
+          }
+          };
+          s.onload = initMunchkin;
+          document.getElementsByTagName('head')[0].appendChild(s);
+        })();
+    </script>
+
+
+  </head>
+  <body role="document">
+  <div class="navbar">
+    <div class="navbar-inner">
+      <div class="container">
+        <div class="navbar-logo">
+          <a href="https://akka.io"><img class="svg-logo" src="../../_static/akka_full_color.svg" /></a>
+        </div>
+        <ul class="nav">
+          <li><a href="https://akka.io/docs">Documentation</a></li>
+          <li><a href="https://doc.akka.io/docs/akka/current/additional/faq.html">FAQ</a></li>
+          <li><a href="https://akka.io/downloads">Download</a></li>
+          <li><a href="http://groups.google.com/group/akka-user">Mailing List</a></li>
+          <li><a href="http://github.com/akka/akka">Code</a></li>
+          <li><a href="http://www.lightbend.com/how/subscription">Commercial Support</a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="main">
+    <div class="container">
+      <div class="page-title">Basics and working with Flows - Version 2.5.1</div>
+      <div class="pdf-link"><a href="../../AkkaScala.pdf" title="Akka Scala Documentation"><img src="../../_static/pdf-scala-icon.png" style="height: 40px;" /></a></div>
+      <div class="pdf-link"><a href="../../AkkaJava.pdf" title="Akka Java Documentation"><img src="../../_static/pdf-java-icon.png" style="height: 40px;" /></a></div>
+    </div>
+    <div class="main-container">
+      <div class="container">
+        <div class="row">
+          <div class="span12">
+            <div class="breadcrumb">
+              <div style="position: relative">
+                <input type="search" id="search" class="form-control" style="position: relative" placeholder="Search in the doc" />
+              </div>
+              <div>
+                <div>
+                  <span class="divider">«</span> <a href="../../general/stream/stream-design.html">Design Principles behind Akka Streams</a> <span class="divider">|</span>
+                </div>
+                <div>
+                  <a href="../../java.html">Java Contents</a> <span class="divider">|</span> <a href="../../scala.html">Scala Contents</a>
+                </div>
+                <div>
+                  <span class="divider">|</span> <a href="stream-graphs.html">Working with Graphs</a> <span class="divider">»</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="row">
+          <div class="span9">
+          </div><div class="span9">
+            
+  <div class="section" id="basics-and-working-with-flows">
+<span id="stream-flow-java"></span><h1>Basics and working with Flows</h1>
+<div class="section" id="core-concepts">
+<span id="core-concepts-java"></span><h2>Core concepts</h2>
+<p>Akka Streams is a library to process and transfer a sequence of elements using bounded buffer space. This
+latter property is what we refer to as <em>boundedness</em> and it is the defining feature of Akka Streams. Translated to
+everyday terms it is possible to express a chain (or as we see later, graphs) of processing entities, each executing
+independently (and possibly concurrently) from the others while only buffering a limited number of elements at any given
+time. This property of bounded buffers is one of the differences from the actor model, where each actor usually has
+an unbounded, or a bounded, but dropping mailbox. Akka Stream processing entities have bounded &quot;mailboxes&quot; that
+do not drop.</p>
+<p>Before we move on, let's define some basic terminology which will be used throughout the entire documentation:</p>
+<dl class="docutils">
+<dt>Stream</dt>
+<dd>An active process that involves moving and transforming data.</dd>
+<dt>Element</dt>
+<dd>An element is the processing unit of streams. All operations transform and transfer elements from upstream to
+downstream. Buffer sizes are always expressed as number of elements independently form the actual size of the elements.</dd>
+<dt>Back-pressure</dt>
+<dd>A means of flow-control, a way for consumers of data to notify a producer about their current availability, effectively
+slowing down the upstream producer to match their consumption speeds.
+In the context of Akka Streams back-pressure is always understood as <em>non-blocking</em> and <em>asynchronous</em>.</dd>
+<dt>Non-Blocking</dt>
+<dd>Means that a certain operation does not hinder the progress of the calling thread, even if it takes long time to
+finish the requested operation.</dd>
+<dt>Graph</dt>
+<dd>A description of a stream processing topology, defining the pathways through which elements shall flow when the stream
+is running.</dd>
+<dt>Processing Stage</dt>
+<dd>The common name for all building blocks that build up a Graph.
+Examples of a processing stage would be  operations like <code class="docutils literal"><span class="pre">map()</span></code>, <code class="docutils literal"><span class="pre">filter()</span></code>, custom <code class="docutils literal"><span class="pre">GraphStage</span></code> s and graph
+junctions like <code class="docutils literal"><span class="pre">Merge</span></code> or <code class="docutils literal"><span class="pre">Broadcast</span></code>. For the full list of built-in processing stages see <a class="reference internal" href="stages-overview.html#stages-overview-java"><span>Overview of built-in stages and their semantics</span></a></dd>
+</dl>
+<p>When we talk about <em>asynchronous, non-blocking backpressure</em> we mean that the processing stages available in Akka
+Streams will not use blocking calls but asynchronous message passing to exchange messages between each other, and they
+will use asynchronous means to slow down a fast producer, without blocking its thread. This is a thread-pool friendly
+design, since entities that need to wait (a fast producer waiting on a slow consumer) will not block the thread but
+can hand it back for further use to an underlying thread-pool.</p>
+</div>
+<div class="section" id="defining-and-running-streams">
+<span id="defining-and-running-streams-java"></span><h2>Defining and running streams</h2>
+<p>Linear processing pipelines can be expressed in Akka Streams using the following core abstractions:</p>
+<dl class="docutils">
+<dt>Source</dt>
+<dd>A processing stage with <em>exactly one output</em>, emitting data elements whenever downstream processing stages are
+ready to receive them.</dd>
+<dt>Sink</dt>
+<dd>A processing stage with <em>exactly one input</em>, requesting and accepting data elements possibly slowing down the upstream
+producer of elements</dd>
+<dt>Flow</dt>
+<dd>A processing stage which has <em>exactly one input and output</em>, which connects its up- and downstreams by
+transforming the data elements flowing through it.</dd>
+<dt>RunnableGraph</dt>
+<dd>A Flow that has both ends &quot;attached&quot; to a Source and Sink respectively, and is ready to be <code class="docutils literal"><span class="pre">run()</span></code>.</dd>
+</dl>
+<p>It is possible to attach a <code class="docutils literal"><span class="pre">Flow</span></code> to a <code class="docutils literal"><span class="pre">Source</span></code> resulting in a composite source, and it is also possible to prepend
+a <code class="docutils literal"><span class="pre">Flow</span></code> to a <code class="docutils literal"><span class="pre">Sink</span></code> to get a new sink. After a stream is properly terminated by having both a source and a sink,
+it will be represented by the <code class="docutils literal"><span class="pre">RunnableGraph</span></code> type, indicating that it is ready to be executed.</p>
+<p>It is important to remember that even after constructing the <code class="docutils literal"><span class="pre">RunnableGraph</span></code> by connecting all the source, sink and
+different processing stages, no data will flow through it until it is materialized. Materialization is the process of
+allocating all resources needed to run the computation described by a Graph (in Akka Streams this will often involve
+starting up Actors). Thanks to Flows being simply a description of the processing pipeline they are <em>immutable,
+thread-safe, and freely shareable</em>, which means that it is for example safe to share and send them between actors, to have
+one actor prepare the work, and then have it be materialized at some completely different place in the code.</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">final</span> <span class="nc">Source</span><span class="o">&lt;</span><span class="nc">Integer</span><span class="o">,</span> <span class="nc">NotUsed</span><span class="o">&gt;</span> <span class="n">source</span> <span class="k">=</span>
+    <span class="nc">Source</span><span class="o">.</span><span class="n">from</span><span class="o">(</span><span class="nc">Arrays</span><span class="o">.</span><span class="n">asList</span><span class="o">(</span><span class="mi">1</span><span class="o">,</span> <span class="mi">2</span><span class="o">,</span> <span class="mi">3</span><span class="o">,</span> <span class="mi">4</span><span class="o">,</span> <span class="mi">5</span><span class="o">,</span> <span class="mi">6</span><span class="o">,</span> <span class="mi">7</span><span class="o">,</span> <span class="mi">8</span><span class="o">,</span> <span class="mi">9</span><span class="o">,</span> <span class="mi">10</span><span class="o">));</span>
+<span class="c1">// note that the Future is scala.concurrent.Future</span>
+<span class="k">final</span> <span class="nc">Sink</span><span class="o">&lt;</span><span class="nc">Integer</span><span class="o">,</span> <span class="nc">CompletionStage</span><span class="o">&lt;</span><span class="nc">Integer</span><span class="o">&gt;&gt;</span> <span class="n">sink</span> <span class="k">=</span>
+    <span class="nc">Sink</span><span class="o">.&lt;</span><span class="nc">Integer</span><span class="o">,</span> <span class="nc">Integer</span><span class="o">&gt;</span> <span class="n">fold</span><span class="o">(</span><span class="mi">0</span><span class="o">,</span> <span class="o">(</span><span class="n">aggr</span><span class="o">,</span> <span class="n">next</span><span class="o">)</span> <span class="o">-&gt;</span> <span class="n">aggr</span> <span class="o">+</span> <span class="n">next</span><span class="o">);</span>
+
+<span class="c1">// connect the Source to the Sink, obtaining a RunnableFlow</span>
+<span class="k">final</span> <span class="nc">RunnableGraph</span><span class="o">&lt;</span><span class="nc">CompletionStage</span><span class="o">&lt;</span><span class="nc">Integer</span><span class="o">&gt;&gt;</span> <span class="n">runnable</span> <span class="k">=</span>
+    <span class="n">source</span><span class="o">.</span><span class="n">toMat</span><span class="o">(</span><span class="n">sink</span><span class="o">,</span> <span class="nc">Keep</span><span class="o">.</span><span class="n">right</span><span class="o">());</span>
+
+<span class="c1">// materialize the flow</span>
+<span class="k">final</span> <span class="nc">CompletionStage</span><span class="o">&lt;</span><span class="nc">Integer</span><span class="o">&gt;</span> <span class="n">sum</span> <span class="k">=</span> <span class="n">runnable</span><span class="o">.</span><span class="n">run</span><span class="o">(</span><span class="n">mat</span><span class="o">);</span>
+</pre></div>
+</div>
+<p>After running (materializing) the <code class="docutils literal"><span class="pre">RunnableGraph</span></code> we get a special container object, the <code class="docutils literal"><span class="pre">MaterializedMap</span></code>. Both
+sources and sinks are able to put specific objects into this map. Whether they put something in or not is implementation
+dependent. For example a <code class="docutils literal"><span class="pre">FoldSink</span></code> will make a <code class="docutils literal"><span class="pre">CompletionStage</span></code> available in this map which will represent the result
+of the folding process over the stream.  In general, a stream can expose multiple materialized values,
+but it is quite common to be interested in only the value of the Source or the Sink in the stream. For this reason
+there is a convenience method called <code class="docutils literal"><span class="pre">runWith()</span></code> available for <code class="docutils literal"><span class="pre">Sink</span></code>, <code class="docutils literal"><span class="pre">Source</span></code> or <code class="docutils literal"><span class="pre">Flow</span></code> requiring, respectively,
+a supplied <code class="docutils literal"><span class="pre">Source</span></code> (in order to run a <code class="docutils literal"><span class="pre">Sink</span></code>), a <code class="docutils literal"><span class="pre">Sink</span></code> (in order to run a <code class="docutils literal"><span class="pre">Source</span></code>) or
+both a <code class="docutils literal"><span class="pre">Source</span></code> and a <code class="docutils literal"><span class="pre">Sink</span></code> (in order to run a <code class="docutils literal"><span class="pre">Flow</span></code>, since it has neither attached yet).</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">final</span> <span class="nc">Source</span><span class="o">&lt;</span><span class="nc">Integer</span><span class="o">,</span> <span class="nc">NotUsed</span><span class="o">&gt;</span> <span class="n">source</span> <span class="k">=</span>
+    <span class="nc">Source</span><span class="o">.</span><span class="n">from</span><span class="o">(</span><span class="nc">Arrays</span><span class="o">.</span><span class="n">asList</span><span class="o">(</span><span class="mi">1</span><span class="o">,</span> <span class="mi">2</span><span class="o">,</span> <span class="mi">3</span><span class="o">,</span> <span class="mi">4</span><span class="o">,</span> <span class="mi">5</span><span class="o">,</span> <span class="mi">6</span><span class="o">,</span> <span class="mi">7</span><span class="o">,</span> <span class="mi">8</span><span class="o">,</span> <span class="mi">9</span><span class="o">,</span> <span class="mi">10</span><span class="o">));</span>
+<span class="k">final</span> <span class="nc">Sink</span><span class="o">&lt;</span><span class="nc">Integer</span><span class="o">,</span> <span class="nc">CompletionStage</span><span class="o">&lt;</span><span class="nc">Integer</span><span class="o">&gt;&gt;</span> <span class="n">sink</span> <span class="k">=</span>
+    <span class="nc">Sink</span><span class="o">.&lt;</span><span class="nc">Integer</span><span class="o">,</span> <span class="nc">Integer</span><span class="o">&gt;</span> <span class="n">fold</span><span class="o">(</span><span class="mi">0</span><span class="o">,</span> <span class="o">(</span><span class="n">aggr</span><span class="o">,</span> <span class="n">next</span><span class="o">)</span> <span class="o">-&gt;</span> <span class="n">aggr</span> <span class="o">+</span> <span class="n">next</span><span class="o">);</span>
+
+<span class="c1">// materialize the flow, getting the Sinks materialized value</span>
+<span class="k">final</span> <span class="nc">CompletionStage</span><span class="o">&lt;</span><span class="nc">Integer</span><span class="o">&gt;</span> <span class="n">sum</span> <span class="k">=</span> <span class="n">source</span><span class="o">.</span><span class="n">runWith</span><span class="o">(</span><span class="n">sink</span><span class="o">,</span> <span class="n">mat</span><span class="o">);</span>
+</pre></div>
+</div>
+<p>It is worth pointing out that since processing stages are <em>immutable</em>, connecting them returns a new processing stage,
+instead of modifying the existing instance, so while constructing long flows, remember to assign the new value to a variable or run it:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">final</span> <span class="nc">Source</span><span class="o">&lt;</span><span class="nc">Integer</span><span class="o">,</span> <span class="nc">NotUsed</span><span class="o">&gt;</span> <span class="n">source</span> <span class="k">=</span>
+    <span class="nc">Source</span><span class="o">.</span><span class="n">from</span><span class="o">(</span><span class="nc">Arrays</span><span class="o">.</span><span class="n">asList</span><span class="o">(</span><span class="mi">1</span><span class="o">,</span> <span class="mi">2</span><span class="o">,</span> <span class="mi">3</span><span class="o">,</span> <span class="mi">4</span><span class="o">,</span> <span class="mi">5</span><span class="o">,</span> <span class="mi">6</span><span class="o">,</span> <span class="mi">7</span><span class="o">,</span> <span class="mi">8</span><span class="o">,</span> <span class="mi">9</span><span class="o">,</span> <span class="mi">10</span><span class="o">));</span>
+<span class="n">source</span><span class="o">.</span><span class="n">map</span><span class="o">(</span><span class="n">x</span> <span class="o">-&gt;</span> <span class="mi">0</span><span class="o">);</span> <span class="c1">// has no effect on source, since it&#39;s immutable</span>
+<span class="n">source</span><span class="o">.</span><span class="n">runWith</span><span class="o">(</span><span class="nc">Sink</span><span class="o">.</span><span class="n">fold</span><span class="o">(</span><span class="mi">0</span><span class="o">,</span> <span class="o">(</span><span class="n">agg</span><span class="o">,</span> <span class="n">next</span><span class="o">)</span> <span class="o">-&gt;</span> <span class="n">agg</span> <span class="o">+</span> <span class="n">next</span><span class="o">),</span> <span class="n">mat</span><span class="o">);</span> <span class="c1">// 55</span>
+
+<span class="c1">// returns new Source&lt;Integer&gt;, with `map()` appended</span>
+<span class="k">final</span> <span class="nc">Source</span><span class="o">&lt;</span><span class="nc">Integer</span><span class="o">,</span> <span class="nc">NotUsed</span><span class="o">&gt;</span> <span class="n">zeroes</span> <span class="k">=</span> <span class="n">source</span><span class="o">.</span><span class="n">map</span><span class="o">(</span><span class="n">x</span> <span class="o">-&gt;</span> <span class="mi">0</span><span class="o">);</span>
+<span class="k">final</span> <span class="nc">Sink</span><span class="o">&lt;</span><span class="nc">Integer</span><span class="o">,</span> <span class="nc">CompletionStage</span><span class="o">&lt;</span><span class="nc">Integer</span><span class="o">&gt;&gt;</span> <span class="n">fold</span> <span class="k">=</span>
+    <span class="nc">Sink</span><span class="o">.&lt;</span><span class="nc">Integer</span><span class="o">,</span> <span class="nc">Integer</span><span class="o">&gt;</span> <span class="n">fold</span><span class="o">(</span><span class="mi">0</span><span class="o">,</span> <span class="o">(</span><span class="n">agg</span><span class="o">,</span> <span class="n">next</span><span class="o">)</span> <span class="o">-&gt;</span> <span class="n">agg</span> <span class="o">+</span> <span class="n">next</span><span class="o">);</span>
+<span class="n">zeroes</span><span class="o">.</span><span class="n">runWith</span><span class="o">(</span><span class="n">fold</span><span class="o">,</span> <span class="n">mat</span><span class="o">);</span> <span class="c1">// 0</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">By default Akka Streams elements support <strong>exactly one</strong> downstream processing stage.
+Making fan-out (supporting multiple downstream processing stages) an explicit opt-in feature allows default stream elements to
+be less complex and more efficient. Also it allows for greater flexibility on <em>how exactly</em> to handle the multicast scenarios,
+by providing named fan-out elements such as broadcast (signals all down-stream elements) or balance (signals one of available down-stream elements).</p>
+</div>
+<p>In the above example we used the <code class="docutils literal"><span class="pre">runWith</span></code> method, which both materializes the stream and returns the materialized value
+of the given sink or source.</p>
+<p>Since a stream can be materialized multiple times, the <code class="docutils literal"><span class="pre">MaterializedMap</span></code> returned is different for each materialization.
+In the example below we create two running materialized instance of the stream that we described in the <code class="docutils literal"><span class="pre">runnable</span></code>
+variable, and both materializations give us a different <code class="docutils literal"><span class="pre">CompletionStage</span></code> from the map even though we used the same <code class="docutils literal"><span class="pre">sink</span></code>
+to refer to the future:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="c1">// connect the Source to the Sink, obtaining a RunnableGraph</span>
+<span class="k">final</span> <span class="nc">Sink</span><span class="o">&lt;</span><span class="nc">Integer</span><span class="o">,</span> <span class="nc">CompletionStage</span><span class="o">&lt;</span><span class="nc">Integer</span><span class="o">&gt;&gt;</span> <span class="n">sink</span> <span class="k">=</span>
+  <span class="nc">Sink</span><span class="o">.&lt;</span><span class="nc">Integer</span><span class="o">,</span> <span class="nc">Integer</span><span class="o">&gt;</span> <span class="n">fold</span><span class="o">(</span><span class="mi">0</span><span class="o">,</span> <span class="o">(</span><span class="n">aggr</span><span class="o">,</span> <span class="n">next</span><span class="o">)</span> <span class="o">-&gt;</span> <span class="n">aggr</span> <span class="o">+</span> <span class="n">next</span><span class="o">);</span>
+<span class="k">final</span> <span class="nc">RunnableGraph</span><span class="o">&lt;</span><span class="nc">CompletionStage</span><span class="o">&lt;</span><span class="nc">Integer</span><span class="o">&gt;&gt;</span> <span class="n">runnable</span> <span class="k">=</span>
+    <span class="nc">Source</span><span class="o">.</span><span class="n">from</span><span class="o">(</span><span class="nc">Arrays</span><span class="o">.</span><span class="n">asList</span><span class="o">(</span><span class="mi">1</span><span class="o">,</span> <span class="mi">2</span><span class="o">,</span> <span class="mi">3</span><span class="o">,</span> <span class="mi">4</span><span class="o">,</span> <span class="mi">5</span><span class="o">,</span> <span class="mi">6</span><span class="o">,</span> <span class="mi">7</span><span class="o">,</span> <span class="mi">8</span><span class="o">,</span> <span class="mi">9</span><span class="o">,</span> <span class="mi">10</span><span class="o">)).</span><span class="n">toMat</span><span class="o">(</span><span class="n">sink</span><span class="o">,</span> <span class="nc">Keep</span><span class="o">.</span><span class="n">right</span><span class="o">());</span>
+
+<span class="c1">// get the materialized value of the FoldSink</span>
+<span class="k">final</span> <span class="nc">CompletionStage</span><span class="o">&lt;</span><span class="nc">Integer</span><span class="o">&gt;</span> <span class="n">sum1</span> <span class="k">=</span> <span class="n">runnable</span><span class="o">.</span><span class="n">run</span><span class="o">(</span><span class="n">mat</span><span class="o">);</span>
+<span class="k">final</span> <span class="nc">CompletionStage</span><span class="o">&lt;</span><span class="nc">Integer</span><span class="o">&gt;</span> <span class="n">sum2</span> <span class="k">=</span> <span class="n">runnable</span><span class="o">.</span><span class="n">run</span><span class="o">(</span><span class="n">mat</span><span class="o">);</span>
+
+<span class="c1">// sum1 and sum2 are different Futures!</span>
+</pre></div>
+</div>
+<div class="section" id="defining-sources-sinks-and-flows">
+<h3>Defining sources, sinks and flows</h3>
+<p>The objects <code class="xref py py-class docutils literal"><span class="pre">Source</span></code> and <code class="xref py py-class docutils literal"><span class="pre">Sink</span></code> define various ways to create sources and sinks of elements. The following
+examples show some of the most useful constructs (refer to the API documentation for more details):</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="c1">// Create a source from an Iterable</span>
+<span class="nc">List</span><span class="o">&lt;</span><span class="nc">Integer</span><span class="o">&gt;</span> <span class="n">list</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">LinkedList</span><span class="o">&lt;</span><span class="nc">Integer</span><span class="o">&gt;();</span>
+<span class="n">list</span><span class="o">.</span><span class="n">add</span><span class="o">(</span><span class="mi">1</span><span class="o">);</span>
+<span class="n">list</span><span class="o">.</span><span class="n">add</span><span class="o">(</span><span class="mi">2</span><span class="o">);</span>
+<span class="n">list</span><span class="o">.</span><span class="n">add</span><span class="o">(</span><span class="mi">3</span><span class="o">);</span>
+<span class="nc">Source</span><span class="o">.</span><span class="n">from</span><span class="o">(</span><span class="n">list</span><span class="o">);</span>
+
+<span class="c1">// Create a source form a Future</span>
+<span class="nc">Source</span><span class="o">.</span><span class="n">fromFuture</span><span class="o">(</span><span class="nc">Futures</span><span class="o">.</span><span class="n">successful</span><span class="o">(</span><span class="s">&quot;Hello Streams!&quot;</span><span class="o">));</span>
+
+<span class="c1">// Create a source from a single element</span>
+<span class="nc">Source</span><span class="o">.</span><span class="n">single</span><span class="o">(</span><span class="s">&quot;only one element&quot;</span><span class="o">);</span>
+
+<span class="c1">// an empty source</span>
+<span class="nc">Source</span><span class="o">.</span><span class="n">empty</span><span class="o">();</span>
+
+<span class="c1">// Sink that folds over the stream and returns a Future</span>
+<span class="c1">// of the final result in the MaterializedMap</span>
+<span class="nc">Sink</span><span class="o">.</span><span class="n">fold</span><span class="o">(</span><span class="mi">0</span><span class="o">,</span> <span class="o">(</span><span class="nc">Integer</span> <span class="n">aggr</span><span class="o">,</span> <span class="nc">Integer</span> <span class="n">next</span><span class="o">)</span> <span class="o">-&gt;</span> <span class="n">aggr</span> <span class="o">+</span> <span class="n">next</span><span class="o">);</span>
+
+<span class="c1">// Sink that returns a Future in the MaterializedMap,</span>
+<span class="c1">// containing the first element of the stream</span>
+<span class="nc">Sink</span><span class="o">.</span><span class="n">head</span><span class="o">();</span>
+
+<span class="c1">// A Sink that consumes a stream without doing anything with the elements</span>
+<span class="nc">Sink</span><span class="o">.</span><span class="n">ignore</span><span class="o">();</span>
+
+<span class="c1">// A Sink that executes a side-effecting call for every element of the stream</span>
+<span class="nc">Sink</span><span class="o">.</span><span class="n">foreach</span><span class="o">(</span><span class="nc">System</span><span class="o">.</span><span class="n">out</span><span class="o">::</span><span class="n">println</span><span class="o">);</span>
+</pre></div>
+</div>
+<p>There are various ways to wire up different parts of a stream, the following examples show some of the available options:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="c1">// Explicitly creating and wiring up a Source, Sink and Flow</span>
+<span class="nc">Source</span><span class="o">.</span><span class="n">from</span><span class="o">(</span><span class="nc">Arrays</span><span class="o">.</span><span class="n">asList</span><span class="o">(</span><span class="mi">1</span><span class="o">,</span> <span class="mi">2</span><span class="o">,</span> <span class="mi">3</span><span class="o">,</span> <span class="mi">4</span><span class="o">))</span>
+  <span class="o">.</span><span class="n">via</span><span class="o">(</span><span class="nc">Flow</span><span class="o">.</span><span class="n">of</span><span class="o">(</span><span class="nc">Integer</span><span class="o">.</span><span class="n">class</span><span class="o">).</span><span class="n">map</span><span class="o">(</span><span class="n">elem</span> <span class="o">-&gt;</span> <span class="n">elem</span> <span class="o">*</span> <span class="mi">2</span><span class="o">))</span>
+  <span class="o">.</span><span class="n">to</span><span class="o">(</span><span class="nc">Sink</span><span class="o">.</span><span class="n">foreach</span><span class="o">(</span><span class="nc">System</span><span class="o">.</span><span class="n">out</span><span class="o">::</span><span class="n">println</span><span class="o">));</span>
+
+<span class="c1">// Starting from a Source</span>
+<span class="k">final</span> <span class="nc">Source</span><span class="o">&lt;</span><span class="nc">Integer</span><span class="o">,</span> <span class="nc">NotUsed</span><span class="o">&gt;</span> <span class="n">source</span> <span class="k">=</span> <span class="nc">Source</span><span class="o">.</span><span class="n">from</span><span class="o">(</span><span class="nc">Arrays</span><span class="o">.</span><span class="n">asList</span><span class="o">(</span><span class="mi">1</span><span class="o">,</span> <span class="mi">2</span><span class="o">,</span> <span class="mi">3</span><span class="o">,</span> <span class="mi">4</span><span class="o">))</span>
+    <span class="o">.</span><span class="n">map</span><span class="o">(</span><span class="n">elem</span> <span class="o">-&gt;</span> <span class="n">elem</span> <span class="o">*</span> <span class="mi">2</span><span class="o">);</span>
+<span class="n">source</span><span class="o">.</span><span class="n">to</span><span class="o">(</span><span class="nc">Sink</span><span class="o">.</span><span class="n">foreach</span><span class="o">(</span><span class="nc">System</span><span class="o">.</span><span class="n">out</span><span class="o">::</span><span class="n">println</span><span class="o">));</span>
+
+<span class="c1">// Starting from a Sink</span>
+<span class="k">final</span> <span class="nc">Sink</span><span class="o">&lt;</span><span class="nc">Integer</span><span class="o">,</span> <span class="nc">NotUsed</span><span class="o">&gt;</span> <span class="n">sink</span> <span class="k">=</span> <span class="nc">Flow</span><span class="o">.</span><span class="n">of</span><span class="o">(</span><span class="nc">Integer</span><span class="o">.</span><span class="n">class</span><span class="o">)</span>
+    <span class="o">.</span><span class="n">map</span><span class="o">(</span><span class="n">elem</span> <span class="o">-&gt;</span> <span class="n">elem</span> <span class="o">*</span> <span class="mi">2</span><span class="o">).</span><span class="n">to</span><span class="o">(</span><span class="nc">Sink</span><span class="o">.</span><span class="n">foreach</span><span class="o">(</span><span class="nc">System</span><span class="o">.</span><span class="n">out</span><span class="o">::</span><span class="n">println</span><span class="o">));</span>
+<span class="nc">Source</span><span class="o">.</span><span class="n">from</span><span class="o">(</span><span class="nc">Arrays</span><span class="o">.</span><span class="n">asList</span><span class="o">(</span><span class="mi">1</span><span class="o">,</span> <span class="mi">2</span><span class="o">,</span> <span class="mi">3</span><span class="o">,</span> <span class="mi">4</span><span class="o">)).</span><span class="n">to</span><span class="o">(</span><span class="n">sink</span><span class="o">);</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="illegal-stream-elements">
+<h3>Illegal stream elements</h3>
+<p>In accordance to the Reactive Streams specification (<a class="reference external" href="https://github.com/reactive-streams/reactive-streams-jvm#2.13">Rule 2.13</a>)
+Akka Streams do not allow <code class="docutils literal"><span class="pre">null</span></code> to be passed through the stream as an element. In case you want to model the concept
+of absence of a value we recommend using <code class="docutils literal"><span class="pre">java.util.Optional</span></code> which is available since Java 8.</p>
+</div>
+</div>
+<div class="section" id="back-pressure-explained">
+<span id="back-pressure-explained-java"></span><h2>Back-pressure explained</h2>
+<p>Akka Streams implement an asynchronous non-blocking back-pressure protocol standardised by the <a class="reference external" href="http://reactive-streams.org/">Reactive Streams</a>
+specification, which Akka is a founding member of.</p>
+<p>The user of the library does not have to write any explicit back-pressure handling code — it is built in
+and dealt with automatically by all of the provided Akka Streams processing stages. It is possible however to add
+explicit buffer stages with overflow strategies that can influence the behaviour of the stream. This is especially important
+in complex processing graphs which may even contain loops (which <em>must</em> be treated with very special
+care, as explained in <a class="reference internal" href="stream-graphs.html#graph-cycles-java"><span>Graph cycles, liveness and deadlocks</span></a>).</p>
+<p>The back pressure protocol is defined in terms of the number of elements a downstream <code class="docutils literal"><span class="pre">Subscriber</span></code> is able to receive
+and buffer, referred to as <code class="docutils literal"><span class="pre">demand</span></code>.
+The source of data, referred to as <code class="docutils literal"><span class="pre">Publisher</span></code> in Reactive Streams terminology and implemented as <code class="docutils literal"><span class="pre">Source</span></code> in Akka
+Streams, guarantees that it will never emit more elements than the received total demand for any given <code class="docutils literal"><span class="pre">Subscriber</span></code>.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p>The Reactive Streams specification defines its protocol in terms of <code class="docutils literal"><span class="pre">Publisher</span></code> and <code class="docutils literal"><span class="pre">Subscriber</span></code>.
+These types are <strong>not</strong> meant to be user facing API, instead they serve as the low level building blocks for
+different Reactive Streams implementations.</p>
+<p class="last">Akka Streams implements these concepts as <code class="docutils literal"><span class="pre">Source</span></code>, <code class="docutils literal"><span class="pre">Flow</span></code> (referred to as <code class="docutils literal"><span class="pre">Processor</span></code> in Reactive Streams)
+and <code class="docutils literal"><span class="pre">Sink</span></code> without exposing the Reactive Streams interfaces directly.
+If you need to integrate with other Reactive Stream libraries read <a class="reference internal" href="stream-integrations.html#reactive-streams-integration-java"><span>Integrating with Reactive Streams</span></a>.</p>
+</div>
+<p>The mode in which Reactive Streams back-pressure works can be colloquially described as &quot;dynamic push / pull mode&quot;,
+since it will switch between push and pull based back-pressure models depending on the downstream being able to cope
+with the upstream production rate or not.</p>
+<p>To illustrate this further let us consider both problem situations and how the back-pressure protocol handles them:</p>
+<div class="section" id="slow-publisher-fast-subscriber">
+<h3>Slow Publisher, fast Subscriber</h3>
+<p>This is the happy case of course – we do not need to slow down the Publisher in this case. However signalling rates are
+rarely constant and could change at any point in time, suddenly ending up in a situation where the Subscriber is now
+slower than the Publisher. In order to safeguard from these situations, the back-pressure protocol must still be enabled
+during such situations, however we do not want to pay a high penalty for this safety net being enabled.</p>
+<p>The Reactive Streams protocol solves this by asynchronously signalling from the Subscriber to the Publisher
+<code class="docutils literal"><span class="pre">Request(int</span> <span class="pre">n)</span></code> signals. The protocol guarantees that the Publisher will never signal <em>more</em> elements than the
+signalled demand. Since the Subscriber however is currently faster, it will be signalling these Request messages at a higher
+rate (and possibly also batching together the demand - requesting multiple elements in one Request signal). This means
+that the Publisher should not ever have to wait (be back-pressured) with publishing its incoming elements.</p>
+<p>As we can see, in this scenario we effectively operate in so called push-mode since the Publisher can continue producing
+elements as fast as it can, since the pending demand will be recovered just-in-time while it is emitting elements.</p>
+</div>
+<div class="section" id="fast-publisher-slow-subscriber">
+<h3>Fast Publisher, slow Subscriber</h3>
+<p>This is the case when back-pressuring the <code class="docutils literal"><span class="pre">Publisher</span></code> is required, because the <code class="docutils literal"><span class="pre">Subscriber</span></code> is not able to cope with
+the rate at which its upstream would like to emit data elements.</p>
+<p>Since the <code class="docutils literal"><span class="pre">Publisher</span></code> is not allowed to signal more elements than the pending demand signalled by the <code class="docutils literal"><span class="pre">Subscriber</span></code>,
+it will have to abide to this back-pressure by applying one of the below strategies:</p>
+<ul class="simple">
+<li>not generate elements, if it is able to control their production rate,</li>
+<li>try buffering the elements in a <em>bounded</em> manner until more demand is signalled,</li>
+<li>drop elements until more demand is signalled,</li>
+<li>tear down the stream if unable to apply any of the above strategies.</li>
+</ul>
+<p>As we can see, this scenario effectively means that the <code class="docutils literal"><span class="pre">Subscriber</span></code> will <em>pull</em> the elements from the Publisher –
+this mode of operation is referred to as pull-based back-pressure.</p>
+</div>
+</div>
+<div class="section" id="stream-materialization">
+<span id="stream-materialization-java"></span><h2>Stream Materialization</h2>
+<p>When constructing flows and graphs in Akka Streams think of them as preparing a blueprint, an execution plan.
+Stream materialization is the process of taking a stream description (the graph) and allocating all the necessary resources
+it needs in order to run. In the case of Akka Streams this often means starting up Actors which power the processing,
+but is not restricted to that—it could also mean opening files or socket connections etc.—depending on what the stream needs.</p>
+<p>Materialization is triggered at so called &quot;terminal operations&quot;. Most notably this includes the various forms of the <code class="docutils literal"><span class="pre">run()</span></code>
+and <code class="docutils literal"><span class="pre">runWith()</span></code> methods defined on <code class="xref py py-class docutils literal"><span class="pre">Source</span></code> or <code class="xref py py-class docutils literal"><span class="pre">Flow</span></code> elements as well as a small number of special syntactic sugars for running with
+well-known sinks, such as <code class="docutils literal"><span class="pre">runForeach(el</span> <span class="pre">-&gt;</span> <span class="pre">...)</span></code> (being an alias to <code class="docutils literal"><span class="pre">runWith(Sink.foreach(el</span> <span class="pre">-&gt;</span> <span class="pre">...))</span></code>.</p>
+<p>Materialization is currently performed synchronously on the materializing thread.
+The actual stream processing is handled by actors started up during the streams materialization,
+which will be running on the thread pools they have been configured to run on - which defaults to the dispatcher set in
+<code class="xref py py-class docutils literal"><span class="pre">MaterializationSettings</span></code> while constructing the <code class="xref py py-class docutils literal"><span class="pre">ActorMaterializer</span></code>.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Reusing <em>instances</em> of linear computation stages (Source, Sink, Flow) inside composite Graphs is legal,
+yet will materialize that stage multiple times.</p>
+</div>
+<div class="section" id="operator-fusion">
+<span id="operator-fusion-java"></span><h3>Operator Fusion</h3>
+<p>By default Akka Streams will fuse the stream operators. This means that the processing steps of a flow or
+stream graph can be executed within the same Actor and has two consequences:</p>
+<blockquote>
+<div><ul class="simple">
+<li>passing elements from one processing stage to the next is a lot faster between fused
+stages due to avoiding the asynchronous messaging overhead</li>
+<li>fused stream processing stages does not run in parallel to each other, meaning that
+only up to one CPU core is used for each fused part</li>
+</ul>
+</div></blockquote>
+<p>To allow for parallel processing you will have to insert asynchronous boundaries manually into your flows and
+graphs by way of adding <code class="docutils literal"><span class="pre">Attributes.asyncBoundary</span></code> using the method <code class="docutils literal"><span class="pre">async</span></code> on <code class="docutils literal"><span class="pre">Source</span></code>, <code class="docutils literal"><span class="pre">Sink</span></code> and <code class="docutils literal"><span class="pre">Flow</span></code>
+to pieces that shall communicate with the rest of the graph in an asynchronous fashion.</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="nc">Source</span><span class="o">.</span><span class="n">range</span><span class="o">(</span><span class="mi">1</span><span class="o">,</span> <span class="mi">3</span><span class="o">)</span>
+    <span class="o">.</span><span class="n">map</span><span class="o">(</span><span class="n">x</span> <span class="o">-&gt;</span> <span class="n">x</span> <span class="o">+</span> <span class="mi">1</span><span class="o">).</span><span class="n">async</span><span class="o">()</span>
+    <span class="o">.</span><span class="n">map</span><span class="o">(</span><span class="n">x</span> <span class="o">-&gt;</span> <span class="n">x</span> <span class="o">*</span> <span class="mi">2</span><span class="o">)</span>
+    <span class="o">.</span><span class="n">to</span><span class="o">(</span><span class="nc">Sink</span><span class="o">.</span><span class="n">ignore</span><span class="o">());</span>
+</pre></div>
+</div>
+<p>In this example we create two regions within the flow which will be executed in one Actor each—assuming that adding
+and multiplying integers is an extremely costly operation this will lead to a performance gain since two CPUs can
+work on the tasks in parallel. It is important to note that asynchronous boundaries are not singular places within a
+flow where elements are passed asynchronously (as in other streaming libraries), but instead attributes always work
+by adding information to the flow graph that has been constructed up to this point:</p>
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+<a class="reference internal image-reference" href="../../_images/asyncBoundary.png"><img alt="../../_images/asyncBoundary.png" class="align-center" src="../../_images/asyncBoundary.png" style="width: 700px;" /></a>
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+<p>This means that everything that is inside the red bubble will be executed by one actor and everything outside of it
+by another. This scheme can be applied successively, always having one such boundary enclose the previous ones plus all
+processing stages that have been added since them.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">Without fusing (i.e. up to version 2.0-M2) each stream processing stage had an implicit input buffer
+that holds a few elements for efficiency reasons. If your flow graphs contain cycles then these buffers
+may have been crucial in order to avoid deadlocks. With fusing these implicit buffers are no longer
+there, data elements are passed without buffering between fused stages. In those cases where buffering
+is needed in order to allow the stream to run at all, you will have to insert explicit buffers with the
+<code class="docutils literal"><span class="pre">.buffer()</span></code> combinator—typically a buffer of size 2 is enough to allow a feedback loop to function.</p>
+</div>
+<p>The new fusing behavior can be disabled by setting the configuration parameter <code class="docutils literal"><span class="pre">akka.stream.materializer.auto-fusing=off</span></code>.
+In that case you can still manually fuse those graphs which shall run on less Actors. With the exception of the
+<code class="xref py py-class docutils literal"><span class="pre">SslTlsStage</span></code> and the <code class="docutils literal"><span class="pre">groupBy</span></code> operator all built-in processing stages can be fused.</p>
+</div>
+<div class="section" id="combining-materialized-values">
+<h3>Combining materialized values</h3>
+<p>Since every processing stage in Akka Streams can provide a materialized value after being materialized, it is necessary
+to somehow express how these values should be composed to a final value when we plug these stages together. For this,
+many combinator methods have variants that take an additional argument, a function, that will be used to combine the
+resulting values. Some examples of using these combiners are illustrated in the example below.</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="c1">// An empty source that can be shut down explicitly from the outside</span>
+<span class="nc">Source</span><span class="o">&lt;</span><span class="nc">Integer</span><span class="o">,</span> <span class="nc">CompletableFuture</span><span class="o">&lt;</span><span class="nc">Optional</span><span class="o">&lt;</span><span class="nc">Integer</span><span class="o">&gt;&gt;&gt;</span> <span class="n">source</span> <span class="k">=</span> <span class="nc">Source</span><span class="o">.&lt;</span><span class="nc">Integer</span><span class="o">&gt;</span><span class="n">maybe</span><span class="o">();</span>
+
+<span class="c1">// A flow that internally throttles elements to 1/second, and returns a Cancellable</span>
+<span class="c1">// which can be used to shut down the stream</span>
+<span class="nc">Flow</span><span class="o">&lt;</span><span class="nc">Integer</span><span class="o">,</span> <span class="nc">Integer</span><span class="o">,</span> <span class="nc">Cancellable</span><span class="o">&gt;</span> <span class="n">flow</span> <span class="k">=</span> <span class="n">throttler</span><span class="o">;</span>
+
+<span class="c1">// A sink that returns the first element of a stream in the returned Future</span>
+<span class="nc">Sink</span><span class="o">&lt;</span><span class="nc">Integer</span><span class="o">,</span> <span class="nc">CompletionStage</span><span class="o">&lt;</span><span class="nc">Integer</span><span class="o">&gt;&gt;</span> <span class="n">sink</span> <span class="k">=</span> <span class="nc">Sink</span><span class="o">.</span><span class="n">head</span><span class="o">();</span>
+
+
+<span class="c1">// By default, the materialized value of the leftmost stage is preserved</span>
+<span class="nc">RunnableGraph</span><span class="o">&lt;</span><span class="nc">CompletableFuture</span><span class="o">&lt;</span><span class="nc">Optional</span><span class="o">&lt;</span><span class="nc">Integer</span><span class="o">&gt;&gt;&gt;</span> <span class="n">r1</span> <span class="k">=</span> <span class="n">source</span><span class="o">.</span><span class="n">via</span><span class="o">(</span><span class="n">flow</span><span class="o">).</span><span class="n">to</span><span class="o">(</span><span class="n">sink</span><span class="o">);</span>
+
+<span class="c1">// Simple selection of materialized values by using Keep.right</span>
+<span class="nc">RunnableGraph</span><span class="o">&lt;</span><span class="nc">Cancellable</span><span class="o">&gt;</span> <span class="n">r2</span> <span class="k">=</span> <span class="n">source</span><span class="o">.</span><span class="n">viaMat</span><span class="o">(</span><span class="n">flow</span><span class="o">,</span> <span class="nc">Keep</span><span class="o">.</span><span class="n">right</span><span class="o">()).</span><span class="n">to</span><span class="o">(</span><span class="n">sink</span><span class="o">);</span>
+<span class="nc">RunnableGraph</span><span class="o">&lt;</span><span class="nc">CompletionStage</span><span class="o">&lt;</span><span class="nc">Integer</span><span class="o">&gt;&gt;</span> <span class="n">r3</span> <span class="k">=</span> <span class="n">source</span><span class="o">.</span><span class="n">via</span><span class="o">(</span><span class="n">flow</span><span class="o">).</span><span class="n">toMat</span><span class="o">(</span><span class="n">sink</span><span class="o">,</span> <span class="nc">Keep</span><span class="o">.</span><span class="n">right</span><span class="o">());</span>
+
+<span class="c1">// Using runWith will always give the materialized values of the stages added</span>
+<span class="c1">// by runWith() itself</span>
+<span class="nc">CompletionStage</span><span class="o">&lt;</span><span class="nc">Integer</span><span class="o">&gt;</span> <span class="n">r4</span> <span class="k">=</span> <span class="n">source</span><span class="o">.</span><span class="n">via</span><span class="o">(</span><span class="n">flow</span><span class="o">).</span><span class="n">runWith</span><span class="o">(</span><span class="n">sink</span><span class="o">,</span> <span class="n">mat</span><span class="o">);</span>
+<span class="nc">CompletableFuture</span><span class="o">&lt;</span><span class="nc">Optional</span><span class="o">&lt;</span><span class="nc">Integer</span><span class="o">&gt;&gt;</span> <span class="n">r5</span> <span class="k">=</span> <span class="n">flow</span><span class="o">.</span><span class="n">to</span><span class="o">(</span><span class="n">sink</span><span class="o">).</span><span class="n">runWith</span><span class="o">(</span><span class="n">source</span><span class="o">,</span> <span class="n">mat</span><span class="o">);</span>
+<span class="nc">Pair</span><span class="o">&lt;</span><span class="nc">CompletableFuture</span><span class="o">&lt;</span><span class="nc">Optional</span><span class="o">&lt;</span><span class="nc">Integer</span><span class="o">&gt;&gt;,</span> <span class="nc">CompletionStage</span><span class="o">&lt;</span><span class="nc">Integer</span><span class="o">&gt;&gt;</span> <span class="n">r6</span> <span class="k">=</span> <span class="n">flow</span><span class="o">.</span><span class="n">runWith</span><span class="o">(</span><span class="n">source</span><span class="o">,</span> <span class="n">sink</span><span class="o">,</span> <span class="n">mat</span><span class="o">);</span>
+
+<span class="c1">// Using more complex combinations</span>
+<span class="nc">RunnableGraph</span><span class="o">&lt;</span><span class="nc">Pair</span><span class="o">&lt;</span><span class="nc">CompletableFuture</span><span class="o">&lt;</span><span class="nc">Optional</span><span class="o">&lt;</span><span class="nc">Integer</span><span class="o">&gt;&gt;,</span> <span class="nc">Cancellable</span><span class="o">&gt;&gt;</span> <span class="n">r7</span> <span class="k">=</span>
+<span class="n">source</span><span class="o">.</span><span class="n">viaMat</span><span class="o">(</span><span class="n">flow</span><span class="o">,</span> <span class="nc">Keep</span><span class="o">.</span><span class="n">both</span><span class="o">()).</span><span class="n">to</span><span class="o">(</span><span class="n">sink</span><span class="o">);</span>
+
+<span class="nc">RunnableGraph</span><span class="o">&lt;</span><span class="nc">Pair</span><span class="o">&lt;</span><span class="nc">CompletableFuture</span><span class="o">&lt;</span><span class="nc">Optional</span><span class="o">&lt;</span><span class="nc">Integer</span><span class="o">&gt;&gt;,</span> <span class="nc">CompletionStage</span><span class="o">&lt;</span><span class="nc">Integer</span><span class="o">&gt;&gt;&gt;</span> <span class="n">r8</span> <span class="k">=</span>
+<span class="n">source</span><span class="o">.</span><span class="n">via</span><span class="o">(</span><span class="n">flow</span><span class="o">).</span><span class="n">toMat</span><span class="o">(</span><span class="n">sink</span><span class="o">,</span> <span class="nc">Keep</span><span class="o">.</span><span class="n">both</span><span class="o">());</span>
+
+<span class="nc">RunnableGraph</span><span class="o">&lt;</span><span class="nc">Pair</span><span class="o">&lt;</span><span class="nc">Pair</span><span class="o">&lt;</span><span class="nc">CompletableFuture</span><span class="o">&lt;</span><span class="nc">Optional</span><span class="o">&lt;</span><span class="nc">Integer</span><span class="o">&gt;&gt;,</span> <span class="nc">Cancellable</span><span class="o">&gt;,</span> <span class="nc">CompletionStage</span><span class="o">&lt;</span><span class="nc">Integer</span><span class="o">&gt;&gt;&gt;</span> <span class="n">r9</span> <span class="k">=</span>
+<span class="n">source</span><span class="o">.</span><span class="n">viaMat</span><span class="o">(</span><span class="n">flow</span><span class="o">,</span> <span class="nc">Keep</span><span class="o">.</span><span class="n">both</span><span class="o">()).</span><span class="n">toMat</span><span class="o">(</span><span class="n">sink</span><span class="o">,</span> <span class="nc">Keep</span><span class="o">.</span><span class="n">both</span><span class="o">());</span>
+
+<span class="nc">RunnableGraph</span><span class="o">&lt;</span><span class="nc">Pair</span><span class="o">&lt;</span><span class="nc">Cancellable</span><span class="o">,</span> <span class="nc">CompletionStage</span><span class="o">&lt;</span><span class="nc">Integer</span><span class="o">&gt;&gt;&gt;</span> <span class="n">r10</span> <span class="k">=</span>
+<span class="n">source</span><span class="o">.</span><span class="n">viaMat</span><span class="o">(</span><span class="n">flow</span><span class="o">,</span> <span class="nc">Keep</span><span class="o">.</span><span class="n">right</span><span class="o">()).</span><span class="n">toMat</span><span class="o">(</span><span class="n">sink</span><span class="o">,</span> <span class="nc">Keep</span><span class="o">.</span><span class="n">both</span><span class="o">());</span>
+
+<span class="c1">// It is also possible to map over the materialized values. In r9 we had a</span>
+<span class="c1">// doubly nested pair, but we want to flatten it out</span>
+
+
+<span class="nc">RunnableGraph</span><span class="o">&lt;</span><span class="nc">Cancellable</span><span class="o">&gt;</span> <span class="n">r11</span> <span class="k">=</span>
+<span class="n">r9</span><span class="o">.</span><span class="n">mapMaterializedValue</span><span class="o">(</span> <span class="o">(</span><span class="n">nestedTuple</span><span class="o">)</span> <span class="o">-&gt;</span> <span class="o">{</span>
+  <span class="nc">CompletableFuture</span><span class="o">&lt;</span><span class="nc">Optional</span><span class="o">&lt;</span><span class="nc">Integer</span><span class="o">&gt;&gt;</span> <span class="n">p</span> <span class="k">=</span> <span class="n">nestedTuple</span><span class="o">.</span><span class="n">first</span><span class="o">().</span><span class="n">first</span><span class="o">();</span>
+  <span class="nc">Cancellable</span> <span class="n">c</span> <span class="k">=</span> <span class="n">nestedTuple</span><span class="o">.</span><span class="n">first</span><span class="o">().</span><span class="n">second</span><span class="o">();</span>
+  <span class="nc">CompletionStage</span><span class="o">&lt;</span><span class="nc">Integer</span><span class="o">&gt;</span> <span class="n">f</span> <span class="k">=</span> <span class="n">nestedTuple</span><span class="o">.</span><span class="n">second</span><span class="o">();</span>
+
+  <span class="c1">// Picking the Cancellable, but we could  also construct a domain class here</span>
+  <span class="k">return</span> <span class="n">c</span><span class="o">;</span>
+<span class="o">});</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">In Graphs it is possible to access the materialized value from inside the stream processing graph. For details see <a class="reference internal" href="stream-graphs.html#graph-matvalue-java"><span>Accessing the materialized value inside the Graph</span></a>.</p>
+</div>
+</div>
+</div>
+<div class="section" id="stream-ordering">
+<h2>Stream ordering</h2>
+<p>In Akka Streams almost all computation stages <em>preserve input order</em> of elements. This means that if inputs <code class="docutils literal"><span class="pre">{IA1,IA2,...,IAn}</span></code>
+&quot;cause&quot; outputs <code class="docutils literal"><span class="pre">{OA1,OA2,...,OAk}</span></code> and inputs <code class="docutils literal"><span class="pre">{IB1,IB2,...,IBm}</span></code> &quot;cause&quot; outputs <code class="docutils literal"><span class="pre">{OB1,OB2,...,OBl}</span></code> and all of
+<code class="docutils literal"><span class="pre">IAi</span></code> happened before all <code class="docutils literal"><span class="pre">IBi</span></code> then <code class="docutils literal"><span class="pre">OAi</span></code> happens before <code class="docutils literal"><span class="pre">OBi</span></code>.</p>
+<p>This property is even uphold by async operations such as <code class="docutils literal"><span class="pre">mapAsync</span></code>, however an unordered version exists
+called <code class="docutils literal"><span class="pre">mapAsyncUnordered</span></code> which does not preserve this ordering.</p>
+<p>However, in the case of Junctions which handle multiple input streams (e.g. <code class="xref py py-class docutils literal"><span class="pre">Merge</span></code>) the output order is,
+in general, <em>not defined</em> for elements arriving on different input ports. That is a merge-like operation may emit <code class="docutils literal"><span class="pre">Ai</span></code>
+before emitting <code class="docutils literal"><span class="pre">Bi</span></code>, and it is up to its internal logic to decide the order of emitted elements. Specialized elements
+such as <code class="docutils literal"><span class="pre">Zip</span></code> however <em>do guarantee</em> their outputs order, as each output element depends on all upstream elements having
+been signalled already – thus the ordering in the case of zipping is defined by this property.</p>
+<p>If you find yourself in need of fine grained control over order of emitted elements in fan-in
+scenarios consider using <code class="xref py py-class docutils literal"><span class="pre">MergePreferred</span></code> or <code class="xref py py-class docutils literal"><span class="pre">GraphStage</span></code> – which gives you full control over how the
+merge is performed.</p>
+</div>
+</div>
+
+
+          </div>
+          <div class="span3"><p class="contents-title">Contents</p>
+              <div id="scroller-anchor">
+                <div id="scroller">
+                  <div id="toc"></div>
+                </div>
+              </div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="footer">
+  <div class="container">
+    <ul>
+      <li><h5>Akka</h5></li>
+      <li><a href="https://akka.io/docs">Documentation</a></li>
+      <li><a href="https://doc.akka.io/docs/akka/current/additional/faq.html">FAQ</a></li>
+      <li><a href="https://akka.io/downloads">Downloads</a></li>
+      <li><a href="https://akka.io/news">News</a></li>
+      <li><a href="http://letitcrash.com">Blog</a></li>
+    </ul>
+    <ul>
+      <li><h5>Contribute</h5></li>
+      <li><a href="https://akka.io/community">Community Projects</a></li>
+      <li><a href="http://github.com/akka/akka">Source Code</a></li>
+      <li><a href="http://groups.google.com/group/akka-user">Mailing List</a></li>
+      <li><a href="https://doc.akka.io/docs/akka/current/project/issue-tracking.html">Report a Bug</a></li>
+    </ul>
+    <ul>
+      <li><h5>Company</h5></li>
+      <li><a href="http://www.lightbend.com/how/subscription">Commercial Support</a></li>
+      <li><a href="https://akka.io/team">Team</a></li>
+      <li><a href="mailto:info@lightbend.com">Contact</a></li>
+    </ul>
+    <ul>
+      <li><img src="../../_static/akka_icon_reverse.svg" align="center"/></li>
+    </ul>
+  </div>
+  <div class="container copyright">
+    <p style="float: left;">
+      © 2015 <a href="http://www.lightbend.com/">Lightbend Inc.</a> <span class="license">Akka is Open Source and available under the Apache 2 License.</span>
+    </p>
+    <p style="float: right; font-size: 12px;">
+      Last updated: May 02, 2017
+    </p>
+  </div>
+</div>
+<script type="text/javascript">
+  var $toc = $('#toc');
+  $toc.toc();
+
+  // show clickable section sign when section header hovered:
+  $('.section h2,.section h3,.section h4,.section h5').each(function(i, el) {
+      var $el = $(el);
+      $el.prepend($("<a class='section-marker' href='#" + $el.attr("id") + "'>&sect;</a>"))
+  });
+</script>
+
+<!-- Algolia docs search -->
+<script type="text/javascript">
+  var version = DOCUMENTATION_OPTIONS.VERSION;
+
+  var lang = "scala";
+  var path = window.location.pathname;
+  if (path.includes("/java/") || path.includes("java.html")) lang = "java";
+
+  console.log("Search configured for:", lang, "@", version);
+
+  docsearch({
+    apiKey: '543bad5ad786495d9ccd445ed34ed082',
+    indexName: 'akka_io',
+    inputSelector: '#search',
+    algoliaOptions: {
+      hitsPerPage: 5,
+      facetFilters: '[' + '["language:' + lang + '","language:general"]' + ',"version:' + version + '"]'
+    }
+  });
+
+  // set up "/" as global shortcut for focusing on search
+  $(document).keypress(function (event) {
+    if (event.keyCode == 47) {
+      $("#q").focus();
+      return false; // swallow key event, otherwise the / char would be input into the search box
+    }
+  });
+</script>
+
+  
+
+  </body>
+</html>

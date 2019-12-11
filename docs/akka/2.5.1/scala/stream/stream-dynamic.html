@@ -1,0 +1,485 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Dynamic stream handling &mdash; Akka Documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/style.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/prettify.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/base.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/docs.css" type="text/css" />
+    <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,600,700" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '2.5.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="../../_static/toc.js"></script>
+    <script type="text/javascript" src="../../_static/prettify.js"></script>
+    <script type="text/javascript" src="../../_static/highlightCode.js"></script>
+    <script type="text/javascript" src="../../_static/effects.core.js"></script>
+    <script type="text/javascript" src="../../_static/effects.highlight.js"></script>
+    <script type="text/javascript" src="../../_static/scrollTo.js"></script>
+    <script type="text/javascript" src="../../_static/contentsFix.js"></script>
+    <script type="text/javascript" src="../../_static/ga.js"></script>
+    <script type="text/javascript" src="../../_static/warnOldDocs.js"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/docsearch.js/1/docsearch.min.js"></script>
+    <link rel="shortcut icon" href="../../_static/favicon.ico"/>
+    <link rel="top" title="Akka Documentation" href="../../index.html" />
+    <link rel="up" title="Streams" href="index.html" />
+    <link rel="next" title="Custom stream processing" href="stream-customize.html" />
+    <link rel="prev" title="Buffers and working with rate" href="stream-rate.html" />
+    <!-- Hint to search engines that the "canonical" page is under "current", which will boost it appearing in search results -->
+    
+      <link rel="canonical" href="https://doc.akka.io/docs/akka/current/stream/stream-dynamic.html" />
+    
+
+    <!--Google Analytics-->
+    <script type="text/javascript">
+      var _gaq = _gaq || [];
+      _gaq.push(['_setAccount', 'UA-21117439-1']);
+      _gaq.push(['_setDomainName', 'akka.io']);
+      _gaq.push(['_trackPageview']);
+      (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+      })()
+    </script>
+    <!--Google Analytics & Marketo-->
+    <script type="text/javascript">
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+      (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+      m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+      ga('create', 'UA-23127719-1', 'lightbend.com', {'allowLinker': true, 'name': 'tsTracker'});
+      ga('tsTracker.require', 'linker');
+      ga('tsTracker.linker:autoLink', ['lightbend.com','playframework.com','scala-lang.org','scaladays.org','spray.io','akka.io','scala-sbt.org','scala-ide.org']);
+      ga('tsTracker.send', 'pageview');
+
+      (function() {
+          var didInit = false;
+          function initMunchkin() {
+          if(didInit === false) {
+            didInit = true;
+            Munchkin.init('558-NCX-702');
+          }
+          }
+          var s = document.createElement('script');
+          s.type = 'text/javascript';
+          s.async = true;
+          s.src = '//munchkin.marketo.net/munchkin.js';
+          s.onreadystatechange = function() {
+          if (this.readyState == 'complete' || this.readyState == 'loaded') {
+            initMunchkin();
+          }
+          };
+          s.onload = initMunchkin;
+          document.getElementsByTagName('head')[0].appendChild(s);
+        })();
+    </script>
+
+
+  </head>
+  <body role="document">
+  <div class="navbar">
+    <div class="navbar-inner">
+      <div class="container">
+        <div class="navbar-logo">
+          <a href="https://akka.io"><img class="svg-logo" src="../../_static/akka_full_color.svg" /></a>
+        </div>
+        <ul class="nav">
+          <li><a href="https://akka.io/docs">Documentation</a></li>
+          <li><a href="https://doc.akka.io/docs/akka/current/additional/faq.html">FAQ</a></li>
+          <li><a href="https://akka.io/downloads">Download</a></li>
+          <li><a href="http://groups.google.com/group/akka-user">Mailing List</a></li>
+          <li><a href="http://github.com/akka/akka">Code</a></li>
+          <li><a href="http://www.lightbend.com/how/subscription">Commercial Support</a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="main">
+    <div class="container">
+      <div class="page-title">Dynamic stream handling - Version 2.5.1</div>
+      <div class="pdf-link"><a href="../../AkkaScala.pdf" title="Akka Scala Documentation"><img src="../../_static/pdf-scala-icon.png" style="height: 40px;" /></a></div>
+      <div class="pdf-link"><a href="../../AkkaJava.pdf" title="Akka Java Documentation"><img src="../../_static/pdf-java-icon.png" style="height: 40px;" /></a></div>
+    </div>
+    <div class="main-container">
+      <div class="container">
+        <div class="row">
+          <div class="span12">
+            <div class="breadcrumb">
+              <div style="position: relative">
+                <input type="search" id="search" class="form-control" style="position: relative" placeholder="Search in the doc" />
+              </div>
+              <div>
+                <div>
+                  <span class="divider">«</span> <a href="stream-rate.html">Buffers and working with rate</a> <span class="divider">|</span>
+                </div>
+                <div>
+                  <a href="../../java.html">Java Contents</a> <span class="divider">|</span> <a href="../../scala.html">Scala Contents</a>
+                </div>
+                <div>
+                  <span class="divider">|</span> <a href="stream-customize.html">Custom stream processing</a> <span class="divider">»</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="row">
+          <div class="span9">
+          </div><div class="span9">
+            
+  <div class="section" id="dynamic-stream-handling">
+<span id="stream-dynamic-scala"></span><h1>Dynamic stream handling</h1>
+<div class="section" id="controlling-graph-completion-with-killswitch">
+<span id="kill-switch-scala"></span><h2>Controlling graph completion with KillSwitch</h2>
+<p>A <code class="docutils literal"><span class="pre">KillSwitch</span></code> allows the completion of graphs of <code class="docutils literal"><span class="pre">FlowShape</span></code> from the outside. It consists of a flow element that
+can be linked to a graph of <code class="docutils literal"><span class="pre">FlowShape</span></code> needing completion control.
+The <code class="docutils literal"><span class="pre">KillSwitch</span></code> trait allows to complete or fail the graph(s).</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">trait</span> <span class="nc">KillSwitch</span> <span class="o">{</span>
+  <span class="cm">/**</span>
+<span class="cm">   * After calling [[KillSwitch#shutdown()]] the linked [[Graph]]s of [[FlowShape]] are completed normally.</span>
+<span class="cm">   */</span>
+  <span class="k">def</span> <span class="n">shutdown</span><span class="o">()</span><span class="k">:</span> <span class="kt">Unit</span>
+  <span class="cm">/**</span>
+<span class="cm">   * After calling [[KillSwitch#abort()]] the linked [[Graph]]s of [[FlowShape]] are failed.</span>
+<span class="cm">   */</span>
+  <span class="k">def</span> <span class="n">abort</span><span class="o">(</span><span class="n">ex</span><span class="k">:</span> <span class="kt">Throwable</span><span class="o">)</span><span class="k">:</span> <span class="kt">Unit</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<p>After the first call to either <code class="docutils literal"><span class="pre">shutdown</span></code> or <code class="docutils literal"><span class="pre">abort</span></code>, all subsequent calls to any of these methods will be ignored.
+Graph completion is performed by both</p>
+<ul class="simple">
+<li>completing its downstream</li>
+<li>cancelling (in case of <code class="docutils literal"><span class="pre">shutdown</span></code>) or failing (in case of <code class="docutils literal"><span class="pre">abort</span></code>) its upstream.</li>
+</ul>
+<p>A <code class="docutils literal"><span class="pre">KillSwitch</span></code> can control the completion of one or multiple streams, and therefore comes in two different flavours.</p>
+<div class="section" id="uniquekillswitch">
+<span id="unique-kill-switch-scala"></span><h3>UniqueKillSwitch</h3>
+<p><code class="docutils literal"><span class="pre">UniqueKillSwitch</span></code> allows to control the completion of <strong>one</strong> materialized <code class="docutils literal"><span class="pre">Graph</span></code> of <code class="docutils literal"><span class="pre">FlowShape</span></code>. Refer to the
+below for usage examples.</p>
+<ul class="simple">
+<li><strong>Shutdown</strong></li>
+</ul>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">val</span> <span class="n">countingSrc</span> <span class="k">=</span> <span class="nc">Source</span><span class="o">(</span><span class="nc">Stream</span><span class="o">.</span><span class="n">from</span><span class="o">(</span><span class="mi">1</span><span class="o">)).</span><span class="n">delay</span><span class="o">(</span><span class="mf">1.</span><span class="n">second</span><span class="o">,</span> <span class="nc">DelayOverflowStrategy</span><span class="o">.</span><span class="n">backpressure</span><span class="o">)</span>
+<span class="k">val</span> <span class="n">lastSnk</span> <span class="k">=</span> <span class="nc">Sink</span><span class="o">.</span><span class="n">last</span><span class="o">[</span><span class="kt">Int</span><span class="o">]</span>
+
+<span class="k">val</span> <span class="o">(</span><span class="n">killSwitch</span><span class="o">,</span> <span class="n">last</span><span class="o">)</span> <span class="k">=</span> <span class="n">countingSrc</span>
+  <span class="o">.</span><span class="n">viaMat</span><span class="o">(</span><span class="nc">KillSwitches</span><span class="o">.</span><span class="n">single</span><span class="o">)(</span><span class="nc">Keep</span><span class="o">.</span><span class="n">right</span><span class="o">)</span>
+  <span class="o">.</span><span class="n">toMat</span><span class="o">(</span><span class="n">lastSnk</span><span class="o">)(</span><span class="nc">Keep</span><span class="o">.</span><span class="n">both</span><span class="o">)</span>
+  <span class="o">.</span><span class="n">run</span><span class="o">()</span>
+
+<span class="n">doSomethingElse</span><span class="o">()</span>
+
+<span class="n">killSwitch</span><span class="o">.</span><span class="n">shutdown</span><span class="o">()</span>
+
+<span class="nc">Await</span><span class="o">.</span><span class="n">result</span><span class="o">(</span><span class="n">last</span><span class="o">,</span> <span class="mf">1.</span><span class="n">second</span><span class="o">)</span> <span class="n">shouldBe</span> <span class="mi">2</span>
+</pre></div>
+</div>
+<ul class="simple">
+<li><strong>Abort</strong></li>
+</ul>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">val</span> <span class="n">countingSrc</span> <span class="k">=</span> <span class="nc">Source</span><span class="o">(</span><span class="nc">Stream</span><span class="o">.</span><span class="n">from</span><span class="o">(</span><span class="mi">1</span><span class="o">)).</span><span class="n">delay</span><span class="o">(</span><span class="mf">1.</span><span class="n">second</span><span class="o">,</span> <span class="nc">DelayOverflowStrategy</span><span class="o">.</span><span class="n">backpressure</span><span class="o">)</span>
+<span class="k">val</span> <span class="n">lastSnk</span> <span class="k">=</span> <span class="nc">Sink</span><span class="o">.</span><span class="n">last</span><span class="o">[</span><span class="kt">Int</span><span class="o">]</span>
+
+<span class="k">val</span> <span class="o">(</span><span class="n">killSwitch</span><span class="o">,</span> <span class="n">last</span><span class="o">)</span> <span class="k">=</span> <span class="n">countingSrc</span>
+  <span class="o">.</span><span class="n">viaMat</span><span class="o">(</span><span class="nc">KillSwitches</span><span class="o">.</span><span class="n">single</span><span class="o">)(</span><span class="nc">Keep</span><span class="o">.</span><span class="n">right</span><span class="o">)</span>
+  <span class="o">.</span><span class="n">toMat</span><span class="o">(</span><span class="n">lastSnk</span><span class="o">)(</span><span class="nc">Keep</span><span class="o">.</span><span class="n">both</span><span class="o">).</span><span class="n">run</span><span class="o">()</span>
+
+<span class="k">val</span> <span class="n">error</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">RuntimeException</span><span class="o">(</span><span class="s">&quot;boom!&quot;</span><span class="o">)</span>
+<span class="n">killSwitch</span><span class="o">.</span><span class="n">abort</span><span class="o">(</span><span class="n">error</span><span class="o">)</span>
+
+<span class="nc">Await</span><span class="o">.</span><span class="n">result</span><span class="o">(</span><span class="n">last</span><span class="o">.</span><span class="n">failed</span><span class="o">,</span> <span class="mf">1.</span><span class="n">second</span><span class="o">)</span> <span class="n">shouldBe</span> <span class="n">error</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="sharedkillswitch">
+<span id="shared-kill-switch-scala"></span><h3>SharedKillSwitch</h3>
+<p>A <code class="docutils literal"><span class="pre">SharedKillSwitch</span></code> allows to control the completion of an arbitrary number graphs of <code class="docutils literal"><span class="pre">FlowShape</span></code>. It can be
+materialized multiple times via its <code class="docutils literal"><span class="pre">flow</span></code> method, and all materialized graphs linked to it are controlled by the switch.
+Refer to the below for usage examples.</p>
+<ul class="simple">
+<li><strong>Shutdown</strong></li>
+</ul>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">val</span> <span class="n">countingSrc</span> <span class="k">=</span> <span class="nc">Source</span><span class="o">(</span><span class="nc">Stream</span><span class="o">.</span><span class="n">from</span><span class="o">(</span><span class="mi">1</span><span class="o">)).</span><span class="n">delay</span><span class="o">(</span><span class="mf">1.</span><span class="n">second</span><span class="o">,</span> <span class="nc">DelayOverflowStrategy</span><span class="o">.</span><span class="n">backpressure</span><span class="o">)</span>
+<span class="k">val</span> <span class="n">lastSnk</span> <span class="k">=</span> <span class="nc">Sink</span><span class="o">.</span><span class="n">last</span><span class="o">[</span><span class="kt">Int</span><span class="o">]</span>
+<span class="k">val</span> <span class="n">sharedKillSwitch</span> <span class="k">=</span> <span class="nc">KillSwitches</span><span class="o">.</span><span class="n">shared</span><span class="o">(</span><span class="s">&quot;my-kill-switch&quot;</span><span class="o">)</span>
+
+<span class="k">val</span> <span class="n">last</span> <span class="k">=</span> <span class="n">countingSrc</span>
+  <span class="o">.</span><span class="n">via</span><span class="o">(</span><span class="n">sharedKillSwitch</span><span class="o">.</span><span class="n">flow</span><span class="o">)</span>
+  <span class="o">.</span><span class="n">runWith</span><span class="o">(</span><span class="n">lastSnk</span><span class="o">)</span>
+
+<span class="k">val</span> <span class="n">delayedLast</span> <span class="k">=</span> <span class="n">countingSrc</span>
+  <span class="o">.</span><span class="n">delay</span><span class="o">(</span><span class="mf">1.</span><span class="n">second</span><span class="o">,</span> <span class="nc">DelayOverflowStrategy</span><span class="o">.</span><span class="n">backpressure</span><span class="o">)</span>
+  <span class="o">.</span><span class="n">via</span><span class="o">(</span><span class="n">sharedKillSwitch</span><span class="o">.</span><span class="n">flow</span><span class="o">)</span>
+  <span class="o">.</span><span class="n">runWith</span><span class="o">(</span><span class="n">lastSnk</span><span class="o">)</span>
+
+<span class="n">doSomethingElse</span><span class="o">()</span>
+
+<span class="n">sharedKillSwitch</span><span class="o">.</span><span class="n">shutdown</span><span class="o">()</span>
+
+<span class="nc">Await</span><span class="o">.</span><span class="n">result</span><span class="o">(</span><span class="n">last</span><span class="o">,</span> <span class="mf">1.</span><span class="n">second</span><span class="o">)</span> <span class="n">shouldBe</span> <span class="mi">2</span>
+<span class="nc">Await</span><span class="o">.</span><span class="n">result</span><span class="o">(</span><span class="n">delayedLast</span><span class="o">,</span> <span class="mf">1.</span><span class="n">second</span><span class="o">)</span> <span class="n">shouldBe</span> <span class="mi">1</span>
+</pre></div>
+</div>
+<ul class="simple">
+<li><strong>Abort</strong></li>
+</ul>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">val</span> <span class="n">countingSrc</span> <span class="k">=</span> <span class="nc">Source</span><span class="o">(</span><span class="nc">Stream</span><span class="o">.</span><span class="n">from</span><span class="o">(</span><span class="mi">1</span><span class="o">)).</span><span class="n">delay</span><span class="o">(</span><span class="mf">1.</span><span class="n">second</span><span class="o">)</span>
+<span class="k">val</span> <span class="n">lastSnk</span> <span class="k">=</span> <span class="nc">Sink</span><span class="o">.</span><span class="n">last</span><span class="o">[</span><span class="kt">Int</span><span class="o">]</span>
+<span class="k">val</span> <span class="n">sharedKillSwitch</span> <span class="k">=</span> <span class="nc">KillSwitches</span><span class="o">.</span><span class="n">shared</span><span class="o">(</span><span class="s">&quot;my-kill-switch&quot;</span><span class="o">)</span>
+
+<span class="k">val</span> <span class="n">last1</span> <span class="k">=</span> <span class="n">countingSrc</span><span class="o">.</span><span class="n">via</span><span class="o">(</span><span class="n">sharedKillSwitch</span><span class="o">.</span><span class="n">flow</span><span class="o">).</span><span class="n">runWith</span><span class="o">(</span><span class="n">lastSnk</span><span class="o">)</span>
+<span class="k">val</span> <span class="n">last2</span> <span class="k">=</span> <span class="n">countingSrc</span><span class="o">.</span><span class="n">via</span><span class="o">(</span><span class="n">sharedKillSwitch</span><span class="o">.</span><span class="n">flow</span><span class="o">).</span><span class="n">runWith</span><span class="o">(</span><span class="n">lastSnk</span><span class="o">)</span>
+
+<span class="k">val</span> <span class="n">error</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">RuntimeException</span><span class="o">(</span><span class="s">&quot;boom!&quot;</span><span class="o">)</span>
+<span class="n">sharedKillSwitch</span><span class="o">.</span><span class="n">abort</span><span class="o">(</span><span class="n">error</span><span class="o">)</span>
+
+<span class="nc">Await</span><span class="o">.</span><span class="n">result</span><span class="o">(</span><span class="n">last1</span><span class="o">.</span><span class="n">failed</span><span class="o">,</span> <span class="mf">1.</span><span class="n">second</span><span class="o">)</span> <span class="n">shouldBe</span> <span class="n">error</span>
+<span class="nc">Await</span><span class="o">.</span><span class="n">result</span><span class="o">(</span><span class="n">last2</span><span class="o">.</span><span class="n">failed</span><span class="o">,</span> <span class="mf">1.</span><span class="n">second</span><span class="o">)</span> <span class="n">shouldBe</span> <span class="n">error</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">A <code class="docutils literal"><span class="pre">UniqueKillSwitch</span></code> is always a result of a materialization, whilst <code class="docutils literal"><span class="pre">SharedKillSwitch</span></code> needs to be constructed
+before any materialization takes place.</p>
+</div>
+</div>
+</div>
+<div class="section" id="dynamic-fan-in-and-fan-out-with-mergehub-and-broadcasthub">
+<h2>Dynamic fan-in and fan-out with MergeHub and BroadcastHub</h2>
+<p>There are many cases when consumers or producers of a certain service (represented as a Sink, Source, or possibly Flow)
+are dynamic and not known in advance. The Graph DSL does not allow to represent this, all connections of the graph
+must be known in advance and must be connected upfront. To allow dynamic fan-in and fan-out streaming, the Hubs
+should be used. They provide means to construct <code class="xref py py-class docutils literal"><span class="pre">Sink</span></code> and <code class="xref py py-class docutils literal"><span class="pre">Source</span></code> pairs that are &quot;attached&quot; to each
+other, but one of them can be materialized multiple times to implement dynamic fan-in or fan-out.</p>
+<div class="section" id="using-the-mergehub">
+<h3>Using the MergeHub</h3>
+<p>A <code class="xref py py-class docutils literal"><span class="pre">MergeHub</span></code> allows to implement a dynamic fan-in junction point in a graph where elements coming from
+different producers are emitted in a First-Comes-First-Served fashion. If the consumer cannot keep up then <em>all</em> of the
+producers are backpressured. The hub itself comes as a <code class="xref py py-class docutils literal"><span class="pre">Source</span></code> to which the single consumer can be attached.
+It is not possible to attach any producers until this <code class="xref py py-class docutils literal"><span class="pre">Source</span></code> has been materialized (started). This is ensured
+by the fact that we only get the corresponding <code class="xref py py-class docutils literal"><span class="pre">Sink</span></code> as a materialized value. Usage might look like this:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="c1">// A simple consumer that will print to the console for now</span>
+<span class="k">val</span> <span class="n">consumer</span> <span class="k">=</span> <span class="nc">Sink</span><span class="o">.</span><span class="n">foreach</span><span class="o">(</span><span class="n">println</span><span class="o">)</span>
+
+<span class="c1">// Attach a MergeHub Source to the consumer. This will materialize to a</span>
+<span class="c1">// corresponding Sink.</span>
+<span class="k">val</span> <span class="n">runnableGraph</span><span class="k">:</span> <span class="kt">RunnableGraph</span><span class="o">[</span><span class="kt">Sink</span><span class="o">[</span><span class="kt">String</span>, <span class="kt">NotUsed</span><span class="o">]]</span> <span class="k">=</span>
+  <span class="nc">MergeHub</span><span class="o">.</span><span class="n">source</span><span class="o">[</span><span class="kt">String</span><span class="o">](</span><span class="n">perProducerBufferSize</span> <span class="k">=</span> <span class="mi">16</span><span class="o">).</span><span class="n">to</span><span class="o">(</span><span class="n">consumer</span><span class="o">)</span>
+
+<span class="c1">// By running/materializing the consumer we get back a Sink, and hence</span>
+<span class="c1">// now have access to feed elements into it. This Sink can be materialized</span>
+<span class="c1">// any number of times, and every element that enters the Sink will</span>
+<span class="c1">// be consumed by our consumer.</span>
+<span class="k">val</span> <span class="n">toConsumer</span><span class="k">:</span> <span class="kt">Sink</span><span class="o">[</span><span class="kt">String</span>, <span class="kt">NotUsed</span><span class="o">]</span> <span class="k">=</span> <span class="n">runnableGraph</span><span class="o">.</span><span class="n">run</span><span class="o">()</span>
+
+<span class="c1">// Feeding two independent sources into the hub.</span>
+<span class="nc">Source</span><span class="o">.</span><span class="n">single</span><span class="o">(</span><span class="s">&quot;Hello!&quot;</span><span class="o">).</span><span class="n">runWith</span><span class="o">(</span><span class="n">toConsumer</span><span class="o">)</span>
+<span class="nc">Source</span><span class="o">.</span><span class="n">single</span><span class="o">(</span><span class="s">&quot;Hub!&quot;</span><span class="o">).</span><span class="n">runWith</span><span class="o">(</span><span class="n">toConsumer</span><span class="o">)</span>
+</pre></div>
+</div>
+<p>This sequence, while might look odd at first, ensures proper startup order. Once we get the <code class="xref py py-class docutils literal"><span class="pre">Sink</span></code>,
+we can use it as many times as wanted. Everything that is fed to it will be delivered to the consumer we attached
+previously until it cancels.</p>
+</div>
+<div class="section" id="using-the-broadcasthub">
+<h3>Using the BroadcastHub</h3>
+<p>A <code class="xref py py-class docutils literal"><span class="pre">BroadcastHub</span></code> can be used to consume elements from a common producer by a dynamic set of consumers. The
+rate of the producer will be automatically adapted to the slowest consumer. In this case, the hub is a <code class="xref py py-class docutils literal"><span class="pre">Sink</span></code>
+to which the single producer must be attached first. Consumers can only be attached once the <code class="xref py py-class docutils literal"><span class="pre">Sink</span></code> has
+been materialized (i.e. the producer has been started). One example of using the <code class="xref py py-class docutils literal"><span class="pre">BroadcastHub</span></code>:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="c1">// A simple producer that publishes a new &quot;message&quot; every second</span>
+<span class="k">val</span> <span class="n">producer</span> <span class="k">=</span> <span class="nc">Source</span><span class="o">.</span><span class="n">tick</span><span class="o">(</span><span class="mf">1.</span><span class="n">second</span><span class="o">,</span> <span class="mf">1.</span><span class="n">second</span><span class="o">,</span> <span class="s">&quot;New message&quot;</span><span class="o">)</span>
+
+<span class="c1">// Attach a BroadcastHub Sink to the producer. This will materialize to a</span>
+<span class="c1">// corresponding Source.</span>
+<span class="c1">// (We need to use toMat and Keep.right since by default the materialized</span>
+<span class="c1">// value to the left is used)</span>
+<span class="k">val</span> <span class="n">runnableGraph</span><span class="k">:</span> <span class="kt">RunnableGraph</span><span class="o">[</span><span class="kt">Source</span><span class="o">[</span><span class="kt">String</span>, <span class="kt">NotUsed</span><span class="o">]]</span> <span class="k">=</span>
+  <span class="n">producer</span><span class="o">.</span><span class="n">toMat</span><span class="o">(</span><span class="nc">BroadcastHub</span><span class="o">.</span><span class="n">sink</span><span class="o">(</span><span class="n">bufferSize</span> <span class="k">=</span> <span class="mi">256</span><span class="o">))(</span><span class="nc">Keep</span><span class="o">.</span><span class="n">right</span><span class="o">)</span>
+
+<span class="c1">// By running/materializing the producer, we get back a Source, which</span>
+<span class="c1">// gives us access to the elements published by the producer.</span>
+<span class="k">val</span> <span class="n">fromProducer</span><span class="k">:</span> <span class="kt">Source</span><span class="o">[</span><span class="kt">String</span>, <span class="kt">NotUsed</span><span class="o">]</span> <span class="k">=</span> <span class="n">runnableGraph</span><span class="o">.</span><span class="n">run</span><span class="o">()</span>
+
+<span class="c1">// Print out messages from the producer in two independent consumers</span>
+<span class="n">fromProducer</span><span class="o">.</span><span class="n">runForeach</span><span class="o">(</span><span class="n">msg</span> <span class="k">=&gt;</span> <span class="n">println</span><span class="o">(</span><span class="s">&quot;consumer1: &quot;</span> <span class="o">+</span> <span class="n">msg</span><span class="o">))</span>
+<span class="n">fromProducer</span><span class="o">.</span><span class="n">runForeach</span><span class="o">(</span><span class="n">msg</span> <span class="k">=&gt;</span> <span class="n">println</span><span class="o">(</span><span class="s">&quot;consumer2: &quot;</span> <span class="o">+</span> <span class="n">msg</span><span class="o">))</span>
+</pre></div>
+</div>
+<p>The resulting <code class="xref py py-class docutils literal"><span class="pre">Source</span></code> can be materialized any number of times, each materialization effectively attaching
+a new subscriber. If there are no subscribers attached to this hub then it will not drop any elements but instead
+backpressure the upstream producer until subscribers arrive. This behavior can be tweaked by using the combinators
+<code class="docutils literal"><span class="pre">.buffer</span></code> for example with a drop strategy, or just attaching a subscriber that drops all messages. If there
+are no other subscribers, this will ensure that the producer is kept drained (dropping all elements) and once a new
+subscriber arrives it will adaptively slow down, ensuring no more messages are dropped.</p>
+</div>
+<div class="section" id="combining-dynamic-stages-to-build-a-simple-publish-subscribe-service">
+<h3>Combining dynamic stages to build a simple Publish-Subscribe service</h3>
+<p>The features provided by the Hub implementations are limited by default. This is by design, as various combinations
+can be used to express additional features like unsubscribing producers or consumers externally. We show here
+an example that builds a <code class="xref py py-class docutils literal"><span class="pre">Flow</span></code> representing a publish-subscribe channel. The input of the <code class="xref py py-class docutils literal"><span class="pre">Flow</span></code> is
+published to all subscribers while the output streams all the elements published.</p>
+<p>First, we connect a <code class="xref py py-class docutils literal"><span class="pre">MergeHub</span></code> and a <code class="xref py py-class docutils literal"><span class="pre">BroadcastHub</span></code> together to form a publish-subscribe channel. Once
+we materialize this small stream, we get back a pair of <code class="xref py py-class docutils literal"><span class="pre">Source</span></code> and <code class="xref py py-class docutils literal"><span class="pre">Sink</span></code> that together define
+the publish and subscribe sides of our channel.</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="c1">// Obtain a Sink and Source which will publish and receive from the &quot;bus&quot; respectively.</span>
+<span class="k">val</span> <span class="o">(</span><span class="n">sink</span><span class="o">,</span> <span class="n">source</span><span class="o">)</span> <span class="k">=</span>
+  <span class="nc">MergeHub</span><span class="o">.</span><span class="n">source</span><span class="o">[</span><span class="kt">String</span><span class="o">](</span><span class="n">perProducerBufferSize</span> <span class="k">=</span> <span class="mi">16</span><span class="o">)</span>
+    <span class="o">.</span><span class="n">toMat</span><span class="o">(</span><span class="nc">BroadcastHub</span><span class="o">.</span><span class="n">sink</span><span class="o">(</span><span class="n">bufferSize</span> <span class="k">=</span> <span class="mi">256</span><span class="o">))(</span><span class="nc">Keep</span><span class="o">.</span><span class="n">both</span><span class="o">)</span>
+    <span class="o">.</span><span class="n">run</span><span class="o">()</span>
+</pre></div>
+</div>
+<p>We now use a few tricks to add more features. First of all, we attach a <code class="docutils literal"><span class="pre">Sink.ignore</span></code>
+at the broadcast side of the channel to keep it drained when there are no subscribers. If this behavior is not the
+desired one this line can be simply dropped.</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="c1">// Ensure that the Broadcast output is dropped if there are no listening parties.</span>
+<span class="c1">// If this dropping Sink is not attached, then the broadcast hub will not drop any</span>
+<span class="c1">// elements itself when there are no subscribers, backpressuring the producer instead.</span>
+<span class="n">source</span><span class="o">.</span><span class="n">runWith</span><span class="o">(</span><span class="nc">Sink</span><span class="o">.</span><span class="n">ignore</span><span class="o">)</span>
+</pre></div>
+</div>
+<p>We now wrap the <code class="xref py py-class docutils literal"><span class="pre">Sink</span></code> and <code class="xref py py-class docutils literal"><span class="pre">Source</span></code> in a <code class="xref py py-class docutils literal"><span class="pre">Flow</span></code> using <code class="docutils literal"><span class="pre">Flow.fromSinkAndSource</span></code>. This bundles
+up the two sides of the channel into one and forces users of it to always define a publisher and subscriber side
+(even if the subscriber side is just dropping). It also allows us to very simply attach a <code class="xref py py-class docutils literal"><span class="pre">KillSwitch</span></code> as
+a <code class="xref py py-class docutils literal"><span class="pre">BidiStage</span></code> which in turn makes it possible to close both the original <code class="xref py py-class docutils literal"><span class="pre">Sink</span></code> and <code class="xref py py-class docutils literal"><span class="pre">Source</span></code> at the
+same time.
+Finally, we add <code class="docutils literal"><span class="pre">backpressureTimeout</span></code> on the consumer side to ensure that subscribers that block the channel for more
+than 3 seconds are forcefully removed (and their stream failed).</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="c1">// We create now a Flow that represents a publish-subscribe channel using the above</span>
+<span class="c1">// started stream as its &quot;topic&quot;. We add two more features, external cancellation of</span>
+<span class="c1">// the registration and automatic cleanup for very slow subscribers.</span>
+<span class="k">val</span> <span class="n">busFlow</span><span class="k">:</span> <span class="kt">Flow</span><span class="o">[</span><span class="kt">String</span>, <span class="kt">String</span>, <span class="kt">UniqueKillSwitch</span><span class="o">]</span> <span class="k">=</span>
+  <span class="nc">Flow</span><span class="o">.</span><span class="n">fromSinkAndSource</span><span class="o">(</span><span class="n">sink</span><span class="o">,</span> <span class="n">source</span><span class="o">)</span>
+    <span class="o">.</span><span class="n">joinMat</span><span class="o">(</span><span class="nc">KillSwitches</span><span class="o">.</span><span class="n">singleBidi</span><span class="o">[</span><span class="kt">String</span>, <span class="kt">String</span><span class="o">])(</span><span class="nc">Keep</span><span class="o">.</span><span class="n">right</span><span class="o">)</span>
+    <span class="o">.</span><span class="n">backpressureTimeout</span><span class="o">(</span><span class="mf">3.</span><span class="n">seconds</span><span class="o">)</span>
+</pre></div>
+</div>
+<p>The resulting Flow now has a type of <code class="docutils literal"><span class="pre">Flow[String,</span> <span class="pre">String,</span> <span class="pre">UniqueKillSwitch]</span></code> representing a publish-subscribe
+channel which can be used any number of times to attach new producers or consumers. In addition, it materializes
+to a <code class="xref py py-class docutils literal"><span class="pre">UniqueKillSwitch</span></code> (see <a class="reference internal" href="#unique-kill-switch-scala"><span>UniqueKillSwitch</span></a>) that can be used to deregister a single user externally:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">val</span> <span class="n">switch</span><span class="k">:</span> <span class="kt">UniqueKillSwitch</span> <span class="o">=</span>
+  <span class="nc">Source</span><span class="o">.</span><span class="n">repeat</span><span class="o">(</span><span class="s">&quot;Hello world!&quot;</span><span class="o">)</span>
+    <span class="o">.</span><span class="n">viaMat</span><span class="o">(</span><span class="n">busFlow</span><span class="o">)(</span><span class="nc">Keep</span><span class="o">.</span><span class="n">right</span><span class="o">)</span>
+    <span class="o">.</span><span class="n">to</span><span class="o">(</span><span class="nc">Sink</span><span class="o">.</span><span class="n">foreach</span><span class="o">(</span><span class="n">println</span><span class="o">))</span>
+    <span class="o">.</span><span class="n">run</span><span class="o">()</span>
+
+<span class="c1">// Shut down externally</span>
+<span class="n">switch</span><span class="o">.</span><span class="n">shutdown</span><span class="o">()</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+
+
+          </div>
+          <div class="span3"><p class="contents-title">Contents</p>
+              <div id="scroller-anchor">
+                <div id="scroller">
+                  <div id="toc"></div>
+                </div>
+              </div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="footer">
+  <div class="container">
+    <ul>
+      <li><h5>Akka</h5></li>
+      <li><a href="https://akka.io/docs">Documentation</a></li>
+      <li><a href="https://doc.akka.io/docs/akka/current/additional/faq.html">FAQ</a></li>
+      <li><a href="https://akka.io/downloads">Downloads</a></li>
+      <li><a href="https://akka.io/news">News</a></li>
+      <li><a href="http://letitcrash.com">Blog</a></li>
+    </ul>
+    <ul>
+      <li><h5>Contribute</h5></li>
+      <li><a href="https://akka.io/community">Community Projects</a></li>
+      <li><a href="http://github.com/akka/akka">Source Code</a></li>
+      <li><a href="http://groups.google.com/group/akka-user">Mailing List</a></li>
+      <li><a href="https://doc.akka.io/docs/akka/current/project/issue-tracking.html">Report a Bug</a></li>
+    </ul>
+    <ul>
+      <li><h5>Company</h5></li>
+      <li><a href="http://www.lightbend.com/how/subscription">Commercial Support</a></li>
+      <li><a href="https://akka.io/team">Team</a></li>
+      <li><a href="mailto:info@lightbend.com">Contact</a></li>
+    </ul>
+    <ul>
+      <li><img src="../../_static/akka_icon_reverse.svg" align="center"/></li>
+    </ul>
+  </div>
+  <div class="container copyright">
+    <p style="float: left;">
+      © 2015 <a href="http://www.lightbend.com/">Lightbend Inc.</a> <span class="license">Akka is Open Source and available under the Apache 2 License.</span>
+    </p>
+    <p style="float: right; font-size: 12px;">
+      Last updated: May 02, 2017
+    </p>
+  </div>
+</div>
+<script type="text/javascript">
+  var $toc = $('#toc');
+  $toc.toc();
+
+  // show clickable section sign when section header hovered:
+  $('.section h2,.section h3,.section h4,.section h5').each(function(i, el) {
+      var $el = $(el);
+      $el.prepend($("<a class='section-marker' href='#" + $el.attr("id") + "'>&sect;</a>"))
+  });
+</script>
+
+<!-- Algolia docs search -->
+<script type="text/javascript">
+  var version = DOCUMENTATION_OPTIONS.VERSION;
+
+  var lang = "scala";
+  var path = window.location.pathname;
+  if (path.includes("/java/") || path.includes("java.html")) lang = "java";
+
+  console.log("Search configured for:", lang, "@", version);
+
+  docsearch({
+    apiKey: '543bad5ad786495d9ccd445ed34ed082',
+    indexName: 'akka_io',
+    inputSelector: '#search',
+    algoliaOptions: {
+      hitsPerPage: 5,
+      facetFilters: '[' + '["language:' + lang + '","language:general"]' + ',"version:' + version + '"]'
+    }
+  });
+
+  // set up "/" as global shortcut for focusing on search
+  $(document).keypress(function (event) {
+    if (event.keyCode == 47) {
+      $("#q").focus();
+      return false; // swallow key event, otherwise the / char would be input into the search box
+    }
+  });
+</script>
+
+  
+
+  </body>
+</html>

@@ -1,0 +1,699 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Modularity, Composition and Hierarchy &mdash; Akka Documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/style.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/prettify.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/base.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/docs.css" type="text/css" />
+    <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,600,700" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '2.5.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="../../_static/toc.js"></script>
+    <script type="text/javascript" src="../../_static/prettify.js"></script>
+    <script type="text/javascript" src="../../_static/highlightCode.js"></script>
+    <script type="text/javascript" src="../../_static/effects.core.js"></script>
+    <script type="text/javascript" src="../../_static/effects.highlight.js"></script>
+    <script type="text/javascript" src="../../_static/scrollTo.js"></script>
+    <script type="text/javascript" src="../../_static/contentsFix.js"></script>
+    <script type="text/javascript" src="../../_static/ga.js"></script>
+    <script type="text/javascript" src="../../_static/warnOldDocs.js"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/docsearch.js/1/docsearch.min.js"></script>
+    <link rel="shortcut icon" href="../../_static/favicon.ico"/>
+    <link rel="top" title="Akka Documentation" href="../../index.html" />
+    <link rel="up" title="Streams" href="index.html" />
+    <link rel="next" title="Buffers and working with rate" href="stream-rate.html" />
+    <link rel="prev" title="Working with Graphs" href="stream-graphs.html" />
+    <!-- Hint to search engines that the "canonical" page is under "current", which will boost it appearing in search results -->
+    
+      <link rel="canonical" href="https://doc.akka.io/docs/akka/current/stream/stream-composition.html" />
+    
+
+    <!--Google Analytics-->
+    <script type="text/javascript">
+      var _gaq = _gaq || [];
+      _gaq.push(['_setAccount', 'UA-21117439-1']);
+      _gaq.push(['_setDomainName', 'akka.io']);
+      _gaq.push(['_trackPageview']);
+      (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+      })()
+    </script>
+    <!--Google Analytics & Marketo-->
+    <script type="text/javascript">
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+      (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+      m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+      ga('create', 'UA-23127719-1', 'lightbend.com', {'allowLinker': true, 'name': 'tsTracker'});
+      ga('tsTracker.require', 'linker');
+      ga('tsTracker.linker:autoLink', ['lightbend.com','playframework.com','scala-lang.org','scaladays.org','spray.io','akka.io','scala-sbt.org','scala-ide.org']);
+      ga('tsTracker.send', 'pageview');
+
+      (function() {
+          var didInit = false;
+          function initMunchkin() {
+          if(didInit === false) {
+            didInit = true;
+            Munchkin.init('558-NCX-702');
+          }
+          }
+          var s = document.createElement('script');
+          s.type = 'text/javascript';
+          s.async = true;
+          s.src = '//munchkin.marketo.net/munchkin.js';
+          s.onreadystatechange = function() {
+          if (this.readyState == 'complete' || this.readyState == 'loaded') {
+            initMunchkin();
+          }
+          };
+          s.onload = initMunchkin;
+          document.getElementsByTagName('head')[0].appendChild(s);
+        })();
+    </script>
+
+
+  </head>
+  <body role="document">
+  <div class="navbar">
+    <div class="navbar-inner">
+      <div class="container">
+        <div class="navbar-logo">
+          <a href="https://akka.io"><img class="svg-logo" src="../../_static/akka_full_color.svg" /></a>
+        </div>
+        <ul class="nav">
+          <li><a href="https://akka.io/docs">Documentation</a></li>
+          <li><a href="https://doc.akka.io/docs/akka/current/additional/faq.html">FAQ</a></li>
+          <li><a href="https://akka.io/downloads">Download</a></li>
+          <li><a href="http://groups.google.com/group/akka-user">Mailing List</a></li>
+          <li><a href="http://github.com/akka/akka">Code</a></li>
+          <li><a href="http://www.lightbend.com/how/subscription">Commercial Support</a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="main">
+    <div class="container">
+      <div class="page-title">Modularity, Composition and Hierarchy - Version 2.5.1</div>
+      <div class="pdf-link"><a href="../../AkkaScala.pdf" title="Akka Scala Documentation"><img src="../../_static/pdf-scala-icon.png" style="height: 40px;" /></a></div>
+      <div class="pdf-link"><a href="../../AkkaJava.pdf" title="Akka Java Documentation"><img src="../../_static/pdf-java-icon.png" style="height: 40px;" /></a></div>
+    </div>
+    <div class="main-container">
+      <div class="container">
+        <div class="row">
+          <div class="span12">
+            <div class="breadcrumb">
+              <div style="position: relative">
+                <input type="search" id="search" class="form-control" style="position: relative" placeholder="Search in the doc" />
+              </div>
+              <div>
+                <div>
+                  <span class="divider">«</span> <a href="stream-graphs.html">Working with Graphs</a> <span class="divider">|</span>
+                </div>
+                <div>
+                  <a href="../../java.html">Java Contents</a> <span class="divider">|</span> <a href="../../scala.html">Scala Contents</a>
+                </div>
+                <div>
+                  <span class="divider">|</span> <a href="stream-rate.html">Buffers and working with rate</a> <span class="divider">»</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="row">
+          <div class="span9">
+          </div><div class="span9">
+            
+  <div class="section" id="modularity-composition-and-hierarchy">
+<span id="composition-java"></span><h1>Modularity, Composition and Hierarchy</h1>
+<p>Akka Streams provide a uniform model of stream processing graphs, which allows flexible composition of reusable
+components. In this chapter we show how these look like from the conceptual and API perspective, demonstrating
+the modularity aspects of the library.</p>
+<div class="section" id="basics-of-composition-and-modularity">
+<h2>Basics of composition and modularity</h2>
+<p>Every processing stage used in Akka Streams can be imagined as a &quot;box&quot; with input and output ports where elements to
+be processed arrive and leave the stage. In this view, a <code class="xref py py-class docutils literal"><span class="pre">Source</span></code> is nothing else than a &quot;box&quot; with a single
+output port, or, a <code class="xref py py-class docutils literal"><span class="pre">BidiFlow</span></code> is a &quot;box&quot; with exactly two input and two output ports. In the figure below
+we illustrate the most common used stages viewed as &quot;boxes&quot;.</p>
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+<img alt="../../_images/compose_shapes.png" class="align-center" src="../../_images/compose_shapes.png" />
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+<p>The <em>linear</em> stages are <code class="xref py py-class docutils literal"><span class="pre">Source</span></code>, <code class="xref py py-class docutils literal"><span class="pre">Sink</span></code>
+and <code class="xref py py-class docutils literal"><span class="pre">Flow</span></code>, as these can be used to compose strict chains of processing stages.
+Fan-in and Fan-out stages have usually multiple input or multiple output ports, therefore they allow to build
+more complex graph layouts, not just chains. <code class="xref py py-class docutils literal"><span class="pre">BidiFlow</span></code> stages are usually useful in IO related tasks, where
+there are input and output channels to be handled. Due to the specific shape of <code class="xref py py-class docutils literal"><span class="pre">BidiFlow</span></code> it is easy to
+stack them on top of each other to build a layered protocol for example. The <code class="docutils literal"><span class="pre">TLS</span></code> support in Akka is for example
+implemented as a <code class="xref py py-class docutils literal"><span class="pre">BidiFlow</span></code>.</p>
+<p>These reusable components already allow the creation of complex processing networks. What we
+have seen so far does not implement modularity though. It is desirable for example to package up a larger graph entity into
+a reusable component which hides its internals only exposing the ports that are meant to the users of the module
+to interact with. One good example is the <code class="docutils literal"><span class="pre">Http</span></code> server component, which is encoded internally as a
+<code class="xref py py-class docutils literal"><span class="pre">BidiFlow</span></code> which interfaces with the client TCP connection using an input-output port pair accepting and sending
+<code class="xref py py-class docutils literal"><span class="pre">ByteString</span></code> s, while its upper ports emit and receive <code class="xref py py-class docutils literal"><span class="pre">HttpRequest</span></code> and <code class="xref py py-class docutils literal"><span class="pre">HttpResponse</span></code> instances.</p>
+<p>The following figure demonstrates various composite stages, that contain various other type of stages internally, but
+hiding them behind a <em>shape</em> that looks like a <code class="xref py py-class docutils literal"><span class="pre">Source</span></code>, <code class="xref py py-class docutils literal"><span class="pre">Flow</span></code>, etc.</p>
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+<img alt="../../_images/compose_composites.png" class="align-center" src="../../_images/compose_composites.png" />
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+<p>One interesting example above is a <code class="xref py py-class docutils literal"><span class="pre">Flow</span></code> which is composed of a disconnected <code class="xref py py-class docutils literal"><span class="pre">Sink</span></code> and <code class="xref py py-class docutils literal"><span class="pre">Source</span></code>.
+This can be achieved by using the <code class="docutils literal"><span class="pre">fromSinkAndSource()</span></code> constructor method on <code class="xref py py-class docutils literal"><span class="pre">Flow</span></code> which takes the two parts as
+parameters.</p>
+<p>Please note that when combining a <code class="xref py py-class docutils literal"><span class="pre">Flow</span></code> using that method, the termination signals are not carried
+&quot;through&quot; as the <code class="xref py py-class docutils literal"><span class="pre">Sink</span></code> and <code class="xref py py-class docutils literal"><span class="pre">Source</span></code> are assumed to be fully independent. If however you want to construct
+a <code class="xref py py-class docutils literal"><span class="pre">Flow</span></code> like this but need the termination events to trigger &quot;the other side&quot; of the composite flow, you can use
+<code class="docutils literal"><span class="pre">CoupledTerminationFlow.fromSinkAndSource</span></code> which does just that. For example the cancelation of the composite flows
+source-side will then lead to completion of its sink-side. Read <code class="xref py py-class docutils literal"><span class="pre">CoupledTerminationFlow</span></code>'s scaladoc for a
+detailed explanation how this works.</p>
+<p>The example <code class="xref py py-class docutils literal"><span class="pre">BidiFlow</span></code> demonstrates that internally a module can be of arbitrary complexity, and the exposed
+ports can be wired in flexible ways. The only constraint is that all the ports of enclosed modules must be either
+connected to each other, or exposed as interface ports, and the number of such ports needs to match the requirement
+of the shape, for example a <code class="xref py py-class docutils literal"><span class="pre">Source</span></code> allows only one exposed output port, the rest of the internal ports must
+be properly connected.</p>
+<p>These mechanics allow arbitrary nesting of modules. For example the following figure demonstrates a <code class="xref py py-class docutils literal"><span class="pre">RunnableGraph</span></code>
+that is built from a composite <code class="xref py py-class docutils literal"><span class="pre">Source</span></code> and a composite <code class="xref py py-class docutils literal"><span class="pre">Sink</span></code> (which in turn contains a composite
+<code class="xref py py-class docutils literal"><span class="pre">Flow</span></code>).</p>
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+<img alt="../../_images/compose_nested_flow.png" class="align-center" src="../../_images/compose_nested_flow.png" />
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+<p>The above diagram contains one more shape that we have not seen yet, which is called <code class="xref py py-class docutils literal"><span class="pre">RunnableGraph</span></code>. It turns
+out, that if we wire all exposed ports together, so that no more open ports remain, we get a module that is <em>closed</em>.
+This is what the <code class="xref py py-class docutils literal"><span class="pre">RunnableGraph</span></code> class represents. This is the shape that a <code class="xref py py-class docutils literal"><span class="pre">Materializer</span></code> can take
+and turn into a network of running entities that perform the task described. In fact, a <code class="xref py py-class docutils literal"><span class="pre">RunnableGraph</span></code> is a
+module itself, and (maybe somewhat surprisingly) it can be used as part of larger graphs. It is rarely useful to embed
+a closed graph shape in a larger graph (since it becomes an isolated island as there are no open port for communication
+with the rest of the graph), but this demonstrates the uniform underlying model.</p>
+<p>If we try to build a code snippet that corresponds to the above diagram, our first try might look like this:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="nc">Source</span><span class="o">.</span><span class="n">single</span><span class="o">(</span><span class="mi">0</span><span class="o">)</span>
+  <span class="o">.</span><span class="n">map</span><span class="o">(</span><span class="n">i</span> <span class="o">-&gt;</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="o">)</span>
+  <span class="o">.</span><span class="n">filter</span><span class="o">(</span><span class="n">i</span> <span class="o">-&gt;</span> <span class="n">i</span> <span class="o">!=</span> <span class="mi">0</span><span class="o">)</span>
+  <span class="o">.</span><span class="n">map</span><span class="o">(</span><span class="n">i</span> <span class="o">-&gt;</span> <span class="n">i</span> <span class="o">-</span> <span class="mi">2</span><span class="o">)</span>
+  <span class="o">.</span><span class="n">to</span><span class="o">(</span><span class="nc">Sink</span><span class="o">.</span><span class="n">fold</span><span class="o">(</span><span class="mi">0</span><span class="o">,</span> <span class="o">(</span><span class="n">acc</span><span class="o">,</span> <span class="n">i</span><span class="o">)</span> <span class="o">-&gt;</span> <span class="n">acc</span> <span class="o">+</span> <span class="n">i</span><span class="o">));</span>
+
+<span class="c1">// ... where is the nesting?</span>
+</pre></div>
+</div>
+<p>It is clear however that there is no nesting present in our first attempt, since the library cannot figure out
+where we intended to put composite module boundaries, it is our responsibility to do that. If we are using the
+DSL provided by the <code class="xref py py-class docutils literal"><span class="pre">Flow</span></code>, <code class="xref py py-class docutils literal"><span class="pre">Source</span></code>, <code class="xref py py-class docutils literal"><span class="pre">Sink</span></code> classes then nesting can be achieved by calling one of the
+methods <code class="docutils literal"><span class="pre">withAttributes()</span></code> or <code class="docutils literal"><span class="pre">named()</span></code> (where the latter is just a shorthand for adding a name attribute).</p>
+<p>The following code demonstrates how to achieve the desired nesting:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">final</span> <span class="nc">Source</span><span class="o">&lt;</span><span class="nc">Integer</span><span class="o">,</span> <span class="nc">NotUsed</span><span class="o">&gt;</span> <span class="n">nestedSource</span> <span class="k">=</span>
+  <span class="nc">Source</span><span class="o">.</span><span class="n">single</span><span class="o">(</span><span class="mi">0</span><span class="o">)</span> <span class="c1">// An atomic source</span>
+    <span class="o">.</span><span class="n">map</span><span class="o">(</span><span class="n">i</span> <span class="o">-&gt;</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="o">)</span> <span class="c1">// an atomic processing stage</span>
+    <span class="o">.</span><span class="n">named</span><span class="o">(</span><span class="s">&quot;nestedSource&quot;</span><span class="o">);</span> <span class="c1">// wraps up the current Source and gives it a name</span>
+
+<span class="k">final</span> <span class="nc">Flow</span><span class="o">&lt;</span><span class="nc">Integer</span><span class="o">,</span> <span class="nc">Integer</span><span class="o">,</span> <span class="nc">NotUsed</span><span class="o">&gt;</span> <span class="n">nestedFlow</span> <span class="k">=</span>
+  <span class="nc">Flow</span><span class="o">.</span><span class="n">of</span><span class="o">(</span><span class="nc">Integer</span><span class="o">.</span><span class="n">class</span><span class="o">).</span><span class="n">filter</span><span class="o">(</span><span class="n">i</span> <span class="o">-&gt;</span> <span class="n">i</span> <span class="o">!=</span> <span class="mi">0</span><span class="o">)</span> <span class="c1">// an atomic processing stage</span>
+    <span class="o">.</span><span class="n">map</span><span class="o">(</span><span class="n">i</span> <span class="o">-&gt;</span> <span class="n">i</span> <span class="o">-</span> <span class="mi">2</span><span class="o">)</span> <span class="c1">// another atomic processing stage</span>
+    <span class="o">.</span><span class="n">named</span><span class="o">(</span><span class="s">&quot;nestedFlow&quot;</span><span class="o">);</span> <span class="c1">// wraps up the Flow, and gives it a name</span>
+
+<span class="k">final</span> <span class="nc">Sink</span><span class="o">&lt;</span><span class="nc">Integer</span><span class="o">,</span> <span class="nc">NotUsed</span><span class="o">&gt;</span> <span class="n">nestedSink</span> <span class="k">=</span>
+  <span class="n">nestedFlow</span><span class="o">.</span><span class="n">to</span><span class="o">(</span><span class="nc">Sink</span><span class="o">.</span><span class="n">fold</span><span class="o">(</span><span class="mi">0</span><span class="o">,</span> <span class="o">(</span><span class="n">acc</span><span class="o">,</span> <span class="n">i</span><span class="o">)</span> <span class="o">-&gt;</span> <span class="n">acc</span> <span class="o">+</span> <span class="n">i</span><span class="o">))</span> <span class="c1">// wire an atomic sink to the nestedFlow</span>
+    <span class="o">.</span><span class="n">named</span><span class="o">(</span><span class="s">&quot;nestedSink&quot;</span><span class="o">);</span> <span class="c1">// wrap it up</span>
+
+<span class="c1">// Create a RunnableGraph</span>
+<span class="k">final</span> <span class="nc">RunnableGraph</span><span class="o">&lt;</span><span class="nc">NotUsed</span><span class="o">&gt;</span> <span class="n">runnableGraph</span> <span class="k">=</span> <span class="n">nestedSource</span><span class="o">.</span><span class="n">to</span><span class="o">(</span><span class="n">nestedSink</span><span class="o">);</span>
+</pre></div>
+</div>
+<p>Once we have hidden the internals of our components, they act like any other built-in component of similar shape. If
+we hide some of the internals of our composites, the result looks just like if any other predefine component has been
+used:</p>
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+<img alt="../../_images/compose_nested_flow_opaque.png" class="align-center" src="../../_images/compose_nested_flow_opaque.png" />
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+<p>If we look at usage of built-in components, and our custom components, there is no difference in usage as the code
+snippet below demonstrates.</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="c1">// Create a RunnableGraph from our components</span>
+<span class="k">final</span> <span class="nc">RunnableGraph</span><span class="o">&lt;</span><span class="nc">NotUsed</span><span class="o">&gt;</span> <span class="n">runnableGraph</span> <span class="k">=</span> <span class="n">nestedSource</span><span class="o">.</span><span class="n">to</span><span class="o">(</span><span class="n">nestedSink</span><span class="o">);</span>
+
+<span class="c1">// Usage is uniform, no matter if modules are composite or atomic</span>
+<span class="k">final</span> <span class="nc">RunnableGraph</span><span class="o">&lt;</span><span class="nc">NotUsed</span><span class="o">&gt;</span> <span class="n">runnableGraph2</span> <span class="k">=</span>
+  <span class="nc">Source</span><span class="o">.</span><span class="n">single</span><span class="o">(</span><span class="mi">0</span><span class="o">).</span><span class="n">to</span><span class="o">(</span><span class="nc">Sink</span><span class="o">.</span><span class="n">fold</span><span class="o">(</span><span class="mi">0</span><span class="o">,</span> <span class="o">(</span><span class="n">acc</span><span class="o">,</span> <span class="n">i</span><span class="o">)</span> <span class="o">-&gt;</span> <span class="n">acc</span> <span class="o">+</span> <span class="n">i</span><span class="o">));</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="composing-complex-systems">
+<h2>Composing complex systems</h2>
+<p>In the previous section we explored the possibility of composition, and hierarchy, but we stayed away from non-linear,
+generalized graph components. There is nothing in Akka Streams though that enforces that stream processing layouts
+can only be linear. The DSL for <code class="xref py py-class docutils literal"><span class="pre">Source</span></code> and friends is optimized for creating such linear chains, as they are
+the most common in practice. There is a more advanced DSL for building complex graphs, that can be used if more
+flexibility is needed. We will see that the difference between the two DSLs is only on the surface: the concepts they
+operate on are uniform across all DSLs and fit together nicely.</p>
+<p>As a first example, let's look at a more complex layout:</p>
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+<img alt="../../_images/compose_graph.png" class="align-center" src="../../_images/compose_graph.png" />
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+<p>The diagram shows a <code class="xref py py-class docutils literal"><span class="pre">RunnableGraph</span></code> (remember, if there are no unwired ports, the graph is closed, and therefore
+can be materialized) that encapsulates a non-trivial stream processing network. It contains fan-in, fan-out stages,
+directed and non-directed cycles. The <code class="docutils literal"><span class="pre">runnable()</span></code> method of the <code class="xref py py-class docutils literal"><span class="pre">GraphDSL</span></code> factory object allows the creation of a
+general, closed, and runnable graph. For example the network on the diagram can be realized like this:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="nc">RunnableGraph</span><span class="o">.</span><span class="n">fromGraph</span><span class="o">(</span>
+  <span class="nc">GraphDSL</span><span class="o">.</span><span class="n">create</span><span class="o">(</span><span class="n">builder</span> <span class="o">-&gt;</span> <span class="o">{</span>
+  <span class="k">final</span> <span class="nc">Outlet</span><span class="o">&lt;</span><span class="nc">Integer</span><span class="o">&gt;</span> <span class="n">A</span> <span class="k">=</span> <span class="n">builder</span><span class="o">.</span><span class="n">add</span><span class="o">(</span><span class="nc">Source</span><span class="o">.</span><span class="n">single</span><span class="o">(</span><span class="mi">0</span><span class="o">)).</span><span class="n">out</span><span class="o">();</span>
+  <span class="k">final</span> <span class="nc">UniformFanOutShape</span><span class="o">&lt;</span><span class="nc">Integer</span><span class="o">,</span> <span class="nc">Integer</span><span class="o">&gt;</span> <span class="n">B</span> <span class="k">=</span> <span class="n">builder</span><span class="o">.</span><span class="n">add</span><span class="o">(</span><span class="nc">Broadcast</span><span class="o">.</span><span class="n">create</span><span class="o">(</span><span class="mi">2</span><span class="o">));</span>
+  <span class="k">final</span> <span class="nc">UniformFanInShape</span><span class="o">&lt;</span><span class="nc">Integer</span><span class="o">,</span> <span class="nc">Integer</span><span class="o">&gt;</span> <span class="n">C</span> <span class="k">=</span> <span class="n">builder</span><span class="o">.</span><span class="n">add</span><span class="o">(</span><span class="nc">Merge</span><span class="o">.</span><span class="n">create</span><span class="o">(</span><span class="mi">2</span><span class="o">));</span>
+  <span class="k">final</span> <span class="nc">FlowShape</span><span class="o">&lt;</span><span class="nc">Integer</span><span class="o">,</span> <span class="nc">Integer</span><span class="o">&gt;</span> <span class="n">D</span> <span class="k">=</span>
+    <span class="n">builder</span><span class="o">.</span><span class="n">add</span><span class="o">(</span><span class="nc">Flow</span><span class="o">.</span><span class="n">of</span><span class="o">(</span><span class="nc">Integer</span><span class="o">.</span><span class="n">class</span><span class="o">).</span><span class="n">map</span><span class="o">(</span><span class="n">i</span> <span class="o">-&gt;</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="o">));</span>
+  <span class="k">final</span> <span class="nc">UniformFanOutShape</span><span class="o">&lt;</span><span class="nc">Integer</span><span class="o">,</span> <span class="nc">Integer</span><span class="o">&gt;</span> <span class="n">E</span> <span class="k">=</span> <span class="n">builder</span><span class="o">.</span><span class="n">add</span><span class="o">(</span><span class="nc">Balance</span><span class="o">.</span><span class="n">create</span><span class="o">(</span><span class="mi">2</span><span class="o">));</span>
+  <span class="k">final</span> <span class="nc">UniformFanInShape</span><span class="o">&lt;</span><span class="nc">Integer</span><span class="o">,</span> <span class="nc">Integer</span><span class="o">&gt;</span> <span class="n">F</span> <span class="k">=</span> <span class="n">builder</span><span class="o">.</span><span class="n">add</span><span class="o">(</span><span class="nc">Merge</span><span class="o">.</span><span class="n">create</span><span class="o">(</span><span class="mi">2</span><span class="o">));</span>
+  <span class="k">final</span> <span class="nc">Inlet</span><span class="o">&lt;</span><span class="nc">Integer</span><span class="o">&gt;</span> <span class="n">G</span> <span class="k">=</span> <span class="n">builder</span><span class="o">.</span><span class="n">add</span><span class="o">(</span><span class="nc">Sink</span><span class="o">.&lt;</span><span class="nc">Integer</span><span class="o">&gt;</span> <span class="n">foreach</span><span class="o">(</span><span class="nc">System</span><span class="o">.</span><span class="n">out</span><span class="o">::</span><span class="n">println</span><span class="o">)).</span><span class="n">in</span><span class="o">();</span>
+
+  <span class="n">builder</span><span class="o">.</span><span class="n">from</span><span class="o">(</span><span class="n">F</span><span class="o">).</span><span class="n">toFanIn</span><span class="o">(</span><span class="n">C</span><span class="o">);</span>
+  <span class="n">builder</span><span class="o">.</span><span class="n">from</span><span class="o">(</span><span class="n">A</span><span class="o">).</span><span class="n">viaFanOut</span><span class="o">(</span><span class="n">B</span><span class="o">).</span><span class="n">viaFanIn</span><span class="o">(</span><span class="n">C</span><span class="o">).</span><span class="n">toFanIn</span><span class="o">(</span><span class="n">F</span><span class="o">);</span>
+  <span class="n">builder</span><span class="o">.</span><span class="n">from</span><span class="o">(</span><span class="n">B</span><span class="o">).</span><span class="n">via</span><span class="o">(</span><span class="n">D</span><span class="o">).</span><span class="n">viaFanOut</span><span class="o">(</span><span class="n">E</span><span class="o">).</span><span class="n">toFanIn</span><span class="o">(</span><span class="n">F</span><span class="o">);</span>
+  <span class="n">builder</span><span class="o">.</span><span class="n">from</span><span class="o">(</span><span class="n">E</span><span class="o">).</span><span class="n">toInlet</span><span class="o">(</span><span class="n">G</span><span class="o">);</span>
+  <span class="k">return</span> <span class="nc">ClosedShape</span><span class="o">.</span><span class="n">getInstance</span><span class="o">();</span>
+<span class="o">}));</span>
+</pre></div>
+</div>
+<p>In the code above we used the implicit port numbering feature to make the graph more readable and similar to the diagram.
+It is possible to refer to the ports, so another version might look like this:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="nc">RunnableGraph</span><span class="o">.</span><span class="n">fromGraph</span><span class="o">(</span>
+  <span class="nc">GraphDSL</span><span class="o">.</span><span class="n">create</span><span class="o">(</span><span class="n">builder</span> <span class="o">-&gt;</span> <span class="o">{</span>
+  <span class="k">final</span> <span class="nc">SourceShape</span><span class="o">&lt;</span><span class="nc">Integer</span><span class="o">&gt;</span> <span class="n">A</span> <span class="k">=</span> <span class="n">builder</span><span class="o">.</span><span class="n">add</span><span class="o">(</span><span class="nc">Source</span><span class="o">.</span><span class="n">single</span><span class="o">(</span><span class="mi">0</span><span class="o">));</span>
+  <span class="k">final</span> <span class="nc">UniformFanOutShape</span><span class="o">&lt;</span><span class="nc">Integer</span><span class="o">,</span> <span class="nc">Integer</span><span class="o">&gt;</span> <span class="n">B</span> <span class="k">=</span> <span class="n">builder</span><span class="o">.</span><span class="n">add</span><span class="o">(</span><span class="nc">Broadcast</span><span class="o">.</span><span class="n">create</span><span class="o">(</span><span class="mi">2</span><span class="o">));</span>
+  <span class="k">final</span> <span class="nc">UniformFanInShape</span><span class="o">&lt;</span><span class="nc">Integer</span><span class="o">,</span> <span class="nc">Integer</span><span class="o">&gt;</span> <span class="n">C</span> <span class="k">=</span> <span class="n">builder</span><span class="o">.</span><span class="n">add</span><span class="o">(</span><span class="nc">Merge</span><span class="o">.</span><span class="n">create</span><span class="o">(</span><span class="mi">2</span><span class="o">));</span>
+  <span class="k">final</span> <span class="nc">FlowShape</span><span class="o">&lt;</span><span class="nc">Integer</span><span class="o">,</span> <span class="nc">Integer</span><span class="o">&gt;</span> <span class="n">D</span> <span class="k">=</span>
+    <span class="n">builder</span><span class="o">.</span><span class="n">add</span><span class="o">(</span><span class="nc">Flow</span><span class="o">.</span><span class="n">of</span><span class="o">(</span><span class="nc">Integer</span><span class="o">.</span><span class="n">class</span><span class="o">).</span><span class="n">map</span><span class="o">(</span><span class="n">i</span> <span class="o">-&gt;</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="o">));</span>
+  <span class="k">final</span> <span class="nc">UniformFanOutShape</span><span class="o">&lt;</span><span class="nc">Integer</span><span class="o">,</span> <span class="nc">Integer</span><span class="o">&gt;</span> <span class="n">E</span> <span class="k">=</span> <span class="n">builder</span><span class="o">.</span><span class="n">add</span><span class="o">(</span><span class="nc">Balance</span><span class="o">.</span><span class="n">create</span><span class="o">(</span><span class="mi">2</span><span class="o">));</span>
+  <span class="k">final</span> <span class="nc">UniformFanInShape</span><span class="o">&lt;</span><span class="nc">Integer</span><span class="o">,</span> <span class="nc">Integer</span><span class="o">&gt;</span> <span class="n">F</span> <span class="k">=</span> <span class="n">builder</span><span class="o">.</span><span class="n">add</span><span class="o">(</span><span class="nc">Merge</span><span class="o">.</span><span class="n">create</span><span class="o">(</span><span class="mi">2</span><span class="o">));</span>
+  <span class="k">final</span> <span class="nc">SinkShape</span><span class="o">&lt;</span><span class="nc">Integer</span><span class="o">&gt;</span> <span class="n">G</span> <span class="k">=</span> <span class="n">builder</span><span class="o">.</span><span class="n">add</span><span class="o">(</span><span class="nc">Sink</span><span class="o">.</span><span class="n">foreach</span><span class="o">(</span><span class="nc">System</span><span class="o">.</span><span class="n">out</span><span class="o">::</span><span class="n">println</span><span class="o">));</span>
+
+  <span class="n">builder</span><span class="o">.</span><span class="n">from</span><span class="o">(</span><span class="n">F</span><span class="o">.</span><span class="n">out</span><span class="o">()).</span><span class="n">toInlet</span><span class="o">(</span><span class="n">C</span><span class="o">.</span><span class="n">in</span><span class="o">(</span><span class="mi">0</span><span class="o">));</span>
+  <span class="n">builder</span><span class="o">.</span><span class="n">from</span><span class="o">(</span><span class="n">A</span><span class="o">).</span><span class="n">toInlet</span><span class="o">(</span><span class="n">B</span><span class="o">.</span><span class="n">in</span><span class="o">());</span>
+  <span class="n">builder</span><span class="o">.</span><span class="n">from</span><span class="o">(</span><span class="n">B</span><span class="o">.</span><span class="n">out</span><span class="o">(</span><span class="mi">0</span><span class="o">)).</span><span class="n">toInlet</span><span class="o">(</span><span class="n">C</span><span class="o">.</span><span class="n">in</span><span class="o">(</span><span class="mi">1</span><span class="o">));</span>
+  <span class="n">builder</span><span class="o">.</span><span class="n">from</span><span class="o">(</span><span class="n">C</span><span class="o">.</span><span class="n">out</span><span class="o">()).</span><span class="n">toInlet</span><span class="o">(</span><span class="n">F</span><span class="o">.</span><span class="n">in</span><span class="o">(</span><span class="mi">0</span><span class="o">));</span>
+  <span class="n">builder</span><span class="o">.</span><span class="n">from</span><span class="o">(</span><span class="n">B</span><span class="o">.</span><span class="n">out</span><span class="o">(</span><span class="mi">1</span><span class="o">)).</span><span class="n">via</span><span class="o">(</span><span class="n">D</span><span class="o">).</span><span class="n">toInlet</span><span class="o">(</span><span class="n">E</span><span class="o">.</span><span class="n">in</span><span class="o">());</span>
+  <span class="n">builder</span><span class="o">.</span><span class="n">from</span><span class="o">(</span><span class="n">E</span><span class="o">.</span><span class="n">out</span><span class="o">(</span><span class="mi">0</span><span class="o">)).</span><span class="n">toInlet</span><span class="o">(</span><span class="n">F</span><span class="o">.</span><span class="n">in</span><span class="o">(</span><span class="mi">1</span><span class="o">));</span>
+  <span class="n">builder</span><span class="o">.</span><span class="n">from</span><span class="o">(</span><span class="n">E</span><span class="o">.</span><span class="n">out</span><span class="o">(</span><span class="mi">1</span><span class="o">)).</span><span class="n">to</span><span class="o">(</span><span class="n">G</span><span class="o">);</span>
+  <span class="k">return</span> <span class="nc">ClosedShape</span><span class="o">.</span><span class="n">getInstance</span><span class="o">();</span>
+<span class="o">}));</span>
+</pre></div>
+</div>
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+<p>Similar to the case in the first section, so far we have not considered modularity. We created a complex graph, but
+the layout is flat, not modularized. We will modify our example, and create a reusable component with the graph DSL.
+The way to do it is to use the <code class="docutils literal"><span class="pre">create()</span></code> method on <code class="xref py py-class docutils literal"><span class="pre">GraphDSL</span></code> factory. If we remove the sources and sinks
+from the previous example, what remains is a partial graph:</p>
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+<img alt="../../_images/compose_graph_partial.png" class="align-center" src="../../_images/compose_graph_partial.png" />
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+<p>We can recreate a similar graph in code, using the DSL in a similar way than before:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">final</span> <span class="nc">Graph</span><span class="o">&lt;</span><span class="nc">FlowShape</span><span class="o">&lt;</span><span class="nc">Integer</span><span class="o">,</span> <span class="nc">Integer</span><span class="o">&gt;,</span> <span class="nc">NotUsed</span><span class="o">&gt;</span> <span class="n">partial</span> <span class="k">=</span>
+  <span class="nc">GraphDSL</span><span class="o">.</span><span class="n">create</span><span class="o">(</span><span class="n">builder</span> <span class="o">-&gt;</span> <span class="o">{</span>
+    <span class="k">final</span> <span class="nc">UniformFanOutShape</span><span class="o">&lt;</span><span class="nc">Integer</span><span class="o">,</span> <span class="nc">Integer</span><span class="o">&gt;</span> <span class="n">B</span> <span class="k">=</span> <span class="n">builder</span><span class="o">.</span><span class="n">add</span><span class="o">(</span><span class="nc">Broadcast</span><span class="o">.</span><span class="n">create</span><span class="o">(</span><span class="mi">2</span><span class="o">));</span>
+    <span class="k">final</span> <span class="nc">UniformFanInShape</span><span class="o">&lt;</span><span class="nc">Integer</span><span class="o">,</span> <span class="nc">Integer</span><span class="o">&gt;</span> <span class="n">C</span> <span class="k">=</span> <span class="n">builder</span><span class="o">.</span><span class="n">add</span><span class="o">(</span><span class="nc">Merge</span><span class="o">.</span><span class="n">create</span><span class="o">(</span><span class="mi">2</span><span class="o">));</span>
+    <span class="k">final</span> <span class="nc">UniformFanOutShape</span><span class="o">&lt;</span><span class="nc">Integer</span><span class="o">,</span> <span class="nc">Integer</span><span class="o">&gt;</span> <span class="n">E</span> <span class="k">=</span> <span class="n">builder</span><span class="o">.</span><span class="n">add</span><span class="o">(</span><span class="nc">Balance</span><span class="o">.</span><span class="n">create</span><span class="o">(</span><span class="mi">2</span><span class="o">));</span>
+    <span class="k">final</span> <span class="nc">UniformFanInShape</span><span class="o">&lt;</span><span class="nc">Integer</span><span class="o">,</span> <span class="nc">Integer</span><span class="o">&gt;</span> <span class="n">F</span> <span class="k">=</span> <span class="n">builder</span><span class="o">.</span><span class="n">add</span><span class="o">(</span><span class="nc">Merge</span><span class="o">.</span><span class="n">create</span><span class="o">(</span><span class="mi">2</span><span class="o">));</span>
+
+    <span class="n">builder</span><span class="o">.</span><span class="n">from</span><span class="o">(</span><span class="n">F</span><span class="o">.</span><span class="n">out</span><span class="o">()).</span><span class="n">toInlet</span><span class="o">(</span><span class="n">C</span><span class="o">.</span><span class="n">in</span><span class="o">(</span><span class="mi">0</span><span class="o">));</span>
+    <span class="n">builder</span><span class="o">.</span><span class="n">from</span><span class="o">(</span><span class="n">B</span><span class="o">).</span><span class="n">viaFanIn</span><span class="o">(</span><span class="n">C</span><span class="o">).</span><span class="n">toFanIn</span><span class="o">(</span><span class="n">F</span><span class="o">);</span>
+    <span class="n">builder</span><span class="o">.</span><span class="n">from</span><span class="o">(</span><span class="n">B</span><span class="o">).</span><span class="n">via</span><span class="o">(</span><span class="n">builder</span><span class="o">.</span><span class="n">add</span><span class="o">(</span><span class="nc">Flow</span><span class="o">.</span><span class="n">of</span><span class="o">(</span><span class="nc">Integer</span><span class="o">.</span><span class="n">class</span><span class="o">).</span><span class="n">map</span><span class="o">(</span><span class="n">i</span> <span class="o">-&gt;</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="o">))).</span><span class="n">viaFanOut</span><span class="o">(</span><span class="n">E</span><span class="o">).</span><span class="n">toFanIn</span><span class="o">(</span><span class="n">F</span><span class="o">);</span>
+
+    <span class="k">return</span> <span class="k">new</span> <span class="nc">FlowShape</span><span class="o">&lt;</span><span class="nc">Integer</span><span class="o">,</span> <span class="nc">Integer</span><span class="o">&gt;(</span><span class="n">B</span><span class="o">.</span><span class="n">in</span><span class="o">(),</span> <span class="n">E</span><span class="o">.</span><span class="n">out</span><span class="o">(</span><span class="mi">1</span><span class="o">));</span>
+  <span class="o">});</span>
+</pre></div>
+</div>
+<p>The only new addition is the return value of the builder block, which is a <code class="xref py py-class docutils literal"><span class="pre">Shape</span></code>. All graphs (including
+<code class="xref py py-class docutils literal"><span class="pre">Source</span></code>, <code class="xref py py-class docutils literal"><span class="pre">BidiFlow</span></code>, etc) have a shape, which encodes the <em>typed</em> ports of the module. In our example
+there is exactly one input and output port left, so we can declare it to have a <code class="xref py py-class docutils literal"><span class="pre">FlowShape</span></code> by returning an
+instance of it. While it is possible to create new <code class="xref py py-class docutils literal"><span class="pre">Shape</span></code> types, it is usually recommended to use one of the
+matching built-in ones.</p>
+<p>The resulting graph is already a properly wrapped module, so there is no need to call <cite>named()</cite> to encapsulate the graph, but
+it is a good practice to give names to modules to help debugging.</p>
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+<img alt="../../_images/compose_graph_shape.png" class="align-center" src="../../_images/compose_graph_shape.png" />
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+<p>Since our partial graph has the right shape, it can be already used in the simpler, linear DSL:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="nc">Source</span><span class="o">.</span><span class="n">single</span><span class="o">(</span><span class="mi">0</span><span class="o">).</span><span class="n">via</span><span class="o">(</span><span class="n">partial</span><span class="o">).</span><span class="n">to</span><span class="o">(</span><span class="nc">Sink</span><span class="o">.</span><span class="n">ignore</span><span class="o">());</span>
+</pre></div>
+</div>
+<p>It is not possible to use it as a <code class="xref py py-class docutils literal"><span class="pre">Flow</span></code> yet, though (i.e. we cannot call <code class="docutils literal"><span class="pre">.filter()</span></code> on it), but <code class="xref py py-class docutils literal"><span class="pre">Flow</span></code>
+has a <code class="docutils literal"><span class="pre">fromGraph()</span></code> method that just adds the DSL to a <code class="xref py py-class docutils literal"><span class="pre">FlowShape</span></code>. There are similar methods on <code class="xref py py-class docutils literal"><span class="pre">Source</span></code>,
+<code class="xref py py-class docutils literal"><span class="pre">Sink</span></code> and <code class="xref py py-class docutils literal"><span class="pre">BidiShape</span></code>, so it is easy to get back to the simpler DSL if a graph has the right shape.
+For convenience, it is also possible to skip the partial graph creation, and use one of the convenience creator methods.
+To demonstrate this, we will create the following graph:</p>
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+<img alt="../../_images/compose_graph_flow.png" class="align-center" src="../../_images/compose_graph_flow.png" />
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+<p>The code version of the above closed graph might look like this:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="c1">// Convert the partial graph of FlowShape to a Flow to get</span>
+<span class="c1">// access to the fluid DSL (for example to be able to call .filter())</span>
+<span class="k">final</span> <span class="nc">Flow</span><span class="o">&lt;</span><span class="nc">Integer</span><span class="o">,</span> <span class="nc">Integer</span><span class="o">,</span> <span class="nc">NotUsed</span><span class="o">&gt;</span> <span class="n">flow</span> <span class="k">=</span> <span class="nc">Flow</span><span class="o">.</span><span class="n">fromGraph</span><span class="o">(</span><span class="n">partial</span><span class="o">);</span>
+
+<span class="c1">// Simple way to create a graph backed Source</span>
+<span class="k">final</span> <span class="nc">Source</span><span class="o">&lt;</span><span class="nc">Integer</span><span class="o">,</span> <span class="nc">NotUsed</span><span class="o">&gt;</span> <span class="n">source</span> <span class="k">=</span> <span class="nc">Source</span><span class="o">.</span><span class="n">fromGraph</span><span class="o">(</span>
+  <span class="nc">GraphDSL</span><span class="o">.</span><span class="n">create</span><span class="o">(</span><span class="n">builder</span> <span class="o">-&gt;</span> <span class="o">{</span>
+    <span class="k">final</span> <span class="nc">UniformFanInShape</span><span class="o">&lt;</span><span class="nc">Integer</span><span class="o">,</span> <span class="nc">Integer</span><span class="o">&gt;</span> <span class="n">merge</span> <span class="k">=</span> <span class="n">builder</span><span class="o">.</span><span class="n">add</span><span class="o">(</span><span class="nc">Merge</span><span class="o">.</span><span class="n">create</span><span class="o">(</span><span class="mi">2</span><span class="o">));</span>
+    <span class="n">builder</span><span class="o">.</span><span class="n">from</span><span class="o">(</span><span class="n">builder</span><span class="o">.</span><span class="n">add</span><span class="o">(</span><span class="nc">Source</span><span class="o">.</span><span class="n">single</span><span class="o">(</span><span class="mi">0</span><span class="o">))).</span><span class="n">toFanIn</span><span class="o">(</span><span class="n">merge</span><span class="o">);</span>
+    <span class="n">builder</span><span class="o">.</span><span class="n">from</span><span class="o">(</span><span class="n">builder</span><span class="o">.</span><span class="n">add</span><span class="o">(</span><span class="nc">Source</span><span class="o">.</span><span class="n">from</span><span class="o">(</span><span class="nc">Arrays</span><span class="o">.</span><span class="n">asList</span><span class="o">(</span><span class="mi">2</span><span class="o">,</span> <span class="mi">3</span><span class="o">,</span> <span class="mi">4</span><span class="o">)))).</span><span class="n">toFanIn</span><span class="o">(</span><span class="n">merge</span><span class="o">);</span>
+    <span class="c1">// Exposing exactly one output port</span>
+    <span class="k">return</span> <span class="k">new</span> <span class="nc">SourceShape</span><span class="o">&lt;</span><span class="nc">Integer</span><span class="o">&gt;(</span><span class="n">merge</span><span class="o">.</span><span class="n">out</span><span class="o">());</span>
+  <span class="o">})</span>
+<span class="o">);</span>
+
+<span class="c1">// Building a Sink with a nested Flow, using the fluid DSL</span>
+<span class="k">final</span> <span class="nc">Sink</span><span class="o">&lt;</span><span class="nc">Integer</span><span class="o">,</span> <span class="nc">NotUsed</span><span class="o">&gt;</span> <span class="n">sink</span> <span class="k">=</span> <span class="nc">Flow</span><span class="o">.</span><span class="n">of</span><span class="o">(</span><span class="nc">Integer</span><span class="o">.</span><span class="n">class</span><span class="o">)</span>
+  <span class="o">.</span><span class="n">map</span><span class="o">(</span><span class="n">i</span> <span class="o">-&gt;</span> <span class="n">i</span> <span class="o">*</span> <span class="mi">2</span><span class="o">)</span>
+  <span class="o">.</span><span class="n">drop</span><span class="o">(</span><span class="mi">10</span><span class="o">)</span>
+  <span class="o">.</span><span class="n">named</span><span class="o">(</span><span class="s">&quot;nestedFlow&quot;</span><span class="o">)</span>
+  <span class="o">.</span><span class="n">to</span><span class="o">(</span><span class="nc">Sink</span><span class="o">.</span><span class="n">head</span><span class="o">());</span>
+
+<span class="c1">// Putting all together</span>
+<span class="k">final</span> <span class="nc">RunnableGraph</span><span class="o">&lt;</span><span class="nc">NotUsed</span><span class="o">&gt;</span> <span class="n">closed</span> <span class="k">=</span> <span class="n">source</span><span class="o">.</span><span class="n">via</span><span class="o">(</span><span class="n">flow</span><span class="o">.</span><span class="n">filter</span><span class="o">(</span><span class="n">i</span> <span class="o">-&gt;</span> <span class="n">i</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="o">)).</span><span class="n">to</span><span class="o">(</span><span class="n">sink</span><span class="o">);</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">All graph builder sections check if the resulting graph has all ports connected except the exposed ones and will
+throw an exception if this is violated.</p>
+</div>
+<p>We are still in debt of demonstrating that <code class="xref py py-class docutils literal"><span class="pre">RunnableGraph</span></code> is a component just like any other, which can
+be embedded in graphs. In the following snippet we embed one closed graph in another:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">final</span> <span class="nc">RunnableGraph</span><span class="o">&lt;</span><span class="nc">NotUsed</span><span class="o">&gt;</span> <span class="n">closed1</span> <span class="k">=</span>
+  <span class="nc">Source</span><span class="o">.</span><span class="n">single</span><span class="o">(</span><span class="mi">0</span><span class="o">).</span><span class="n">to</span><span class="o">(</span><span class="nc">Sink</span><span class="o">.</span><span class="n">foreach</span><span class="o">(</span><span class="nc">System</span><span class="o">.</span><span class="n">out</span><span class="o">::</span><span class="n">println</span><span class="o">));</span>
+<span class="k">final</span> <span class="nc">RunnableGraph</span><span class="o">&lt;</span><span class="nc">NotUsed</span><span class="o">&gt;</span> <span class="n">closed2</span> <span class="k">=</span>
+  <span class="nc">RunnableGraph</span><span class="o">.</span><span class="n">fromGraph</span><span class="o">(</span>
+    <span class="nc">GraphDSL</span><span class="o">.</span><span class="n">create</span><span class="o">(</span><span class="n">builder</span> <span class="o">-&gt;</span> <span class="o">{</span>
+      <span class="k">final</span> <span class="nc">ClosedShape</span> <span class="n">embeddedClosed</span> <span class="k">=</span> <span class="n">builder</span><span class="o">.</span><span class="n">add</span><span class="o">(</span><span class="n">closed1</span><span class="o">);</span>
+      <span class="k">return</span> <span class="n">embeddedClosed</span><span class="o">;</span> <span class="c1">// Could return ClosedShape.getInstance()</span>
+<span class="o">}));</span>
+</pre></div>
+</div>
+<p>The type of the imported module indicates that the imported module has a <code class="xref py py-class docutils literal"><span class="pre">ClosedShape</span></code>, and so we are not
+able to wire it to anything else inside the enclosing closed graph. Nevertheless, this &quot;island&quot; is embedded properly,
+and will be materialized just like any other module that is part of the graph.</p>
+<p>As we have demonstrated, the two DSLs are fully interoperable, as they encode a similar nested structure of &quot;boxes with
+ports&quot;, it is only the DSLs that differ to be as much powerful as possible on the given abstraction level. It is possible
+to embed complex graphs in the fluid DSL, and it is just as easy to import and embed a <code class="xref py py-class docutils literal"><span class="pre">Flow</span></code>, etc, in a larger,
+complex structure.</p>
+<p>We have also seen, that every module has a <code class="xref py py-class docutils literal"><span class="pre">Shape</span></code> (for example a <code class="xref py py-class docutils literal"><span class="pre">Sink</span></code> has a <code class="xref py py-class docutils literal"><span class="pre">SinkShape</span></code>)
+independently which DSL was used to create it. This uniform representation enables the rich composability of various
+stream processing entities in a convenient way.</p>
+</div>
+<div class="section" id="materialized-values">
+<h2>Materialized values</h2>
+<p>After realizing that <code class="xref py py-class docutils literal"><span class="pre">RunnableGraph</span></code> is nothing more than a module with no unused ports (it is an island), it becomes clear that
+after materialization the only way to communicate with the running stream processing logic is via some side-channel.
+This side channel is represented as a <em>materialized value</em>. The situation is similar to <code class="xref py py-class docutils literal"><span class="pre">Actor</span></code> s, where the
+<code class="xref py py-class docutils literal"><span class="pre">Props</span></code> instance describes the actor logic, but it is the call to <code class="docutils literal"><span class="pre">actorOf()</span></code> that creates an actually running
+actor, and returns an <code class="xref py py-class docutils literal"><span class="pre">ActorRef</span></code> that can be used to communicate with the running actor itself. Since the
+<code class="xref py py-class docutils literal"><span class="pre">Props</span></code> can be reused, each call will return a different reference.</p>
+<p>When it comes to streams, each materialization creates a new running network corresponding to the blueprint that was
+encoded in the provided <code class="xref py py-class docutils literal"><span class="pre">RunnableGraph</span></code>. To be able to interact with the running network, each materialization
+needs to return a different object that provides the necessary interaction capabilities. In other words, the
+<code class="xref py py-class docutils literal"><span class="pre">RunnableGraph</span></code> can be seen as a factory, which creates:</p>
+<blockquote>
+<div><ul class="simple">
+<li>a network of running processing entities, inaccessible from the outside</li>
+<li>a materialized value, optionally providing a controlled interaction capability with the network</li>
+</ul>
+</div></blockquote>
+<p>Unlike actors though, each of the processing stages might provide a materialized value, so when we compose multiple
+stages or modules, we need to combine the materialized value as well (there are default rules which make this easier,
+for example <cite>to()</cite> and <cite>via()</cite> takes care of the most common case of taking the materialized value to the left.
+See <a class="reference internal" href="../../scala/stream/stream-flows-and-basics.html#flow-combine-mat-scala"><span>Combining materialized values</span></a> for details). We demonstrate how this works by a code example and a diagram which
+graphically demonstrates what is happening.</p>
+<p>The propagation of the individual materialized values from the enclosed modules towards the top will look like this:</p>
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+<img alt="../../_images/compose_mat.png" class="align-center" src="../../_images/compose_mat.png" />
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+<p>To implement the above, first, we create a composite <code class="xref py py-class docutils literal"><span class="pre">Source</span></code>, where the enclosed <code class="xref py py-class docutils literal"><span class="pre">Source</span></code> have a
+materialized type of <code class="xref py py-class docutils literal"><span class="pre">CompletableFuture</span></code>. By using the combiner function <code class="docutils literal"><span class="pre">Keep.left()</span></code>, the resulting materialized
+type is of the nested module (indicated by the color <em>red</em> on the diagram):</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="c1">// Materializes to CompletableFuture&lt;Optional&lt;Integer&gt;&gt;                   (red)</span>
+<span class="k">final</span> <span class="nc">Source</span><span class="o">&lt;</span><span class="nc">Integer</span><span class="o">,</span> <span class="nc">CompletableFuture</span><span class="o">&lt;</span><span class="nc">Optional</span><span class="o">&lt;</span><span class="nc">Integer</span><span class="o">&gt;&gt;&gt;</span> <span class="n">source</span> <span class="k">=</span> <span class="nc">Source</span><span class="o">.&lt;</span><span class="nc">Integer</span><span class="o">&gt;</span><span class="n">maybe</span><span class="o">();</span>
+
+<span class="c1">// Materializes to NotUsed                                                (black)</span>
+<span class="k">final</span> <span class="nc">Flow</span><span class="o">&lt;</span><span class="nc">Integer</span><span class="o">,</span> <span class="nc">Integer</span><span class="o">,</span> <span class="nc">NotUsed</span><span class="o">&gt;</span> <span class="n">flow1</span> <span class="k">=</span> <span class="nc">Flow</span><span class="o">.</span><span class="n">of</span><span class="o">(</span><span class="nc">Integer</span><span class="o">.</span><span class="n">class</span><span class="o">).</span><span class="n">take</span><span class="o">(</span><span class="mi">100</span><span class="o">);</span>
+
+<span class="c1">// Materializes to CompletableFuture&lt;Optional&lt;Integer&gt;&gt;                  (red)</span>
+<span class="k">final</span> <span class="nc">Source</span><span class="o">&lt;</span><span class="nc">Integer</span><span class="o">,</span> <span class="nc">CompletableFuture</span><span class="o">&lt;</span><span class="nc">Optional</span><span class="o">&lt;</span><span class="nc">Integer</span><span class="o">&gt;&gt;&gt;</span> <span class="n">nestedSource</span> <span class="k">=</span>
+  <span class="n">source</span><span class="o">.</span><span class="n">viaMat</span><span class="o">(</span><span class="n">flow1</span><span class="o">,</span> <span class="nc">Keep</span><span class="o">.</span><span class="n">left</span><span class="o">()).</span><span class="n">named</span><span class="o">(</span><span class="s">&quot;nestedSource&quot;</span><span class="o">);</span>
+</pre></div>
+</div>
+<p>Next, we create a composite <code class="xref py py-class docutils literal"><span class="pre">Flow</span></code> from two smaller components. Here, the second enclosed <code class="xref py py-class docutils literal"><span class="pre">Flow</span></code> has a
+materialized type of <code class="xref py py-class docutils literal"><span class="pre">CompletionStage</span></code>, and we propagate this to the parent by using <code class="docutils literal"><span class="pre">Keep.right()</span></code>
+as the combiner function (indicated by the color <em>yellow</em> on the diagram):</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="c1">// Materializes to NotUsed                                                (orange)</span>
+<span class="k">final</span> <span class="nc">Flow</span><span class="o">&lt;</span><span class="nc">Integer</span><span class="o">,</span> <span class="nc">ByteString</span><span class="o">,</span> <span class="nc">NotUsed</span><span class="o">&gt;</span> <span class="n">flow2</span> <span class="k">=</span> <span class="nc">Flow</span><span class="o">.</span><span class="n">of</span><span class="o">(</span><span class="nc">Integer</span><span class="o">.</span><span class="n">class</span><span class="o">)</span>
+  <span class="o">.</span><span class="n">map</span><span class="o">(</span><span class="n">i</span> <span class="o">-&gt;</span> <span class="nc">ByteString</span><span class="o">.</span><span class="n">fromString</span><span class="o">(</span><span class="n">i</span><span class="o">.</span><span class="n">toString</span><span class="o">()));</span>
+
+<span class="c1">// Materializes to Future&lt;OutgoingConnection&gt;                             (yellow)</span>
+<span class="k">final</span> <span class="nc">Flow</span><span class="o">&lt;</span><span class="nc">ByteString</span><span class="o">,</span> <span class="nc">ByteString</span><span class="o">,</span> <span class="nc">CompletionStage</span><span class="o">&lt;</span><span class="nc">OutgoingConnection</span><span class="o">&gt;&gt;</span> <span class="n">flow3</span> <span class="k">=</span>
+  <span class="nc">Tcp</span><span class="o">.</span><span class="n">get</span><span class="o">(</span><span class="n">system</span><span class="o">).</span><span class="n">outgoingConnection</span><span class="o">(</span><span class="s">&quot;localhost&quot;</span><span class="o">,</span> <span class="mi">8080</span><span class="o">);</span>
+
+<span class="c1">// Materializes to Future&lt;OutgoingConnection&gt;                             (yellow)</span>
+<span class="k">final</span> <span class="nc">Flow</span><span class="o">&lt;</span><span class="nc">Integer</span><span class="o">,</span> <span class="nc">ByteString</span><span class="o">,</span> <span class="nc">CompletionStage</span><span class="o">&lt;</span><span class="nc">OutgoingConnection</span><span class="o">&gt;&gt;</span> <span class="n">nestedFlow</span> <span class="k">=</span>
+  <span class="n">flow2</span><span class="o">.</span><span class="n">viaMat</span><span class="o">(</span><span class="n">flow3</span><span class="o">,</span> <span class="nc">Keep</span><span class="o">.</span><span class="n">right</span><span class="o">()).</span><span class="n">named</span><span class="o">(</span><span class="s">&quot;nestedFlow&quot;</span><span class="o">);</span>
+</pre></div>
+</div>
+<p>As a third step, we create a composite <code class="xref py py-class docutils literal"><span class="pre">Sink</span></code>, using our <code class="docutils literal"><span class="pre">nestedFlow</span></code> as a building block. In this snippet, both
+the enclosed <code class="xref py py-class docutils literal"><span class="pre">Flow</span></code> and the folding <code class="xref py py-class docutils literal"><span class="pre">Sink</span></code> has a materialized value that is interesting for us, so
+we use <code class="docutils literal"><span class="pre">Keep.both()</span></code> to get a <code class="xref py py-class docutils literal"><span class="pre">Pair</span></code> of them as the materialized type of <code class="docutils literal"><span class="pre">nestedSink</span></code> (indicated by the color
+<em>blue</em> on the diagram)</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="c1">// Materializes to Future&lt;String&gt;                                         (green)</span>
+<span class="k">final</span> <span class="nc">Sink</span><span class="o">&lt;</span><span class="nc">ByteString</span><span class="o">,</span> <span class="nc">CompletionStage</span><span class="o">&lt;</span><span class="nc">String</span><span class="o">&gt;&gt;</span> <span class="n">sink</span> <span class="k">=</span>
+    <span class="nc">Sink</span><span class="o">.&lt;</span><span class="nc">String</span><span class="o">,</span> <span class="nc">ByteString</span><span class="o">&gt;</span> <span class="n">fold</span><span class="o">(</span><span class="s">&quot;&quot;</span><span class="o">,</span> <span class="o">(</span><span class="n">acc</span><span class="o">,</span> <span class="n">i</span><span class="o">)</span> <span class="o">-&gt;</span> <span class="n">acc</span> <span class="o">+</span> <span class="n">i</span><span class="o">.</span><span class="n">utf8String</span><span class="o">());</span>
+
+<span class="c1">// Materializes to Pair&lt;Future&lt;OutgoingConnection&gt;, Future&lt;String&gt;&gt;       (blue)</span>
+<span class="k">final</span> <span class="nc">Sink</span><span class="o">&lt;</span><span class="nc">Integer</span><span class="o">,</span> <span class="nc">Pair</span><span class="o">&lt;</span><span class="nc">CompletionStage</span><span class="o">&lt;</span><span class="nc">OutgoingConnection</span><span class="o">&gt;,</span> <span class="nc">CompletionStage</span><span class="o">&lt;</span><span class="nc">String</span><span class="o">&gt;&gt;&gt;</span> <span class="n">nestedSink</span> <span class="k">=</span>
+  <span class="n">nestedFlow</span><span class="o">.</span><span class="n">toMat</span><span class="o">(</span><span class="n">sink</span><span class="o">,</span> <span class="nc">Keep</span><span class="o">.</span><span class="n">both</span><span class="o">());</span>
+</pre></div>
+</div>
+<p>As the last example, we wire together <code class="docutils literal"><span class="pre">nestedSource</span></code> and <code class="docutils literal"><span class="pre">nestedSink</span></code> and we use a custom combiner function to
+create a yet another materialized type of the resulting <code class="xref py py-class docutils literal"><span class="pre">RunnableGraph</span></code>. This combiner function just ignores
+the <code class="xref py py-class docutils literal"><span class="pre">CompletionStage</span></code> part, and wraps the other two values in a custom case class <code class="xref py py-class docutils literal"><span class="pre">MyClass</span></code>
+(indicated by color <em>purple</em> on the diagram):</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="n">static</span> <span class="k">class</span> <span class="nc">MyClass</span> <span class="o">{</span>
+  <span class="k">private</span> <span class="nc">CompletableFuture</span><span class="o">&lt;</span><span class="nc">Optional</span><span class="o">&lt;</span><span class="nc">Integer</span><span class="o">&gt;&gt;</span> <span class="n">p</span><span class="o">;</span>
+  <span class="k">private</span> <span class="nc">OutgoingConnection</span> <span class="n">conn</span><span class="o">;</span>
+
+  <span class="n">public</span> <span class="nc">MyClass</span><span class="o">(</span><span class="nc">CompletableFuture</span><span class="o">&lt;</span><span class="nc">Optional</span><span class="o">&lt;</span><span class="nc">Integer</span><span class="o">&gt;&gt;</span> <span class="n">p</span><span class="o">,</span> <span class="nc">OutgoingConnection</span> <span class="n">conn</span><span class="o">)</span> <span class="o">{</span>
+    <span class="k">this</span><span class="o">.</span><span class="n">p</span> <span class="k">=</span> <span class="n">p</span><span class="o">;</span>
+    <span class="k">this</span><span class="o">.</span><span class="n">conn</span> <span class="k">=</span> <span class="n">conn</span><span class="o">;</span>
+  <span class="o">}</span>
+
+  <span class="n">public</span> <span class="n">void</span> <span class="n">close</span><span class="o">()</span> <span class="o">{</span>
+    <span class="n">p</span><span class="o">.</span><span class="n">complete</span><span class="o">(</span><span class="nc">Optional</span><span class="o">.</span><span class="n">empty</span><span class="o">());</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+
+<span class="n">static</span> <span class="k">class</span> <span class="nc">Combiner</span> <span class="o">{</span>
+  <span class="n">static</span> <span class="nc">CompletionStage</span><span class="o">&lt;</span><span class="nc">MyClass</span><span class="o">&gt;</span> <span class="n">f</span><span class="o">(</span><span class="nc">CompletableFuture</span><span class="o">&lt;</span><span class="nc">Optional</span><span class="o">&lt;</span><span class="nc">Integer</span><span class="o">&gt;&gt;</span> <span class="n">p</span><span class="o">,</span>
+      <span class="nc">Pair</span><span class="o">&lt;</span><span class="nc">CompletionStage</span><span class="o">&lt;</span><span class="nc">OutgoingConnection</span><span class="o">&gt;,</span> <span class="nc">CompletionStage</span><span class="o">&lt;</span><span class="nc">String</span><span class="o">&gt;&gt;</span> <span class="n">rest</span><span class="o">)</span> <span class="o">{</span>
+    <span class="k">return</span> <span class="n">rest</span><span class="o">.</span><span class="n">first</span><span class="o">().</span><span class="n">thenApply</span><span class="o">(</span><span class="n">c</span> <span class="o">-&gt;</span> <span class="k">new</span> <span class="nc">MyClass</span><span class="o">(</span><span class="n">p</span><span class="o">,</span> <span class="n">c</span><span class="o">));</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<div class="highlight-scala"><div class="highlight"><pre><span class="c1">// Materializes to Future&lt;MyClass&gt;                                        (purple)</span>
+<span class="k">final</span> <span class="nc">RunnableGraph</span><span class="o">&lt;</span><span class="nc">CompletionStage</span><span class="o">&lt;</span><span class="nc">MyClass</span><span class="o">&gt;&gt;</span> <span class="n">runnableGraph</span> <span class="k">=</span>
+  <span class="n">nestedSource</span><span class="o">.</span><span class="n">toMat</span><span class="o">(</span><span class="n">nestedSink</span><span class="o">,</span> <span class="nc">Combiner</span><span class="o">::</span><span class="n">f</span><span class="o">);</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The nested structure in the above example is not necessary for combining the materialized values, it just
+demonstrates how the two features work together. See <a class="reference internal" href="stream-flows-and-basics.html#operator-fusion-java"><span>Operator Fusion</span></a> for further examples
+of combining materialized values without nesting and hierarchy involved.</p>
+</div>
+</div>
+<div class="section" id="attributes">
+<h2>Attributes</h2>
+<p>We have seen that we can use <code class="docutils literal"><span class="pre">named()</span></code> to introduce a nesting level in the fluid DSL (and also explicit nesting by using
+<code class="docutils literal"><span class="pre">create()</span></code> from <code class="xref py py-class docutils literal"><span class="pre">GraphDSL</span></code>). Apart from having the effect of adding a nesting level, <code class="docutils literal"><span class="pre">named()</span></code> is actually
+a shorthand for calling <code class="docutils literal"><span class="pre">withAttributes(Attributes.name(&quot;someName&quot;))</span></code>. Attributes provide a way to fine-tune certain
+aspects of the materialized running entity. For example buffer sizes for asynchronous stagescan be controlled via
+attributes (see <a class="reference internal" href="stream-rate.html#async-stream-buffers-java"><span>Buffers for asynchronous stages</span></a>). When it comes to hierarchic composition, attributes are inherited
+by nested modules, unless they override them with a custom value.</p>
+<p>The code below, a modification of an earlier example sets the <code class="docutils literal"><span class="pre">inputBuffer</span></code> attribute on certain modules, but not
+on others:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">final</span> <span class="nc">Source</span><span class="o">&lt;</span><span class="nc">Integer</span><span class="o">,</span> <span class="nc">NotUsed</span><span class="o">&gt;</span> <span class="n">nestedSource</span> <span class="k">=</span>
+  <span class="nc">Source</span><span class="o">.</span><span class="n">single</span><span class="o">(</span><span class="mi">0</span><span class="o">)</span>
+    <span class="o">.</span><span class="n">map</span><span class="o">(</span><span class="n">i</span> <span class="o">-&gt;</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="o">)</span>
+    <span class="o">.</span><span class="n">named</span><span class="o">(</span><span class="s">&quot;nestedSource&quot;</span><span class="o">);</span> <span class="c1">// Wrap, no inputBuffer set</span>
+
+<span class="k">final</span> <span class="nc">Flow</span><span class="o">&lt;</span><span class="nc">Integer</span><span class="o">,</span> <span class="nc">Integer</span><span class="o">,</span> <span class="nc">NotUsed</span><span class="o">&gt;</span> <span class="n">nestedFlow</span> <span class="k">=</span>
+  <span class="nc">Flow</span><span class="o">.</span><span class="n">of</span><span class="o">(</span><span class="nc">Integer</span><span class="o">.</span><span class="n">class</span><span class="o">).</span><span class="n">filter</span><span class="o">(</span><span class="n">i</span> <span class="o">-&gt;</span> <span class="n">i</span> <span class="o">!=</span> <span class="mi">0</span><span class="o">)</span>
+    <span class="o">.</span><span class="n">via</span><span class="o">(</span><span class="nc">Flow</span><span class="o">.</span><span class="n">of</span><span class="o">(</span><span class="nc">Integer</span><span class="o">.</span><span class="n">class</span><span class="o">)</span>
+      <span class="o">.</span><span class="n">map</span><span class="o">(</span><span class="n">i</span> <span class="o">-&gt;</span> <span class="n">i</span> <span class="o">-</span> <span class="mi">2</span><span class="o">)</span>
+      <span class="o">.</span><span class="n">withAttributes</span><span class="o">(</span><span class="nc">Attributes</span><span class="o">.</span><span class="n">inputBuffer</span><span class="o">(</span><span class="mi">4</span><span class="o">,</span> <span class="mi">4</span><span class="o">)))</span> <span class="c1">// override</span>
+    <span class="o">.</span><span class="n">named</span><span class="o">(</span><span class="s">&quot;nestedFlow&quot;</span><span class="o">);</span> <span class="c1">// Wrap, no inputBuffer set</span>
+
+<span class="k">final</span> <span class="nc">Sink</span><span class="o">&lt;</span><span class="nc">Integer</span><span class="o">,</span> <span class="nc">NotUsed</span><span class="o">&gt;</span> <span class="n">nestedSink</span> <span class="k">=</span>
+  <span class="n">nestedFlow</span><span class="o">.</span><span class="n">to</span><span class="o">(</span><span class="nc">Sink</span><span class="o">.</span><span class="n">fold</span><span class="o">(</span><span class="mi">0</span><span class="o">,</span> <span class="o">(</span><span class="n">acc</span><span class="o">,</span> <span class="n">i</span><span class="o">)</span> <span class="o">-&gt;</span> <span class="n">acc</span> <span class="o">+</span> <span class="n">i</span><span class="o">))</span> <span class="c1">// wire an atomic sink to the nestedFlow</span>
+    <span class="o">.</span><span class="n">withAttributes</span><span class="o">(</span><span class="nc">Attributes</span><span class="o">.</span><span class="n">name</span><span class="o">(</span><span class="s">&quot;nestedSink&quot;</span><span class="o">)</span>
+      <span class="o">.</span><span class="n">and</span><span class="o">(</span><span class="nc">Attributes</span><span class="o">.</span><span class="n">inputBuffer</span><span class="o">(</span><span class="mi">3</span><span class="o">,</span> <span class="mi">3</span><span class="o">)));</span> <span class="c1">// override</span>
+</pre></div>
+</div>
+<p>The effect is, that each module inherits the <code class="docutils literal"><span class="pre">inputBuffer</span></code> attribute from its enclosing parent, unless it has
+the same attribute explicitly set. <code class="docutils literal"><span class="pre">nestedSource</span></code> gets the default attributes from the materializer itself. <code class="docutils literal"><span class="pre">nestedSink</span></code>
+on the other hand has this attribute set, so it will be used by all nested modules. <code class="docutils literal"><span class="pre">nestedFlow</span></code> will inherit from <code class="docutils literal"><span class="pre">nestedSink</span></code>
+except the <code class="docutils literal"><span class="pre">map</span></code> stage which has again an explicitly provided attribute overriding the inherited one.</p>
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+<img alt="../../_images/compose_attributes.png" class="align-center" src="../../_images/compose_attributes.png" />
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+<p>This diagram illustrates the inheritance process for the example code (representing the materializer default attributes
+as the color <em>red</em>, the attributes set on <code class="docutils literal"><span class="pre">nestedSink</span></code> as <em>blue</em> and the attributes set on <code class="docutils literal"><span class="pre">nestedFlow</span></code> as <em>green</em>).</p>
+</div>
+</div>
+
+
+          </div>
+          <div class="span3"><p class="contents-title">Contents</p>
+              <div id="scroller-anchor">
+                <div id="scroller">
+                  <div id="toc"></div>
+                </div>
+              </div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="footer">
+  <div class="container">
+    <ul>
+      <li><h5>Akka</h5></li>
+      <li><a href="https://akka.io/docs">Documentation</a></li>
+      <li><a href="https://doc.akka.io/docs/akka/current/additional/faq.html">FAQ</a></li>
+      <li><a href="https://akka.io/downloads">Downloads</a></li>
+      <li><a href="https://akka.io/news">News</a></li>
+      <li><a href="http://letitcrash.com">Blog</a></li>
+    </ul>
+    <ul>
+      <li><h5>Contribute</h5></li>
+      <li><a href="https://akka.io/community">Community Projects</a></li>
+      <li><a href="http://github.com/akka/akka">Source Code</a></li>
+      <li><a href="http://groups.google.com/group/akka-user">Mailing List</a></li>
+      <li><a href="https://doc.akka.io/docs/akka/current/project/issue-tracking.html">Report a Bug</a></li>
+    </ul>
+    <ul>
+      <li><h5>Company</h5></li>
+      <li><a href="http://www.lightbend.com/how/subscription">Commercial Support</a></li>
+      <li><a href="https://akka.io/team">Team</a></li>
+      <li><a href="mailto:info@lightbend.com">Contact</a></li>
+    </ul>
+    <ul>
+      <li><img src="../../_static/akka_icon_reverse.svg" align="center"/></li>
+    </ul>
+  </div>
+  <div class="container copyright">
+    <p style="float: left;">
+      © 2015 <a href="http://www.lightbend.com/">Lightbend Inc.</a> <span class="license">Akka is Open Source and available under the Apache 2 License.</span>
+    </p>
+    <p style="float: right; font-size: 12px;">
+      Last updated: May 02, 2017
+    </p>
+  </div>
+</div>
+<script type="text/javascript">
+  var $toc = $('#toc');
+  $toc.toc();
+
+  // show clickable section sign when section header hovered:
+  $('.section h2,.section h3,.section h4,.section h5').each(function(i, el) {
+      var $el = $(el);
+      $el.prepend($("<a class='section-marker' href='#" + $el.attr("id") + "'>&sect;</a>"))
+  });
+</script>
+
+<!-- Algolia docs search -->
+<script type="text/javascript">
+  var version = DOCUMENTATION_OPTIONS.VERSION;
+
+  var lang = "scala";
+  var path = window.location.pathname;
+  if (path.includes("/java/") || path.includes("java.html")) lang = "java";
+
+  console.log("Search configured for:", lang, "@", version);
+
+  docsearch({
+    apiKey: '543bad5ad786495d9ccd445ed34ed082',
+    indexName: 'akka_io',
+    inputSelector: '#search',
+    algoliaOptions: {
+      hitsPerPage: 5,
+      facetFilters: '[' + '["language:' + lang + '","language:general"]' + ',"version:' + version + '"]'
+    }
+  });
+
+  // set up "/" as global shortcut for focusing on search
+  $(document).keypress(function (event) {
+    if (event.keyCode == 47) {
+      $("#q").focus();
+      return false; // swallow key event, otherwise the / char would be input into the search box
+    }
+  });
+</script>
+
+  
+
+  </body>
+</html>

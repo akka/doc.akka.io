@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html class="no-js" lang="en">
+
+<head>
+<title>Circuit Breaker &bull; Akka Documentation</title>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta name="description" content="Akka is a toolkit for building highly concurrent, distributed, and resilient message-driven applications for Java and Scala."/>
+<link rel="canonical" href="https://doc.akka.io/docs/akka/current/common/circuitbreaker.html"/>
+<script type="text/javascript" src="../lib/jquery/jquery.min.js"></script>
+<script type="text/javascript" src="../lib/foundation/dist/js/foundation.min.js"></script>
+<link rel="stylesheet" type="text/css" href="../lib/normalize.css/normalize.css"/>
+<link rel="stylesheet" type="text/css" href="../lib/foundation/dist/css/foundation.min.css"/>
+<link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/docsearch.js/2/docsearch.min.css" />
+<link rel="stylesheet" type="text/css" href="../css/icons.css"/>
+<link rel="stylesheet" type="text/css" href="../css/page.css"/>
+<link rel="shortcut icon" href="../images/favicon.ico" />
+<link rel="apple-touch-icon" sizes="180x180" href="../images/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="../images/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="../images/favicon-16x16.png">
+<link rel="manifest" href="../images/manifest.json">
+<meta name="msapplication-TileImage" content="../images/mstile-150x150.png">
+<meta name="msapplication-TileColor" content="#15a9ce">
+<meta name="theme-color" content="#15a9ce">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<!-- OneTrust Cookies Consent Notice (Production Standard, akka.io, en-GB) start -->
+<script src="https://optanon.blob.core.windows.net/consent/159bb13d-6748-4399-806e-ac28db879785.js" type="text/javascript" charset="UTF-8"></script>
+<script type="text/javascript">
+function OptanonWrapper() { }
+</script>
+<!-- OneTrust Cookies Consent Notice (Production Standard, akka.io, en-GB) end -->
+<!--Google Analytics-->
+<script type="text/plain" class="optanon-category-2">
+var _gaq = _gaq || [];
+_gaq.push(['_setAccount', 'UA-21117439-1']);
+_gaq.push(['_setDomainName', 'akka.io']);
+_gaq.push(['_trackPageview']);
+(function() {
+var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+})()
+</script>
+<script type="text/plain" class="optanon-category-2">
+(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+ga('create', 'UA-23127719-1', 'lightbend.com', {'allowLinker': true, 'name': 'tsTracker'});
+ga('tsTracker.require', 'linker');
+ga('tsTracker.linker:autoLink', ['lightbend.com','playframework.com','scala-lang.org','scaladays.org','spray.io','akka.io','scala-sbt.org','scala-ide.org']);
+ga('tsTracker.send', 'pageview');
+</script>
+<!--Marketo-->
+<script type="text/plain" class="optanon-category-3">
+(function() {
+var didInit = false;
+function initMunchkin() {
+if(didInit === false) {
+didInit = true;
+Munchkin.init('558-NCX-702', { 'asyncOnly': true, 'disableClickDelay': true });
+}
+}
+var s = document.createElement('script');
+s.type = 'text/javascript';
+s.async = true;
+s.src = '//munchkin.marketo.net/munchkin.js';
+s.onreadystatechange = function() {
+if (this.readyState == 'complete' || this.readyState == 'loaded') {
+initMunchkin();
+}
+};
+s.onload = initMunchkin;
+document.getElementsByTagName('head')[0].appendChild(s);
+})();
+</script>
+</head>
+
+<body id="underlay" data-toggler="nav-open">
+
+<header class="site-header hide-for-large">
+<div class="sticky-header clearfix">
+<a href="https://akka.io"><img class="logo" src="../images/akka-logo-reverse.svg"></a>
+
+<button class="menu-icon float-right" type="button" data-toggle="underlay overlay"></button>
+</div>
+<div id="overlay" class="overlay-nav" data-toggler="nav-open">
+<header class="nav-header">
+<div class="nav-header-title">
+<h1><a href="../index.html">Akka Documentation</a></h1>
+</div>
+<div class="nav-header-version">
+Version 2.5.14
+</div>
+<div class="nav-header-groups">
+<select class="supergroup" name="Language"><option class="group" value="group-scala">Scala</option><option class="group" value="group-java">Java</option></select>
+</div>
+<div id="overlay-search-container" class="nav-header-search">
+<input id="overlay-search" type="search" class="search" placeholder="Search"/>
+</div>
+</header>
+<nav class="nav-toc">
+<ul>
+  <li><a href="../security/index.html" class="page">Security Announcements</a></li>
+  <li><a href="../guide/index.html" class="page">Getting Started Guide</a></li>
+  <li><a href="../general/index.html" class="page">General Concepts</a></li>
+  <li><a href="../index-actors.html" class="page">Actors</a></li>
+  <li><a href="../typed/index.html" class="page">Akka Typed</a></li>
+  <li><a href="../index-cluster.html" class="page">Clustering</a></li>
+  <li><a href="../stream/index.html" class="page">Streams</a></li>
+  <li><a href="../index-network.html" class="page">Networking</a></li>
+  <li><a href="../index-futures.html" class="page">Futures and Agents</a></li>
+  <li><a href="../index-utilities.html" class="page">Utilities</a>
+  <ul>
+    <li><a href="../index-utilities.html#dependency" class="header">Dependency</a></li>
+    <li><a href="../event-bus.html" class="page">Event Bus</a></li>
+    <li><a href="../logging.html" class="page">Logging</a></li>
+    <li><a href="../scheduler.html" class="page">Scheduler</a></li>
+    <li><a href="../common/duration.html" class="page">Duration</a></li>
+    <li><a href="../common/circuitbreaker.html#circuit-breaker" class="active page">Circuit Breaker</a>
+    <ul>
+      <li><a href="../common/circuitbreaker.html#why-are-they-used-" class="header">Why are they used?</a></li>
+      <li><a href="../common/circuitbreaker.html#what-do-they-do-" class="header">What do they do?</a></li>
+      <li><a href="../common/circuitbreaker.html#examples" class="header">Examples</a></li>
+    </ul></li>
+    <li><a href="../java8-compat.html" class="page">Java 8 Compatibility</a></li>
+    <li><a href="../extending-akka.html" class="page">Akka Extensions</a></li>
+  </ul></li>
+  <li><a href="../common/other-modules.html" class="page">Other Akka modules</a></li>
+  <li><a href="../howto.html" class="page">HowTo: Common Patterns</a></li>
+  <li><a href="../project/index.html" class="page">Project Information</a></li>
+  <li><a href="../additional/index.html" class="page">Additional Information</a></li>
+</ul>
+</nav>
+</div>
+</header>
+
+<aside class="show-for-large">
+<header class="nav-header fixed-sidebar-header">
+<div class="nav-header-title">
+<h1><a href="../index.html">Akka Documentation</a></h1>
+</div>
+<div class="nav-header-version">
+Version 2.5.14
+</div>
+<div class="nav-header-groups">
+<select class="supergroup" name="Language"><option class="group" value="group-scala">Scala</option><option class="group" value="group-java">Java</option></select>
+</div>
+<div class="nav-header-search">
+<input id="search" type="search" class="search" placeholder="Search"/>
+</div>
+</header>
+<nav class="site-nav fixed-sidebar-contents">
+<div class="nav-toc">
+<ul>
+  <li><a href="../security/index.html" class="page">Security Announcements</a></li>
+  <li><a href="../guide/index.html" class="page">Getting Started Guide</a></li>
+  <li><a href="../general/index.html" class="page">General Concepts</a></li>
+  <li><a href="../index-actors.html" class="page">Actors</a></li>
+  <li><a href="../typed/index.html" class="page">Akka Typed</a></li>
+  <li><a href="../index-cluster.html" class="page">Clustering</a></li>
+  <li><a href="../stream/index.html" class="page">Streams</a></li>
+  <li><a href="../index-network.html" class="page">Networking</a></li>
+  <li><a href="../index-futures.html" class="page">Futures and Agents</a></li>
+  <li><a href="../index-utilities.html" class="page">Utilities</a>
+  <ul>
+    <li><a href="../index-utilities.html#dependency" class="header">Dependency</a></li>
+    <li><a href="../event-bus.html" class="page">Event Bus</a></li>
+    <li><a href="../logging.html" class="page">Logging</a></li>
+    <li><a href="../scheduler.html" class="page">Scheduler</a></li>
+    <li><a href="../common/duration.html" class="page">Duration</a></li>
+    <li><a href="../common/circuitbreaker.html#circuit-breaker" class="active page">Circuit Breaker</a>
+    <ul>
+      <li><a href="../common/circuitbreaker.html#why-are-they-used-" class="header">Why are they used?</a></li>
+      <li><a href="../common/circuitbreaker.html#what-do-they-do-" class="header">What do they do?</a></li>
+      <li><a href="../common/circuitbreaker.html#examples" class="header">Examples</a></li>
+    </ul></li>
+    <li><a href="../java8-compat.html" class="page">Java 8 Compatibility</a></li>
+    <li><a href="../extending-akka.html" class="page">Akka Extensions</a></li>
+  </ul></li>
+  <li><a href="../common/other-modules.html" class="page">Other Akka modules</a></li>
+  <li><a href="../howto.html" class="page">HowTo: Common Patterns</a></li>
+  <li><a href="../project/index.html" class="page">Project Information</a></li>
+  <li><a href="../additional/index.html" class="page">Additional Information</a></li>
+</ul>
+</div>
+</nav>
+<footer class="nav-footer fixed-sidebar-footer">
+<a href="https://akka.io"><img class="logo" src="../images/akka-logo-reverse.svg"></a>
+
+</footer>
+</aside>
+
+<main class="fixed-shift-for-large expanded row">
+<section class="site-content small-12 column">
+
+<article class="page-content row">
+<div class="small-12 large-9 column" id="docs">
+<h1><a href="#circuit-breaker" name="circuit-breaker" class="anchor"><span class="anchor-link"></span></a>Circuit Breaker</h1>
+<h2><a href="#why-are-they-used-" name="why-are-they-used-" class="anchor"><span class="anchor-link"></span></a>Why are they used?</h2>
+<p>A circuit breaker is used to provide stability and prevent cascading failures in distributed systems. These should be used in conjunction with judicious timeouts at the interfaces between remote systems to prevent the failure of a single component from bringing down all components.</p>
+<p>As an example, we have a web application interacting with a remote third party web service.<br/>Let&rsquo;s say the third party has oversold their capacity and their database melts down under load.<br/>Assume that the database fails in such a way that it takes a very long time to hand back an error to the third party web service. This in turn makes calls fail after a long period of time. Back to our web application, the users have noticed that their form submissions take much longer seeming to hang. Well the users do what they know to do which is use the refresh button, adding more requests to their already running requests. This eventually causes the failure of the web application due to resource exhaustion. This will affect all users, even those who are not using functionality dependent on this third party web service.</p>
+<p>Introducing circuit breakers on the web service call would cause the requests to begin to fail-fast, letting the user know that something is wrong and that they need not refresh their request. This also confines the failure behavior to only those users that are using functionality dependent on the third party, other users are no longer affected as there is no resource exhaustion. Circuit breakers can also allow savvy developers to mark portions of the site that use the functionality unavailable, or perhaps show some cached content as appropriate while the breaker is open.</p>
+<p>The Akka library provides an implementation of a circuit breaker called <code>akka.pattern.CircuitBreaker</code> which has the behavior described below.</p>
+<h2><a href="#what-do-they-do-" name="what-do-they-do-" class="anchor"><span class="anchor-link"></span></a>What do they do?</h2>
+<ul>
+  <li>
+    <p>During normal operation, a circuit breaker is in the <em>Closed</em> state:</p>
+    <ul>
+      <li>Exceptions or calls exceeding the configured <em>callTimeout</em> increment a failure counter</li>
+      <li>Successes reset the failure count to zero</li>
+      <li>When the failure counter reaches a <em>maxFailures</em> count, the breaker is tripped into <em>Open</em> state</li>
+    </ul>
+  </li>
+  <li>
+    <p>While in <em>Open</em> state:</p>
+    <ul>
+      <li>All calls fail-fast with a <code>CircuitBreakerOpenException</code></li>
+      <li>After the configured <em>resetTimeout</em>, the circuit breaker enters a <em>Half-Open</em> state</li>
+    </ul>
+  </li>
+  <li>
+    <p>In <em>Half-Open</em> state:</p>
+    <ul>
+      <li>The first call attempted is allowed through without failing fast</li>
+      <li>All other calls fail-fast with an exception just as in <em>Open</em> state</li>
+      <li>If the first call succeeds, the breaker is reset back to <em>Closed</em> state and the <em>resetTimeout</em> is reset</li>
+      <li>If the first call fails, the breaker is tripped again into the <em>Open</em> state (as for exponential backoff circuit breaker, the <em>resetTimeout</em> is multiplied by the exponential backoff factor)</li>
+    </ul>
+  </li>
+  <li>
+    <p>State transition listeners:</p>
+    <ul>
+      <li>Callbacks can be provided for every state entry via <em>onOpen</em>, <em>onClose</em>, and <em>onHalfOpen</em></li>
+      <li>These are executed in the <code>ExecutionContext</code> provided.</li>
+    </ul>
+  </li>
+  <li>
+    <p>Calls result listeners:</p>
+    <ul>
+      <li>Callbacks can be used eg. to collect statistics about all invocations or to react on specific call results like success, failures or timeouts.</li>
+      <li>Supported callbacks are: <em>onCallSuccess</em>, <em>onCallFailure</em>, <em>onCallTimeout</em>, <em>onCallBreakerOpen</em>.</li>
+      <li>These are executed in the <code>ExecutionContext</code> provided.</li>
+    </ul>
+  </li>
+</ul>
+<p><img src="../images/circuit-breaker-states.png" alt="circuit-breaker-states.png" /></p>
+<h2><a href="#examples" name="examples" class="anchor"><span class="anchor-link"></span></a>Examples</h2>
+<h3><a href="#initialization" name="initialization" class="anchor"><span class="anchor-link"></span></a>Initialization</h3>
+<p>Here&rsquo;s how a <code>CircuitBreaker</code> would be configured for:</p>
+<ul>
+  <li>5 maximum failures</li>
+  <li>a call timeout of 10 seconds</li>
+  <li>a reset timeout of 1 minute</li>
+</ul>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-scala">import scala.concurrent.duration._
+import akka.pattern.CircuitBreaker
+import akka.pattern.pipe
+import akka.actor.{ Actor, ActorLogging, ActorRef }
+
+import scala.concurrent.Future
+import scala.util.{ Failure, Success, Try }
+
+class DangerousActor extends Actor with ActorLogging {
+  import context.dispatcher
+
+  val breaker =
+    new CircuitBreaker(
+      context.system.scheduler,
+      maxFailures = 5,
+      callTimeout = 10.seconds,
+      resetTimeout = 1.minute).onOpen(notifyMeOnOpen())
+
+  def notifyMeOnOpen(): Unit =
+    log.warning(&quot;My CircuitBreaker is now open, and will not close for one minute&quot;)</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-java"><br/>import akka.actor.AbstractActor;
+import akka.event.LoggingAdapter;
+import java.time.Duration;
+import akka.pattern.CircuitBreaker;
+import akka.event.Logging;
+
+import static akka.pattern.PatternsCS.pipe;
+
+import java.util.concurrent.CompletableFuture;
+
+public class DangerousJavaActor extends AbstractActor {
+
+  private final CircuitBreaker breaker;
+  private final LoggingAdapter log = Logging.getLogger(getContext().system(), this);
+
+  public DangerousJavaActor() {
+    this.breaker = new CircuitBreaker(
+      getContext().dispatcher(), getContext().system().scheduler(),
+      5, Duration.ofSeconds(10), Duration.ofMinutes(1))
+      .addOnOpenListener(this::notifyMeOnOpen);
+  }
+
+  public void notifyMeOnOpen() {
+    log.warning(&quot;My CircuitBreaker is now open, and will not close for one minute&quot;);
+  }</code></pre></dd>
+</dl>
+<h3><a href="#future-synchronous-based-api" name="future-synchronous-based-api" class="anchor"><span class="anchor-link"></span></a>Future &amp; Synchronous based API</h3>
+<p>Once a circuit breaker actor has been initialized, interacting with that actor is done by either using the Future based API or the synchronous API. Both of these APIs are considered <code>Call Protection</code> because whether synchronously or asynchronously, the purpose of the circuit breaker is to protect your system from cascading failures while making a call to another service. In the future based API, we use the <code>withCircuitBreaker</code> which takes an asynchronous method (some method wrapped in a <code>Future</code>), for instance a call to retrieve data from a database, and we pipe the result back to the sender. If for some reason the database in this example isn&rsquo;t responding, or there is another issue, the circuit breaker will open and stop trying to hit the database again and again until the timeout is over.</p>
+<p>The Synchronous API would also wrap your call with the circuit breaker logic, however, it uses the <code>withSyncCircuitBreaker</code> and receives a method that is not wrapped in a <code>Future</code>.</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-scala">def dangerousCall: String = &quot;This really isn&#39;t that dangerous of a call after all&quot;
+
+def receive = {
+  case &quot;is my middle name&quot; ⇒
+    breaker.withCircuitBreaker(Future(dangerousCall)) pipeTo sender()
+  case &quot;block for me&quot; ⇒
+    sender() ! breaker.withSyncCircuitBreaker(dangerousCall)
+}</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-java">public String dangerousCall() {
+  return &quot;This really isn&#39;t that dangerous of a call after all&quot;;
+}
+
+@Override
+public Receive createReceive() {
+  return receiveBuilder().
+    match(String.class, &quot;is my middle name&quot;::equals, m -&gt; pipe(
+      breaker.callWithCircuitBreakerCS(() -&gt;
+        CompletableFuture.supplyAsync(this::dangerousCall)
+      ), getContext().dispatcher()
+    ).to(sender()))
+    .match(String.class, &quot;block for me&quot;::equals, m -&gt; {
+      sender().tell(breaker
+        .callWithSyncCircuitBreaker(this::dangerousCall), self());
+    })
+    .build();
+}</code></pre></dd>
+</dl><div class="callout note "><div class="callout-title">Note</div>
+<p>Using the <code>CircuitBreaker</code> companion object&rsquo;s <span class="group-scala"><em>apply</em></span><span class="group-java"><em>create</em></span> method will return a <code>CircuitBreaker</code> where callbacks are executed in the caller&rsquo;s thread. This can be useful if the asynchronous <code>Future</code> behavior is unnecessary, for example invoking a synchronous-only API.</p></div>
+<h3><a href="#control-failure-count-explicitly" name="control-failure-count-explicitly" class="anchor"><span class="anchor-link"></span></a>Control failure count explicitly</h3>
+<p>By default, the circuit breaker treat <code>Exception</code> as failure in synchronized API, or failed <code>Future</code> as failure in future based API. Failure will increment failure count, when failure count reach the <em>maxFailures</em>, circuit breaker will be opened. However, some applications might requires certain exception to not increase failure count, or vice versa, sometime we want to increase the failure count even if the call succeeded. Akka circuit breaker provides a way to achieve such use case:</p>
+<ul>
+  <li><code>withCircuitBreaker</code></li>
+  <li><code>withSyncCircuitBreaker</code></li>
+  <li><code>callWithCircuitBreaker</code></li>
+  <li><code>callWithCircuitBreakerCS</code></li>
+  <li><code>callWithSyncCircuitBreaker</code></li>
+</ul>
+<p>All methods above accepts an argument <code>defineFailureFn</code></p>
+<p>Type of <code>defineFailureFn</code>: <span class="group-scala"><code>Try[T] ⇒ Boolean</code></span><span class="group-java"><code>BiFunction[Optional[T], Optional[Throwable], java.lang.Boolean]</code></span></p>
+<p><span class="group-scala">This is a function which takes in a <code>Try[T]</code> and returns a <code>Boolean</code>. The <code>Try[T]</code> correspond to the <code>Future[T]</code> of the protected call.</span> <span class="group-java">The response of a protected call is modelled using <code>Optional[T]</code> for a successful return value and <code>Optional[Throwable]</code> for exceptions.</span> This function should return <code>true</code> if the call should increase failure count, else false.</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-scala">def luckyNumber(): Future[Int] = {
+  val evenNumberAsFailure: Try[Int] ⇒ Boolean = {
+    case Success(n) ⇒ n % 2 == 0
+    case Failure(_) ⇒ true
+  }
+
+  val breaker =
+    new CircuitBreaker(
+      context.system.scheduler,
+      maxFailures = 5,
+      callTimeout = 10.seconds,
+      resetTimeout = 1.minute)
+
+  // this call will return 8888 and increase failure count at the same time
+  breaker.withCircuitBreaker(Future(8888), evenNumberAsFailure)
+}</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-java">private final CircuitBreaker breaker;
+
+public EvenNoFailureJavaExample() {
+    this.breaker = new CircuitBreaker(
+            getContext().dispatcher(), getContext().system().scheduler(),
+            5, Duration.ofSeconds(10), Duration.ofMinutes(1));
+}
+
+public int luckyNumber() {
+    BiFunction&lt;Optional&lt;Integer&gt;, Optional&lt;Throwable&gt;, Boolean&gt; evenNoAsFailure =
+            (result, err) -&gt; (result.isPresent() &amp;&amp; result.get() % 2 == 0);
+
+    // this will return 8888 and increase failure count at the same time
+    return this.breaker.callWithSyncCircuitBreaker(() -&gt; 8888, evenNoAsFailure);
+}
+</code></pre></dd>
+</dl>
+<h3><a href="#low-level-api" name="low-level-api" class="anchor"><span class="anchor-link"></span></a>Low level API</h3>
+<p>The low-level API allows you to describe the behavior of the CircuitBreaker in detail, including deciding what to return to the calling <code>Actor</code> in case of success or failure. This is especially useful when expecting the remote call to send a reply. CircuitBreaker doesn&rsquo;t support <code>Tell Protection</code> (protecting against calls that expect a reply) natively at the moment, so you need to use the low-level power-user APIs, <code>succeed</code> and <code>fail</code> methods, as well as <code>isClose</code>, <code>isOpen</code>, <code>isHalfOpen</code> to implement it.</p>
+<p>As can be seen in the examples below, a <code>Tell Protection</code> pattern could be implemented by using the <code>succeed</code> and <code>fail</code> methods, which would count towards the <code>CircuitBreaker</code> counts. In the example, a call is made to the remote service if the <code>breaker.isClosed</code>, and once a response is received, the <code>succeed</code> method is invoked, which tells the <code>CircuitBreaker</code> to keep the breaker closed. If on the other hand an error or timeout is received, we trigger a <code>fail</code> and the breaker accrues this failure towards its count for opening the breaker.</p><div class="callout note "><div class="callout-title">Note</div>
+<p>The below example doesn&rsquo;t make a remote call when the state is <em>HalfOpen</em>. Using the power-user APIs, it is your responsibility to judge when to make remote calls in <em>HalfOpen</em>.</p></div>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-scala">import akka.actor.ReceiveTimeout
+
+def receive = {
+  case &quot;call&quot; if breaker.isClosed ⇒ {
+    recipient ! &quot;message&quot;
+  }
+  case &quot;response&quot; ⇒ {
+    breaker.succeed()
+  }
+  case err: Throwable ⇒ {
+    breaker.fail()
+  }
+  case ReceiveTimeout ⇒ {
+    breaker.fail()
+  }
+}</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-java">@Override
+public Receive createReceive() {
+  return receiveBuilder()
+    .match(String.class, payload -&gt; &quot;call&quot;.equals(payload) &amp;&amp; breaker.isClosed(), payload -&gt; 
+      target.tell(&quot;message&quot;, self())
+    )
+    .matchEquals(&quot;response&quot;, payload -&gt; 
+      breaker.succeed()
+    )
+    .match(Throwable.class, t -&gt;
+      breaker.fail()
+    )
+    .match(ReceiveTimeout.class, t -&gt;    
+      breaker.fail()
+    )
+    .build();
+}</code></pre></dd>
+</dl>
+</div>
+</article>
+
+<div class="row">
+<div class="small-12 large-9 column">
+<section class="nav-prev-next row">
+<div class="nav-prev small-6 column">
+<a href="../common/duration.html"><i class="icon-prev"></i> <span class="link-prev">Duration</span></a>
+</div>
+<div class="nav-next small-6 column clearfix">
+<a class="float-right" href="../java8-compat.html">Java 8 Compatibility <i class="icon-next"></i></a>
+</div>
+</section>
+</div>
+</div>
+
+<div class="source-github row">
+Found an error in this documentation? The source code for this page can be found <a href="https://github.com/akka/akka/tree/master/akka-docs/src/main/paradox/common/circuitbreaker.md">here</a>.
+Please feel free to edit and contribute a pull request.
+</div>
+
+
+<footer class="page-footer row clearfix">
+<img class="akka-icon float-left show-for-medium" src="../images/akka-icon.svg">
+<section class="copyright">
+<div>Akka is Open Source and available under the Apache 2 License.</div>
+<p class="legal">
+&copy; 2011-2018 <a href="https://www.lightbend.com" target="_blank">Lightbend, Inc.</a> | 
+<a href="https://www.lightbend.com/legal/licenses" target="_blank">Licenses</a> | 
+<a href="https://www.lightbend.com/legal/terms" target="_blank">Terms</a> | 
+<a href="https://www.lightbend.com/legal/privacy" target="_blank">Privacy Policy</a> | 
+<a href="https://akka.io/cookie/" target="_blank">Cookie Listing</a> | 
+<a class="optanon-toggle-display">Cookie Settings</a>
+</p>
+</section>
+</footer>
+
+</section>
+</main>
+
+<script type="text/javascript" src="../js/scrollsneak.js"></script>
+<script type="text/javascript">jQuery(document).foundation();</script>
+<script type="text/javascript" src="../js/groups.js"></script>
+<script type="text/javascript" src="../js/page.js"></script>
+<script type="text/javascript" src="../js/magellan.js"></script>
+
+<style type="text/css">@import "../lib/prettify/prettify.css";</style>
+<script type="text/javascript" src="../lib/prettify/prettify.js"></script>
+<script type="text/javascript" src="../lib/prettify/lang-scala.js"></script>
+<script type="text/javascript">jQuery(function(){window.prettyPrint && prettyPrint()});</script>
+
+<!-- Algolia docs search -->
+<script type="text/javascript" src="https://cdn.jsdelivr.net/docsearch.js/2/docsearch.min.js"></script>
+<style>.algolia-autocomplete { display: block !important }</style>
+<script type="text/javascript">
+docsearch({
+apiKey: '543bad5ad786495d9ccd445ed34ed082',
+indexName: 'akka_io',
+inputSelector: '#search',
+algoliaOptions: {
+hitsPerPage: 5
+}
+});
+
+docsearch({
+apiKey: '543bad5ad786495d9ccd445ed34ed082',
+indexName: 'akka_io',
+inputSelector: '#overlay-search',
+algoliaOptions: {
+hitsPerPage: 5
+}
+});
+
+// set up "/" as global shortcut for focusing on search
+jQuery(document).keypress(function (event) {
+if (event.keyCode == 47) {
+jQuery("#search").focus();
+return false; // swallow key event, otherwise the / char would be input into the search box
+}
+});
+</script>
+
+<script type="text/javascript" src="../assets/js/warnOldDocs.js"></script>
+
+
+</body>
+</html>
