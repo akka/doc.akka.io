@@ -1,0 +1,2438 @@
+<!DOCTYPE html>
+<html class="no-js" lang="en">
+
+<head>
+<title>Akka Multi-DC Persistence &bull; Akka Enhancements</title>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta name="description" content="Akka Enhancements is a suite of useful components that complement Akka."/>
+<link rel="canonical" href="https://doc.akka.io/docs/akka-enhancements/current/persistence-dc/index.html"/>
+<script type="text/javascript" src="../lib/jquery/jquery.min.js"></script>
+<script type="text/javascript" src="../lib/foundation/dist/js/foundation.min.js"></script>
+<link rel="stylesheet" type="text/css" href="../lib/normalize.css/normalize.css"/>
+<link rel="stylesheet" type="text/css" href="../lib/foundation/dist/css/foundation.min.css"/>
+<link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/docsearch.js/2/docsearch.min.css" />
+<link rel="stylesheet" type="text/css" href="../css/icons.css"/>
+<link rel="stylesheet" type="text/css" href="../css/page.css"/>
+<link rel="shortcut icon" href="../images/favicon.ico" />
+<link rel="apple-touch-icon" sizes="180x180" href="../images/apple-touch-icon.png"/>
+<link rel="icon" type="image/png" sizes="32x32" href="../images/favicon-32x32.png"/>
+<link rel="icon" type="image/png" sizes="16x16" href="../images/favicon-16x16.png"/>
+<link rel="manifest" href="../images/manifest.json"/>
+<meta name="msapplication-TileImage" content="../images/mstile-150x150.png"/>
+<meta name="msapplication-TileColor" content="#15a9ce"/>
+<meta name="theme-color" content="#15a9ce"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<!-- OneTrust Cookies Consent Notice (Production Standard, akka.io, en-GB) start -->
+<script src="https://optanon.blob.core.windows.net/consent/159bb13d-6748-4399-806e-ac28db879785.js" type="text/javascript" charset="UTF-8"></script>
+<script type="text/javascript">
+function OptanonWrapper() { }
+</script>
+<!-- OneTrust Cookies Consent Notice (Production Standard, akka.io, en-GB) end -->
+<!--Google Analytics-->
+<script type="text/plain" class="optanon-category-2">
+var _gaq = _gaq || [];
+_gaq.push(['_setAccount', '']);
+_gaq.push(['_setDomainName', '']);
+_gaq.push(['_trackPageview']);
+(function() {
+var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+})()
+</script>
+<script type="text/plain" class="optanon-category-2">
+(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+ga('create', 'UA-23127719-1', 'lightbend.com', {'allowLinker': true, 'name': 'tsTracker'});
+ga('tsTracker.require', 'linker');
+ga('tsTracker.linker:autoLink', ['lightbend.com','playframework.com','scala-lang.org','scaladays.org','spray.io','akka.io','scala-sbt.org','scala-ide.org']);
+ga('tsTracker.send', 'pageview');
+</script>
+<!--Marketo-->
+<script type="text/plain" class="optanon-category-3">
+(function() {
+var didInit = false;
+function initMunchkin() {
+if(didInit === false) {
+didInit = true;
+Munchkin.init('558-NCX-702', { 'asyncOnly': true, 'disableClickDelay': true });
+}
+}
+var s = document.createElement('script');
+s.type = 'text/javascript';
+s.async = true;
+s.src = '//munchkin.marketo.net/munchkin.js';
+s.onreadystatechange = function() {
+if (this.readyState == 'complete' || this.readyState == 'loaded') {
+initMunchkin();
+}
+};
+s.onload = initMunchkin;
+document.getElementsByTagName('head')[0].appendChild(s);
+})();
+</script>
+</head>
+
+<body id="underlay" data-toggler="nav-open">
+
+<header class="site-header hide-for-large">
+<div class="sticky-header clearfix">
+<a href="https://akka.io"><img class="logo" src="../images/akka-logo-reverse.svg"/></a>
+
+<button class="menu-icon float-right" type="button" data-toggle="underlay overlay"></button>
+</div>
+<div id="overlay" class="overlay-nav" data-toggler="nav-open">
+<header class="nav-header">
+<div class="nav-header-title">
+<h1><a href="../index.html">Akka Enhancements</a></h1>
+</div>
+<div class="nav-header-version">
+Version 1.1.9
+</div>
+<div class="nav-header-groups">
+<select class="supergroup" name="Languages"><option class="group" value="group-java">Java</option><option class="group" value="group-scala">Scala</option></select>
+</div>
+</header>
+<nav class="nav-toc">
+<ul>
+  <li><a href="../akka-resilience-enhancements.html" class="page">Akka Resilience Enhancements</a></li>
+  <li><a href="../akka-persistence-enhancements.html" class="page">Akka Persistence Enhancements</a>
+  <ul>
+    <li><a href="../persistence-dc/index.html#akka-multi-dc-persistence" class="active page">Akka Multi-DC Persistence</a>
+    <ul>
+      <li><a href="../persistence-dc/index.html#akka-persistence-basics" class="header">Akka Persistence basics</a></li>
+      <li><a href="../persistence-dc/index.html#motivation" class="header">Motivation</a></li>
+      <li><a href="../persistence-dc/index.html#approach" class="header">Approach</a></li>
+      <li><a href="../persistence-dc/index.html#dependency" class="header">Dependency</a></li>
+      <li><a href="../persistence-dc/index.html#getting-started" class="header">Getting started</a></li>
+      <li><a href="../persistence-dc/index.html#resolving-conflicting-updates" class="header">Resolving conflicting updates</a></li>
+      <li><a href="../persistence-dc/index.html#side-effects" class="header">Side effects</a></li>
+      <li><a href="../persistence-dc/index.html#failures" class="header">Failures</a></li>
+      <li><a href="../persistence-dc/index.html#snapshots" class="header">Snapshots</a></li>
+      <li><a href="../persistence-dc/index.html#passivating-and-stopping-entities" class="header">Passivating and stopping entities</a></li>
+      <li><a href="../persistence-dc/index.html#tagging-events" class="header">Tagging Events</a></li>
+      <li><a href="../persistence-dc/index.html#testing" class="header">Testing</a></li>
+      <li><a href="../persistence-dc/index.html#how-it-works" class="header">How it works</a></li>
+      <li><a href="../persistence-dc/index.html#hot-standby" class="header">Hot-standby</a></li>
+      <li><a href="../persistence-dc/index.html#speculative-replication-optimization" class="header">Speculative Replication Optimization</a></li>
+      <li><a href="../persistence-dc/index.html#custom-crdt-implementation" class="header group-scala">Custom CRDT implementation</a></li>
+      <li><a href="../persistence-dc/index.html#migration-from-to-persistentactor" class="header">Migration from/to PersistentActor</a></li>
+      <li><a href="../persistence-dc/index.html#configuration" class="header">Configuration</a></li>
+      <li><a href="../persistence-dc/index.html#api-docs" class="header">API docs</a></li>
+      <li><a href="../persistence-dc/testing.html" class="page">Testing</a></li>
+      <li><a href="../persistence-dc/cassandra.html" class="page">Cassandra</a></li>
+      <li><a href="../persistence-dc/examples.html" class="page">Additional Examples</a></li>
+    </ul></li>
+    <li><a href="../gdpr/index.html" class="page">GDPR for Akka Persistence</a></li>
+    <li><a href="../akka-persistence-enhancements-release-notes.html" class="page">Akka Persistence Enhancements Release Notes</a></li>
+  </ul></li>
+</ul>
+</nav>
+</div>
+</header>
+
+<aside class="show-for-large">
+<header class="nav-header fixed-sidebar-header">
+<div class="nav-header-title">
+<h1><a href="../index.html">Akka Enhancements</a></h1>
+</div>
+<div class="nav-header-version">
+Version 1.1.9
+</div>
+<div class="nav-header-groups">
+<select class="supergroup" name="Languages"><option class="group" value="group-java">Java</option><option class="group" value="group-scala">Scala</option></select>
+</div>
+</header>
+<nav class="site-nav fixed-sidebar-contents">
+<div class="nav-toc">
+<ul>
+  <li><a href="../akka-resilience-enhancements.html" class="page">Akka Resilience Enhancements</a></li>
+  <li><a href="../akka-persistence-enhancements.html" class="page">Akka Persistence Enhancements</a>
+  <ul>
+    <li><a href="../persistence-dc/index.html#akka-multi-dc-persistence" class="active page">Akka Multi-DC Persistence</a>
+    <ul>
+      <li><a href="../persistence-dc/index.html#akka-persistence-basics" class="header">Akka Persistence basics</a></li>
+      <li><a href="../persistence-dc/index.html#motivation" class="header">Motivation</a></li>
+      <li><a href="../persistence-dc/index.html#approach" class="header">Approach</a></li>
+      <li><a href="../persistence-dc/index.html#dependency" class="header">Dependency</a></li>
+      <li><a href="../persistence-dc/index.html#getting-started" class="header">Getting started</a></li>
+      <li><a href="../persistence-dc/index.html#resolving-conflicting-updates" class="header">Resolving conflicting updates</a></li>
+      <li><a href="../persistence-dc/index.html#side-effects" class="header">Side effects</a></li>
+      <li><a href="../persistence-dc/index.html#failures" class="header">Failures</a></li>
+      <li><a href="../persistence-dc/index.html#snapshots" class="header">Snapshots</a></li>
+      <li><a href="../persistence-dc/index.html#passivating-and-stopping-entities" class="header">Passivating and stopping entities</a></li>
+      <li><a href="../persistence-dc/index.html#tagging-events" class="header">Tagging Events</a></li>
+      <li><a href="../persistence-dc/index.html#testing" class="header">Testing</a></li>
+      <li><a href="../persistence-dc/index.html#how-it-works" class="header">How it works</a></li>
+      <li><a href="../persistence-dc/index.html#hot-standby" class="header">Hot-standby</a></li>
+      <li><a href="../persistence-dc/index.html#speculative-replication-optimization" class="header">Speculative Replication Optimization</a></li>
+      <li><a href="../persistence-dc/index.html#custom-crdt-implementation" class="header group-scala">Custom CRDT implementation</a></li>
+      <li><a href="../persistence-dc/index.html#migration-from-to-persistentactor" class="header">Migration from/to PersistentActor</a></li>
+      <li><a href="../persistence-dc/index.html#configuration" class="header">Configuration</a></li>
+      <li><a href="../persistence-dc/index.html#api-docs" class="header">API docs</a></li>
+      <li><a href="../persistence-dc/testing.html" class="page">Testing</a></li>
+      <li><a href="../persistence-dc/cassandra.html" class="page">Cassandra</a></li>
+      <li><a href="../persistence-dc/examples.html" class="page">Additional Examples</a></li>
+    </ul></li>
+    <li><a href="../gdpr/index.html" class="page">GDPR for Akka Persistence</a></li>
+    <li><a href="../akka-persistence-enhancements-release-notes.html" class="page">Akka Persistence Enhancements Release Notes</a></li>
+  </ul></li>
+</ul>
+</div>
+</nav>
+<footer class="nav-footer fixed-sidebar-footer">
+<a href="https://akka.io"><img class="logo" src="../images/akka-logo-reverse.svg"/></a>
+
+</footer>
+</aside>
+
+<main class="fixed-shift-for-large expanded row">
+<section class="site-content small-12 column">
+
+<article class="page-content row">
+<div class="small-12 large-9 column" id="docs">
+<h1><a href="#akka-multi-dc-persistence" name="akka-multi-dc-persistence" class="anchor"><span class="anchor-link"></span></a>Akka Multi-DC Persistence</h1>
+<p>This chapter describes how <a href="https://doc.akka.io/docs/akka/2.5/persistence.html">Akka Persistence</a> can be used across multiple data centers (DC), availability zones or regions.</p><div class="callout warning "><div class="callout-title">Warning</div>
+<p>This module is currently marked as <a href="https://doc.akka.io/docs/akka/2.5/common/may-change.html">May Change</a> in the sense of that the API might be changed based on feedback from initial usage. However, the module is ready for usage in production and we will not break serialization format of messages or stored data.</p></div>
+<h2><a href="#akka-persistence-basics" name="akka-persistence-basics" class="anchor"><span class="anchor-link"></span></a>Akka Persistence basics</h2>
+<p>The <a href="https://doc.akka.io/docs/akka/2.5/persistence.html">reference documentation</a> describes all details of Akka Persistence but here is a short summary in case you are not familiar with the concepts.</p>
+<p>Akka persistence enables stateful actors to persist their internal state so that it can be recovered when an actor is started, restarted after a JVM crash or by a supervisor, or migrated in a cluster. The key concept behind Akka persistence is that only changes to an actor’s internal state are persisted but never its current state directly (except for optional snapshots). Such stateful actors are recovered by replaying stored changes to these actors from which they can rebuild internal state.</p>
+<p>This design of capturing all changes as domain events, which are immutable facts of things that have happened, is known as <a href="https://msdn.microsoft.com/en-us/library/jj591559.aspx">event sourcing</a></p>
+<p>Akka persistence supports event sourcing with the <span class="group-scala"><code>PersistentActor</code> trait</span><span class="group-java"><code>AbstractPersistentActor</code> abstract class</span>. An actor that extends this <span class="group-scala">trait</span><span class="group-java">class</span> uses the <code>persist</code> method to persist and handle events. The behavior of <span class="group-scala">a <code>PersistentActor</code></span><span class="group-java">an <code>AbstractPersistentActor</code></span> is defined by implementing <span class="group-scala"><code>receiveRecover</code></span><span class="group-java"><code>createReceiveRecover</code></span> and <span class="group-scala"><code>receiveCommand</code></span><span class="group-java"><code>createReceive</code></span>. More details and examples can be found in the <a href="https://doc.akka.io/docs/akka/2.5/persistence.html#event-sourcing">Akka documentation</a>.</p>
+<p>Another excellent article about &ldquo;thinking in Events&rdquo; is <a href="https://hackernoon.com/events-as-first-class-citizens-8633e8479493">Events As First-Class Citizens</a> by Randy Shoup. It is a short and recommended read if you&rsquo;re starting developing Events based applications. </p>
+<h2><a href="#motivation" name="motivation" class="anchor"><span class="anchor-link"></span></a>Motivation</h2>
+<p>There can be many reasons for using more than one data center, such as:</p>
+<ul>
+  <li>Redundancy to tolerate failures in one location and still be operational.</li>
+  <li>Serve requests from a location near the user to provide better responsiveness.</li>
+  <li>Balance the load over many servers.</li>
+</ul>
+<p>Akka Persistence is using event sourcing that is based on the single writer principle, which means that there can only be one active instance of a <code>PersistentActor</code> with a given <code>persistenceId</code>. Otherwise, multiple instances would store interleaving events based on different states, and when these events would later be replayed it would not be possible to reconstruct the correct state.</p>
+<p>This restriction means that the single persistent actor can only live in one data center and would not be available during network partitions between the data centers. It is difficult to safely fail over the persistent actor from one data center to the other because:</p>
+<ul>
+  <li>The underlying data store might not have replicated all data when network partition occured, meaning that some updates would be lost if starting the persistent actor in the other data center. It would be even more problematic if the data is later replicated when the network partition heals, resulting in similar problems as with multiple active persistent actors.</li>
+  <li>To avoid above problem with lost or delayed data one could write all data with <code>QUORUM</code> consistency level across all data centers, but that would be very slow.</li>
+  <li>Detecting problem and failing over to another data center takes rather long time if it should be done with high confidence. Using ordinary Cluster Sharding and <a href="../split-brain-resolver.html">Split Brain Resolver</a> would mean downing all nodes in a data center, which is likely not desired. Instead, one would typically like to wait until the network partition heals and accept that communication between the data centers is not possible in the meantime.</li>
+</ul>
+<h2><a href="#approach" name="approach" class="anchor"><span class="anchor-link"></span></a>Approach</h2>
+<p>What if we could relax the single writer principle and allow persistent actors to be used in an active-active mode? The consistency boundary that we get from the ordinary persistent actor is nice and we would like to keep that within a data center, but network partitions across different data centers should not reduce availability. In other words, we would like one persistent actor instance in each data center and the persisted events should be replicated across the data centers with eventual consistency. Eventually, all events will be consumed by replicas in other data centers.</p>
+<p>This new type of persistent replicated actor is called <code>ReplicatedEntity</code>.</p>
+<p>When there is no network partitions and no concurrent writes the events stored by a <code>ReplicatedEntity</code> in one data center can be replicated and consumed by another (corresponding) instance in another data center without any concerns. Such replicated events can simply be applied to the local state.</p>
+<p><img src="images/replicated-events1.png" alt="images/replicated-events1.png" /></p>
+<p>The interesting part begins when there are concurrent writes by <code>ReplicatedEntity</code> instances in different data centers. That is more likely to happen when there is a network partition, but it can also happen when there are no network issues. They simply write at the &ldquo;same time&rdquo; before the events from the other side have been replicated and consumed.</p>
+<p><img src="images/replicated-events2.png" alt="images/replicated-events2.png" /></p>
+<p>The <code>ReplicatedEntity</code> has support for resolving such conflicts but in the end the logic for applying events to the state of the entity must be aware of that such concurrent updates can occur and it must be modeled to handle such conflicts. This means that it should typically have the same characteristics as a Conflict Free Replicated Data Type (CRDT). With a CRDT there are by definition no conflicts and the events can just be applied. The library provides some general purpose CRDTs, but the logic of how to apply events can also be defined by an application specific function.</p>
+<p>For example, sometimes it&rsquo;s enough to use application specific timestamps to decide which update should win.</p>
+<p>Strategies for resolving conflicts are described in detail later in this documentation.</p>
+<p>To be able to support these things the <code>ReplicatedEntity</code> has a different API than the <code>PersistentActor</code> in Akka Persistence. The concepts should be familiar and migrating between the APIs should not be difficult. Events stored by a <code>PersistentActor</code> can be read by a <code>ReplicatedEntity</code>, meaning that it&rsquo;s possible to migrate an existing application to use this feature. There are also migration paths back to <code>PersistentActor</code> if that would be needed. The API is similar to <a href="https://www.lagomframework.com/documentation/1.3.x/scala/PersistentEntity.html">Lagom&rsquo;s PersistentEntity</a>, but it has the full power of an <code>Actor</code> if needed.</p>
+<p>The solution is using existing infrastructure for persistent actors and Akka persistence plugins, meaning that much of it has been battle tested.</p>
+<p><a href="https://cassandra.apache.org/">Cassandra</a> is currently the only supported data store, but the solution is designed to allow for other future implementations.</p>
+<p>The replication mechanism of the events is taking advantage of the multi data center support that exists in Cassandra, i.e. the data is replicated by Cassandra.</p>
+<h3><a href="#when-to-not-use-it" name="when-to-not-use-it" class="anchor"><span class="anchor-link"></span></a>When to not use it</h3>
+<p>Akka Multi-DC Persistence is not suitable for:</p>
+<ul>
+  <li>When all you need is a simple CRUD with last-writer wins, or optimistic locking semantics. Event sourcing and Multi-DC event sourcing is then overkill for the problem you are trying to solve and will increase complexity of the solution.</li>
+  <li>When you need to ensure global constraints at all times. For example ensuring that an inventory balance is never negative even if updated from several data centers. Then you need a fully consistent system and Multi-DC Persistence is favoring availability.</li>
+  <li>When read-modify-write transactions across several data centers are needed.</li>
+</ul>
+<h2><a href="#dependency" name="dependency" class="anchor"><span class="anchor-link"></span></a>Dependency</h2>
+<p>To use the multi data center persistence feature a dependency on the <em>akka-persistence-multi-dc</em> artifact must be added.</p>
+<dl>
+  <dt>sbt</dt>
+  <dd>
+  <pre><code>// Add Reactive Platform to your build as documented at https://developer.lightbend.com/docs/reactive-platform/2.0/setup/setup-sbt.html
+&quot;com.lightbend.akka&quot; %% &quot;akka-persistence-multi-dc&quot; % &quot;1.1.9&quot;
+</code></pre></dd>
+  <dt>Gradle</dt>
+  <dd>
+  <pre><code>// Add Reactive Platform to your build as documented at https://developer.lightbend.com/docs/reactive-platform/2.0/setup/setup-gradle.html
+dependencies {
+  compile group: &#39;com.lightbend.akka&#39;, name: &#39;akka-persistence-multi-dc_2.12&#39;, version: &#39;1.1.9&#39;
+}
+</code></pre></dd>
+  <dt>Maven</dt>
+  <dd>
+  <pre><code>&lt;!-- Add Reactive Platform to your build as documented at https://developer.lightbend.com/docs/reactive-platform/2.0/setup/setup-maven.html --&gt;
+&lt;dependency&gt;
+  &lt;groupId&gt;com.lightbend.akka&lt;/groupId&gt;
+  &lt;artifactId&gt;akka-persistence-multi-dc_2.12&lt;/artifactId&gt;
+  &lt;version&gt;1.1.9&lt;/version&gt;
+&lt;/dependency&gt;
+</code></pre></dd>
+</dl>
+<p>You find your credentials at <a href="https://www.lightbend.com/product/lightbend-reactive-platform/credentials">https://www.lightbend.com/product/lightbend-reactive-platform/credentials</a> including links to instructions of how to add the credentials to your build.</p>
+<h2><a href="#getting-started" name="getting-started" class="anchor"><span class="anchor-link"></span></a>Getting started</h2>
+<p>A template project is available as Get Started download<br/><a href="https://developer.lightbend.com/start/?group=akka&project=akka-samples-persistence-dc-java">for Java</a> or <a href="https://developer.lightbend.com/start/?group=akka&project=akka-samples-persistence-dc-scala">for Scala</a>. It contains instructions of how to run it in the README file.</p>
+<h3><a href="#replicatedentity-stub" name="replicatedentity-stub" class="anchor"><span class="anchor-link"></span></a>ReplicatedEntity stub</h3>
+<p>This is what a <code>ReplicatedEntity</code> class looks like before filling in the implementation details:</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-scala">import akka.persistence.multidc.scaladsl.ReplicatedEntity
+
+final class Post1 extends ReplicatedEntity[BlogCommand, BlogEvent, BlogState] {
+
+  override def initialState: BlogState = BlogState.empty
+
+  override def commandHandler: CommandHandler = CommandHandler { (ctx, state, cmd) =&gt; ??? }
+
+  override def eventHandler(state: BlogState, event: BlogEvent): BlogState = ???
+
+}</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-java"><br/>import akka.persistence.multidc.javadsl.CommandHandler;
+import akka.persistence.multidc.javadsl.EventHandler;
+import akka.persistence.multidc.javadsl.ReplicatedEntity;
+
+final class Post1 extends ReplicatedEntity&lt;BlogCommands.BlogCommand, BlogEvents.BlogEvent, BlogState&gt; {
+
+  @Override
+  public BlogState initialState() {
+    return BlogState.EMPTY;
+  }
+
+  @Override
+  public CommandHandler&lt;BlogCommands.BlogCommand, BlogEvents.BlogEvent, BlogState&gt; commandHandler() {
+    throw new RuntimeException(&quot;Not implemented yet&quot;);
+  }
+
+  @Override
+  public EventHandler&lt;BlogEvents.BlogEvent, BlogState&gt; eventHandler() {
+    throw new RuntimeException(&quot;Not implemented yet&quot;);
+  }
+}</code></pre></dd>
+</dl>
+<ul>
+  <li><code>Command</code> - the super class/interface of the commands</li>
+  <li><code>Event</code> - the super class/interface of the events</li>
+  <li><code>State</code> - the class of the state</li>
+</ul>
+<p><code>initialState</code> is an abstract method that your concrete subclass must implement to define the <code>State</code> when the entity is first created.</p>
+<p><code>commandHandler</code> is an abstract method that your concrete subclass must implement to define the actions of the entity. <code>CommandHandler</code> defines command handlers and optional functions for other signals, e.g. <code>Termination</code> messages if <code>watch</code> is used.</p>
+<p><code>eventHandler</code> is the event handler that updates the current state when an event has been persisted.</p>
+<h3><a href="#command-handlers" name="command-handlers" class="anchor"><span class="anchor-link"></span></a>Command Handlers</h3>
+<p>The commands for this example:</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-scala">final case class AddPost(postId: String, content: PostContent) extends BlogCommand
+
+final case class AddPostDone(postId: String)
+
+final case class GetPost(postId: String) extends BlogCommand
+
+final case class ChangeBody(postId: String, newContent: PostContent) extends BlogCommand
+
+final case class Publish(postId: String) extends BlogCommand
+</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-java">final static class AddPost implements BlogCommand {
+  final String postId;
+  final BlogState.PostContent content;
+  public AddPost(String postId, BlogState.PostContent content) {
+    this.postId = postId;
+    this.content = content;
+  }
+  public String getPostId() {
+    return postId;
+  }
+}
+
+final static class AddPostDone {
+  final String postId;
+  AddPostDone(String postId) {
+    this.postId = postId;
+  }
+  public String getPostId() {
+    return postId;
+  }
+}
+
+final static class GetPost implements BlogCommand {
+  final String postId;
+  public GetPost(String postId) {
+    this.postId = postId;
+  }
+  public String getPostId() {
+    return postId;
+  }
+}
+
+final static class ChangeBody implements BlogCommand {
+  final String postId;
+  final BlogState.PostContent newContent;
+  public ChangeBody(String postId, BlogState.PostContent newContent) {
+    this.postId = postId;
+    this.newContent = newContent;
+  }
+  public String getPostId() {
+    return postId;
+  }
+}
+
+final static class Publish implements BlogCommand {
+  final String postId;
+  public Publish(String postId) {
+    this.postId = postId;
+  }
+  public String getPostId() {
+    return postId;
+  }
+}
+</code></pre></dd>
+</dl>
+<p>The function that processes incoming commands is defined by the mandatory <code>commandHandler</code>:</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-scala">// The command handler is invoked for incoming messages (commands).
+// A command handler must &quot;return&quot; the events to be persisted (if any).
+CommandHandler { (ctx, state, cmd) =&gt;
+  cmd match {
+    case AddPost(_, content) =&gt;
+      val evt = PostAdded(entityId, content,
+        state.contentTimestamp.increase(currentTimeMillis(), selfDc))
+      Effect.persist(evt).andThen { _ =&gt;
+        // After persist is done additional side effects can be performed
+        ctx.sender() ! AddPostDone(entityId)
+      }
+    case _ =&gt;
+      Effect.unhandled
+  }
+}</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-java">// The command handler is invoked for incoming messages (commands).
+// A command handler must &quot;return&quot; the events to be persisted (if any).
+final CommandHandler&lt;BlogCommand, BlogEvent, BlogState&gt; initial =
+  commandHandlerBuilder(BlogCommand.class)
+    .matchCommand(AddPost.class, (ctx, state, addPost) -&gt; {
+      BlogEvents.PostAdded evt = new PostAdded(
+        addPost.postId,
+        addPost.content,
+        state.contentTimestamp.increase(currentTimeMillis(), getSelfDc())
+      );
+      return Effect().persist(evt).andThen((newState) -&gt;
+        // After persist is done additional side effects can be performed
+        ctx.getSender().tell(new BlogCommands.AddPostDone(addPost.postId), getSelf()));
+    }).matchAny((cmd, state, ctx) -&gt; Effect().unhandled());</code></pre></dd>
+</dl>
+<p>The command handler <span class="group-scala">can be built from a function with 3 parameters for the <code>Command</code>, the <code>CommandContext</code> and current <code>State</code>.</span> <span class="group-java">can be built from functions with 3 parameters for the <code>Command</code>, the <code>CommandContext</code> and current <code>State</code>.</span></p>
+<p>A command handler returns an <code>Effect</code> directive that defines what event or events, if any, to persist. Use the <code>persist</code>, <code>none</code> or <code>unhandled</code> methods of <span class="group-scala"><code>Effect</code></span><span class="group-java"><code>Effect()</code></span> to create the <code>Effect</code> directives:</p>
+<ul>
+  <li><span class="group-scala"><code>Effect.persist</code></span><span class="group-java"><code>Effect().persist</code></span> can be used to persist one or many events. This method is overloaded and offers few variants. You can pass one <code>Event</code>, <span class="group-scala">an <code>immutable.Seq[Event]</code></span><span class="group-java">a <code>List&lt;Event&gt;</code></span> or an <span class="group-scala"><code>Option[Event]</code></span><span class="group-java"><code>Optional&lt;Event&gt;</code></span>. Events are atomically persisted, i.e. all events are stored or none of them are stored if there is an error</li>
+  <li><span class="group-scala"><code>Effect.none</code></span><span class="group-java"><code>Effect().none</code></span> no events are to be persisted, for example a read-only command</li>
+  <li><span class="group-scala"><code>Effect.unhandled</code></span><span class="group-java"><code>Effect().unhandled</code></span> the command is unhandled (not supported) in current state</li>
+</ul>
+<p>External side effects can be performed after successful persist with the <code>andThen</code> function. In the above example a reply is sent to the <code>sender</code>. Note that current state after applying the event is passed as parameter to the <code>andThen</code> function.</p>
+<p>The command can be validated before persisting state changes. Note that the updated state is passed as a parameter to the command handler function:</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-scala">CommandHandler { (ctx, state, cmd) =&gt;
+  cmd match {
+    case AddPost(_, content) =&gt;
+      if (content.title == null || content.title.equals(&quot;&quot;)) {
+        ctx.sender() ! Status.Failure(new IllegalArgumentException(&quot;Title must be defined&quot;))
+        Effect.none
+      } else {
+        val evt = PostAdded(entityId, content,
+          state.contentTimestamp.increase(currentTimeMillis(), selfDc))
+        Effect.persist(evt).andThen { _ =&gt;
+          // After persist is done additional side effects can be performed
+          ctx.sender() ! AddPostDone(entityId)
+        }
+      }
+    case _ =&gt;
+      Effect.unhandled
+  }
+}</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-java">commandHandlerBuilder(BlogCommand.class)
+  .matchCommand(AddPost.class,
+    // predicate to catch invalid requests
+    (addPost) -&gt; addPost.content.title == null || addPost.content.title.equals(&quot;&quot;),
+    (ctx, blogState, addPost) -&gt; {
+      ctx.getSender().tell(new Status.Failure(new IllegalArgumentException(&quot;Title must be defined&quot;)), getSelf());
+      return Effect().none();
+  })
+  .matchCommand(AddPost.class, (ctx, blogState, addPost) -&gt; {
+    PostAdded evt = new PostAdded(
+      addPost.postId,
+      addPost.content,
+      blogState.contentTimestamp.increase(currentTimeMillis(), getSelfDc()));
+    return Effect().persist(evt).andThen((newState) -&gt;
+      // After persist is done additional side effects can be performed
+      ctx.getSender().tell(new AddPostDone(addPost.postId), getSelf()));
+  }).matchAny((other, state, ctx) -&gt; Effect().unhandled());</code></pre></dd>
+</dl>
+<p>A <code>ReplicatedEntity</code> may also process commands that do not change application state, such as query commands or commands that are not valid in the entity&rsquo;s current state (such as a bid placed after the auction closed). Instead of using <span class="group-scala"><code>Effect.persist</code></span><span class="group-java"><code>Effect().persist</code></span> you can simply return <span class="group-scala"><code>Effect.none</code></span><span class="group-java"><code>Effect().none()</code></span> for such read-only commands. Replies are sent as ordinary actor messages to the <code>sender</code> of the context that is passed to the command handler function, or to any other <code>ActorRef</code> in the commands or state.</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-scala">case _: GetPost =&gt;
+  ctx.sender() ! state.content.get
+  Effect.none</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-java">)
+.matchCommand(GetPost.class, (ctx, state, getPost) -&gt; {
+  ctx.getSender().tell(state.content.get(), getSelf());
+  return Effect().none();
+})</code></pre></dd>
+</dl>
+<p>The commands must be immutable to avoid concurrency issues that may occur from changing a command instance that has been sent.</p>
+<p>You need to create a <a href="https://doc.akka.io/docs/akka/2.5/serialization.html">serializer</a> for the commands so that they can be sent as remote messages in the Akka cluster. We <a href="https://doc.akka.io/docs/akka/2.5/remoting.html#serialization">recommend against</a> using Java serialization.</p>
+<h3><a href="#event-handlers" name="event-handlers" class="anchor"><span class="anchor-link"></span></a>Event Handlers</h3>
+<p>The events for this example:</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-scala">import akka.persistence.multidc.crdt.LwwTime
+
+sealed trait BlogEvent
+
+final case class PostAdded(
+  postId:    String,
+  content:   PostContent,
+  timestamp: LwwTime) extends BlogEvent
+
+final case class BodyChanged(
+  postId:     String,
+  newContent: PostContent,
+  timestamp:  LwwTime) extends BlogEvent
+
+final case class Published(postId: String) extends BlogEvent
+</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-java">import akka.persistence.multidc.crdt.LwwTime;
+interface BlogEvent {}
+
+final static class PostAdded implements BlogEvent {
+  final String postId;
+  final BlogState.PostContent content;
+  final LwwTime timestamp;
+
+  public PostAdded(String postId, BlogState.PostContent content, LwwTime timestamp) {
+    this.postId = postId;
+    this.content = content;
+    this.timestamp = timestamp;
+  }
+}
+
+final static class BodyChanged implements BlogEvent {
+  final String postId;
+  final BlogState.PostContent content;
+  final LwwTime timestamp;
+
+  public BodyChanged(String postId, BlogState.PostContent content, LwwTime timestamp) {
+    this.postId = postId;
+    this.content = content;
+    this.timestamp = timestamp;
+  }
+}
+
+final static class Published implements BlogEvent {
+  final String postId;
+  public Published(String postId) {
+    this.postId = postId;
+  }
+}</code></pre></dd>
+</dl>
+<p>When an event has been persisted successfully the current state is updated by applying the event to the current state. The method for updating the state is <code>eventHandler</code> and it must be implemented by the concrete <code>ReplicatedEntity</code> class.</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-scala">// eventHandler is used both when persisting new events, replaying
+// events, and consuming replicated events.
+override def eventHandler(state: BlogState, event: BlogEvent): BlogState = {
+  event match {
+    case PostAdded(postId, content, timestamp) =&gt;
+      if (timestamp.isAfter(state.contentTimestamp))
+        state.withContent(content, timestamp)
+      else state
+
+    case BodyChanged(_, newContent, timestamp) =&gt;
+      if (timestamp.isAfter(state.contentTimestamp))
+        state.withContent(newContent, timestamp)
+      else state
+
+    case Published(_) =&gt;
+      state.copy(published = true)
+  }
+}</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-java">// the returned event handler is used both when persisting new events, replaying
+// events, and consuming replicated events.
+@Override
+public EventHandler&lt;BlogEvent, BlogState&gt; eventHandler() {
+  return eventHandlerBuilder(BlogEvent.class)
+    .matchEvent(PostAdded.class, (state, postAdded) -&gt; {
+      if (postAdded.timestamp.isAfter(state.contentTimestamp)) {
+        return state.withContent(postAdded.content, postAdded.timestamp);
+      } else {
+        return state;
+      }
+    })
+    .matchEvent(BodyChanged.class, (state, bodyChanged) -&gt; {
+      if (bodyChanged.timestamp.isAfter(state.contentTimestamp)) {
+        return state.withContent(bodyChanged.content, bodyChanged.timestamp);
+      } else {
+        return state;
+      }
+    })
+    .matchEvent(Published.class, (state, publish) -&gt; state.publish())
+    .matchAny((state, otherEvent) -&gt; state);
+}</code></pre></dd>
+</dl>
+<p>The event handler returns the new state. The state must be immutable, so you return a new instance of the state. Current state is passed as a parameter to the event handler function. The same event handler is also used when the entity is started up to recover its state from the stored events, and for consuming replicated events and updating the state from those.</p>
+<p>In this example we use a timestamp to resolve conflicting concurrent updates. The events such as <code>BodyChanged</code> contain a <code>LwwTime</code> that holds current time when the event was persisted and an identifier of the data center that persisted it. Greatest timestamp wins. The data center identifier is used if two timestamps are equal, and then the one from the data center sorted first in alphanumeric order wins. Such conflict resolution is often called last writer wins and is described in <a href="#resolving-conflicting-updates">more detail later</a></p>
+<p>The events must be immutable to avoid concurrency issues that may occur from changing an event instance that is about to be persisted.</p>
+<p>You need to create a <a href="https://doc.akka.io/docs/akka/2.5/serialization.html">serializer</a> for the events, which are stored. We <a href="https://doc.akka.io/docs/akka/2.5/remoting.html#serialization">recommend against</a> using Java serialization. When picking serialization solution for the events you should also consider that it must be possible read old events when the application has evolved. Strategies for that can be found in the <a href="https://doc.akka.io/docs/akka/2.5/persistence-schema-evolution.html">Akka documentation</a>.</p>
+<h3><a href="#state" name="state" class="anchor"><span class="anchor-link"></span></a>State</h3>
+<p>The state for this example:</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-scala">import akka.persistence.multidc.crdt.LwwTime
+
+object BlogState {
+  val empty = BlogState(None, LwwTime(Long.MinValue, &quot;&quot;), published = false)
+}
+
+final case class BlogState(
+  content:          Option[PostContent],
+  contentTimestamp: LwwTime,
+  published:        Boolean) {
+
+  def withContent(newContent: PostContent, timestamp: LwwTime): BlogState =
+    copy(content = Some(newContent), contentTimestamp = timestamp)
+
+  def isEmpty: Boolean = content.isEmpty
+}
+
+final case class PostContent(title: String, body: String)
+
+final case class PostSummary(postId: String, title: String)</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-java">import akka.persistence.multidc.crdt.LwwTime;
+
+import java.util.Optional;
+
+public class BlogState {
+
+  final static class PostContent {
+    final String title;
+    final String body;
+    public PostContent(String title, String body) {
+      this.title = title;
+      this.body = body;
+    }
+  }
+
+  final static class PostSummary {
+    final String postId;
+    final String title;
+    public PostSummary(String postId, String title) {
+      this.postId = postId;
+      this.title = title;
+    }
+  }
+
+  public final static BlogState EMPTY = new BlogState(
+      Optional.empty(),
+      new LwwTime(Long.MIN_VALUE, &quot;&quot;),
+      false);
+
+  final Optional&lt;PostContent&gt; content;
+  final LwwTime contentTimestamp;
+  final boolean published;
+
+  public BlogState(Optional&lt;PostContent&gt; content, LwwTime contentTimestamp, boolean published) {
+    this.content = content;
+    this.contentTimestamp = contentTimestamp;
+    this.published = published;
+  }
+
+  BlogState withContent(PostContent newContent, LwwTime timestamp) {
+    return new BlogState(Optional.of(newContent),timestamp, this.published);
+  }
+
+  BlogState publish() {
+    if (published) {
+      return this;
+    } else {
+      return new BlogState(content, contentTimestamp, true);
+    }
+  }
+
+  boolean isEmpty() {
+    return !content.isPresent();
+  }
+}</code></pre></dd>
+</dl>
+<p>The state must be immutable to avoid concurrency issues that may occur from changing a state instance that is about to be saved as snapshot.</p>
+<p>You need to create a <a href="https://doc.akka.io/docs/akka/2.5/serialization.html">serializer</a> for the state, because it is stored as snapshot. We <a href="https://doc.akka.io/docs/akka/2.5/remoting.html#serialization">recommend against</a> using Java serialization. When picking serialization solution for the snapshot you should also consider that it might be necessary to read old snapshots when the application has evolved. Strategies for that can be found in the <a href="https://doc.akka.io/docs/akka/2.5/persistence-schema-evolution.html">Akka documentation</a>. It is not mandatory to be able to read old snapshots. If it fails it will instead replay more old events, which might have a performance cost.</p>
+<h3><a href="#changing-behavior" name="changing-behavior" class="anchor"><span class="anchor-link"></span></a>Changing Behavior</h3>
+<p>For simple entities you can use the same set of command handlers independent of what state the entity is in. The actions can then be defined like this:</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-scala">override def commandHandler: CommandHandler =
+  CommandHandler { (ctx, state, cmd) =&gt;
+    cmd match {
+      case AddPost(_, content) =&gt;
+        val evt = PostAdded(entityId, content,
+          state.contentTimestamp.increase(currentTimeMillis(), selfDc))
+        Effect.persist(evt).andThen { state2 =&gt;
+          // After persist is done additional side effects can be performed
+          ctx.sender() ! AddPostDone(entityId)
+        }
+      case ChangeBody(_, newContent) =&gt;
+        val evt = BodyChanged(entityId, newContent,
+          state.contentTimestamp.increase(currentTimeMillis(), selfDc))
+        Effect.persist(evt).andThen { _ =&gt;
+          ctx.sender() ! Done
+        }
+      case _: Publish =&gt;
+        Effect.persist(Published(entityId)).andThen { _ =&gt;
+          ctx.sender() ! Done
+        }
+      case _: GetPost =&gt;
+        ctx.sender() ! state.content.get
+        Effect.none
+    }
+  }</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-java">public CommandHandler&lt;BlogCommand, BlogEvent, BlogState&gt; commandHandler() {
+  return commandHandlerBuilder(BlogCommand.class)
+    .matchCommand(AddPost.class, (ctx, state, cmd) -&gt; {
+      final PostAdded evt = new PostAdded(cmd.postId, cmd.content,
+        state.contentTimestamp.increase(currentTimeMillis(), getSelfDc()));
+      return Effect().persist(evt).andThen((state2) -&gt;
+        // After persist is done additional side effects can be performed
+        ctx.getSender().tell(new AddPostDone(cmd.postId), getSelf())
+      );
+    })
+    .matchCommand(ChangeBody.class, (ctx, state, cmd) -&gt; {
+      BodyChanged evt = new BodyChanged(cmd.getPostId(), cmd.newContent,
+          state.contentTimestamp.increase(currentTimeMillis(), getSelfDc()));
+        return Effect().persist(evt).andThen((newState) -&gt;
+          ctx.getSender().tell(Done.getInstance(), getSelf()));
+    })
+    .matchCommand(Publish.class, (ctx, state, cmd) -&gt;
+        Effect().persist(new Published(cmd.postId))
+                .andThen((newState) -&gt; ctx.getSender().tell(Done.getInstance(), getSelf()))
+    )
+    .matchCommand(GetPost.class, (ctx, state, cmd) -&gt; {
+      ctx.getSender().tell(state.content.get(), getSelf());
+      return Effect().none();
+    })
+    .matchAny((ctx, state, cmd) -&gt; Effect().unhandled());
+}</code></pre></dd>
+</dl>
+<p>When the state changes it can also change the behavior of the entity in the sense that new functions for processing commands may be defined. This is useful when implementing finite state machine (FSM) like entities. The <code>CommandHandler</code> can be selected based on current state by using the <span class="group-scala"><code>CommandHandler.byState</code> factory method. It is a function</span><span class="group-java"><code>byStateCommandHandlerBuilder</code>. It defines a mapping</span> from current <code>State</code> to <code>CommandHandler</code>, which is called for each incoming command to select which <code>CommandHandler</code> to use to process the command.</p>
+<p>This is how to define different behavior for different <code>State</code>:</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-scala">override def commandHandler: CommandHandler = CommandHandler.byState {
+  case state if state.isEmpty  =&gt; initial
+  case state if !state.isEmpty =&gt; postAdded
+}</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-java">return byStateCommandHandlerBuilder(BlogState.class)
+    .matchState(BlogState::isEmpty, initial)
+    .matchAny(postAdded);</code></pre></dd>
+</dl>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-scala"><br/>private val initial: CommandHandler = {
+  // The command handler is invoked for incoming messages (commands).
+  // A command handler must &quot;return&quot; the events to be persisted (if any).
+  CommandHandler { (ctx, state, cmd) =&gt;
+    cmd match {
+      case AddPost(_, content) =&gt;
+        val evt = PostAdded(entityId, content,
+          state.contentTimestamp.increase(currentTimeMillis(), selfDc))
+        Effect.persist(evt).andThen { _ =&gt;
+          // After persist is done additional side effects can be performed
+          ctx.sender() ! AddPostDone(entityId)
+        }
+      case _ =&gt;
+        Effect.unhandled
+    }
+  }
+}</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-java"><br/>// The command handler is invoked for incoming messages (commands).
+// A command handler must &quot;return&quot; the events to be persisted (if any).
+final CommandHandler&lt;BlogCommand, BlogEvent, BlogState&gt; initial =
+  commandHandlerBuilder(BlogCommand.class)
+    .matchCommand(AddPost.class, (ctx, state, addPost) -&gt; {
+      BlogEvents.PostAdded evt = new PostAdded(
+        addPost.postId,
+        addPost.content,
+        state.contentTimestamp.increase(currentTimeMillis(), getSelfDc())
+      );
+      return Effect().persist(evt).andThen((newState) -&gt;
+        // After persist is done additional side effects can be performed
+        ctx.getSender().tell(new BlogCommands.AddPostDone(addPost.postId), getSelf()));
+    }).matchAny((cmd, state, ctx) -&gt; Effect().unhandled());
+</code></pre></dd>
+</dl>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-scala">private val postAdded: CommandHandler = {
+  CommandHandler { (ctx, state, cmd) =&gt;
+    cmd match {
+      case ChangeBody(_, newContent) =&gt;
+        val evt = BodyChanged(entityId, newContent,
+          state.contentTimestamp.increase(currentTimeMillis(), selfDc))
+        Effect.persist(evt).andThen { _ =&gt;
+          ctx.sender() ! Done
+        }
+      case _: Publish =&gt;
+        Effect.persist(Published(entityId)).andThen { _ =&gt;
+          ctx.sender() ! Done
+        }
+      case _: GetPost =&gt;
+        ctx.sender() ! state.content.get
+        Effect.none
+      case _: AddPost =&gt;
+        Effect.unhandled
+    }
+  }
+}</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-java">final CommandHandler&lt;BlogCommand, BlogEvent, BlogState&gt; postAdded =
+  commandHandlerBuilder(BlogCommand.class)
+    .matchCommand(ChangeBody.class, (ctx, state, changeBody) -&gt; {
+      BodyChanged evt = new BodyChanged(changeBody.postId, changeBody.newContent,
+          state.contentTimestamp.increase(currentTimeMillis(), getSelfDc()));
+      return Effect().persist(evt).andThen((newState) -&gt;
+          ctx.getSender().tell(Done.getInstance(), getSelf())
+      );
+    })
+    .matchCommand(Publish.class, (ctx, state, publish) -&gt;
+      Effect().persist(new Published(publish.postId)).andThen((newState) -&gt;
+        ctx.getSender().tell(Done.getInstance(), getSelf()))
+    )
+    .matchCommand(GetPost.class, (ctx, state, getPost) -&gt; {
+      ctx.getSender().tell(state.content.get(), getSelf());
+      return Effect().none();
+    })
+    .matchAny((ctx, state, other) -&gt; Effect().unhandled());
+</code></pre></dd>
+</dl>
+<p>The event handler is always the same independent of state. The main reason for not making the event handler dynamic like the <code>CommandHandler</code> is that replicated events may be delayed and all events should be handled independent of what the current state is.</p>
+<h3><a href="#minimum-configuration" name="minimum-configuration" class="anchor"><span class="anchor-link"></span></a>Minimum configuration</h3>
+<p>There are a few configuration properties that are needed to enable this feature. Here are required configuration properties for running with a single Akka node and a local Cassandra server:</p>
+<pre><code>akka.actor {
+  provider = cluster
+}
+akka.remote {
+  netty.tcp {
+    hostname = &quot;127.0.0.1&quot;
+    port = 2552
+  }
+}
+akka.cluster {
+  seed-nodes = [&quot;akka.tcp://ClusterSystem@127.0.0.1:2552&quot;]
+  multi-data-center.self-data-center = DC-A
+}
+akka.persistence {
+  snapshot-store.plugin = &quot;cassandra-snapshot-store&quot;
+
+  multi-data-center {
+    all-data-centers = [&quot;DC-A&quot;, &quot;DC-B&quot;]
+  }
+}
+</code></pre>
+<h3><a href="#running-the-entity" name="running-the-entity" class="anchor"><span class="anchor-link"></span></a>Running the entity</h3>
+<p>The <code>ReplicatedEntity</code> <em>is not</em> an <code>Actor</code>, but it is run by an actor and have the same message processing semantics as an actor, i.e. each command/message is processed sequentially, one at a time, for a specific entity instance. It also has the same semantics when persisting events as <code>PersistentActor</code>, i.e. incoming commands/messages are stashed until the persist is completed.</p>
+<p>To start the entity you need to create the <code>Props</code> of the actor:</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-scala">import akka.persistence.multidc.scaladsl.ReplicatedEntity
+import akka.persistence.multidc.PersistenceMultiDcSettings
+
+val props = ReplicatedEntity.props(
+  persistenceIdPrefix = &quot;blog&quot;,
+  entityId = &quot;post-1&quot;,
+  entityFactory = () =&gt; new Post2,
+  settings = PersistenceMultiDcSettings(system))</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-java">import akka.cluster.Cluster;
+import akka.persistence.multidc.PersistenceMultiDcSettings;
+import akka.persistence.multidc.SpeculativeReplicatedEvent;
+import akka.persistence.multidc.javadsl.ReplicatedEntity;
+import java.util.Optional;
+
+Props props = ReplicatedEntity.props(
+  BlogCommands.BlogCommand.class,
+  &quot;blog&quot;,
+  &quot;post-1&quot;,
+  Post2::new,
+  settings);</code></pre></dd>
+</dl>
+<p>The parameters to the <code>props</code> are:</p>
+<ul>
+  <li><code>persistenceIdPrefix</code> - Prefix for the <code>persistenceId</code>. Empty string is a valid prefix if the  <code>entityId</code> itself is globally unique. Note that this can&rsquo;t be changed, since it is part of  the storage key (<code>persistenceId</code>).</li>
+  <li><code>entityId</code> - The identifier of the entity.</li>
+  <li><code>entityFactory</code> - Factory for creating a new instance of the entity. It has to be a  factory so that a new instance is created in case the actor is restarted.</li>
+  <li><code>settings</code> - Configuration settings.</li>
+</ul>
+<p>The <code>persistenceId</code> is the concatenation of <code>persistenceIdPrefix</code>, <code>entityId</code> and the data center identifier, separated with <code>|</code>. This must be a globally unique identifier.</p>
+<p>Then you can start the actor with <code>actorOf</code>:</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-scala">val ref = system.actorOf(props)
+ref ! AddPost(&quot;post-1&quot;, PostContent(title = &quot;First post&quot;, &quot;...&quot;))
+</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-java">import akka.actor.ActorRef;
+import akka.actor.ActorSystem;
+import akka.actor.Props;
+
+ActorRef ref = system.actorOf(props);
+ref.tell(
+  new BlogCommands.AddPost(
+    &quot;post-1&quot;,
+    new BlogState.PostContent(&quot;First post&quot;, &quot;...&quot;)),
+  sender);</code></pre></dd>
+</dl>
+<p>and send commands as messages via the <code>ActorRef</code>.</p>
+<p><code>ReplicatedEntity</code> is typically used together with <a href="https://doc.akka.io/docs/akka/2.5/cluster-sharding.html">Cluster Sharding</a> and then the <code>Props</code> is obtained with <code>ReplicatedEntity.clusterShardingProps</code>. Then the <code>Props</code> is registered with the <code>ClusterSharding</code> extension and commands sent via the <code>ActorRef</code> of the <code>ShardRegion</code> like this:</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-scala">import akka.persistence.multidc.scaladsl.ReplicatedEntity
+import akka.persistence.multidc.PersistenceMultiDcSettings
+import akka.cluster.sharding.ClusterSharding
+import akka.cluster.sharding.ClusterShardingSettings
+import akka.cluster.sharding.ShardRegion
+
+val ShardingTypeName = &quot;blog&quot;
+
+val maxNumberOfShards = 1000
+val extractEntityId: ShardRegion.ExtractEntityId = {
+  case cmd: BlogCommand =&gt; (cmd.postId, cmd)
+}
+def shardId(entityId: String): String =
+  (math.abs(entityId.hashCode) % maxNumberOfShards).toString
+val extractShardId: ShardRegion.ExtractShardId = {
+  case cmd: BlogCommand                  =&gt; shardId(cmd.postId)
+  case ShardRegion.StartEntity(entityId) =&gt; shardId(entityId)
+}
+
+val props = ReplicatedEntity.clusterShardingProps(
+  entityTypeName = ShardingTypeName,
+  entityFactory = () =&gt; new Post2,
+  settings = PersistenceMultiDcSettings(system))
+
+val region =
+  ClusterSharding(system).start(ShardingTypeName, props, ClusterShardingSettings(system),
+    extractEntityId, extractShardId)
+
+region ! AddPost(&quot;post-1&quot;, PostContent(title = &quot;First post&quot;, &quot;...&quot;))</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-java">import akka.cluster.sharding.ClusterSharding;
+import akka.cluster.sharding.ClusterShardingSettings;
+import akka.cluster.sharding.ShardRegion;
+
+ShardRegion.MessageExtractor messageExtractor = new ShardRegion.MessageExtractor() {
+
+  @Override
+  public String entityId(Object message) {
+    if (message instanceof BlogCommands.BlogCommand) {
+      return ((BlogCommands.BlogCommand) message).getPostId();
+    } else {
+      return null;
+    }
+  }
+
+  @Override
+  public Object entityMessage(Object message) {
+    return message;
+  }
+
+  private String shardId(String entityId) {
+    int maxNumberOfShards = 1000;
+    return Integer.toString(Math.abs(entityId.hashCode()) % maxNumberOfShards);
+  }
+
+  @Override
+  public String shardId(Object message) {
+    if (message instanceof BlogCommands.BlogCommand) {
+      return shardId(((BlogCommands.BlogCommand) message).getPostId());
+    } else if (message instanceof ShardRegion.StartEntity) {
+      return shardId(((ShardRegion.StartEntity) message).entityId());
+    } else {
+      return null;
+    }
+  }
+};
+
+Props props = ReplicatedEntity.clusterShardingProps(
+  BlogCommands.BlogCommand.class,
+  &quot;blog&quot;,
+  Post2::new,
+  persistenceMultiDcSettings);
+
+ClusterShardingSettings settings = ClusterShardingSettings.create(system);
+ActorRef region = ClusterSharding.get(system).start(
+  &quot;blog&quot;,
+  props,
+  settings,
+  messageExtractor);
+
+region.tell(
+  new BlogCommands.AddPost(
+    &quot;post-1&quot;,
+    new BlogState.PostContent(&quot;First post&quot;, &quot;...&quot;)),
+  sender);
+</code></pre></dd>
+</dl>
+<h2><a href="#resolving-conflicting-updates" name="resolving-conflicting-updates" class="anchor"><span class="anchor-link"></span></a>Resolving conflicting updates</h2>
+<h3><a href="#conflict-free-replicated-data-types" name="conflict-free-replicated-data-types" class="anchor"><span class="anchor-link"></span></a>Conflict Free Replicated Data Types</h3>
+<p>Writing code to resolve conflicts can be complicated to get right. One well-understood technique to create eventually-consistent systems is to model your state as a Conflict Free Replicated Data Type, a CRDT. There are two types of CRDTs; operation-based and state-based. For the <code>ReplicatedEntity</code> the operation-based is a good fit, since the events represent the operations. Note that this is distinct from the CRDT&rsquo;s implemented in <a href="https://doc.akka.io/docs/akka/2.5/distributed-data.html">Akka Distributed Data</a>, which are state-based rather than operation-based.</p>
+<p>The rule for operation-based CRDT&rsquo;s is that the operations must be commutative — in other words, applying the same events (which represent the operations) in any order should always produce the same final state. You may assume each event is applied only once, with <a href="#causal-delivery-order">causal delivery order</a>.</p>
+<p>The library provides some general purpose CRDT implementations that you can use as the state or part of the state in the entity. However, you are not limited to those types. You can write <a href="#custom-crdt-implementation">custom CRDT implementations</a> and more importantly you can implement the application specific <code>eventHandler</code> function with the semantics of a CRDT in mind.</p>
+<p>A simple example would be a movies watch list that is represented by the general purpose <code>ORSet</code> CRDT. <code>ORSet</code> is short for Observed Remove Set. Elements can be added and removed any number of times. Concurrent add wins over remove. It is an operation based CRDT where the delta of an operation (add/remove) can be represented as an event.</p>
+<p>Such movies watch list example:</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-scala">import akka.persistence.multidc.crdt.ORSet
+import akka.persistence.multidc.scaladsl.ReplicatedEntity
+import akka.persistence.multidc.PersistenceMultiDcSettings
+import akka.actor.Props
+
+object MovieWatchList {
+  sealed trait Command
+  final case class AddMovie(movieId: String) extends Command
+  final case class RemoveMovie(movieId: String) extends Command
+  case object GetMovieList extends Command
+  final case class MovieList(movieIds: Set[String])
+
+  def props(settings: PersistenceMultiDcSettings): Props =
+    ReplicatedEntity.clusterShardingProps(&quot;movies&quot;, () =&gt; new MovieWatchList, settings)
+}
+
+class MovieWatchList extends ReplicatedEntity[MovieWatchList.Command, ORSet.DeltaOp, ORSet[String]] {
+  import MovieWatchList._
+
+  override def initialState: ORSet[String] = ORSet.empty(selfDc)
+
+  override def eventHandler(state: ORSet[String], event: ORSet.DeltaOp): ORSet[String] = {
+    state.applyOperation(event)
+  }
+
+  override def commandHandler: CommandHandler = {
+    CommandHandler { (ctx, state, cmd) =&gt;
+      cmd match {
+        case AddMovie(movieId) =&gt;
+          Effect.persist(state + movieId)
+        case RemoveMovie(movieId) =&gt;
+          Effect.persist(state - movieId)
+        case GetMovieList =&gt;
+          ctx.sender() ! MovieList(state.elements)
+          Effect.none
+      }
+    }
+  }
+}</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-java">import akka.actor.Props;
+import akka.persistence.multidc.PersistenceMultiDcSettings;
+import akka.persistence.multidc.crdt.ORSet;
+import akka.persistence.multidc.javadsl.CommandHandler;
+import akka.persistence.multidc.javadsl.EventHandler;
+import akka.persistence.multidc.javadsl.ReplicatedEntity;</code></pre>
+  <pre class="prettyprint"><code class="language-java">public class MovieWatchList
+    extends ReplicatedEntity&lt;MovieWatchList.Command, ORSet.DeltaOp, ORSet&lt;String&gt;&gt; {
+
+  interface Command {
+  }
+
+  public static class AddMovie implements Command {
+    public final String movieId;
+
+    public AddMovie(String movieId) {
+      this.movieId = movieId;
+    }
+  }
+
+  public static class RemoveMovie implements Command {
+    public final String movieId;
+
+    public RemoveMovie(String movieId) {
+      this.movieId = movieId;
+    }
+  }
+
+  public static class GetMovieList implements Command {
+    static final GetMovieList INSTANCE = new GetMovieList();
+
+    private GetMovieList() {
+    }
+  }
+
+  public static class MovieList {
+    public final Set&lt;String&gt; movieIds;
+
+    public MovieList(Set&lt;String&gt; movieIds) {
+      this.movieIds = Collections.unmodifiableSet(movieIds);
+    }
+  }
+
+  public static Props props(PersistenceMultiDcSettings settings) {
+    return ReplicatedEntity.clusterShardingProps(Command.class,&quot;movies&quot;,
+        () -&gt; new MovieWatchList(), settings);
+  }
+
+  @Override
+  public ORSet&lt;String&gt; initialState() {
+    return ORSet.empty(getSelfDc());
+  }
+
+  @Override
+  public CommandHandler&lt;Command, ORSet.DeltaOp, ORSet&lt;String&gt;&gt; commandHandler() {
+    return commandHandlerBuilder(Command.class)
+        .matchCommand(AddMovie.class, (ctx, state, cmd) -&gt; {
+          return Effect().persist(state.add(cmd.movieId));
+        })
+        .matchExactCommand(GetMovieList.INSTANCE, (ctx, state, cmd) -&gt; {
+          ctx.getSender().tell(new MovieList(state.getElements()), ctx.getSelf());
+          return Effect().none();
+        })
+        .build();
+  }
+
+  @Override
+  public EventHandler&lt;ORSet.DeltaOp, ORSet&lt;String&gt;&gt; eventHandler() {
+    return eventHandlerBuilder(ORSet.DeltaOp.class)
+      .matchAny((state, evt) -&gt; {
+        return state.applyOperation(evt);
+      });
+  }
+
+}</code></pre></dd>
+</dl>
+<p>The <a href="auction-example.html">Auction Example</a> is a more comprehensive example that illustrates how application-specific rules can be used to implement an entity with CRDT semantics.</p>
+<h3><a href="#last-writer-wins" name="last-writer-wins" class="anchor"><span class="anchor-link"></span></a>Last writer wins</h3>
+<p>Sometimes it is enough to use timestamps to decide which update should win. Such approach relies on synchronized clocks, and clocks of different machines will always be slightly out of sync. Timestamps should therefore only be used used when the choice of value is not important for concurrent updates occurring within the clock skew.</p>
+<p>In general, last writer wins means that the event is used if the timestamp of the event is later (higher) than the timestamp of previous local update, otherwise the event is discarded. There is no built-in support for last writer wins, because it must often be combined with more application specific aspects.</p>
+<p><img src="images/lww.png" alt="images/lww.png" /></p>
+<p>There is a small utility class <code>LwwTime</code> that can be useful for implementing last writer wins semantics. It contains a timestamp representing current time when the event was persisted and an identifier of the data center that persisted it. When comparing two <code>LwwTime</code> the greatest timestamp wins. The data center identifier is used if the two timestamps are equal, and then the one from the data center sorted first in alphanumeric order wins.</p>
+<p>In this example the <code>isAfter</code> method in <code>LwwTime</code> is used to compare such timestamps:</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-scala">// eventHandler is used both when persisting new events, replaying
+// events, and consuming replicated events.
+override def eventHandler(state: BlogState, event: BlogEvent): BlogState = {
+  event match {
+    case PostAdded(postId, content, timestamp) =&gt;
+      if (timestamp.isAfter(state.contentTimestamp))
+        state.withContent(content, timestamp)
+      else state
+
+    case BodyChanged(_, newContent, timestamp) =&gt;
+      if (timestamp.isAfter(state.contentTimestamp))
+        state.withContent(newContent, timestamp)
+      else state
+
+    case Published(_) =&gt;
+      state.copy(published = true)
+  }
+}</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-java">// the returned event handler is used both when persisting new events, replaying
+// events, and consuming replicated events.
+@Override
+public EventHandler&lt;BlogEvent, BlogState&gt; eventHandler() {
+  return eventHandlerBuilder(BlogEvent.class)
+    .matchEvent(PostAdded.class, (state, postAdded) -&gt; {
+      if (postAdded.timestamp.isAfter(state.contentTimestamp)) {
+        return state.withContent(postAdded.content, postAdded.timestamp);
+      } else {
+        return state;
+      }
+    })
+    .matchEvent(BodyChanged.class, (state, bodyChanged) -&gt; {
+      if (bodyChanged.timestamp.isAfter(state.contentTimestamp)) {
+        return state.withContent(bodyChanged.content, bodyChanged.timestamp);
+      } else {
+        return state;
+      }
+    })
+    .matchEvent(Published.class, (state, publish) -&gt; state.publish())
+    .matchAny((state, otherEvent) -&gt; state);
+}</code></pre></dd>
+</dl>
+<p>When creating the <code>LwwTime</code> it is good to have a monotonically increasing timestamp, and for that the <code>increase</code> method in <code>LwwTime</code> can be used:</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-scala">// The command handler is invoked for incoming messages (commands).
+// A command handler must &quot;return&quot; the events to be persisted (if any).
+CommandHandler { (ctx, state, cmd) =&gt;
+  cmd match {
+    case AddPost(_, content) =&gt;
+      val evt = PostAdded(entityId, content,
+        state.contentTimestamp.increase(currentTimeMillis(), selfDc))
+      Effect.persist(evt).andThen { _ =&gt;
+        // After persist is done additional side effects can be performed
+        ctx.sender() ! AddPostDone(entityId)
+      }
+    case _ =&gt;
+      Effect.unhandled
+  }
+}</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-java">// The command handler is invoked for incoming messages (commands).
+// A command handler must &quot;return&quot; the events to be persisted (if any).
+final CommandHandler&lt;BlogCommand, BlogEvent, BlogState&gt; initial =
+  commandHandlerBuilder(BlogCommand.class)
+    .matchCommand(AddPost.class, (ctx, state, addPost) -&gt; {
+      BlogEvents.PostAdded evt = new PostAdded(
+        addPost.postId,
+        addPost.content,
+        state.contentTimestamp.increase(currentTimeMillis(), getSelfDc())
+      );
+      return Effect().persist(evt).andThen((newState) -&gt;
+        // After persist is done additional side effects can be performed
+        ctx.getSender().tell(new BlogCommands.AddPostDone(addPost.postId), getSelf()));
+    }).matchAny((cmd, state, ctx) -&gt; Effect().unhandled());</code></pre></dd>
+</dl>
+<p>The nature of last writer wins means that if you only have one timestamp for the state the events must represent an update of the full state, otherwise there is a risk that the state in different data centers will be different and not eventually converge to the same state.</p>
+<p>An example of that would be an entity representing a blog post and the fields <code>author</code> and <code>title</code> could be updated separately with events <span class="group-scala"><code>AuthorChanged(newAuthor: String)</code></span><span class="group-java"><code>new AuthorChanged(newAuthor)</code></span> and <span class="group-scala"><code>TitleChanged(newTitle: String)</code></span><span class="group-java"><code>new TitleChanged(newTitle)</code></span>.</p>
+<p>Let&rsquo;s say the blog post is created and the initial state of <code>title=Akka, author=unknown</code> is in sync in both data centers <code>DC-A</code> and <code>DC-B</code>.</p>
+<p>In <code>DC-A</code> author is changed to &ldquo;Bob&rdquo; at time <code>100</code>. Before that event has been replicated over to <code>DC-B</code> the title is updated to &ldquo;Akka News&rdquo; at time <code>101</code> in <code>DC-B</code>. When the events have been replicated the result will be:</p>
+<p><code>DC-A</code>: The title update is later so the event is used and new state is <code>title=Akka News, author=Bob</code></p>
+<p><code>DC-B</code>: The author update is earlier so the event is discarded and state is <code>title=Akka News, author=unknown</code></p>
+<p>The problem here is that the partial update of the state is not applied on both sides, so the states have diverged and will not become the same.</p>
+<p>To solve this with last writer wins the events must carry the full state, such as <span class="group-scala"><code>AuthorChanged(newContent: PostContent)</code></span><span class="group-java"><code>new AuthorChanged(newContent)</code></span> and <span class="group-scala"><code>TitleChanged(newContent: PostContent)</code></span><span class="group-java"><code>new TitleChanged(newContent)</code></span>. Then the result would eventually be <code>title=Akka News, author=unknown</code> on both sides. The author update is lost but that is because the changes were performed concurrently. More important is that the state is eventually consistent.</p>
+<p>Including the full state in each event is often not desired. An event typically represent a change, a delta. Then one can use several timestamps, one for each set of fields that can be updated together. In the above example one could use one timestamp for the title and another for the author. Then the events could represent changes to parts of the full state, such as <span class="group-scala"><code>AuthorChanged(newAuthor: String)</code></span><span class="group-java"><code>new AuthorChanged(newAuthor)</code></span> and <span class="group-scala"><code>TitleChanged(newTitle: String)</code></span><span class="group-java"><code>new TitleChanged(newTitle)</code></span>.</p>
+<p>The above <a href="#getting-started">Getting started example</a> is using last writer wins.</p>
+<h3><a href="#additional-information-about-the-events" name="additional-information-about-the-events" class="anchor"><span class="anchor-link"></span></a>Additional information about the events</h3>
+<p>The <code>eventHandler</code> is used both when persisting new events, replaying events, and consuming replicated events. Sometimes it can be good know the difference of these cases and have some additional meta data about the event. For that purpose you may optionally override <code>selfEventHandler</code> and <code>replicatedEventHandler</code>. By default these delegate to <code>eventHandler</code>.</p>
+<p>The additional information for both these methods:</p>
+<ul>
+  <li><code>timestamp</code> - time when the event was persisted as returned by <code>ReplicatedEntity.currentTimeMillis</code>,  which is typically in epoch milliseconds, i.e. milliseconds since midnight, January 1, 1970 UTC</li>
+  <li><code>sequenceNr</code> - the sequence number of the event</li>
+  <li><code>recoveryRunning</code> - <code>true</code> when the event is applied from replay when recovering the state at startup,  <code>false</code> if it was persisted now</li>
+</ul>
+<p>For <code>applyReplicatedEvent</code> there are also:</p>
+<ul>
+  <li><code>originDc</code> the event was persisted by this data center</li>
+  <li><code>concurrent</code> see <a href="#detecting-concurrent-updates">Detecting concurrent updates</a></li>
+</ul>
+<h3><a href="#detecting-concurrent-updates" name="detecting-concurrent-updates" class="anchor"><span class="anchor-link"></span></a>Detecting concurrent updates</h3>
+<p>There is a feature to enable tracking of causality between events to detect concurrent updates. The <code>ReplicatedEventContext</code> that is passed as parameter to <code>applyReplicatedEvent</code> has the <code>concurrent</code> flag to indicate if an event was persisted with a causal relation to previous event here (<code>concurrent=false</code>), or if an update occurred in both data centers before the events had been replicated to the other side (<code>concurrent=true</code>).</p>
+<p>Here is an example of registry that accept updates when they are in causal order but for concurrent updates it prefers one data center:</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-scala">override def replicatedEventHandler(ctx: ReplicatedEventContext, state: Registry, event: Event): Registry = {
+  // lowest DC wins if concurrent update
+  if (ctx.concurrent &amp;&amp; (selfDc.compareTo(ctx.originDc) &lt; 0)) state
+  else eventHandler(state, event)
+}
+
+override def eventHandler(state: Registry, event: Event): Registry = event match {
+  case Changed(s) ⇒ Registry(s)
+}</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-java">@Override
+public Registry replicatedEventHandler(ReplicatedEventContext ctx, Registry state, BiasedRegistryEvents.BiasedRegistryEvent event) {
+  // lowest DC wins if concurrent update
+  if (ctx.concurrent() &amp;&amp; (selfDc().compareTo(ctx.originDc()) &lt; 0)) {
+    return state;
+  }
+  else {
+    return internalApplyEvent(state, event);
+  }
+}
+
+@Override
+public EventHandler&lt;BiasedRegistryEvents.BiasedRegistryEvent, Registry&gt; eventHandler() {
+  return eventHandlerBuilder(BiasedRegistryEvents.BiasedRegistryEvent.class)
+      .matchEvent(BiasedRegistryEvents.Changed.class, (state, changed) -&gt; {
+        return new Registry(changed.item);
+      })
+      .build();
+}</code></pre></dd>
+</dl>
+<p>Detecting concurrent updates are done by storing a <a href="https://en.wikipedia.org/wiki/Version_vector">version vector</a> with each event and comparing that with a local version vector when the event is delivered. When using pure CRDTs it is typically not needed to care about if an event is concurrent or not, since CRDT operations must be commutative.</p>
+<h2><a href="#side-effects" name="side-effects" class="anchor"><span class="anchor-link"></span></a>Side effects</h2>
+<p>The general recommendation for external side effects is to perform them using the <code>andThen</code> callbacks. The <code>andThen</code> callbacks are called after the events are persisted. In case no events are emitted, e.g. when passing an empty <span class="group-scala"><code>immutable.Seq[Event]</code></span><span class="group-java"><code>List&lt;Event&gt;</code></span>or using <span class="group-scala"><code>Effect.none</code></span><span class="group-java"><code>Effect().none()</code></span>, the callbacks are immediately called.</p>
+<p>Side effects from the event handler are generally discouraged, because the event handlers are also used during replay and when consuming replicated events and that would result in undesired re-execution of the side effects.</p>
+<p><code>recoveryCompleted</code> can be a good place to based on current state after recovery retry the side effects that were intended to be performed but have not been confirmed yet. You would typically persist one event for the intention to perform the side effect before doing it, and then store an acknowledgment event when it has been confirmed by the destination that is was performed.</p>
+<p>One can try best effort to only perform side effects once but to achieve effectively once-and-only-once the destination must be able to de-duplicate retried requests (or the side effect is idempotent in other ways).</p>
+<p>Coordination between different data centers for deciding where a side effect should be performed is not provided by the <code>ReplicatedEntity</code>. You have to use another tool for such consensus decisions, e.g. ZooKeeper. You could also simply decide that such side effects should only be performed by one data center, but you would still have to handle duplicate attempts.</p>
+<h3><a href="#triggers" name="triggers" class="anchor"><span class="anchor-link"></span></a>Triggers</h3>
+<p>For some use cases you may need to trigger side effects after consuming replicated events. For example when an auction has been closed in all data centers and all bids have been replicated. Another example could be workflow process that requires confirmation that other data centers have received certain facts (events) before proceeding with next step in the process.</p>
+<p>To be able to perform side effects, and also persisting new events, in reaction to consuming events from own or other data centers you can override the method <code>eventTrigger</code> in the <code>ReplicatedEntity</code>. It is called for all events, but it is not called during recovery. Side effects after recovery should be done in <code>recoveryCompleted</code> based on the state.</p>
+<p>Here is an example of a workflow process that is using triggers to continue the process when a step has been approved by the authority of all data centers.</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-scala">object Process {
+  sealed trait Command
+  case object Run extends Command
+  case object GetState extends Command
+
+  sealed trait Event
+  final case class StepStarted(stepNr: Int) extends Event
+  final case class StepApproved(stepNr: Int, byDc: String) extends Event
+  final case class StepDenied(stepNr: Int, byDc: String) extends Event
+
+  final case class State(currentStep: Int, stepApprovedByDc: Set[String], denied: Boolean, allDcs: Set[String]) {
+    def isStarted: Boolean = currentStep &gt; 0
+    def isApproved(stepNr: Int): Boolean = !denied &amp;&amp; stepApprovedByDc == allDcs
+    def isCurrentStepApproved: Boolean = isApproved(currentStep)
+  }
+
+  // Messages to the Authority actor
+  final case class RequestApproval(stepNr: Int)
+  final case class Authorized(stepNr: Int) extends Command
+  final case class Denied(stepNr: Int) extends Command
+
+  private case object ResendTick
+}
+
+/**
+ * Example of a workflow process that is using triggers to continue the process
+ * when a step has been approved by the authority of all DCs. The process is
+ * denied if any step is denied by any DC.
+ */
+class Process(authority: ActorRef, maxSteps: Int)
+  extends ReplicatedEntity[Process.Command, Process.Event, Process.State] {
+  import Process._
+
+  val resendInterval = 1.second
+
+  override def initialState = State(0, Set.empty, false, allDcs)
+
+  override def commandHandler =
+    CommandHandler { (ctx, state, cmd) =&gt;
+      cmd match {
+        case Run =&gt;
+          if (state.currentStep == maxSteps) {
+            Effect.none // all steps completed
+          } else if (state.isCurrentStepApproved || !state.isStarted) {
+            Effect.persist(StepStarted(state.currentStep + 1))
+          } else if (state.isStarted &amp;&amp; !state.stepApprovedByDc(selfDc)) {
+            // resend after crash/recovery
+            authority ! RequestApproval(state.currentStep)
+            ctx.timers.startPeriodicTimer(ResendTick, ResendTick, resendInterval)
+            Effect.none
+          } else {
+            Effect.none // in progress, waiting for approvals
+          }
+
+        case Authorized(nr) =&gt;
+          if (state.currentStep == nr &amp;&amp; !state.stepApprovedByDc(selfDc)) {
+            ctx.timers.cancel(ResendTick)
+            Effect.persist(StepApproved(nr, selfDc))
+          } else
+            Effect.none // duplicate from resending to authority
+
+        case Denied(nr) =&gt;
+          ctx.timers.cancel(ResendTick)
+          Effect.persist(StepDenied(nr, selfDc))
+
+        case GetState =&gt;
+          ctx.sender() ! state
+          Effect.none
+      }
+    }
+      .onTimer[ResendTick.type] { (ctx, state, _) =&gt;
+        if (state.isStarted &amp;&amp; !state.stepApprovedByDc(selfDc)) {
+          // resend to authority, at-least-once
+          log.info(&quot;resending RequestApproval for step {}&quot;, state.currentStep)
+          authority ! RequestApproval(state.currentStep)
+        }
+        Effect.none
+
+      }
+
+  override def recoveryCompleted(ctx: ActorContext, state: State): Effect[Event, State] = {
+    if (selfDc == &quot;DC-A&quot;)
+      ctx.self ! Run
+
+    Effect.none
+  }
+
+  override def eventHandler(state: State, event: Event) = {
+    event match {
+      case StepStarted(nr) =&gt;
+        State(currentStep = nr, stepApprovedByDc = Set.empty, denied = false, allDcs)
+      case StepApproved(_, byDc) =&gt;
+        state.copy(stepApprovedByDc = state.stepApprovedByDc + byDc)
+      case StepDenied(_, _) =&gt;
+        state.copy(denied = true)
+    }
+  }
+
+  override def eventTrigger(
+    ctx:   EventTriggerContext,
+    state: State, event: Event): Effect[Event, State] = {
+    event match {
+      case StepStarted(nr) =&gt;
+        authority ! RequestApproval(nr)
+        ctx.actorContext.timers.startPeriodicTimer(ResendTick, ResendTick, resendInterval)
+        Effect.none
+      case StepApproved(_, _) =&gt;
+        if (!state.denied &amp;&amp; selfDc == &quot;DC-A&quot; &amp;&amp; state.isCurrentStepApproved &amp;&amp; state.currentStep &lt; maxSteps) {
+          // approved by all, continue with next step
+          log.info(&quot;Step {} approved by all, continue&quot;, state.currentStep)
+          Effect.persist(StepStarted(state.currentStep + 1))
+        } else
+          Effect.none
+      case _ =&gt;
+        Effect.none
+    }
+  }
+}</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-java">/**
+ * Example of a workflow process that is using triggers to continue the process
+ * when a step has been approved by the authority of all DCs. The process is
+ * denied if any step is denied by any DC.
+ */
+public static class Process extends ReplicatedEntity&lt;Process.Command, Process.Event, Process.State&gt; {
+  interface Command {
+  }
+
+  public static class Run implements Command {
+    static final Run INSTANCE = new Run();
+
+    private Run() {
+    }
+  }
+
+  public static class GetState implements Command {
+    static final GetState INSTANCE = new GetState();
+
+    private GetState() {
+    }
+  }
+
+  interface Event {
+  }
+
+  public static class StepStarted implements Event {
+    final int stepNr;
+
+    public StepStarted(int stepNr) {
+      this.stepNr = stepNr;
+    }
+  }
+
+  public static class StepApproved implements Event {
+    final int stepNr;
+    final String byDc;
+
+    public StepApproved(int stepNr, String byDc) {
+      this.stepNr = stepNr;
+      this.byDc = byDc;
+    }
+  }
+
+  public static class StepDenied implements Event {
+    final int stepNr;
+    final String byDc;
+
+    public StepDenied(int stepNr, String byDc) {
+      this.stepNr = stepNr;
+      this.byDc = byDc;
+    }
+  }
+
+  public static class State {
+    final int currentStep;
+    final Set&lt;String&gt; stepApprovedByDc;
+    final boolean denied;
+    final Set&lt;String&gt; allDcs;
+
+    public State(int currentStep, Set&lt;String&gt; stepApprovedByDc, boolean denied, Set&lt;String&gt; allDcs) {
+      this.currentStep = currentStep;
+      this.stepApprovedByDc = Collections.unmodifiableSet(stepApprovedByDc);
+      this.denied = denied;
+      this.allDcs = Collections.unmodifiableSet(allDcs);
+    }
+
+    public State addStepApprovedByDc(String dc) {
+      Set&lt;String&gt; newStepApprovedByDc = new HashSet&lt;&gt;(stepApprovedByDc);
+      newStepApprovedByDc.add(dc);
+      return new State(currentStep, newStepApprovedByDc, denied, allDcs);
+    }
+
+    public State withDenied() {
+      return new State(currentStep, stepApprovedByDc, true, allDcs);
+    }
+
+    public boolean isStarted() {
+      return currentStep &gt; 0;
+    }
+
+    public boolean isApproved(int stepNr) {
+      return !denied &amp;&amp; stepApprovedByDc.equals(allDcs);
+    }
+
+    public boolean isCurrentStepApproved() {
+      return isApproved(currentStep);
+    }
+  }
+
+
+  // Messages to the Authority actor
+  public static class RequestApproval {
+    final int stepNr;
+
+    public RequestApproval(int stepNr) {
+      this.stepNr = stepNr;
+    }
+  }
+
+  public static class Authorized implements Command {
+    final int stepNr;
+
+    public Authorized(int stepNr) {
+      this.stepNr = stepNr;
+    }
+  }
+
+  public static class Denied implements Command {
+    final int stepNr;
+
+    public Denied(int stepNr) {
+      this.stepNr = stepNr;
+    }
+  }
+
+  private static class ResendTick implements Command {
+    static final ResendTick INSTANCE = new ResendTick();
+
+    private ResendTick() {
+    }
+  }
+
+  private static final FiniteDuration resendInterval = Duration.create(1, TimeUnit.SECONDS);
+
+
+  private final ActorRef authority;
+  private final int maxSteps;
+
+  public Process(ActorRef authority, int maxSteps) {
+    this.authority = authority;
+    this.maxSteps = maxSteps;
+  }
+
+  @Override
+  public State initialState() {
+    return new State(0, Collections.emptySet(), false, Collections.emptySet());
+  }
+
+  @Override
+  public CommandHandler&lt;Command, Event, State&gt; commandHandler() {
+    return commandHandlerBuilder(Command.class)
+        .matchExactCommand(Run.INSTANCE, (ctx, state, cmd) -&gt; {
+          if (state.currentStep == maxSteps) {
+            return Effect().none(); // all steps completed
+          } else if (state.isCurrentStepApproved() || !state.isStarted()) {
+            return Effect().persist(new StepStarted(state.currentStep + 1));
+          } else if (state.isStarted() &amp;&amp; !state.stepApprovedByDc.contains(getSelfDc())) {
+            // resend after crash/recovery
+            authority.tell(new RequestApproval(state.currentStep), ctx.getSelf());
+            ctx.getTimers().startPeriodicTimer(ResendTick.INSTANCE, ResendTick.INSTANCE, resendInterval);
+            return Effect().none();
+          } else {
+            return Effect().none(); // in progress, waiting for approvals
+          }
+        })
+        .matchCommand(Authorized.class, (ctx, state, cmd) -&gt; {
+          if (state.currentStep == cmd.stepNr &amp;&amp; !state.stepApprovedByDc.contains(getSelfDc())) {
+            ctx.getTimers().cancel(ResendTick.INSTANCE);
+            return Effect().persist(new StepApproved(cmd.stepNr, getSelfDc()));
+          } else
+            return Effect().none(); // duplicate from resending to authority
+        })
+        .matchCommand(Denied.class, (ctx, state, cmd) -&gt; {
+          ctx.getTimers().cancel(ResendTick.INSTANCE);
+          return Effect().persist(new StepDenied(cmd.stepNr, getSelfDc()));
+        })
+        .matchCommand(GetState.class, (ctx, state, cmd) -&gt; {
+          ctx.getSender().tell(state, ctx.getSelf());
+          return Effect().none();
+        })
+        .onTimer(ResendTick.class, (ctx, state, msg) -&gt; {
+          // resend to authority, at-least-once
+          log().info(&quot;resending RequestApproval for step {}&quot;, state.currentStep);
+          authority.tell(new RequestApproval(state.currentStep), ctx.getSelf());
+          return Effect().none();
+        })
+        .build();
+  }
+
+  @Override
+  public Effect&lt;Event, State&gt; recoveryCompleted(ActorContext ctx, State state) {
+    if (getSelfDc().equals(&quot;DC-A&quot;))
+      ctx.getSelf().tell(Run.INSTANCE, ActorRef.noSender());
+    return Effect().none();
+  }
+
+  @Override
+  public EventHandler&lt;Event, State&gt; eventHandler() {
+    return eventHandlerBuilder(Event.class)
+        .matchEvent(StepStarted.class, (state, evt) -&gt; {
+          return new State(evt.stepNr, Collections.emptySet(), false, getAllDcs());
+        })
+        .matchEvent(StepApproved.class, (state, evt) -&gt; {
+          return state.addStepApprovedByDc(evt.byDc);
+        })
+        .matchEvent(StepDenied.class, (state, evt) -&gt; {
+          return state.withDenied();
+        })
+        .build();
+  }
+
+  @Override
+  public Effect&lt;Event, State&gt; eventTrigger(EventTriggerContext ctx, State state, Event event) {
+    if (event instanceof StepStarted) {
+      StepStarted stepStarted = (StepStarted) event;
+      authority.tell(new RequestApproval(stepStarted.stepNr), ctx.actorContext().getSelf());
+      ctx.actorContext().getTimers().startPeriodicTimer(ResendTick.INSTANCE, ResendTick.INSTANCE, resendInterval);
+      return Effect().none();
+    } else if (event instanceof StepApproved) {
+      StepApproved stepApproved = (StepApproved) event;
+      if (!state.denied &amp;&amp; getSelfDc().equals(&quot;DC-A&quot;) &amp;&amp; state.isCurrentStepApproved() &amp;&amp; state.currentStep &lt; maxSteps) {
+        // approved by all, continue with next step
+        log().info(&quot;Step {} approved by all, continue&quot;, state.currentStep);
+        return Effect().persist(new StepStarted(state.currentStep + 1));
+      } else
+        return Effect().none();
+
+    } else {
+      return Effect().none();
+    }
+  }
+
+}</code></pre></dd>
+</dl>
+<p>The <a href="auction-example.html">Auction Example</a> is also using triggers.</p>
+<h2><a href="#failures" name="failures" class="anchor"><span class="anchor-link"></span></a>Failures</h2>
+<p>If persistence of an event fails the problem is logged and the actor will unconditionally be stopped.</p>
+<p>The reason that it cannot resume when persist fails is that it is unknown if the event was actually persisted or not, and therefore it is in an inconsistent state. Restarting on persistent failures will most likely fail anyway since the journal is probably unavailable. It is better to stop the actor and after a back-off timeout start it again. The <code>akka.pattern.BackoffSupervisor</code> actor is provided to support such restarts.</p>
+<p>See <a href="https://doc.akka.io/docs/akka/2.5/persistence.html#failures">Akka documentation</a> of how to use the <code>BackoffSupervisor</code>.</p>
+<h2><a href="#snapshots" name="snapshots" class="anchor"><span class="anchor-link"></span></a>Snapshots</h2>
+<p>When the entity is started the state is recovered by replaying stored events. To reduce this recovery time the entity may start the recovery from a snapshot of the state and then only replaying the events that were stored after the snapshot for that entity.</p>
+<p>Such snapshots are automatically saved after a configured number of persisted events. The snapshot if any is automatically used as the initial state before replaying the events. The interval between snapshots can be configured with the <code>akka.persistence.multi-data-center.snapshot-after</code> setting.</p>
+<p>The state must be immutable to avoid concurrency issues that may occur from changing a state instance that is about to be saved as a snapshot.</p>
+<p>The snapshot contains internal state and user-defined state. You need to create a <a href="https://doc.akka.io/docs/akka/2.5/serialization.html">serializer</a> for the state, because it is stored as snapshot. We <a href="https://doc.akka.io/docs/akka/2.5/remoting.html#serialization">recommend against</a> using Java serialization. When picking serialization solution for the snapshot you should also consider that it might be necessary to read old snapshots when the application has evolved. Strategies for that can be found in the <a href="https://doc.akka.io/docs/akka/2.5/persistence-schema-evolution.html">Akka documentation</a>. It is not mandatory to be able to read old snapshots. If it fails it will instead replay more old events, which might have a performance cost.</p>
+<h2><a href="#passivating-and-stopping-entities" name="passivating-and-stopping-entities" class="anchor"><span class="anchor-link"></span></a>Passivating and stopping entities</h2>
+<p>When a <code>ReplicatedEntity</code> is not used it is good to stop it to reduce resource consumption. A started entity is not only using memory but also looking for new replicated events from other data centers once in a while (<code>cassandra-journal-multi-dc.low-frequency-read-events-interval</code> config).</p>
+<p>When run under sharding the entities will automatically shutdown after an idle period of 90 seconds during which the entity did not receive any commands (configurable through <code>akka.persistence.multi-data-center.auto-passivate-after</code>). Note that this should be set higher than <code>keep-alive.start-entity-interval</code> if <code>keep-alive</code> is enabled to avoid the entities repeatedly passivating and then being restarted by the keep-alive.</p>
+<p>If a <code>ReplicatedEntity</code> at some point explicitly sets a receive timeout that will cause the auto passivation to be disabled for that entity. You can programmatically disable the auto passivation for an entity by setting the receive timeout to <span class="group-scala"><code>Duration.Inf</code></span><span class="group-java"><code>Duration.Inf()</code></span>. </p>
+<p>To explicitly passivate an entity running under <a href="https://doc.akka.io/docs/akka/2.5/cluster-sharding.html">Cluster Sharding</a> you can use <span class="group-scala"><code>Effect.passivate(YourOwnStopCommand)</code></span><span class="group-java"><code>Effect().passivate(new YourOwnStopCommand)</code></span> which will do a graceful shutdown and send <code>YourOwnStopCommand</code> to the entity when it is safe to stop, it can then return <span class="group-scala"><code>Effect.stop</code></span><span class="group-java"><code>Effect().stop()</code></span> to actually stop the entity. It is important to do this graceful shutdown dance as sharding may have buffered messages which could otherwise be lost. You can read more about the reason for <code>passivate</code> in the <a href="https://doc.akka.io/docs/akka/2.5/cluster-sharding.html#passivation">Cluster Sharding docs</a>.</p>
+<p>For an entity whose lifecycle you are managing yourself you can use <code>Effect.stop</code> directly.</p>
+<h2><a href="#tagging-events" name="tagging-events" class="anchor"><span class="anchor-link"></span></a>Tagging Events</h2>
+<p>It is possible to &ldquo;tag&rdquo; events along with persisting them. This is useful for later retrival of events for a given tag. The <code>ReplicatedEntity</code> provides a built-in API to allow tagging before sending an event to the underlying datastore. Tagging is useful in practice to build queries that lead to other data representations or aggregations of the these event streams that can more directly serve user queries &ndash; known as building the &ldquo;read side&rdquo; in CQRS based applications.</p>
+<p>In order to tag events you have to override the <code>tagsFor</code> method, which should return a <code>Set</code> of <code>String</code>s, which are the tags which should be applied to this event. Returning an empty Set means no tags should be applied to this event. This method is invoked in all datacenters, as the tags could be dependent on the datacenter. For example, if the datacenter split is done to separate the cluster into regions like countries for example, and only a specific datacenter (or country) should handle some specific events, you could implement it here by inspecting the <code>EventTaggingContext</code>. </p>
+<p>Most often however, you will want to tag events only in a specific Dc, or only in the origin datacenter where an event was created initially, and not tag it again in the other datacenters, to which the event will be replicated. This is avoid &ldquo;double tagging&rdquo; an event that is replicated to an ReplicatedEntity, and was already tagged in its origin, which could lead to seeminly &ldquo;duplicated&rdquo; events when querying by tag. </p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-scala">import akka.NotUsed
+import akka.actor.ActorSystem
+
+import akka.persistence.cassandra.query.scaladsl.CassandraReadJournal
+import akka.persistence.multidc.PersistenceMultiDcSettings
+import akka.persistence.multidc.crdt.Counter
+import akka.persistence.multidc.scaladsl.ReplicatedEntity
+import akka.persistence.query.EventEnvelope
+import akka.persistence.query.Offset
+import akka.persistence.query.PersistenceQuery
+
+import akka.stream.ActorMaterializer
+import akka.stream.scaladsl._
+
+sealed trait Command
+final case class Insert(i: Int, note: String) extends Command
+
+sealed trait Event
+final case class Incremented(i: Int, note: String) extends Event
+final case class SpecialIncremented(i: Incremented) extends Event
+
+class TaggingCounter extends ReplicatedEntity[Command, Event, Counter] {
+
+  override def initialState: Counter = Counter.empty
+
+  override def eventHandler(state: Counter, event: Event): Counter = event match {
+    case Incremented(delta, _)   =&gt; state.applyOperation(Counter.Updated(delta))
+    case SpecialIncremented(inc) =&gt; state.applyOperation(Counter.Updated(inc.i))
+  }
+
+  override def commandHandler: CommandHandler = CommandHandler {
+    case (ctx, state, Insert(i, note)) =&gt;
+      Effect.persist(Incremented(i, note))
+  }
+
+  override def tagsFor(ctx: EventTaggingContext, event: Event): Set[String] =
+    if (!ctx.isSelfOriginDc) {
+      // don&#39;t apply tags if event was replicated here, it already will appear in queries by tag
+      // as the origin Dc would have tagged it already
+      Set.empty
+    } else event match {
+      case _: Incremented ⇒
+        // tag with the &quot;entity type name&quot;
+        Set(&quot;TaggingCounter&quot;)
+
+      case _: SpecialIncremented ⇒
+        // tag with entity type, and additional tag
+        Set(&quot;special&quot;, &quot;TaggingCounter&quot;)
+
+      case _ ⇒
+        // do not tag other events
+        Set.empty
+    }
+
+}</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-java">import akka.NotUsed;
+
+import akka.actor.ActorSystem;
+import akka.persistence.cassandra.query.javadsl.CassandraReadJournal;
+import akka.persistence.multidc.PersistenceMultiDcSettings;
+import akka.persistence.multidc.ReplicatedEvent;
+import akka.persistence.multidc.crdt.Counter;
+import akka.persistence.multidc.javadsl.CommandHandler;
+import akka.persistence.multidc.javadsl.EventHandler;
+import akka.persistence.multidc.javadsl.ReplicatedEntity;
+import akka.persistence.query.EventEnvelope;
+import akka.persistence.query.Offset;
+
+import akka.persistence.query.PersistenceQuery;
+import akka.stream.ActorMaterializer;
+import akka.stream.javadsl.*;
+
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
+
+static interface Command {
+}
+final static class Insert implements Command {
+  public final int i;
+  public final String note;
+  public Insert(int i, String note) {
+    this.i = i;
+    this.note = note;
+  }
+}
+
+static interface Event {
+}
+
+final class Incremented implements Event {
+  public final int i;
+  public final String note;
+  public Incremented(int i, String note) {
+    this.i = i;
+    this.note = note;
+  }
+}
+
+final class SpecialIncremented implements Event {
+  public final Incremented i;
+  public SpecialIncremented(Incremented i) {
+    this.i = i;
+  }
+}
+
+static class TaggingCounter extends ReplicatedEntity&lt;Command, Event, Counter&gt; {
+
+  @Override
+  public Counter initialState() {
+    return Counter.empty();
+  }
+
+  @Override
+  public CommandHandler&lt;Command, Event, Counter&gt; commandHandler() {
+    return commandHandlerBuilder(Command.class)
+        .matchCommand(Insert.class, (ctx, state, command) -&gt; {
+          return Effect().none();
+        })
+        .matchAny((ctx, state, cmd) -&gt; Effect().unhandled());
+  }
+
+  @Override
+  public EventHandler&lt;Event, Counter&gt; eventHandler() {
+    return eventHandlerBuilder(Event.class)
+      .matchEvent(Incremented.class, (state, evt) -&gt; {
+        return state.applyOperation(new Counter.Updated(evt.i));
+      })
+      .build();
+  }
+
+  @Override
+  public Set&lt;String&gt; tagsFor(EventTaggingContext ctx, Event event) {
+    if (!ctx.isSelfOriginDc()) {
+      // don&#39;t apply tags if event was replicated here, it already will appear in queries by tag
+      // as the origin Dc would have tagged it already
+      return Collections.emptySet();
+    } else {
+      if (event instanceof Incremented) {
+        // tag with the &quot;entity type name&quot;
+        return Collections.singleton(&quot;TaggingCounter&quot;);
+      } else if (event instanceof SpecialIncremented) {
+        // tag with entity type, and additional tag
+        Set&lt;String&gt; tags = new HashSet&lt;&gt;();
+        tags.add(&quot;TaggingCounter&quot;);
+        tags.add(&quot;special&quot;);
+        return tags;
+      } else {
+        // do not tag other events
+        return Collections.emptySet();
+      }
+    }
+  }
+
+}</code></pre></dd>
+</dl>
+<p>While the above example showcases various ways of tagging, the most common and simple way to tag events is to tag them using the entity type name that is persisting these events, and doing so only in the origin datacenter, which is as simple as:</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-scala">override def tagsFor(ctx: EventTaggingContext, event: Event): Set[String] =
+  if (ctx.isSelfOriginDc) Set(&quot;TaggingCounter&quot;) else Set.empty</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-java">abstract class SimpleTaggingCounter extends ReplicatedEntity&lt;Command, Event, Counter&gt; {
+  @Override
+  public Set&lt;String&gt; tagsFor(EventTaggingContext ctx, Event event) {
+    if (ctx.isSelfOriginDc()) return Collections.singleton(&quot;TaggingCounter&quot;);
+    else return Collections.emptySet();
+  }
+}</code></pre></dd>
+</dl>
+<p>You can then use Akka <a href="https://doc.akka.io/docs/akka/2.5/persistence-query.html">Persistence Query</a> to get an Akka Stream of all the events tagged using a given tag. While events will arrive from different persistenceIds, since many entities may be tagging their events using the same tag, the ordering guarantee that Akka provides is that for each persistenceId the events will be in-order, without gaps or loss during the replay. This is made possible by taking extra caution during storage and replay of such events in Persistence Query and currently is implemented by the Cassandra journal.</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-scala"><br/>implicit val system = ActorSystem(&quot;TagQueryExample&quot;)
+implicit val mat = ActorMaterializer()
+
+// obtain the queries object (which is safe to re-use)
+val ReplicatedEventsQueryJournalId = PersistenceMultiDcSettings.DefaultReplicatedEventsQueryJournalPluginId
+val queries = PersistenceQuery(system).readJournalFor[CassandraReadJournal](ReplicatedEventsQueryJournalId)
+
+// prepare a query by specific tag:
+val taggingCounterEvents: Source[EventEnvelope, NotUsed] =
+  queries.eventsByTag(&quot;TaggingCounter&quot;, Offset.noOffset)
+
+// execute the query and do things with the queries events:
+taggingCounterEvents.runWith(Sink.foreach { eventEnvelope: EventEnvelope ⇒
+  eventEnvelope.event match {
+    case replicatedEvent: ReplicatedEvent[_] =&gt;
+      replicatedEvent.event match {
+        case Incremented(i, note) =&gt;
+          println(s&quot;Event: Incremented by $i, $note from ${replicatedEvent.originDc} for ${replicatedEvent.entityId}&quot;)
+
+        case otherEvent =&gt;
+        // not interested in others...
+      }
+    case other =&gt;
+    // event not stored by ReplicatedEntity, e.g. by old PersistentActor
+  }
+})</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-java">final ActorSystem system = ActorSystem.create(&quot;TagQueryExample&quot;);
+final ActorMaterializer mat = ActorMaterializer.create(system);
+
+// obtain the queries object (which is safe to re-use)
+final String ReplicatedEventsQueryJournalId = PersistenceMultiDcSettings.DefaultReplicatedEventsQueryJournalPluginId();
+final CassandraReadJournal queries =
+    PersistenceQuery.get(system).readJournalFor(ReplicatedEventsQueryJournalId);
+
+// prepare a query by specific tag:
+final Source&lt;EventEnvelope, NotUsed&gt; taggingCounterEvents =
+    queries.eventsByTag(&quot;TaggingCounter&quot;, Offset.noOffset());
+
+// execute the query and do things with the queries events:
+taggingCounterEvents.runWith(Sink.foreach((EventEnvelope envelope) -&gt; {
+  if (envelope.event() instanceof ReplicatedEvent) {
+    @SuppressWarnings(&quot;unchecked&quot;)
+    ReplicatedEvent&lt;Event&gt; replicatedEvent = (ReplicatedEvent&lt;Event&gt;) envelope.event();
+
+    if (replicatedEvent.event() instanceof Incremented) {
+      Incremented incremented = (Incremented) replicatedEvent.event();
+      int i = incremented.i;
+      System.out.println(String.format(&quot;Event: Incremented by %s $note from %s for %s&quot;,
+          i, replicatedEvent.originDc(), replicatedEvent.entityId()));
+
+    } else {
+      // unknown event...
+    }
+  } else {
+    // even not stored by ReplicatedEntity, e.g. by old PersistentActor
+  }
+}), mat);</code></pre></dd>
+</dl>
+<p>You can read more about the exact semantics of the stream in the section explaining <a href="https://doc.akka.io/docs/akka/2.5/persistence-query.html#read-journals">Read Journals</a> of the Akka documentation. The short version is that two kinds of queries exist, one that is &ldquo;infinite&rdquo; and continues running forever, emitting new events as they are tagged (<code>eventsByTag</code>), and one finite that will emit all events with a given tag at a certain point in time and then complete the <code>Source</code> (<code>currentEventsByTag</code>).</p>
+<h2><a href="#testing" name="testing" class="anchor"><span class="anchor-link"></span></a>Testing</h2>
+<p>See <a href="testing.html">Testing</a>.</p>
+<h2><a href="#how-it-works" name="how-it-works" class="anchor"><span class="anchor-link"></span></a>How it works</h2>
+<p>You don&rsquo;t have to read this section to be able to use the feature, but to use the abstraction efficiently and for the right type of use cases it can be good to understand how it&rsquo;s implemented. For example, it should give you the right expectations of the overhead that the solution introduces compared to using plain Akka Persistence in one data center.</p>
+<h3><a href="#storage-and-replication" name="storage-and-replication" class="anchor"><span class="anchor-link"></span></a>Storage and replication</h3>
+<p>To understand how the storage and replication works in Cassandra see <a href="cassandra.html">here</a>.</p>
+<h3><a href="#causal-delivery-order" name="causal-delivery-order" class="anchor"><span class="anchor-link"></span></a>Causal delivery order</h3>
+<p>Causal delivery order means that events persisted in one data center are read in the same order in other data centers. The order of concurrent events is undefined, which should be no problem when using <a href="#conflict-free-replicated-data-types">CRDT&rsquo;s</a> and otherwise will be <a href="#detecting-conflicts">detected</a>.</p>
+<p>For example:</p>
+<pre><code>DC-1: write e1
+DC-2: read e1, write e2
+DC-1: read e2, write e3
+</code></pre>
+<p>In the above example the causality is <code>e1 -&gt; e2 -&gt; e3</code>. Also in a third data center DC-3 these events will be read in the same order e1, e2, e3.</p>
+<p>Another example with concurrent events:</p>
+<pre><code>DC1: write e1
+DC2: read e1, write e2
+DC1: write e3 (e2 and e3 are concurrent)
+DC1: read e2
+DC2: read e3
+</code></pre>
+<p>e2 and e3 are concurrent, i.e. they don&rsquo;t have a causal relation: DC1 sees them in the order &ldquo;e1, e3, e2&rdquo;, while DC2 sees them as &ldquo;e1, e2, e3&rdquo;.</p>
+<p>A third data center may also see the events as either &ldquo;e1, e3, e2&rdquo; or as &ldquo;e1, e2, e3&rdquo;.</p>
+<h3><a href="#concurrent-updates" name="concurrent-updates" class="anchor"><span class="anchor-link"></span></a>Concurrent updates</h3>
+<p>The <code>ReplicatedEntity</code> is automatically tracking causality between events from different data centers using <a href="https://en.wikipedia.org/wiki/Version_vector">version vectors</a>.</p>
+<p><img src="images/causality.png" alt="images/causality.png" /></p>
+<p>Each data center &ldquo;owns&rdquo; a slot in the version vector and increases its counter when an event is persisted. The version vector is stored with the event, and when a replicated event is consumed the version vector of the event is merged with the local version vector.</p>
+<p>When comparing two version vectors <code>v1</code> and <code>v2</code> get one of the following results:</p>
+<ul>
+  <li><code>v1</code> is SAME as <code>v2</code> iff for all i v1(i) == v2(i)</li>
+  <li><code>v1</code>is BEFORE <code>v2</code> iff for all i v1(i) &lt;= v2(i) and there exist a j such that v1(j) &lt; v2(j)</li>
+  <li><code>v1</code>is AFTER <code>v2</code> iff for all i v1(i) &gt;= v2(i) and there exist a j such that v1(j) &gt; v2(j)</li>
+  <li><code>v1</code>is CONCURRENT with <code>v2</code> otherwise</li>
+</ul>
+<h2><a href="#hot-standby" name="hot-standby" class="anchor"><span class="anchor-link"></span></a>Hot-standby</h2>
+<p>If all writes occur in one data center the corresponding entity in another data center is not started there might be many replicated events to catch up with when it&rsquo;s later started. Therefore it&rsquo;s good to activate ReplicatedEntity instances in all data centers when there is some activity.</p>
+<p>This is done automatically when Cluster Sharding is used. It is important that you handle the <code>ShardRegion.StartEntity</code> message in the shard id extractor as shown in <a href="#running-the-entity">this example</a>.</p>
+<p>If this is not desired it can be disabled with config property:</p>
+<pre><code>akka.persistence.multi-data-center.hot-standby.enabled = off
+</code></pre>
+<h2><a href="#speculative-replication-optimization" name="speculative-replication-optimization" class="anchor"><span class="anchor-link"></span></a>Speculative Replication Optimization</h2>
+<p>As described in <a href="#storage-and-replication">Storage and replication</a> many requests to Cassandra will be generated for retrieving the replicated events. To reduce the number of such queries and to have faster replication there is an optional replication mechanism that is sending events over Akka Cluster communication.</p>
+<p>This speculative replication is enabled by config property:</p>
+<pre><code>akka.persistence.multi-data-center.speculative-replication.enabled = on
+</code></pre>
+<p>The Akka Cluster that spans multiple data centers must be setup according to the <a href="https://doc.akka.io/docs/akka/2.5/cluster-dc.html">Akka Multi-DC Clustering</a> documentation.</p>
+<p>It requires that you are using <a href="https://doc.akka.io/docs/akka/2.5/cluster-sharding.html">Cluster Sharding</a> and that you handle the <code>akka.persistence.multidc.SpeculativeReplicatedEvent</code> message in your entity and shard id extractors.</p>
+<p>Additionally, you have to start Cluster Sharding proxies to the other data centers because the events are sent directly to the corresponding entity in other data centers using these proxies. That is also the reason why you have to handle the <code>SpeculativeReplicatedEvent</code> in the extractors.</p>
+<p>A complete example of how to initialize Cluster Sharding looks like this:</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-scala">import akka.persistence.multidc.scaladsl.ReplicatedEntity
+import akka.persistence.multidc.PersistenceMultiDcSettings
+import akka.persistence.multidc.SpeculativeReplicatedEvent
+import akka.cluster.Cluster
+import akka.cluster.sharding.ClusterSharding
+import akka.cluster.sharding.ClusterShardingSettings
+import akka.cluster.sharding.ShardRegion
+
+val ShardingTypeName = &quot;blog&quot;
+
+val maxNumberOfShards = 1000
+def shardId(entityId: String): String =
+  (math.abs(entityId.hashCode) % maxNumberOfShards).toString
+
+val extractEntityId: ShardRegion.ExtractEntityId = {
+  case cmd: BlogCommand                =&gt; (cmd.postId, cmd)
+  case evt: SpeculativeReplicatedEvent =&gt; (evt.entityId, evt)
+}
+val extractShardId: ShardRegion.ExtractShardId = {
+  case cmd: BlogCommand                  =&gt; shardId(cmd.postId)
+  case ShardRegion.StartEntity(entityId) =&gt; shardId(entityId)
+  case evt: SpeculativeReplicatedEvent   =&gt; shardId(evt.entityId)
+}
+
+val persistenceMultiDcSettings = PersistenceMultiDcSettings(system)
+
+val props = ReplicatedEntity.clusterShardingProps(
+  entityTypeName = ShardingTypeName,
+  entityFactory = () =&gt; new Post2,
+  settings = persistenceMultiDcSettings)
+
+val region =
+  ClusterSharding(system).start(ShardingTypeName, props, ClusterShardingSettings(system),
+    extractEntityId, extractShardId)
+
+// The speculative replication requires sharding proxies to other DCs
+if (persistenceMultiDcSettings.useSpeculativeReplication) {
+  persistenceMultiDcSettings.otherDcs(Cluster(system).selfDataCenter).foreach { dc =&gt;
+    ClusterSharding(system).startProxy(ShardingTypeName, role = None,
+      dataCenter = Some(dc), extractEntityId, extractShardId)
+  }
+}
+
+region ! AddPost(&quot;post-1&quot;, PostContent(title = &quot;First post&quot;, &quot;...&quot;))</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-java">import akka.cluster.sharding.ClusterSharding;
+import akka.cluster.sharding.ClusterShardingSettings;
+import akka.cluster.sharding.ShardRegion;
+
+ShardRegion.MessageExtractor messageExtractor = new ShardRegion.MessageExtractor() {
+
+  @Override
+  public String entityId(Object message) {
+    if (message instanceof BlogCommands.BlogCommand) {
+      return ((BlogCommands.BlogCommand) message).getPostId();
+    } else if (message instanceof SpeculativeReplicatedEvent) {
+      return ((SpeculativeReplicatedEvent) message).entityId();
+    } else {
+      return null;
+    }
+  }
+
+  @Override
+  public Object entityMessage(Object message) {
+    return message;
+  }
+
+  private String shardId(String entityId) {
+    int maxNumberOfShards = 1000;
+    return Integer.toString(Math.abs(entityId.hashCode()) % maxNumberOfShards);
+  }
+
+  @Override
+  public String shardId(Object message) {
+    if (message instanceof BlogCommands.BlogCommand) {
+      return shardId(((BlogCommands.BlogCommand) message).getPostId());
+    } else if (message instanceof SpeculativeReplicatedEvent) {
+      return shardId(((SpeculativeReplicatedEvent) message).entityId());
+    } else if (message instanceof ShardRegion.StartEntity) {
+      return shardId(((ShardRegion.StartEntity) message).entityId());
+    } else {
+      return null;
+    }
+  }
+};
+
+String ShardingTypeName = &quot;blog&quot;;
+
+Props props = ReplicatedEntity.clusterShardingProps(
+  BlogCommands.BlogCommand.class,
+  ShardingTypeName,
+  Post2::new,
+  persistenceMultiDcSettings);
+
+ClusterShardingSettings settings = ClusterShardingSettings.create(system);
+ActorRef region = ClusterSharding.get(system).start(
+  ShardingTypeName,
+  props,
+  settings,
+  messageExtractor);
+
+if (persistenceMultiDcSettings.useSpeculativeReplication()) {
+  for (String otherDc: persistenceMultiDcSettings.getOtherDcs(cluster.selfDataCenter())) {
+    ClusterSharding.get(system).startProxy(
+      ShardingTypeName,
+      Optional.empty(),
+      Optional.of(otherDc),
+      messageExtractor
+    );
+  }
+}
+
+region.tell(
+  new BlogCommands.AddPost(
+    &quot;post-1&quot;,
+    new BlogState.PostContent(&quot;First post&quot;, &quot;...&quot;)),
+  sender);
+</code></pre></dd>
+</dl>
+<p>It&rsquo;s a best-effort optimization and if the messages are not delivered this way they will eventually be delivered by the Cassandra replication, i.e. it is not a replacement for the Cassandra replication.</p>
+<p>A tradeoff when enabling this optimization is that more messages will be sent over Akka remoting, across data centers. The total number of remote messages generated for each persisted event is <code>(N-1) * N</code>, if N is number of data centers. For example 6 messages for each persisted event when using 3 data centers. </p><div class="group-scala">
+<h2><a href="#custom-crdt-implementation" name="custom-crdt-implementation" class="anchor"><span class="anchor-link"></span></a>Custom CRDT implementation</h2>
+<p>The library includes some general purpose CRDT implementations. More will be added later, based on customer demand.</p>
+<p>You can create your own CRDT implementations by extending <a href="https://doc.akka.io/api/akka/2.5/akka/persistence/multidc/crdt/OpCrdt.html">OpCrdt</a>. It is mostly a marker interface to make it explicit that it is intended to implement an Operation-based CRDT.</p></div>
+<h2><a href="#migration-from-to-persistentactor" name="migration-from-to-persistentactor" class="anchor"><span class="anchor-link"></span></a>Migration from/to PersistentActor</h2>
+<p>It can be reassuring to know that it is possible to migrate between plain Akka Persistence and Akka Multi-DC Persistence, in both directions.</p>
+<p>The APIs are different so migration of the source code requires some effort but should be rather straightforward since the all features exist in both APIs. More important is migration of the data.</p>
+<p>You might have an existing system that is built with Akka&rsquo;s <code>PersistentActor</code> and you would like to migrate to Multi-DC Persistence and still use the old data. After using <code>ReplicatedEntity</code> it might turn out that you don&rsquo;t want to use it any more and then you can migrate back to plain Akka Persistence and still use the data stored by Multi-DC Persistence.</p>
+<p>All these migration scenarios are possible without any risk of data loss.</p>
+<p>The reason this is possible is that the <code>ReplicatedEntity</code> is implemented with an underlying <code>PersistentActor</code> and the ordinary <a href="https://github.com/akka/akka-persistence-cassandra">akka-persistence-cassandra</a> plugin is used as journal backend.</p>
+<h3><a href="#persistentactor-to-replicatedentity" name="persistentactor-to-replicatedentity" class="anchor"><span class="anchor-link"></span></a>PersistentActor to ReplicatedEntity</h3>
+<p>The <code>persistenceId</code> of a <code>ReplicatedEntity</code> is by default the concatenation of <code>persistenceIdPrefix</code>, <code>entityId</code> and the data center identifier, separated with <code>|</code>. The old <code>persistenceId</code> doesn&rsquo;t contain the data center part and therefore you must pick one data center that will host the old data and override <code>persistenceId</code> to specify the old <code>persistenceId</code> for that data center. For other data centers you can use the default format.</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-scala">final class SomeReplicatedEntity extends ReplicatedEntity[BlogCommand, BlogEvent, BlogState] {
+
+  // Migration from PersistentActor
+  override def persistenceId(persistenceIdPrefix: String, entityId: String, dc: String): String = {
+    if (dc == &quot;DC-A&quot;) {
+      // different separator, no dc suffix
+      persistenceIdPrefix + &quot;-&quot; + entityId
+    } else
+      super.persistenceId(persistenceIdPrefix, entityId, dc)
+  }
+
+}</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-java">class SomeReplicatedEntity extends ReplicatedEntity&lt;BlogCommands.BlogCommand, BlogEvents.BlogEvent, BlogState&gt; {
+
+  // Migration from PersistentActor
+  @Override
+  public String persistenceId(String persistenceIdPrefix, String entityId, String dc) {
+    if (dc.equals(&quot;DC-A&quot;)) {
+      // different separator, no dc suffix
+      return persistenceIdPrefix + &quot;-&quot; + entityId;
+    } else {
+      return super.persistenceId(persistenceIdPrefix, entityId, dc);
+    }
+  }
+
+}</code></pre></dd>
+</dl>
+<p>The new <code>ReplicatedEntity</code> will be able to read old events and those will be replicated over to other data centers. Since it can be much data to replicate it is good to let the system perform this replication by gradually starting/stopping entities in all data centers.</p>
+<p>Old snapshots can also be read but it is only events that are replicated. That could be a problem if you have removed old events and only rely on snapshots. Then you have to manually copy the old snapshots to the corresponding new <code>persistenceId</code> in other data centers. The new <code>persistenceId</code> format is <code>persistenceIdPrefix|entityId|dc</code> as described above. </p>
+<p>If the old snapshot type doesn&rsquo;t match the new <code>State</code> type you can convert the old snapshots by overriding the metod <code>snapshotMigration</code> in the <code>ReplicatedEntity</code>.</p>
+<h3><a href="#replicatedentity-to-persistentactor" name="replicatedentity-to-persistentactor" class="anchor"><span class="anchor-link"></span></a>ReplicatedEntity to PersistentActor</h3>
+<p>It is also possible for a <code>PersistentActor</code> to read events stored by <code>ReplicatedEntity</code>. The event log for one data center is complete, i.e. it contains all events including the consumed replicated events that were originally stored in another data center. Therefore you can pick one of the <code>persistenceId</code> for an entity. Corresponding <code>persistenceId</code> for other data centers contains the same events and are therefore redundant when migrating to <code>PersistentActor</code> in a single data center.</p>
+<p>However, there is additional meta data stored with the event, such as:</p>
+<ul>
+  <li><code>timestamp</code> - time when the event was persisted</li>
+  <li><code>originDc</code> the event was persisted by this data center</li>
+  <li><code>versionVector</code> that is used for the <code>concurrent</code> flag, see <a href="#detecting-concurrent-updates">Detecting concurrent updates</a></li>
+</ul>
+<p>Note that this meta data is stored in the <code>meta</code> column in the journal (<code>messages</code>) table used by <code>akka-persistence-cassandra</code>. The reason for storing the meta data in a separate column instead of wrapping the original event is that it should be seamless to migrate away from this tool, if needed, and still be able to read the events without any additional dependencies. </p>
+<p>If the meta data has been used for deciding how to apply events to the state in the <code>eventHandler</code> you must rewrite the events to include that information in the original events. That can be done using Akka Streams or Spark and we will add more detailed advice and perhaps some tooling of how to do that in the future (or on Customer demanand). </p>
+<p>Snapshots stored by <code>ReplicatedEntity</code> are of the class <code>akka.persistence.multidc.ReplicatedEntitySnapshot</code>. You can consume those snapshots in a <code>PersistentActor</code> but to remove the dependency to that class you have to store your own snapshot after recovery of <code>PersistentActor</code> that had such a <code>ReplicatedEntitySnapshot</code>. Thereafter you can remove the old snapshots. An alternative is to remove the snapshots alltogether and replay all events.</p>
+<h2><a href="#configuration" name="configuration" class="anchor"><span class="anchor-link"></span></a>Configuration</h2>
+<p>Example of the most important settings, including settings from other related Akka libraries:</p>
+<pre><code>akka.actor {
+  provider = cluster
+}
+akka.remote {
+  netty.tcp {
+    # Change this to real hostname for production
+    hostname = &quot;host1&quot;
+    port = 2552
+  }
+}
+akka.cluster {
+  # Change this to real hostname for production
+  seed-nodes = [&quot;akka.tcp://ClusterSystem@host1:2552&quot;, &quot;akka.tcp://ClusterSystem@host2:2552&quot;]
+
+  # Change this to the Akka data center this node belongs to
+  multi-data-center.self-data-center = DC-A
+}
+akka.persistence {
+  snapshot-store.plugin = &quot;cassandra-snapshot-store&quot;
+
+  multi-data-center {
+    all-data-centers = [&quot;DC-A&quot;, &quot;DC-B&quot;]
+  }
+}
+cassandra-journal-multi-dc {
+  # Change this to real hostname for production
+  contact-points = [&quot;host3&quot;, &quot;host4&quot;]
+  # Port of contact points in the Cassandra cluster.
+  port = 9042
+
+  keyspace = &quot;myapp&quot;
+
+  replication-strategy = &quot;NetworkTopologyStrategy&quot;
+
+  # Replication factor list for data centers
+  data-center-replication-factors = [&quot;dc1:3&quot;, &quot;dc2:3&quot;]
+
+  # Change this to the Cassandra data center this node belongs to,
+  # note that Akka data center identifiers and Cassandra data center
+  # identifiers are not the same.
+  local-datacenter = &quot;dc1&quot;
+}
+</code></pre>
+<p>A full reference of the configuration settings available can be found here:</p>
+<pre class="prettyprint"><code class="language-conf"><br/>akka.persistence.multi-data-center {
+  all-data-centers = []
+
+  # Configuration id of the journal plugin servicing replicated persistent actors.
+  # When configured, uses this value as absolute path to the journal configuration entry.
+  # Configuration entry must contain few required fields, such as `class`.
+  # See `src/main/resources/reference.conf` in akka-persistence.
+  journal-plugin-id = &quot;cassandra-journal-multi-dc&quot;
+
+  replicated-events-query-journal-plugin-id = &quot;cassandra-query-journal-multi-dc&quot;
+
+  # Keeping many ReplicatedEntities alive is expensive, both memory wise and that it checks
+  # for events in the other data centers every now and then. When using sharding this timeout makes the
+  # entity passivate when it has not seen any messages for a while. Set to &quot;off&quot; to disable the automatic
+  # passivation. If sharding is not used, this setting is not applied, to do the corresponding thing for entities
+  # used without sharding, you can manually set a receive timeout and stop the entity when it hits.
+  # Note that this should be set higher than `keep-alive.start-entity-interval` if `keep-alive` is enabled to avoid
+  # the entities repeatedly passivating and then being restarted by the keep-alive.
+  auto-passivate-after = 90 s
+
+  # Optimization to also send events directly to entities in other data centers,
+  # which can be faster than the Cassandra replication and reduce the need for
+  # reading the events from Cassandra in the other data centers.
+  # It&#39;s a best-effort optimization and if the message is not delivered it
+  # will eventually be delivered by the Cassandra replication.
+  speculative-replication {
+    enabled = off
+  }
+
+  # You can configure Multi-DC persistence to use a separate Cassandra cluster for
+  # each data center and not use Cassandra&#39;s data center replication for the events.
+  # The events are then retrieved from another data center with ordinary Cassandra
+  # queries to the Cassandra cluster in the other data center.
+  cross-reading-replication {
+    # Set this to on to enable the cross reading mode.
+    enabled = off
+
+    # This can be set to on to disable cross reading of the notifications table
+    # and instead read it from the local Cassandra cluster. That means
+    # that the notifications table must be replicated by Cassandra, which is done by
+    # having that table in a separate keyspace with Cassandra replication settings:
+    # cassandra-journal-multi-dc.notification.keyspace and
+    # cassandra-journal-multi-dc.notification.data-center-replication-factors
+    local-notification = off
+
+    cassandra-journal {
+      # One section per DC that defines the contact-points, keyspace and such of that DC,
+      # for example:
+      #
+      #  contact-points = [&quot;eu-west-node1&quot;, &quot;eu-west-node2&quot;]
+      #  keyspace = &quot;akka_west&quot;
+      #  local-datacenter = &quot;eu-west&quot;
+      #  data-center-replication-factors = [&quot;eu-west:3&quot;]
+      #}
+      #  contact-points = [&quot;eu-central-node1&quot;, &quot;eu-central-node2&quot;]
+      #  keyspace = &quot;akka_central&quot;
+      #  local-datacenter = &quot;eu-central&quot;
+      #  data-center-replication-factors = [&quot;eu-central:3&quot;]
+      #}
+    }
+
+  }
+
+  # Start ReplicatedEntity instances based on notifications from other data centers.
+  # If all writes occur in one data center and the corresponding entity in another data
+  # center is not started there might be many replicated events to catch up with when
+  # it is later started. Therefore it&#39;s good to activate ReplicatedEntity instances
+  # in all data centers when there is some activity. They can passivate themselves
+  # when they have been idle for a while.
+  hot-standby {
+    enabled = on
+
+    # Activate after this delay when ActorSystem is started, to avoid too much
+    # load when starting up
+    init-delay = 10 s
+
+    # How often ShardRegion.StartEntity will be sent to each entity. It is sent when
+    # the first notification is observed for the entityId and later additional
+    # notifications are ignored until the next tick.
+    # Passivation timeout of the entities should be longer than this duration.
+    start-entity-interval = 1 minute
+
+    # Run on nodes with this role. If undefined (&quot;&quot;) it will run on all nodes independent
+    # of role. This should correspond to the role used for Cluster Sharding or be a subset
+    # of that role.
+    cluster-role = &quot;&quot;
+  }
+
+  # Restart of the replication streams in case of failure
+  replication-stream.restart-backoff {
+    min = 1 s
+    max = 20 s
+  }
+
+  materializer = ${akka.stream.materializer} # include default settings
+  materializer {
+  }
+
+  # If set to a value &gt; 0, automatically take periodical snapshots after the given number of events.
+  # Set to 0 or &#39;off&#39; to disable automatic snapshots.
+  snapshot-after = 100
+
+  logging {
+    # Causes the persistenceId which can get pretty interesting in multi-dc, e.g. `flight|UA740-test2|DC-B`
+    # to be included automatically in each log statement issued by the default logger provided by an ReplicatedEntity
+    # Available:
+    #   - prefix -- includes the id at the beginning of log statements, for easy manual comprehention and parsing
+    #   - mdc    -- includes the id in the loggers MDC, under the `persistenceId` key
+    include-persistenceId = &quot;prefix&quot;
+  }
+}
+
+cassandra-journal-multi-dc = ${cassandra-journal} # include default settings
+cassandra-journal-multi-dc {
+  class = &quot;akka.persistence.multidc.internal.CassandraReplicatedEventJournal&quot;
+
+  # The query journal to use when recovering
+  query-plugin = &quot;cassandra-query-journal-multi-dc&quot;
+
+  # Write consistency level
+  # The default read and write consistency levels ensure that persistent actors can read their own writes.
+  # During normal operation, persistent actors only write to the journal, reads occur only during recovery.
+  write-consistency = &quot;LOCAL_QUORUM&quot;
+
+  # Read consistency level
+  read-consistency = &quot;LOCAL_QUORUM&quot;
+
+  low-frequency-read-events-interval = 30 s
+
+  notification {
+    write-interval = 1 s
+    write-aggregation-size = 1000
+    read-interval = 500 ms
+    look-for-old = 10 minutes
+
+    publish-delay = 250 ms
+    additional-random-publish-delay = 250 ms
+
+    write-consistency = &quot;ONE&quot;
+    write-retries = 2
+
+    read-consistency = &quot;ONE&quot;
+    read-retries = 2
+
+    # Name of the notification table. By default this is the name of the journal
+    # messages table suffixed with &quot;_notification&quot;.
+    table = &quot;&quot;
+
+    # TimeWindowCompactionStrategy reccommends no more than 50 buckets. With a TTL of 1 day and 1 hour
+    # we will have 24 buckets.
+    table-compaction-strategy {
+      class = &quot;TimeWindowCompactionStrategy&quot;
+      compaction_window_unit = &quot;HOURS&quot;
+      compaction_window_size = 1
+    }
+
+    # Purging of notification table is done with TTLs.
+    # Notifcations are kept for 1 day and then removed entirely one hour after via gc-grace-seconds
+    time-to-live = 86400
+    gc-grace-seconds = 3600
+
+    # Keyspace of the notification table, if different from the keyspace of the journal table.
+    # Use this together with:
+    # akka.persistence.multi-data-center.cross-reading-replication.local-notification = on
+    keyspace = &quot;&quot;
+
+    # Replication factor list for data centers when using a separate keyspace for the notification table,
+    # e.g. [&quot;dc1:3&quot;, &quot;dc2:2&quot;]. Is only used when replication-strategy is NetworkTopologyStrategy.
+    # Use this together with:
+    # akka.persistence.multi-data-center.cross-reading-replication.local-notification = on
+    data-center-replication-factors = []
+  }
+}
+
+cassandra-query-journal-multi-dc = ${cassandra-query-journal} # include default settings
+cassandra-query-journal-multi-dc {
+  class = &quot;akka.persistence.multidc.internal.CassandraReadJournalProvider&quot;
+
+  # Absolute path to the write journal plugin configuration section
+  write-plugin = &quot;cassandra-journal-multi-dc&quot;
+
+  # Read consistency level
+  read-consistency = &quot;LOCAL_QUORUM&quot;
+}
+</code></pre>
+<p>See also the <a href="cassandra.html#cross-reading">description of the cross reading</a> mode. </p>
+<h3><a href="#defining-the-data-centers" name="defining-the-data-centers" class="anchor"><span class="anchor-link"></span></a>Defining the data centers</h3>
+<p>Nodes are grouped into data centers with the same configuration setting as is used for <a href="https://doc.akka.io/docs/akka/2.5/cluster-dc.html">Akka Multi-DC Clustering</a>, i.e. by setting the <code>akka.cluster.multi-data-center.self-data-center</code> configuration property. A node can only belong to one data center and if nothing is specified a node will belong to the <code>default</code> data center.</p>
+<p>The grouping of nodes is not limited to the physical boundaries of data centers, even though that is the primary use case. It could also be used as a logical grouping for other reasons, such as isolation of certain nodes to improve stability or splitting up a large cluster into smaller groups of nodes for better scalability.</p>
+<p>You must also define all data centers, including the <code>self-data-center</code>.</p>
+<pre><code>akka.cluster.multi-data-center.self-data-center = &quot;DC-A&quot;
+akka.persistence.multi-data-center.all-data-centers = [&quot;DC-A&quot;, &quot;DC-B&quot;]
+</code></pre>
+<h2><a href="#api-docs" name="api-docs" class="anchor"><span class="anchor-link"></span></a>API docs</h2>
+<p>The <span class="group-scala">scaladoc</span><span class="group-java">javadoc</span> for the API:s can be found here: <span class="group-scala"><a href="https://doc.akka.io/api/akka-enhancements/1.1.9/">Akka Enhancements API</a></span> <span class="group-java"><a href="https://doc.akka.io/japi/akka-enhancements/1.1.9/">Akka Enhancements API</a></span></p>
+</div>
+</article>
+
+<div class="row">
+<div class="small-12 large-9 column">
+<section class="nav-prev-next row">
+<div class="nav-prev small-6 column">
+<a href="../akka-persistence-enhancements.html"><i class="icon-prev"></i> <span class="link-prev">Akka Persistence Enhancements</span></a>
+</div>
+<div class="nav-next small-6 column clearfix">
+<a class="float-right" href="../persistence-dc/testing.html">Testing <i class="icon-next"></i></a>
+</div>
+</section>
+</div>
+</div>
+
+<!-- no source links for private github repository -->
+
+
+<footer class="page-footer row clearfix">
+<img class="akka-icon float-left show-for-medium" src="../images/akka-icon.svg"/>
+<section class="copyright">
+<div>Akka Enhancements is Open Source and available under the Apache 2 License.</div>
+<p class="legal">
+&copy; 2011-2019 <a href="https://www.lightbend.com" target="_blank">Lightbend, Inc.</a> | 
+<a href="https://www.lightbend.com/legal/licenses" target="_blank">Licenses</a> | 
+<a href="https://www.lightbend.com/legal/terms" target="_blank">Terms</a> | 
+<a href="https://www.lightbend.com/legal/privacy" target="_blank">Privacy Policy</a> | 
+<a href="https://akka.io/cookie/" target="_blank">Cookie Listing</a> | 
+<a class="optanon-toggle-display">Cookie Settings</a>
+</p>
+</section>
+</footer>
+
+</section>
+</main>
+
+<script type="text/javascript" src="../js/scrollsneak.js"></script>
+<script type="text/javascript">jQuery(document).foundation();</script>
+<script type="text/javascript" src="../js/groups.js"></script>
+<script type="text/javascript" src="../js/page.js"></script>
+<script type="text/javascript" src="../js/magellan.js"></script>
+
+<style type="text/css">@import "../lib/prettify/prettify.css";</style>
+<script type="text/javascript" src="../lib/prettify/prettify.js"></script>
+<script type="text/javascript" src="../lib/prettify/lang-scala.js"></script>
+<script type="text/javascript">//<![CDATA[
+jQuery(function(){window.prettyPrint && prettyPrint()});
+//]]></script>
+<!-- hook for including project specific javascript into the generated docs -->
+
+</body>
+</html>

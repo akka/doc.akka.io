@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html class="no-js" lang="en">
+
+<head>
+<title>Akka Thread Starvation Detector &bull; Akka Enhancements</title>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta name="description" content="Akka Enhancements is a suite of useful components that complement Akka."/>
+<link rel="canonical" href="https://doc.akka.io/docs/akka-enhancements/current/starvation-detector.html"/>
+<script type="text/javascript" src="lib/jquery/jquery.min.js"></script>
+<script type="text/javascript" src="lib/foundation/dist/js/foundation.min.js"></script>
+<link rel="stylesheet" type="text/css" href="lib/normalize.css/normalize.css"/>
+<link rel="stylesheet" type="text/css" href="lib/foundation/dist/css/foundation.min.css"/>
+<link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/docsearch.js/2/docsearch.min.css" />
+<link rel="stylesheet" type="text/css" href="css/icons.css"/>
+<link rel="stylesheet" type="text/css" href="css/page.css"/>
+<link rel="shortcut icon" href="images/favicon.ico" />
+<link rel="apple-touch-icon" sizes="180x180" href="images/apple-touch-icon.png"/>
+<link rel="icon" type="image/png" sizes="32x32" href="images/favicon-32x32.png"/>
+<link rel="icon" type="image/png" sizes="16x16" href="images/favicon-16x16.png"/>
+<link rel="manifest" href="images/manifest.json"/>
+<meta name="msapplication-TileImage" content="images/mstile-150x150.png"/>
+<meta name="msapplication-TileColor" content="#15a9ce"/>
+<meta name="theme-color" content="#15a9ce"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<!-- OneTrust Cookies Consent Notice (Production Standard, akka.io, en-GB) start -->
+<script src="https://optanon.blob.core.windows.net/consent/159bb13d-6748-4399-806e-ac28db879785.js" type="text/javascript" charset="UTF-8"></script>
+<script type="text/javascript">
+function OptanonWrapper() { }
+</script>
+<!-- OneTrust Cookies Consent Notice (Production Standard, akka.io, en-GB) end -->
+<!--Google Analytics-->
+<script type="text/plain" class="optanon-category-2">
+var _gaq = _gaq || [];
+_gaq.push(['_setAccount', '']);
+_gaq.push(['_setDomainName', '']);
+_gaq.push(['_trackPageview']);
+(function() {
+var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+})()
+</script>
+<script type="text/plain" class="optanon-category-2">
+(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+ga('create', 'UA-23127719-1', 'lightbend.com', {'allowLinker': true, 'name': 'tsTracker'});
+ga('tsTracker.require', 'linker');
+ga('tsTracker.linker:autoLink', ['lightbend.com','playframework.com','scala-lang.org','scaladays.org','spray.io','akka.io','scala-sbt.org','scala-ide.org']);
+ga('tsTracker.send', 'pageview');
+</script>
+<!--Marketo-->
+<script type="text/plain" class="optanon-category-3">
+(function() {
+var didInit = false;
+function initMunchkin() {
+if(didInit === false) {
+didInit = true;
+Munchkin.init('558-NCX-702', { 'asyncOnly': true, 'disableClickDelay': true });
+}
+}
+var s = document.createElement('script');
+s.type = 'text/javascript';
+s.async = true;
+s.src = '//munchkin.marketo.net/munchkin.js';
+s.onreadystatechange = function() {
+if (this.readyState == 'complete' || this.readyState == 'loaded') {
+initMunchkin();
+}
+};
+s.onload = initMunchkin;
+document.getElementsByTagName('head')[0].appendChild(s);
+})();
+</script>
+</head>
+
+<body id="underlay" data-toggler="nav-open">
+
+<header class="site-header hide-for-large">
+<div class="sticky-header clearfix">
+<a href="https://akka.io"><img class="logo" src="images/akka-logo-reverse.svg"/></a>
+
+<button class="menu-icon float-right" type="button" data-toggle="underlay overlay"></button>
+</div>
+<div id="overlay" class="overlay-nav" data-toggler="nav-open">
+<header class="nav-header">
+<div class="nav-header-title">
+<h1><a href="index.html">Akka Enhancements</a></h1>
+</div>
+<div class="nav-header-version">
+Version 1.1.9
+</div>
+<div class="nav-header-groups">
+<select class="supergroup" name="Languages"><option class="group" value="group-java">Java</option><option class="group" value="group-scala">Scala</option></select>
+</div>
+</header>
+<nav class="nav-toc">
+<ul>
+  <li><a href="akka-resilience-enhancements.html" class="page">Akka Resilience Enhancements</a>
+  <ul>
+    <li><a href="split-brain-resolver.html" class="page">Akka Split Brain Resolver</a></li>
+    <li><a href="kubernetes-lease.html" class="page">Kubernetes Lease</a></li>
+    <li><a href="starvation-detector.html#akka-thread-starvation-detector" class="active page">Akka Thread Starvation Detector</a>
+    <ul>
+      <li><a href="starvation-detector.html#using-the-starvation-detector" class="header">Using the Starvation Detector</a></li>
+      <li><a href="starvation-detector.html#configuration" class="header">Configuration</a></li>
+      <li><a href="starvation-detector.html#understanding-the-log-output" class="header">Understanding The Log Output</a></li>
+      <li><a href="starvation-detector.html#solving-thread-starvation-issues" class="header">Solving Thread Starvation Issues</a></li>
+    </ul></li>
+    <li><a href="config-checker.html" class="page">Akka Config Checker</a></li>
+    <li><a href="diagnostics-recorder.html" class="page">Akka Diagnostics Recorder</a></li>
+    <li><a href="akka-resilience-enhancements-release-notes.html" class="page">Akka Resilience Enhancements Release Notes</a></li>
+  </ul></li>
+  <li><a href="akka-persistence-enhancements.html" class="page">Akka Persistence Enhancements</a></li>
+</ul>
+</nav>
+</div>
+</header>
+
+<aside class="show-for-large">
+<header class="nav-header fixed-sidebar-header">
+<div class="nav-header-title">
+<h1><a href="index.html">Akka Enhancements</a></h1>
+</div>
+<div class="nav-header-version">
+Version 1.1.9
+</div>
+<div class="nav-header-groups">
+<select class="supergroup" name="Languages"><option class="group" value="group-java">Java</option><option class="group" value="group-scala">Scala</option></select>
+</div>
+</header>
+<nav class="site-nav fixed-sidebar-contents">
+<div class="nav-toc">
+<ul>
+  <li><a href="akka-resilience-enhancements.html" class="page">Akka Resilience Enhancements</a>
+  <ul>
+    <li><a href="split-brain-resolver.html" class="page">Akka Split Brain Resolver</a></li>
+    <li><a href="kubernetes-lease.html" class="page">Kubernetes Lease</a></li>
+    <li><a href="starvation-detector.html#akka-thread-starvation-detector" class="active page">Akka Thread Starvation Detector</a>
+    <ul>
+      <li><a href="starvation-detector.html#using-the-starvation-detector" class="header">Using the Starvation Detector</a></li>
+      <li><a href="starvation-detector.html#configuration" class="header">Configuration</a></li>
+      <li><a href="starvation-detector.html#understanding-the-log-output" class="header">Understanding The Log Output</a></li>
+      <li><a href="starvation-detector.html#solving-thread-starvation-issues" class="header">Solving Thread Starvation Issues</a></li>
+    </ul></li>
+    <li><a href="config-checker.html" class="page">Akka Config Checker</a></li>
+    <li><a href="diagnostics-recorder.html" class="page">Akka Diagnostics Recorder</a></li>
+    <li><a href="akka-resilience-enhancements-release-notes.html" class="page">Akka Resilience Enhancements Release Notes</a></li>
+  </ul></li>
+  <li><a href="akka-persistence-enhancements.html" class="page">Akka Persistence Enhancements</a></li>
+</ul>
+</div>
+</nav>
+<footer class="nav-footer fixed-sidebar-footer">
+<a href="https://akka.io"><img class="logo" src="images/akka-logo-reverse.svg"/></a>
+
+</footer>
+</aside>
+
+<main class="fixed-shift-for-large expanded row">
+<section class="site-content small-12 column">
+
+<article class="page-content row">
+<div class="small-12 large-9 column" id="docs">
+<h1><a href="#akka-thread-starvation-detector" name="akka-thread-starvation-detector" class="anchor"><span class="anchor-link"></span></a>Akka Thread Starvation Detector</h1>
+<p>The Akka Thread Starvation Detector is a diagnostic tool that monitors the dispatcher of an <code>ActorSystem</code> and will log a warning if the dispatcher becomes unresponsive.</p>
+<p>The most common reason for an <code>ActorSystem</code> to become unresponsive is that blocking tasks are run on the dispatcher and other tasks cannot be executed in a timely fashion any more. This will lead to all kinds of problems because tasks (like handling an Actor&rsquo;s mailbox or executing a Future callback) are usually expected to finish in very short time on a healthy <code>ActorSystem</code>. When thread starvation occurs, all threads of the dispatcher&rsquo;s thread pool are blocking e.g. doing IO, delaying other work for indefinite periods of time. The symptoms of thread starvation are usually increased latency (despite low CPU usage), timeouts, or failing Akka Remote connections.</p>
+<p>The Starvation Detector will periodically schedule a simple task to measure the scheduling and execution time of the dispatcher. If a threshold is exceeded, a warning is logged with stack traces that show what threads of the dispatcher are busy with.</p><div class="callout note "><div class="callout-title">Note</div>
+<p>The Akka Thread Starvation Detector is a feature of the <a href="http://www.lightbend.com/products/lightbend-reactive-platform">Lightbend Reactive Platform</a>. that is exclusively available for Lightbend customers.</p></div>
+<h2><a href="#using-the-starvation-detector" name="using-the-starvation-detector" class="anchor"><span class="anchor-link"></span></a>Using the Starvation Detector</h2>
+<p>To use the Starvation Detector feature a dependency on the <em>akka-diagnostics</em> artifact must be added.</p>
+<dl>
+  <dt>sbt</dt>
+  <dd>
+  <pre><code>// Add Reactive Platform to your build as documented at https://developer.lightbend.com/docs/reactive-platform/2.0/setup/setup-sbt.html
+&quot;com.lightbend.akka&quot; %% &quot;akka-diagnostics&quot; % &quot;1.1.9&quot;
+</code></pre></dd>
+  <dt>Gradle</dt>
+  <dd>
+  <pre><code>// Add Reactive Platform to your build as documented at https://developer.lightbend.com/docs/reactive-platform/2.0/setup/setup-gradle.html
+dependencies {
+  compile group: &#39;com.lightbend.akka&#39;, name: &#39;akka-diagnostics_2.12&#39;, version: &#39;1.1.9&#39;
+}
+</code></pre></dd>
+  <dt>Maven</dt>
+  <dd>
+  <pre><code>&lt;!-- Add Reactive Platform to your build as documented at https://developer.lightbend.com/docs/reactive-platform/2.0/setup/setup-sbt.html --&gt;
+&lt;dependency&gt;
+  &lt;groupId&gt;com.lightbend.akka&lt;/groupId&gt;
+  &lt;artifactId&gt;akka-diagnostics_2.12&lt;/artifactId&gt;
+  &lt;version&gt;1.1.9&lt;/version&gt;
+&lt;/dependency&gt;
+</code></pre></dd>
+</dl>
+<p>You find your credentials at <a href="https://www.lightbend.com/product/lightbend-reactive-platform/credentials">https://www.lightbend.com/product/lightbend-reactive-platform/credentials</a> including links to instructions of how to add the credentials to your build.</p>
+<p>When this dependency is included the Starvation Detector is automatically run when the <em>ActorSystem</em> is started.</p>
+<p>You can create starvation detectors for other execution contexts than the main Akka ActorSystem one as well. Use <code>com.lightbend.akka.diagnostics.StarvationDetector.checkExecutionContext</code> to create a starvation detector for any <code>ExecutionContext</code> (though, it will not include stack trace information if the <code>ExecutionContext</code> is not an Akka Dispatcher).</p>
+<h2><a href="#configuration" name="configuration" class="anchor"><span class="anchor-link"></span></a>Configuration</h2>
+<p>You can customize settings of the starvation detector to prevent spurious logging depending on your application logic.</p>
+<pre class="prettyprint"><code class="language-conf"># The starvation detector is a dedicated thread that schedules a task on the system&#39;s
+# main dispatcher and checks if the execution time is less than the threshold. Exceeding the
+# threshold is an indication for thread starvation. The starvation detector will log a warning
+# in that case with statistics and stack traces of the dispatcher&#39;s threads.
+akka.diagnostics.starvation-detector {
+  # The interval to check task execution time on the dispatcher.
+  #
+  # Set to 0 or &quot;off&quot; to disable checking.
+  check-interval = 1s
+
+  # The starvation detector only runs after the initial delay. The idea is that during startup,
+  # initial tasks like class loading, warming up JIT and similar environment issues can decrease
+  # the overall throughput. As this is usually a transient condition, checking will only run after
+  # the configured time.
+  #
+  # Set to 0 or &quot;off&quot; to run checking right from the start.
+  initial-delay = 10s
+
+  # The maximum time during which the dispatcher is expected to execute the starvation detection task.
+  # If the dispatcher takes longer to execute the task, the dispatcher (and CPU or other infrastructure
+  # that is needed to run tasks) is considered busy and a warning is logged.
+  #
+  # The default value was chosen to be high enough to decrease the likelihood of false positives while
+  # still being likely to show severe problems early.
+  #
+  # For many applications (and also for internal Akka messaging) much smaller delays can already become
+  # a problem. To detect smaller dispatcher related delays, decrease the value, but keep in mind the
+  # higher chance of false positives.
+  max-delay-warning-threshold = 100 ms
+
+  # The minimum time between consecutive warnings.
+  #
+  # When thread starvation is detected it is likely that it will last for a longer period of time.
+  # This setting can be used to prevent that warnings from the starvation detector flood the logs.
+  warning-interval = 10 seconds
+}</code></pre>
+<p>By default, the starvation detector runs seldom enough not to cause any performance hit itself. Thread starvation issues usually affect systems for longer time spans, so the starvation detector is still likely to experience and warn even when it runs only infrequently.</p>
+<h2><a href="#understanding-the-log-output" name="understanding-the-log-output" class="anchor"><span class="anchor-link"></span></a>Understanding The Log Output</h2>
+<p>Here&rsquo;s an example warning (taken from our tests that simulate blocking calls using <code>Thread.sleep</code>):</p>
+<pre><code>[WARN] [04/24/2017 15:38:35.661] [Thread-217] [StarvationDetector(akka://StarvationDetectorSpec)] Exceedingly long scheduling
+time on ExecutionContext Dispatcher[akka.actor.default-dispatcher]. Starvation detector task was only executed after 714 ms which is
+longer than the warning threshold of 100 milliseconds. This might be a sign of thread, CPU, or dispatcher starvation.
+This can be caused by blocking calls, CPU overload, GC, or overlong work units. See the below information for hints
+about what could be the cause. Next warning will be shown in 10000 milliseconds.
+
+Thread states (total 2 thread):   2 TIMED_WAITING
+Top stacks:
+  2 java.lang.Thread.sleep(Native Method)
+    com.lightbend.akka.diagnostics.StarvationDetectorSpec$$[...]runOne$1$1.apply$mcV$sp(StarvationDetectorSpec.scala:17)
+    [...]
+</code></pre>
+<p>The logging message gives this information:</p>
+<ul>
+  <li>Scheduling time for the starvation detector task (714 milliseconds)</li>
+  <li>Some general hints what could be the reason for the delay</li>
+  <li>Thread state statistics (<code>TIMED_WAITING</code> which is the state <code>Thread.sleep</code> puts a thread in)</li>
+  <li>A histogram of stack traces for all threads of this dispatcher ordered by the most frequent stack trace first  (in this case all of the 2 threads of the dispatcher were blocking in <code>Thread.sleep</code> with the same strack trace).  The shown stack traces show the state of threads when the threshold was exceeded and are only a single sample of  the state of the application when the condition occurred. The information should therefore be taken only as an  indication of what could be wrong not as the final answer.</li>
+</ul><div class="callout note "><div class="callout-title">Note</div>
+<p>Many blocking IO tasks will block in native code which means that from the view of the JVM, the thread is in <code>RUNNABLE</code> state. Therefore, the thread state statistics will only give a hint at what is going on but the stack traces will usually give more useful information.</p></div>
+<h2><a href="#solving-thread-starvation-issues" name="solving-thread-starvation-issues" class="anchor"><span class="anchor-link"></span></a>Solving Thread Starvation Issues</h2>
+<p>See <a href="https://doc.akka.io/docs/akka/2.5/dispatchers.html#blocking-needs-careful-management">Blocking Needs Careful Management</a> in the Akka reference documentation. The Akka-Http documentation also has a page on <a href="https://doc.akka.io/docs/akka-http/10.0.15/handling-blocking-operations-in-akka-http-routes.html">&ldquo;Handling blocking operations&rdquo;</a> that applies generally to all Akka applications.</p>
+</div>
+</article>
+
+<div class="row">
+<div class="small-12 large-9 column">
+<section class="nav-prev-next row">
+<div class="nav-prev small-6 column">
+<a href="kubernetes-lease.html"><i class="icon-prev"></i> <span class="link-prev">Kubernetes Lease</span></a>
+</div>
+<div class="nav-next small-6 column clearfix">
+<a class="float-right" href="config-checker.html">Akka Config Checker <i class="icon-next"></i></a>
+</div>
+</section>
+</div>
+</div>
+
+<!-- no source links for private github repository -->
+
+
+<footer class="page-footer row clearfix">
+<img class="akka-icon float-left show-for-medium" src="images/akka-icon.svg"/>
+<section class="copyright">
+<div>Akka Enhancements is Open Source and available under the Apache 2 License.</div>
+<p class="legal">
+&copy; 2011-2019 <a href="https://www.lightbend.com" target="_blank">Lightbend, Inc.</a> | 
+<a href="https://www.lightbend.com/legal/licenses" target="_blank">Licenses</a> | 
+<a href="https://www.lightbend.com/legal/terms" target="_blank">Terms</a> | 
+<a href="https://www.lightbend.com/legal/privacy" target="_blank">Privacy Policy</a> | 
+<a href="https://akka.io/cookie/" target="_blank">Cookie Listing</a> | 
+<a class="optanon-toggle-display">Cookie Settings</a>
+</p>
+</section>
+</footer>
+
+</section>
+</main>
+
+<script type="text/javascript" src="js/scrollsneak.js"></script>
+<script type="text/javascript">jQuery(document).foundation();</script>
+<script type="text/javascript" src="js/groups.js"></script>
+<script type="text/javascript" src="js/page.js"></script>
+<script type="text/javascript" src="js/magellan.js"></script>
+
+<style type="text/css">@import "lib/prettify/prettify.css";</style>
+<script type="text/javascript" src="lib/prettify/prettify.js"></script>
+<script type="text/javascript" src="lib/prettify/lang-scala.js"></script>
+<script type="text/javascript">//<![CDATA[
+jQuery(function(){window.prettyPrint && prettyPrint()});
+//]]></script>
+<!-- hook for including project specific javascript into the generated docs -->
+
+</body>
+</html>

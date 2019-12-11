@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html class="no-js" lang="en">
+
+<head>
+<title>Lagom: Read-Side support &bull; Akka Persistence Couchbase Documentation</title>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta name="description" content="Akka Persistence Couchbase"/>
+<script type="text/javascript" src="lib/jquery/jquery.min.js"></script>
+<script type="text/javascript" src="lib/foundation/dist/js/foundation.min.js"></script>
+<link rel="stylesheet" type="text/css" href="lib/normalize.css/normalize.css"/>
+<link rel="stylesheet" type="text/css" href="lib/foundation/dist/css/foundation.min.css"/>
+<link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/docsearch.js/2/docsearch.min.css" />
+<link rel="stylesheet" type="text/css" href="css/icons.css"/>
+<link rel="stylesheet" type="text/css" href="css/page.css"/>
+<link rel="shortcut icon" href="images/favicon.ico" />
+<link rel="apple-touch-icon" sizes="180x180" href="images/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="images/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="images/favicon-16x16.png">
+<link rel="manifest" href="images/manifest.json">
+<meta name="msapplication-TileImage" content="images/mstile-150x150.png">
+<meta name="msapplication-TileColor" content="#15a9ce">
+<meta name="theme-color" content="#15a9ce">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<!-- OneTrust Cookies Consent Notice (Production Standard, akka.io, en-GB) start -->
+<script src="https://optanon.blob.core.windows.net/consent/159bb13d-6748-4399-806e-ac28db879785.js" type="text/javascript" charset="UTF-8"></script>
+<script type="text/javascript">
+function OptanonWrapper() { }
+</script>
+<!-- OneTrust Cookies Consent Notice (Production Standard, akka.io, en-GB) end -->
+<!--Google Analytics-->
+<script type="text/plain" class="optanon-category-2">
+var _gaq = _gaq || [];
+_gaq.push(['_setAccount', '']);
+_gaq.push(['_setDomainName', '']);
+_gaq.push(['_trackPageview']);
+(function() {
+var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+})()
+</script>
+<script type="text/plain" class="optanon-category-2">
+(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+ga('create', 'UA-23127719-1', 'lightbend.com', {'allowLinker': true, 'name': 'tsTracker'});
+ga('tsTracker.require', 'linker');
+ga('tsTracker.linker:autoLink', ['lightbend.com','playframework.com','scala-lang.org','scaladays.org','spray.io','akka.io','scala-sbt.org','scala-ide.org']);
+ga('tsTracker.send', 'pageview');
+</script>
+<!--Marketo-->
+<script type="text/plain" class="optanon-category-3">
+(function() {
+var didInit = false;
+function initMunchkin() {
+if(didInit === false) {
+didInit = true;
+Munchkin.init('558-NCX-702', { 'asyncOnly': true, 'disableClickDelay': true });
+}
+}
+var s = document.createElement('script');
+s.type = 'text/javascript';
+s.async = true;
+s.src = '//munchkin.marketo.net/munchkin.js';
+s.onreadystatechange = function() {
+if (this.readyState == 'complete' || this.readyState == 'loaded') {
+initMunchkin();
+}
+};
+s.onload = initMunchkin;
+document.getElementsByTagName('head')[0].appendChild(s);
+})();
+</script>
+</head>
+
+<body id="underlay" data-toggler="nav-open">
+
+<header class="site-header hide-for-large">
+<div class="sticky-header clearfix">
+<a href="https://akka.io"><img class="logo" src="images/akka-logo-reverse.svg"></a>
+
+<button class="menu-icon float-right" type="button" data-toggle="underlay overlay"></button>
+</div>
+<div id="overlay" class="overlay-nav" data-toggler="nav-open">
+<header class="nav-header">
+<div class="nav-header-title">
+<h1><a href="index.html">Akka Persistence Couchbase Documentation</a></h1>
+</div>
+<div class="nav-header-version">
+Version 1.0-RC2
+</div>
+<div class="nav-header-groups">
+<select class="supergroup" name="Language"><option class="group" value="group-java">Java</option><option class="group" value="group-scala">Scala</option></select>
+</div>
+</header>
+<nav class="nav-toc">
+<ul>
+  <li><a href="overview.html" class="page">Overview</a></li>
+  <li><a href="getting-started.html" class="page">Getting Started</a></li>
+  <li><a href="journal.html" class="page">Journal plugin</a></li>
+  <li><a href="read-journal.html" class="page">Query Plugin</a></li>
+  <li><a href="snapshots.html" class="page">Snapshot plugin</a></li>
+  <li><a href="serialization.html" class="page">Serialization</a></li>
+  <li><a href="lagom-persistent-entity.html" class="page">Lagom: Persistent Entities</a></li>
+  <li><a href="lagom-read-side.html#lagom-read-side-support" class="active page">Lagom: Read-Side support</a>
+  <ul>
+    <li><a href="lagom-read-side.html#query-the-read-side-database" class="header">Query the Read-Side Database</a></li>
+    <li><a href="lagom-read-side.html#update-the-read-side" class="header">Update the Read-Side</a></li>
+    <li><a href="lagom-read-side.html#underlying-implementation" class="header">Underlying implementation</a></li>
+  </ul></li>
+  <li><a href="developing.html" class="page">Developing the plugins</a></li>
+</ul>
+</nav>
+</div>
+</header>
+
+<aside class="show-for-large">
+<header class="nav-header fixed-sidebar-header">
+<div class="nav-header-title">
+<h1><a href="index.html">Akka Persistence Couchbase Documentation</a></h1>
+</div>
+<div class="nav-header-version">
+Version 1.0-RC2
+</div>
+<div class="nav-header-groups">
+<select class="supergroup" name="Language"><option class="group" value="group-java">Java</option><option class="group" value="group-scala">Scala</option></select>
+</div>
+</header>
+<nav class="site-nav fixed-sidebar-contents">
+<div class="nav-toc">
+<ul>
+  <li><a href="overview.html" class="page">Overview</a></li>
+  <li><a href="getting-started.html" class="page">Getting Started</a></li>
+  <li><a href="journal.html" class="page">Journal plugin</a></li>
+  <li><a href="read-journal.html" class="page">Query Plugin</a></li>
+  <li><a href="snapshots.html" class="page">Snapshot plugin</a></li>
+  <li><a href="serialization.html" class="page">Serialization</a></li>
+  <li><a href="lagom-persistent-entity.html" class="page">Lagom: Persistent Entities</a></li>
+  <li><a href="lagom-read-side.html#lagom-read-side-support" class="active page">Lagom: Read-Side support</a>
+  <ul>
+    <li><a href="lagom-read-side.html#query-the-read-side-database" class="header">Query the Read-Side Database</a></li>
+    <li><a href="lagom-read-side.html#update-the-read-side" class="header">Update the Read-Side</a></li>
+    <li><a href="lagom-read-side.html#underlying-implementation" class="header">Underlying implementation</a></li>
+  </ul></li>
+  <li><a href="developing.html" class="page">Developing the plugins</a></li>
+</ul>
+</div>
+</nav>
+<footer class="nav-footer fixed-sidebar-footer">
+<a href="https://akka.io"><img class="logo" src="images/akka-logo-reverse.svg"></a>
+
+</footer>
+</aside>
+
+<main class="fixed-shift-for-large expanded row">
+<section class="site-content small-12 column">
+
+<article class="page-content row">
+<div class="small-12 large-9 column" id="docs">
+<h1><a href="#lagom-read-side-support" name="lagom-read-side-support" class="anchor"><span class="anchor-link"></span></a>Lagom: Read-Side support</h1>
+<p>This page is specifically about Lagom&rsquo;s support for Couchbase read-sides.<br/>Before reading this, you should familiarize yourself with Lagom&rsquo;s general <span class="group-scala"><a href="https://www.lagomframework.com/documentation/1.4.x/scala/ReadSide.html">read-side support</a></span> <span class="group-java"><a href="https://www.lagomframework.com/documentation/1.4.x/java/ReadSide.html">read-side support</a></span>.</p>
+<h2><a href="#query-the-read-side-database" name="query-the-read-side-database" class="anchor"><span class="anchor-link"></span></a>Query the Read-Side Database</h2>
+<p>Let us first look at how a service implementation can retrieve data from Couchbase.</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><a class="icon go-to-source" href="https://github.com/akka/akka-persistence-couchbase/tree/v1.0-RC2/docs/src/test/scala/docs/home/persistence/CouchbaseReadSideQuery.scala#L7-L16" target="_blank" title="Go to snippet source"></a><code class="language-scala">import akka.NotUsed
+import akka.stream.alpakka.couchbase.scaladsl.CouchbaseSession
+import com.lightbend.lagom.scaladsl.api.{Service, ServiceCall}
+import com.lightbend.lagom.scaladsl.persistence.ReadSide
+import com.lightbend.lagom.scaladsl.persistence.couchbase.CouchbaseReadSide
+import docs.home.persistence.CouchbaseReadSideProcessorTwo.HelloEventProcessor
+import play.api.libs.json.{Format, Json}
+
+import scala.collection.JavaConverters._
+import scala.concurrent.ExecutionContext
+class GreetingServiceImpl(couchbaseReadSide: CouchbaseReadSide, readSideRegistry: ReadSide, session: CouchbaseSession)(
+    implicit ec: ExecutionContext
+) extends GreetingService {
+  readSideRegistry.register[HelloEvent](new HelloEventProcessor(couchbaseReadSide))
+  override def userGreetings() =
+    ServiceCall { request =&gt;
+      session.get(&quot;users-actual-greetings&quot;).map {
+        case Some(jsonDoc) =&gt;
+          val json = jsonDoc.content()
+          json.getNames().asScala.map(name =&gt; UserGreeting(name, json.getString(name))).toList
+        case None =&gt; List.empty[UserGreeting]
+      }
+    }
+}</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><a class="icon go-to-source" href="https://github.com/akka/akka-persistence-couchbase/tree/v1.0-RC2/docs/src/test/java/jdocs/home/persistence/CouchbaseReadSideQuery.java#L4-L15" target="_blank" title="Go to snippet source"></a><code class="language-java">import akka.NotUsed;
+import akka.stream.alpakka.couchbase.javadsl.CouchbaseSession;
+import com.couchbase.client.java.document.json.JsonObject;
+import com.lightbend.lagom.javadsl.api.ServiceCall;
+import com.lightbend.lagom.javadsl.persistence.ReadSide;
+
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
+import javax.inject.Inject;
+
+
+public class GreetingServiceImpl implements GreetingService {
+
+  private final CouchbaseSession session;
+
+  @Inject
+  public GreetingServiceImpl(CouchbaseSession couchbaseSession) {
+    this.session = couchbaseSession;
+  }
+
+  @Override
+  public ServiceCall&lt;NotUsed, List&lt;UserGreeting&gt;&gt; userGreetings() {
+    return request -&gt; session.get(&quot;users-actual-greetings&quot;)
+        .thenApply(docOpt -&gt; {
+          if (docOpt.isPresent()) {
+            JsonObject content = docOpt.get().content();
+            return content.getNames().stream().map(
+                name -&gt; new UserGreeting(name, content.getString(name))
+            ).collect(Collectors.toList());
+          } else {
+            return Collections.emptyList();
+          }
+        });
+  }
+}</code></pre></dd>
+</dl>
+<p>The <code>CouchbaseSession</code> is injected in the constructor. <code>CouchbaseSession</code> provides several methods in different flavors for executing queries. The one used in the above example returns a document. There are also methods for streaming a result set, which can be useful when the result set is big.</p>
+<p>All methods in <code>CouchbaseSession</code> are non-blocking and they return a <span class="group-scala">Future</span><span class="group-java">CompletionStage</span> or a <code>Source</code>.</p>
+<h2><a href="#update-the-read-side" name="update-the-read-side" class="anchor"><span class="anchor-link"></span></a>Update the Read-Side</h2>
+<p>We need to transform the events generated by the Persistent Entities into a Couchbase documents that can be queried as illustrated in the previous section. For that we will implement a <code>ReadSideProcessor</code> with assistance from the <code>CouchbaseReadSide</code> support component. It will consume events produced by persistent entities and update documents in Couchbase that are optimized for queries.</p>
+<p>This is how a <code>ReadSideProcessor</code> class looks like before filling in the implementation details:</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><a class="icon go-to-source" href="https://github.com/akka/akka-persistence-couchbase/tree/v1.0-RC2/docs/src/test/scala/docs/home/persistence/CouchbaseReadSideProcessor.scala#L7-L15" target="_blank" title="Go to snippet source"></a><code class="language-scala">import akka.Done
+import akka.stream.alpakka.couchbase.scaladsl.CouchbaseSession
+import com.couchbase.client.java.document.JsonDocument
+import com.couchbase.client.java.document.json.JsonObject
+import com.lightbend.lagom.scaladsl.persistence.couchbase.CouchbaseReadSide
+import com.lightbend.lagom.scaladsl.persistence.{AggregateEventTag, EventStreamElement, ReadSideProcessor}
+
+import scala.concurrent.{ExecutionContext, Future}
+
+class HelloEventProcessor extends ReadSideProcessor[HelloEvent] {
+
+  override def buildHandler(): ReadSideProcessor.ReadSideHandler[HelloEvent] =
+    // TODO build read side handler
+    ???
+
+  override def aggregateTags: Set[AggregateEventTag[HelloEvent]] =
+    // TODO return the tag for the events
+    ???
+}</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><a class="icon go-to-source" href="https://github.com/akka/akka-persistence-couchbase/tree/v1.0-RC2/docs/src/test/java/jdocs/home/persistence/CouchbaseHelloEventProcessor.java#L4-L19" target="_blank" title="Go to snippet source"></a><code class="language-java">import akka.Done;
+import akka.stream.alpakka.couchbase.javadsl.CouchbaseSession;
+import com.couchbase.client.java.document.JsonDocument;
+import com.couchbase.client.java.document.json.JsonObject;
+import com.lightbend.lagom.javadsl.persistence.AggregateEventTag;
+import com.lightbend.lagom.javadsl.persistence.ReadSideProcessor;
+import com.lightbend.lagom.javadsl.persistence.couchbase.CouchbaseReadSide;
+import org.pcollections.PSequence;
+
+import javax.inject.Inject;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
+
+import static akka.Done.done;
+
+
+public class HelloEventProcessor extends ReadSideProcessor&lt;HelloEvent&gt; {
+
+  private final CouchbaseReadSide readSide;
+
+  @Inject
+  public HelloEventProcessor(CouchbaseReadSide readSide) {
+    this.readSide = readSide;
+  }
+
+  @Override
+  public ReadSideHandler&lt;HelloEvent&gt; buildHandler() {
+    // TODO build read side handler
+    return null;
+  }
+
+  @Override
+  public PSequence&lt;AggregateEventTag&lt;HelloEvent&gt;&gt; aggregateTags() {
+    // TODO return the tag for the events
+    return null;
+  }
+}</code></pre></dd>
+</dl>
+<p>You can see that we have injected the Couchbase read-side support, these will be needed later.</p>
+<p>You should already have implemented tagging for your events as described in the <span class="group-java"><a href="https://www.lagomframework.com/documentation/current/java/ReadSide.html#Event-tags">Read-Side documentation</a></span> <span class="group-scala"><a href="https://www.lagomframework.com/documentation/current/scala/ReadSide.html#Event-tags">Read-Side documentation</a></span>, so first we&rsquo;ll implement the <code>aggregateTags</code> method in our read-side processor stub, like so:</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><a class="icon go-to-source" href="https://github.com/akka/akka-persistence-couchbase/tree/v1.0-RC2/docs/src/test/scala/docs/home/persistence/CouchbaseReadSideProcessor.scala#L39" target="_blank" title="Go to snippet source"></a><code class="language-scala">override def aggregateTags: Set[AggregateEventTag[HelloEvent]] = HelloEvent.Tag.allTags</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><a class="icon go-to-source" href="https://github.com/akka/akka-persistence-couchbase/tree/v1.0-RC2/docs/src/test/java/jdocs/home/persistence/CouchbaseHelloEventProcessor.java#L60-L63" target="_blank" title="Go to snippet source"></a><code class="language-java">@Override
+public PSequence&lt;AggregateEventTag&lt;HelloEvent&gt;&gt; aggregateTags() {
+  return HelloEvent.TAG.allTags();
+}</code></pre></dd>
+</dl>
+<h3><a href="#building-the-read-side-handler" name="building-the-read-side-handler" class="anchor"><span class="anchor-link"></span></a>Building the read-side handler</h3>
+<p>The other method on the <code>ReadSideProcessor</code> is <code>buildHandler</code>. This is responsible for creating the <code>ReadSideHandler</code> that will handle events. It also gives the opportunity to run two callbacks, one is a global prepare callback, the other is a regular prepare callback.</p>
+<p><code>CouchbaseReadSide</code> has a <code>builder</code> method for creating a builder for these handlers, this builder will create a handler that will automatically handle readside offsets for you. It can be created like so:</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><a class="icon go-to-source" href="https://github.com/akka/akka-persistence-couchbase/tree/v1.0-RC2/docs/src/test/scala/docs/home/persistence/CouchbaseReadSideProcessor.scala#L64" target="_blank" title="Go to snippet source"></a><code class="language-scala">val builder = readSide.builder[HelloEvent](&quot;all-greetings&quot;)</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><a class="icon go-to-source" href="https://github.com/akka/akka-persistence-couchbase/tree/v1.0-RC2/docs/src/test/java/jdocs/home/persistence/CouchbaseHelloEventProcessor.java#L91-L92" target="_blank" title="Go to snippet source"></a><code class="language-java">CouchbaseReadSide.ReadSideHandlerBuilder&lt;HelloEvent&gt; builder =
+    readSide.builder(&quot;all-greetings&quot;);</code></pre></dd>
+</dl>
+<p>The argument passed to this method is the ID of the event processor that Lagom will use when it persists offsets to its offset store. The offsets stored in a Couchbase documents, which will be created and updated for you. </p>
+<h3><a href="#global-prepare" name="global-prepare" class="anchor"><span class="anchor-link"></span></a>Global prepare</h3>
+<p>The global prepare callback runs at least once across the whole cluster. It is intended for doing things like creating documents and preparing any data that needs to be available before read side processing starts. Read side processors may be sharded across many nodes, and so tasks like creating documents should usually only be done from one node.</p>
+<p>The global prepare callback is run from an Akka cluster singleton. It may be run multiple times - every time a new node becomes the new singleton, the callback will be run. Consequently, the task must be idempotent. If it fails, it will be run again using an exponential backoff, and the read side processing of the whole cluster will not start until it has run successfully.</p>
+<p>Of course, setting a global prepare callback is completely optional.</p>
+<p>Below is an example method that we&rsquo;ve implemented to create a document:</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><a class="icon go-to-source" href="https://github.com/akka/akka-persistence-couchbase/tree/v1.0-RC2/docs/src/test/scala/docs/home/persistence/CouchbaseReadSideProcessor.scala#L43-L53" target="_blank" title="Go to snippet source"></a><code class="language-scala">val DocId = &quot;users-actual-greetings&quot;
+
+private def createDocument(session: CouchbaseSession): Future[Done] =
+  session.get(DocId).flatMap {
+    case Some(doc) =&gt; Future.successful(Done)
+    case None =&gt;
+      session
+        .upsert(JsonDocument.create(DocId, JsonObject.empty()))
+        .map(_ =&gt; Done)
+  }
+</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><a class="icon go-to-source" href="https://github.com/akka/akka-persistence-couchbase/tree/v1.0-RC2/docs/src/test/java/jdocs/home/persistence/CouchbaseHelloEventProcessor.java#L67-L78" target="_blank" title="Go to snippet source"></a><code class="language-java">final String DOC_ID = &quot;users-actual-greetings&quot;;
+
+private CompletionStage&lt;Done&gt; createDocument(CouchbaseSession session) {
+  return
+      session.get(DOC_ID).thenComposeAsync(doc -&gt; {
+        if (doc.isPresent()) {
+          return CompletableFuture.completedFuture(Done.getInstance());
+        }
+        return session.insert(JsonDocument.create(DOC_ID, JsonObject.empty()))
+            .thenApply(ignore -&gt; Done.getInstance());
+      });
+}</code></pre></dd>
+</dl>
+<p>It can then be registered as the global prepare callback in the <code>buildHandler</code> method:</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><a class="icon go-to-source" href="https://github.com/akka/akka-persistence-couchbase/tree/v1.0-RC2/docs/src/test/scala/docs/home/persistence/CouchbaseReadSideProcessor.scala#L68" target="_blank" title="Go to snippet source"></a><code class="language-scala">builder.setGlobalPrepare(createDocument _)</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><a class="icon go-to-source" href="https://github.com/akka/akka-persistence-couchbase/tree/v1.0-RC2/docs/src/test/java/jdocs/home/persistence/CouchbaseHelloEventProcessor.java#L96" target="_blank" title="Go to snippet source"></a><code class="language-java">builder.setGlobalPrepare(this::createDocument);</code></pre></dd>
+</dl>
+<h3><a href="#prepare" name="prepare" class="anchor"><span class="anchor-link"></span></a>Prepare</h3>
+<p>In addition to the global prepare callback, there is also a prepare callback. This will be executed once per shard, when the read side processor starts up.</p>
+<p>Again this callback is optional.</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><a class="icon go-to-source" href="https://github.com/akka/akka-persistence-couchbase/tree/v1.0-RC2/docs/src/test/scala/docs/home/persistence/CouchbaseReadSideProcessor.scala#L57-L59" target="_blank" title="Go to snippet source"></a><code class="language-scala">private def prepare(session: CouchbaseSession, tag: AggregateEventTag[HelloEvent]): Future[Done] =
+  // TODO do something when read-side is run for each shard
+  Future.successful(Done)</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><a class="icon go-to-source" href="https://github.com/akka/akka-persistence-couchbase/tree/v1.0-RC2/docs/src/test/java/jdocs/home/persistence/CouchbaseHelloEventProcessor.java#L82-L85" target="_blank" title="Go to snippet source"></a><code class="language-java">private CompletionStage&lt;Done&gt; prepare(CouchbaseSession session, AggregateEventTag&lt;HelloEvent&gt; tag) {
+  //TODO do something when read-side is run for each shard
+  return CompletableFuture.completedFuture(Done.getInstance());
+}</code></pre></dd>
+</dl>
+<p>And then to register them:</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><a class="icon go-to-source" href="https://github.com/akka/akka-persistence-couchbase/tree/v1.0-RC2/docs/src/test/scala/docs/home/persistence/CouchbaseReadSideProcessor.scala#L76" target="_blank" title="Go to snippet source"></a><code class="language-scala">builder.setPrepare(prepare _)</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><a class="icon go-to-source" href="https://github.com/akka/akka-persistence-couchbase/tree/v1.0-RC2/docs/src/test/java/jdocs/home/persistence/CouchbaseHelloEventProcessor.java#L104" target="_blank" title="Go to snippet source"></a><code class="language-java">builder.setPrepare(this::prepare);</code></pre></dd>
+</dl>
+<h3><a href="#registering-your-read-side-processor" name="registering-your-read-side-processor" class="anchor"><span class="anchor-link"></span></a>Registering your read-side processor</h3>
+<p>Once you&rsquo;ve created your read-side processor, you need to register it with Lagom. This is done using the <code>ReadSide</code> component:</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><a class="icon go-to-source" href="https://github.com/akka/akka-persistence-couchbase/tree/v1.0-RC2/docs/src/test/scala/docs/home/persistence/CouchbaseReadSideQuery.scala#L41-L44" target="_blank" title="Go to snippet source"></a><code class="language-scala">class GreetingServiceImpl(couchbaseReadSide: CouchbaseReadSide, readSideRegistry: ReadSide, session: CouchbaseSession)(
+    implicit ec: ExecutionContext
+) extends GreetingService {
+  readSideRegistry.register[HelloEvent](new HelloEventProcessor(couchbaseReadSide))</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><a class="icon go-to-source" href="https://github.com/akka/akka-persistence-couchbase/tree/v1.0-RC2/docs/src/test/java/jdocs/home/persistence/CouchbaseReadSideQuery.java#L57-L61" target="_blank" title="Go to snippet source"></a><code class="language-java">@Inject
+public GreetingServiceImpl(CouchbaseSession couchbaseSession, ReadSide readSide) {
+  this.session = couchbaseSession;
+  readSide.register(CouchbaseHelloEventProcessor.HelloEventProcessor.class);
+}</code></pre></dd>
+</dl>
+<h3><a href="#event-handlers" name="event-handlers" class="anchor"><span class="anchor-link"></span></a>Event handlers</h3>
+<p>The event handlers take an event, and execute updates.</p><div class="callout warning "><div class="callout-title">Caveat</div>
+<p>Couchbase read-side processors have at-least-once semantics and should be idempotent because it isn&rsquo;t possible in Couchbase to atomically execute the offset update and the other statements.</p></div>
+<p>Here&rsquo;s an example callback for handling the <code>GreetingMessageChanged</code> event:</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><a class="icon go-to-source" href="https://github.com/akka/akka-persistence-couchbase/tree/v1.0-RC2/docs/src/test/scala/docs/home/persistence/CouchbaseReadSideProcessor.scala#L85-L98" target="_blank" title="Go to snippet source"></a><code class="language-scala">def processGreetingMessageChanged(session: CouchbaseSession,
+                                  ese: EventStreamElement[HelloEvent.GreetingChanged]): Future[Done] =
+  session
+    .get(DocId)
+    .flatMap { maybeDoc =&gt;
+      val json = maybeDoc match {
+        case Some(doc) =&gt; doc.content()
+        case None =&gt; JsonObject.create();
+      }
+      val evt = ese.event
+      json.put(evt.name, evt.message)
+      session.upsert(JsonDocument.create(DocId, json))
+    }
+    .map(_ =&gt; Done)</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><a class="icon go-to-source" href="https://github.com/akka/akka-persistence-couchbase/tree/v1.0-RC2/docs/src/test/java/jdocs/home/persistence/CouchbaseHelloEventProcessor.java#L113-L124" target="_blank" title="Go to snippet source"></a><code class="language-java">private CompletionStage&lt;Done&gt; processGreetingMessageChanged(CouchbaseSession session, HelloEvent.GreetingMessageChanged evt) {
+  return session.get(DOC_ID).thenCompose((maybeJson) -&gt; {
+    final JsonObject json;
+    if (maybeJson.isPresent()) {
+      json = maybeJson.get().content();
+    } else {
+      json = JsonObject.create();
+    }
+    return session.upsert(JsonDocument.create(DOC_ID, json.put(evt.name, evt.message)));
+  }).thenApply(doc -&gt; done());
+}</code></pre></dd>
+</dl>
+<p>This can then be registered with the builder using <code>setEventHandler</code>:</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><a class="icon go-to-source" href="https://github.com/akka/akka-persistence-couchbase/tree/v1.0-RC2/docs/src/test/scala/docs/home/persistence/CouchbaseReadSideProcessor.scala#L72" target="_blank" title="Go to snippet source"></a><code class="language-scala">builder.setEventHandler[HelloEvent.GreetingChanged](processGreetingMessageChanged _)</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><a class="icon go-to-source" href="https://github.com/akka/akka-persistence-couchbase/tree/v1.0-RC2/docs/src/test/java/jdocs/home/persistence/CouchbaseHelloEventProcessor.java#L100" target="_blank" title="Go to snippet source"></a><code class="language-java">builder.setEventHandler(HelloEvent.GreetingMessageChanged.class, this::processGreetingMessageChanged);</code></pre></dd>
+</dl>
+<p>Once you have finished registering all your event handlers, you can invoke the <code>build</code> method and return the built handler:</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><a class="icon go-to-source" href="https://github.com/akka/akka-persistence-couchbase/tree/v1.0-RC2/docs/src/test/scala/docs/home/persistence/CouchbaseReadSideProcessor.scala#L80" target="_blank" title="Go to snippet source"></a><code class="language-scala">builder.build()</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><a class="icon go-to-source" href="https://github.com/akka/akka-persistence-couchbase/tree/v1.0-RC2/docs/src/test/java/jdocs/home/persistence/CouchbaseHelloEventProcessor.java#L108" target="_blank" title="Go to snippet source"></a><code class="language-java">return builder.build();</code></pre></dd>
+</dl>
+<h2><a href="#underlying-implementation" name="underlying-implementation" class="anchor"><span class="anchor-link"></span></a>Underlying implementation</h2>
+<p>The <code>CouchbaseSession</code> is using the Couchbase Java SDK, which can be accessed directly using the <code>CouchbaseSession.underlying()</code> method. However the native API of the client is based on RxJava and does not provide <span class="group-scala">Future</span><span class="group-java">CompletionStage</span> and Akka Stream APIs. </p>
+<p>Each <code>ReadSideProcessor</code> instance is executed by an <a href="https://doc.akka.io/docs/akka/2.5/actors.html?language=java">Actor</a> that is managed by <a href="https://doc.akka.io/docs/akka/2.5/cluster-sharding.html?language=java">Akka Cluster Sharding</a>. The processor consumes a stream of persistent events delivered by the <code>eventsByTag</code> <a href="https://doc.akka.io/docs/akka/2.5/persistence-query.html?language=java">Persistence Query</a> implemented by <a href="https://github.com/akka/akka-persistence-couchbase">akka-persistence-couchbase</a>. The tag corresponds to the <code>tag</code> defined by the <code>AggregateEventTag</code>. </p>
+<p>In case of sharded tags, the number of sharded tags will determine how many read-side processors will be running across all nodes of your cluster. </p>
+</div>
+</article>
+
+<div class="row">
+<div class="small-12 large-9 column">
+<section class="nav-prev-next row">
+<div class="nav-prev small-6 column">
+<a href="lagom-persistent-entity.html"><i class="icon-prev"></i> <span class="link-prev">Lagom: Persistent Entities</span></a>
+</div>
+<div class="nav-next small-6 column clearfix">
+<a class="float-right" href="developing.html">Developing the plugins <i class="icon-next"></i></a>
+</div>
+</section>
+</div>
+</div>
+
+<div class="source-github row">
+Found an error in this documentation? The source code for this page can be found <a href="https://github.com/akka/akka-persistence-couchbase/tree/v1.0-RC2/docs/src/main/paradox/lagom-read-side.md">here</a>.
+Please feel free to edit and contribute a pull request.
+</div>
+
+
+<footer class="page-footer row clearfix">
+<img class="akka-icon float-left show-for-medium" src="images/akka-icon.svg">
+<section class="copyright">
+<div>Akka Persistence Couchbase is Open Source and available under the Apache 2 License.</div>
+<p class="legal">
+&copy; 2011-2019 <a href="https://www.lightbend.com" target="_blank">Lightbend, Inc.</a> | 
+<a href="https://www.lightbend.com/legal/licenses" target="_blank">Licenses</a> | 
+<a href="https://www.lightbend.com/legal/terms" target="_blank">Terms</a> | 
+<a href="https://www.lightbend.com/legal/privacy" target="_blank">Privacy Policy</a> | 
+<a href="https://akka.io/cookie/" target="_blank">Cookie Listing</a> | 
+<a class="optanon-toggle-display">Cookie Settings</a>
+</p>
+</section>
+</footer>
+
+</section>
+</main>
+
+<script type="text/javascript" src="js/scrollsneak.js"></script>
+<script type="text/javascript">jQuery(document).foundation();</script>
+<script type="text/javascript" src="js/groups.js"></script>
+<script type="text/javascript" src="js/page.js"></script>
+<script type="text/javascript" src="js/magellan.js"></script>
+
+<style type="text/css">@import "lib/prettify/prettify.css";</style>
+<script type="text/javascript" src="lib/prettify/prettify.js"></script>
+<script type="text/javascript" src="lib/prettify/lang-scala.js"></script>
+<script type="text/javascript">jQuery(function(){window.prettyPrint && prettyPrint()});</script>
+
+<!-- hook for including project specific javascript into the generated docs -->
+
+</body>
+</html>
