@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html class="no-js" lang="en">
+
+<head>
+  <title>Implications of the streaming nature of Request/Response Entities · Akka HTTP</title>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="description" content='akka-http-docs'/>
+  <link
+      href="https://fonts.googleapis.com/css?family=Roboto:100normal,100italic,300normal,300italic,400normal,400italic,500normal,500italic,700normal,700italic,900normal,900italicc"
+      rel="stylesheet" type="text/css"/>
+  <script type="text/javascript" src="../../lib/jquery/jquery.min.js"></script>
+  <script type="text/javascript" src="../../js/page.js"></script>
+  <link rel="stylesheet" type="text/css" href="../../lib/normalize.css/normalize.css"/>
+  <link rel="stylesheet" type="text/css" href="../../lib/foundation/dist/foundation.min.css"/>
+  <link rel="stylesheet" type="text/css" href="../../css/page.css"/>
+
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/docsearch.js/2/docsearch.min.css"/>
+</head>
+
+<body>
+<div class="off-canvas-wrapper">
+  <div class="off-canvas-wrapper-inner" data-off-canvas-wrapper>
+
+    <div class="off-canvas position-left" id="off-canvas-menu" data-off-canvas>
+      <nav class="off-canvas-nav">
+        <div class="nav-home">
+        <a href="../../index.html" >
+        <span class="home-icon">⌂</span>Akka HTTP
+        </a>
+        <div class="version-number">
+        10.0.5
+        </div>
+        </div>
+        <div class="nav-toc">
+        <ul>
+          <li><a href="../../security.html">Security announcements</a></li>
+          <li><a href="../../release-notes.html">Release Notes</a></li>
+          <li><a href="../../java.html">Java Documentation</a>
+          <ul>
+            <li><a href="../../java/http/index.html">Akka HTTP</a>
+            <ul>
+              <li><a href="../../java/http/introduction.html">Introduction</a></li>
+              <li><a href="../../java/http/configuration.html">Configuration</a></li>
+              <li><a href="../../java/http/common/index.html">Common Abstractions (Client- and Server-Side)</a></li>
+              <li><a href="../../java/http/implications-of-streaming-http-entity.html">Implications of the streaming nature of Request/Response Entities</a></li>
+              <li><a href="../../java/http/server-side/low-level-server-side-api.html">Low-Level Server-Side API</a></li>
+              <li><a href="../../java/http/routing-dsl/index.html">High-level Server-Side API</a></li>
+              <li><a href="../../java/http/server-side/websocket-support.html">Server-Side WebSocket Support</a></li>
+              <li><a href="../../java/http/client-side/index.html">Consuming HTTP-based Services (Client-Side)</a></li>
+              <li><a href="../../java/http/server-side-https-support.html">Server-Side HTTPS Support</a></li>
+              <li><a href="../../java/http/migration-guide/index.html">Migration Guides (Java)</a></li>
+            </ul></li>
+          </ul></li>
+          <li><a href="../../scala.html">Scala Documentation</a>
+          <ul>
+            <li><a href="../../scala/http/index.html">Akka HTTP</a>
+            <ul>
+              <li><a href="../../scala/http/introduction.html">Introduction</a></li>
+              <li><a href="../../scala/http/configuration.html">Configuration</a></li>
+              <li><a href="../../scala/http/common/index.html">Common Abstractions (Client- and Server-Side)</a></li>
+              <li><a href="../../scala/http/implications-of-streaming-http-entity.html" class="active">Implications of the streaming nature of Request/Response Entities</a></li>
+              <li><a href="../../scala/http/low-level-server-side-api.html">Low-Level Server-Side API</a></li>
+              <li><a href="../../scala/http/routing-dsl/index.html">High-level Server-Side API</a></li>
+              <li><a href="../../scala/http/websocket-support.html">Server-Side WebSocket Support</a></li>
+              <li><a href="../../scala/http/client-side/index.html">Consuming HTTP-based Services (Client-Side)</a></li>
+              <li><a href="../../scala/http/server-side-https-support.html">Server-Side HTTPS Support</a></li>
+              <li><a href="../../scala/http/handling-blocking-operations-in-akka-http-routes.html">Handling blocking operations in Akka HTTP</a></li>
+              <li><a href="../../scala/http/migration-guide/index.html">Migration Guides</a></li>
+            </ul></li>
+          </ul></li>
+        </ul>
+        </div>
+
+      </nav>
+    </div>
+
+    <div class="off-canvas-content" data-off-canvas-content>
+
+      <header class="site-header expanded row">
+        <div class="small-12 column">
+          <a href="#" class="off-canvas-toggle hide-for-medium" data-toggle="off-canvas-menu"><svg class="svg-icon svg-icon-menu" version="1.1" id="Menu" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 20 20" enable-background="new 0 0 20 20" xml:space="preserve"> <path class="svg-icon-menu-path" fill="#53CDEC" d="M16.4,9H3.6C3.048,9,3,9.447,3,10c0,0.553,0.048,1,0.6,1H16.4c0.552,0,0.6-0.447,0.6-1C17,9.447,16.952,9,16.4,9z M16.4,13
+H3.6C3.048,13,3,13.447,3,14c0,0.553,0.048,1,0.6,1H16.4c0.552,0,0.6-0.447,0.6-1C17,13.447,16.952,13,16.4,13z M3.6,7H16.4
+C16.952,7,17,6.553,17,6c0-0.553-0.048-1-0.6-1H3.6C3.048,5,3,5.447,3,6C3,6.553,3.048,7,3.6,7z"/></svg>
+</a>
+
+          <img src="../../css/../mini-akka-logo.png" alt="Akka logo" style="float: left"/> <div class="title"><a href="../../index.html">Akka HTTP</a></div>
+
+
+          <div style="position: relative; right:0; min-width:25%" class="float-right">
+            <input type="search" id="search" class="form-control" style="margin: 10px 0;" placeholder="Search the docs..."/>
+          </div>
+
+        </div>
+      </header>
+
+      <div class="expanded row">
+
+        <div class="medium-3 large-2 show-for-medium column">
+
+          <nav class="site-nav">
+            <div class="nav-home">
+            <a href="../../index.html" >
+            <span class="home-icon">⌂</span>Akka HTTP
+            </a>
+            <div class="version-number">
+            10.0.5
+            </div>
+            </div>
+            <div class="nav-toc">
+            <ul>
+              <li><a href="../../security.html">Security announcements</a></li>
+              <li><a href="../../release-notes.html">Release Notes</a></li>
+              <li><a href="../../java.html">Java Documentation</a>
+              <ul>
+                <li><a href="../../java/http/index.html">Akka HTTP</a>
+                <ul>
+                  <li><a href="../../java/http/introduction.html">Introduction</a></li>
+                  <li><a href="../../java/http/configuration.html">Configuration</a></li>
+                  <li><a href="../../java/http/common/index.html">Common Abstractions (Client- and Server-Side)</a></li>
+                  <li><a href="../../java/http/implications-of-streaming-http-entity.html">Implications of the streaming nature of Request/Response Entities</a></li>
+                  <li><a href="../../java/http/server-side/low-level-server-side-api.html">Low-Level Server-Side API</a></li>
+                  <li><a href="../../java/http/routing-dsl/index.html">High-level Server-Side API</a></li>
+                  <li><a href="../../java/http/server-side/websocket-support.html">Server-Side WebSocket Support</a></li>
+                  <li><a href="../../java/http/client-side/index.html">Consuming HTTP-based Services (Client-Side)</a></li>
+                  <li><a href="../../java/http/server-side-https-support.html">Server-Side HTTPS Support</a></li>
+                  <li><a href="../../java/http/migration-guide/index.html">Migration Guides (Java)</a></li>
+                </ul></li>
+              </ul></li>
+              <li><a href="../../scala.html">Scala Documentation</a>
+              <ul>
+                <li><a href="../../scala/http/index.html">Akka HTTP</a>
+                <ul>
+                  <li><a href="../../scala/http/introduction.html">Introduction</a></li>
+                  <li><a href="../../scala/http/configuration.html">Configuration</a></li>
+                  <li><a href="../../scala/http/common/index.html">Common Abstractions (Client- and Server-Side)</a></li>
+                  <li><a href="../../scala/http/implications-of-streaming-http-entity.html" class="active">Implications of the streaming nature of Request/Response Entities</a></li>
+                  <li><a href="../../scala/http/low-level-server-side-api.html">Low-Level Server-Side API</a></li>
+                  <li><a href="../../scala/http/routing-dsl/index.html">High-level Server-Side API</a></li>
+                  <li><a href="../../scala/http/websocket-support.html">Server-Side WebSocket Support</a></li>
+                  <li><a href="../../scala/http/client-side/index.html">Consuming HTTP-based Services (Client-Side)</a></li>
+                  <li><a href="../../scala/http/server-side-https-support.html">Server-Side HTTPS Support</a></li>
+                  <li><a href="../../scala/http/handling-blocking-operations-in-akka-http-routes.html">Handling blocking operations in Akka HTTP</a></li>
+                  <li><a href="../../scala/http/migration-guide/index.html">Migration Guides</a></li>
+                </ul></li>
+              </ul></li>
+            </ul>
+            </div>
+
+          </nav>
+        </div>
+
+        <div class="small-12 medium-9 large-10 column">
+          <section class="site-content">
+
+            <div class="page-header row">
+              <div class="medium-12 show-for-medium column">
+                <div class="nav-breadcrumbs">
+                  <ul>
+                    <li><a href="../../index.html">Akka HTTP</a></li>
+                    <li><a href="../../scala.html">Scala Documentation</a></li>
+                    <li><a href="../../scala/http/index.html">Akka HTTP</a></li>
+                    <li>Implications of the streaming nature of Request/Response Entities</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+            <div class="page-content row">
+              <div class="small-12 large-9 column" id="docs">
+
+<a id="implications-of-streaming-http-entities"></a>
+<h1><a href="#implications-of-the-streaming-nature-of-request-response-entities" name="implications-of-the-streaming-nature-of-request-response-entities" class="anchor"><span class="anchor-link"></span></a>Implications of the streaming nature of Request/Response Entities</h1>
+<p>Akka HTTP is streaming <em>all the way through</em>, which means that the back-pressure mechanisms enabled by Akka Streams are exposed through all layers–from the TCP layer, through the HTTP server, all the way up to the user-facing <code>HttpRequest</code> and <code>HttpResponse</code> and their <code>HttpEntity</code> APIs.</p>
+<p>This has surprising implications if you are used to non-streaming / not-reactive HTTP clients. Specifically it means that: &ldquo;<em>lack of consumption of the HTTP Entity, is signaled as back-pressure to the other side of the connection</em>&rdquo;. This is a feature, as it allows one only to consume the entity, and back-pressure servers/clients from overwhelming our application, possibly causing un-necessary buffering of the entity in memory.</p><div class="callout warning "><div class="callout-title">Warning</div>
+<p>Consuming (or discarding) the Entity of a request is mandatory! If <em>accidentally</em> left neither consumed or discarded Akka HTTP will assume the incoming data should remain back-pressured, and will stall the incoming data via TCP back-pressure mechanisms. A client should consume the Entity regardless of the status of the <code>HttpResponse</code>.</p></div>
+<h2><a href="#client-side-handling-of-streaming-http-entities" name="client-side-handling-of-streaming-http-entities" class="anchor"><span class="anchor-link"></span></a>Client-Side handling of streaming HTTP Entities</h2>
+<h3><a href="#consuming-the-http-response-entity-client-" name="consuming-the-http-response-entity-client-" class="anchor"><span class="anchor-link"></span></a>Consuming the HTTP Response Entity (Client)</h3>
+<p>The most common use-case of course is consuming the response entity, which can be done via running the underlying <code>dataBytes</code> Source. This is as simple as running the dataBytes source, (or on the server-side using directives such as <code>BasicDirectives.extractDataBytes</code>).</p>
+<p>It is encouraged to use various streaming techniques to utilise the underlying infrastructure to its fullest, for example by framing the incoming chunks, parsing them line-by-line and then connecting the flow into another destination Sink, such as a File or other Akka Streams connector:</p>
+<pre class="prettyprint"><code class="language-scala">import java.io.File
+
+import akka.actor.ActorSystem
+import akka.http.scaladsl.model._
+import akka.stream.ActorMaterializer
+import akka.stream.scaladsl.{ FileIO, Framing }
+import akka.util.ByteString
+
+implicit val system = ActorSystem()
+implicit val dispatcher = system.dispatcher
+implicit val materializer = ActorMaterializer()
+
+val response: HttpResponse = ???
+
+response.entity.dataBytes
+  .via(Framing.delimiter(ByteString(&quot;\n&quot;), maximumFrameLength = 256))
+  .map(transformEachLine)
+  .runWith(FileIO.toPath(new File(&quot;/tmp/example.out&quot;).toPath))
+
+def transformEachLine(line: ByteString): ByteString = ???
+</code></pre>
+<p>however sometimes the need may arise to consume the entire entity as <code>Strict</code> entity (which means that it is completely loaded into memory). Akka HTTP provides a special <code>toStrict(timeout)</code> method which can be used to eagerly consume the entity and make it available in memory:</p>
+<pre class="prettyprint"><code class="language-scala">import scala.concurrent.Future
+import scala.concurrent.duration._
+
+import akka.actor.ActorSystem
+import akka.http.scaladsl.model._
+import akka.stream.ActorMaterializer
+import akka.util.ByteString
+
+implicit val system = ActorSystem()
+implicit val dispatcher = system.dispatcher
+implicit val materializer = ActorMaterializer()
+
+case class ExamplePerson(name: String)
+def parse(line: ByteString): ExamplePerson = ???
+
+val response: HttpResponse = ???
+
+// toStrict to enforce all data be loaded into memory from the connection
+val strictEntity: Future[HttpEntity.Strict] = response.entity.toStrict(3.seconds)
+
+// while API remains the same to consume dataBytes, now they&#39;re in memory already:
+val transformedData: Future[ExamplePerson] =
+  strictEntity flatMap { e =&gt;
+    e.dataBytes
+      .runFold(ByteString.empty) { case (acc, b) =&gt; acc ++ b }
+      .map(parse)
+  }
+</code></pre>
+<h3><a href="#discarding-the-http-response-entity-client-" name="discarding-the-http-response-entity-client-" class="anchor"><span class="anchor-link"></span></a>Discarding the HTTP Response Entity (Client)</h3>
+<p>Sometimes when calling HTTP services we do not care about their response payload (e.g. all we care about is the response code), yet as explained above entity still has to be consumed in some way, otherwise we&rsquo;ll be exerting back-pressure on the underlying TCP connection.</p>
+<p>The <code>discardEntityBytes</code> convenience method serves the purpose of easily discarding the entity if it has no purpose for us. It does so by piping the incoming bytes directly into an <code>Sink.ignore</code>.</p>
+<p>The two snippets below are equivalent, and work the same way on the server-side for incoming HTTP Requests:</p>
+<pre class="prettyprint"><code class="language-scala">import akka.actor.ActorSystem
+import akka.http.scaladsl.model.HttpMessage.DiscardedEntity
+import akka.http.scaladsl.model._
+import akka.stream.ActorMaterializer
+
+implicit val system = ActorSystem()
+implicit val dispatcher = system.dispatcher
+implicit val materializer = ActorMaterializer()
+
+val response1: HttpResponse = ??? // obtained from an HTTP call (see examples below)
+
+val discarded: DiscardedEntity = response1.discardEntityBytes()
+discarded.future.onComplete { done =&gt; println(&quot;Entity discarded completely!&quot;) }
+</code></pre>
+<p>Or the equivalent low-level code achieving the same result:</p>
+<pre class="prettyprint"><code class="language-scala">val response1: HttpResponse = ??? // obtained from an HTTP call (see examples below)
+
+val discardingComplete: Future[Done] = response1.entity.dataBytes.runWith(Sink.ignore)
+discardingComplete.onComplete(done =&gt; println(&quot;Entity discarded completely!&quot;))</code></pre>
+<h2><a href="#server-side-handling-of-streaming-http-entities" name="server-side-handling-of-streaming-http-entities" class="anchor"><span class="anchor-link"></span></a>Server-Side handling of streaming HTTP Entities</h2>
+<p>Similarly as with the Client-side, HTTP Entities are directly linked to Streams which are fed by the underlying TCP connection. Thus, if request entities remain not consumed, the server will back-pressure the connection, expecting that the user-code will eventually decide what to do with the incoming data.</p>
+<p>Note that some directives force an implicit <code>toStrict</code> operation, such as <code>entity(as[String])</code> and similar ones.</p>
+<h3><a href="#consuming-the-http-request-entity-server-" name="consuming-the-http-request-entity-server-" class="anchor"><span class="anchor-link"></span></a>Consuming the HTTP Request Entity (Server)</h3>
+<p>The simplest way of consuming the incoming request entity is to simply transform it into an actual domain object, for example by using the <a href="routing-dsl/directives/marshalling-directives/entity.html#entity">entity</a> directive:</p>
+<pre class="prettyprint"><code class="language-scala">import akka.actor.ActorSystem
+import akka.http.scaladsl.server.Directives._
+import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
+import akka.stream.ActorMaterializer
+import spray.json.DefaultJsonProtocol._
+
+implicit val system = ActorSystem()
+implicit val materializer = ActorMaterializer()
+// needed for the future flatMap/onComplete in the end
+implicit val executionContext = system.dispatcher
+
+final case class Bid(userId: String, bid: Int)
+
+// these are from spray-json
+implicit val bidFormat = jsonFormat2(Bid)
+
+val route =
+  path(&quot;bid&quot;) {
+    put {
+      entity(as[Bid]) { bid =&gt;
+        // incoming entity is fully consumed and converted into a Bid
+        complete(&quot;The bid was: &quot; + bid)
+      }
+    }
+  }</code></pre>
+<p>Of course you can access the raw dataBytes as well and run the underlying stream, for example piping it into an FileIO Sink, that signals completion via a <code>Future[IoResult]</code> once all the data has been written into the file:</p>
+<pre class="prettyprint"><code class="language-scala">import akka.actor.ActorSystem
+import akka.stream.scaladsl.FileIO
+import akka.http.scaladsl.server.Directives._
+import akka.stream.ActorMaterializer
+import java.io.File
+
+implicit val system = ActorSystem()
+implicit val materializer = ActorMaterializer()
+// needed for the future flatMap/onComplete in the end
+implicit val executionContext = system.dispatcher
+
+val route =
+  (put &amp; path(&quot;lines&quot;)) {
+    withoutSizeLimit {
+      extractDataBytes { bytes =&gt;
+        val finishedWriting = bytes.runWith(FileIO.toPath(new File(&quot;/tmp/example.out&quot;).toPath))
+
+        // we only want to respond once the incoming data has been handled:
+        onComplete(finishedWriting) { ioResult =&gt;
+          complete(&quot;Finished writing data: &quot; + ioResult)
+        }
+      }
+    }
+  }</code></pre>
+<h3><a href="#discarding-the-http-request-entity-server-" name="discarding-the-http-request-entity-server-" class="anchor"><span class="anchor-link"></span></a>Discarding the HTTP Request Entity (Server)</h3>
+<p>Sometimes, depending on some validation (e.g. checking if given user is allowed to perform uploads or not) you may want to decide to discard the uploaded entity.</p>
+<p>Please note that discarding means that the entire upload will proceed, even though you are not interested in the data being streamed to the server - this may be useful if you are simply not interested in the given entity, however you don&rsquo;t want to abort the entire connection (which we&rsquo;ll demonstrate as well), since there may be more requests pending on the same connection still.</p>
+<p>In order to discard the databytes explicitly you can invoke the <code>discardEntityBytes</code> bytes of the incoming <code>HTTPRequest</code>:</p>
+<pre class="prettyprint"><code class="language-scala">import akka.actor.ActorSystem
+import akka.http.scaladsl.server.Directives._
+import akka.stream.ActorMaterializer
+import akka.http.scaladsl.model.HttpRequest
+
+implicit val system = ActorSystem()
+implicit val materializer = ActorMaterializer()
+// needed for the future flatMap/onComplete in the end
+implicit val executionContext = system.dispatcher
+
+val route =
+  (put &amp; path(&quot;lines&quot;)) {
+    withoutSizeLimit {
+      extractRequest { r: HttpRequest =&gt;
+        val finishedWriting = r.discardEntityBytes().future
+
+        // we only want to respond once the incoming data has been handled:
+        onComplete(finishedWriting) { done =&gt;
+          complete(&quot;Drained all data from connection... (&quot; + done + &quot;)&quot;)
+        }
+      }
+    }
+  }</code></pre>
+<p>A related concept is <em>cancelling</em> the incoming <code>entity.dataBytes</code> stream, which results in Akka HTTP <em>abruptly closing the connection from the Client</em>. This may be useful when you detect that the given user should not be allowed to make any uploads at all, and you want to drop the connection (instead of reading and ignoring the incoming data). This can be done by attaching the incoming <code>entity.dataBytes</code> to a <code>Sink.cancelled</code> which will cancel the entity stream, which in turn will cause the underlying connection to be shut-down by the server – effectively hard-aborting the incoming request:</p>
+<pre class="prettyprint"><code class="language-scala">import akka.actor.ActorSystem
+import akka.stream.scaladsl.Sink
+import akka.http.scaladsl.server.Directives._
+import akka.http.scaladsl.model.headers.Connection
+import akka.stream.ActorMaterializer
+
+implicit val system = ActorSystem()
+implicit val materializer = ActorMaterializer()
+// needed for the future flatMap/onComplete in the end
+implicit val executionContext = system.dispatcher
+
+val route =
+  (put &amp; path(&quot;lines&quot;)) {
+    withoutSizeLimit {
+      extractDataBytes { data =&gt;
+        // Closing connections, method 1 (eager):
+        // we deem this request as illegal, and close the connection right away:
+        data.runWith(Sink.cancelled) // &quot;brutally&quot; closes the connection
+
+        // Closing connections, method 2 (graceful):
+        // consider draining connection and replying with `Connection: Close` header
+        // if you want the client to close after this request/reply cycle instead:
+        respondWithHeader(Connection(&quot;close&quot;))
+        complete(StatusCodes.Forbidden -&gt; &quot;Not allowed!&quot;)
+      }
+    }
+  }</code></pre>
+<p>Closing connections is also explained in depth in the <a href="low-level-server-side-api.html#http-closing-connection-low-level">Closing a connection</a> section of the docs.</p>
+<h3><a href="#pending-automatic-discarding-of-not-used-entities" name="pending-automatic-discarding-of-not-used-entities" class="anchor"><span class="anchor-link"></span></a>Pending: Automatic discarding of not used entities</h3>
+<p>Under certain conditions it is possible to detect an entity is very unlikely to be used by the user for a given request, and issue warnings or discard the entity automatically. This advanced feature has not been implemented yet, see the below note and issues for further discussion and ideas.</p><div class="callout note "><div class="callout-title">Note</div>
+<p>An advanced feature code named &ldquo;auto draining&rdquo; has been discussed and proposed for Akka HTTP, and we&rsquo;re hoping to implement or help the community implement it.</p>
+<p>You can read more about it in <a href="https://github.com/akka/akka-http/issues/183">issue #183</a> as well as <a href="https://github.com/akka/akka-http/issues/117">issue #117</a> ; as always, contributions are very welcome!</p></div>
+
+                <div>
+                  <div class="source-github">
+                  The source code for this page can be found <a href="http://github.com/akka/akka-http/tree/master/docs/src/main/paradox/scala/http/implications-of-streaming-http-entity.md">here</a>.
+                  </div>
+
+                </div>
+
+                <div class="nav-next">
+                  <p><strong>Next:</strong> <a href="../../scala/http/low-level-server-side-api.html">Low-Level Server-Side API</a></p>
+                </div>
+              </div>
+              <div class="large-3 show-for-large column" data-sticky-container>
+                <nav class="sidebar sticky" data-sticky data-anchor="docs" data-sticky-on="large">
+                  <div class="page-nav">
+                    <div class="nav-title">On this page:</div>
+                    <div class="nav-toc">
+                      <ul>
+                        <li><a href="../../scala/http/implications-of-streaming-http-entity.html#implications-of-the-streaming-nature-of-request-response-entities">Implications of the streaming nature of Request/Response Entities</a>
+                        <ul>
+                          <li><a href="../../scala/http/implications-of-streaming-http-entity.html#client-side-handling-of-streaming-http-entities">Client-Side handling of streaming HTTP Entities</a>
+                          <ul>
+                            <li><a href="../../scala/http/implications-of-streaming-http-entity.html#consuming-the-http-response-entity-client-">Consuming the HTTP Response Entity (Client)</a></li>
+                            <li><a href="../../scala/http/implications-of-streaming-http-entity.html#discarding-the-http-response-entity-client-">Discarding the HTTP Response Entity (Client)</a></li>
+                          </ul></li>
+                          <li><a href="../../scala/http/implications-of-streaming-http-entity.html#server-side-handling-of-streaming-http-entities">Server-Side handling of streaming HTTP Entities</a>
+                          <ul>
+                            <li><a href="../../scala/http/implications-of-streaming-http-entity.html#consuming-the-http-request-entity-server-">Consuming the HTTP Request Entity (Server)</a></li>
+                            <li><a href="../../scala/http/implications-of-streaming-http-entity.html#discarding-the-http-request-entity-server-">Discarding the HTTP Request Entity (Server)</a></li>
+                            <li><a href="../../scala/http/implications-of-streaming-http-entity.html#pending-automatic-discarding-of-not-used-entities">Pending: Automatic discarding of not used entities</a></li>
+                          </ul></li>
+                        </ul></li>
+                      </ul>
+                    </div>
+                  </div>
+                </nav>
+              </div>
+            </div>
+
+          </section>
+        </div>
+
+      </div>
+
+      <footer class="site-footer">
+
+        <section class="site-footer-base">
+          <div class="expanded row">
+            <div class="small-12 large-12 column">
+              <div class="row site-footer-content clearfix">
+                <div class="float-right">
+		  Last updated: Mar 20, 2017
+		</div>
+                <div class="float-left">
+		  &copy; 2017 <a href="https://www.lightbend.com/">Lightbend Inc.</a>
+		  <span class="license">Akka HTTP is Open Source and available under the Apache 2 License.</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </footer>
+
+    </div>
+  </div>
+</div>
+
+<script type="text/javascript" src="https://cdn.jsdelivr.net/docsearch.js/2/docsearch.min.js"></script>
+<style>.algolia-autocomplete { display: block !important }</style>
+<script type="text/javascript">
+  var version = '10.0.5'; // replaced by paradox
+
+  var lang = "scala";
+  var path = window.location.pathname;
+  if (path.includes("/java/") || path.includes("java.html")) {
+    lang = "java";
+  }
+
+  docsearch({
+    apiKey: '0ccbb8bf5148554a406fbf07df0a93b9',
+    indexName: 'akka-http',
+    inputSelector: '#search',
+    algoliaOptions: {'facetFilters': ["version:" + version, "language:" + lang]},
+    debug: false // Set debug to true if you want to inspect the dropdown
+  });
+</script>
+</body>
+
+<script type="text/javascript" src="../../lib/foundation/dist/foundation.min.js"></script>
+<script type="text/javascript">jQuery(document).foundation();</script>
+<script type="text/javascript" src="../../js/magellan.js"></script>
+
+<style type="text/css">@import "../../lib/prettify/prettify.css";</style>
+<script type="text/javascript" src="../../lib/prettify/prettify.js"></script>
+<script type="text/javascript" src="../../lib/prettify/lang-scala.js"></script>
+<script type="text/javascript">jQuery(function () {
+  window.prettyPrint && prettyPrint()
+});</script>
+
+</html>

@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html class="no-js" lang="en">
+
+<head>
+<title>Low-Level Server-Side API · Akka HTTP</title>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta name="description" content='akka-http-docs'/>
+<link href="https://fonts.googleapis.com/css?family=Roboto:100normal,100italic,300normal,300italic,400normal,400italic,500normal,500italic,700normal,700italic,900normal,900italicc" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="../../lib/jquery/jquery.min.js"></script>
+<script type="text/javascript" src="../../js/page.js"></script>
+<link rel="stylesheet" type="text/css" href="../../lib/normalize.css/normalize.css"/>
+<link rel="stylesheet" type="text/css" href="../../lib/foundation/dist/foundation.min.css"/>
+<link rel="stylesheet" type="text/css" href="../../css/page.css"/>
+
+<!--
+<link rel="shortcut icon" href="../../images/favicon.ico" />
+-->
+</head>
+
+<body>
+<div class="off-canvas-wrapper">
+<div class="off-canvas-wrapper-inner" data-off-canvas-wrapper>
+
+<div class="off-canvas position-left" id="off-canvas-menu" data-off-canvas>
+<nav class="off-canvas-nav">
+<div class="nav-home">
+<a href="../../index.html" >
+<span class="home-icon">⌂</span>Akka HTTP
+</a>
+<div class="version-number">
+10.0.0
+</div>
+</div>
+<div class="nav-toc">
+<ul>
+  <li><a href="../../java.html">Java Documentation</a>
+  <ul>
+    <li><a href="../../java/http/index.html">Akka HTTP</a>
+    <ul>
+      <li><a href="../../java/http/introduction.html">Introduction</a></li>
+      <li><a href="../../java/http/configuration.html">Configuration</a></li>
+      <li><a href="../../java/http/http-model.html">HTTP Model</a></li>
+      <li><a href="../../java/http/common/index.html">Common Abstractions (Client- and Server-Side)</a></li>
+      <li><a href="../../java/http/implications-of-streaming-http-entity.html">Implications of the streaming nature of Request/Response Entities</a></li>
+      <li><a href="../../java/http/server-side/low-level-server-side-api.html">Low-Level Server-Side API</a></li>
+      <li><a href="../../java/http/routing-dsl/index.html">High-level Server-Side API</a></li>
+      <li><a href="../../java/http/server-side/websocket-support.html">Server-Side WebSocket Support</a></li>
+      <li><a href="../../java/http/client-side/index.html">Consuming HTTP-based Services (Client-Side)</a></li>
+      <li><a href="../../java/http/server-side-https-support.html">Server-Side HTTPS Support</a></li>
+      <li><a href="../../java/http/migration-guide/index.html">Migration Guides (Java)</a></li>
+    </ul></li>
+  </ul></li>
+  <li><a href="../../scala.html">Scala Documentation</a>
+  <ul>
+    <li><a href="../../scala/http/index.html">Akka HTTP</a>
+    <ul>
+      <li><a href="../../scala/http/introduction.html">Introduction</a></li>
+      <li><a href="../../scala/http/configuration.html">Configuration</a></li>
+      <li><a href="../../scala/http/common/http-model.html">HTTP Model</a></li>
+      <li><a href="../../scala/http/common/index.html">Common Abstractions (Client- and Server-Side)</a></li>
+      <li><a href="../../scala/http/implications-of-streaming-http-entity.html">Implications of the streaming nature of Request/Response Entities</a></li>
+      <li><a href="../../scala/http/low-level-server-side-api.html" class="active">Low-Level Server-Side API</a></li>
+      <li><a href="../../scala/http/routing-dsl/index.html">High-level Server-Side API</a></li>
+      <li><a href="../../scala/http/websocket-support.html">Server-Side WebSocket Support</a></li>
+      <li><a href="../../scala/http/client-side/index.html">Consuming HTTP-based Services (Client-Side)</a></li>
+      <li><a href="../../scala/http/server-side-https-support.html">Server-Side HTTPS Support</a></li>
+      <li><a href="../../scala/http/handling-blocking-operations-in-akka-http-routes.html">Handling blocking operations in Akka HTTP</a></li>
+      <li><a href="../../scala/http/migration-guide/index.html">Migration Guides</a></li>
+    </ul></li>
+  </ul></li>
+  <li><a href="../../security.html">Security announcements</a></li>
+</ul>
+</div>
+
+</nav>
+</div>
+
+<div class="off-canvas-content" data-off-canvas-content>
+
+<header class="site-header expanded row">
+<div class="small-12 column">
+<a href="#" class="off-canvas-toggle hide-for-medium" data-toggle="off-canvas-menu"><svg class="svg-icon svg-icon-menu" version="1.1" id="Menu" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 20 20" enable-background="new 0 0 20 20" xml:space="preserve"> <path class="svg-icon-menu-path" fill="#53CDEC" d="M16.4,9H3.6C3.048,9,3,9.447,3,10c0,0.553,0.048,1,0.6,1H16.4c0.552,0,0.6-0.447,0.6-1C17,9.447,16.952,9,16.4,9z M16.4,13
+H3.6C3.048,13,3,13.447,3,14c0,0.553,0.048,1,0.6,1H16.4c0.552,0,0.6-0.447,0.6-1C17,13.447,16.952,13,16.4,13z M3.6,7H16.4
+C16.952,7,17,6.553,17,6c0-0.553-0.048-1-0.6-1H3.6C3.048,5,3,5.447,3,6C3,6.553,3.048,7,3.6,7z"/></svg>
+</a>
+<div class="title"><a href="../../index.html">Akka HTTP</a></div>
+
+<!--
+<a href="https://www.example.com" class="logo show-for-medium">logo</a>
+-->
+</div>
+</header>
+
+<div class="expanded row">
+
+<div class="medium-3 large-2 show-for-medium column">
+<nav class="site-nav">
+<div class="nav-home">
+<a href="../../index.html" >
+<span class="home-icon">⌂</span>Akka HTTP
+</a>
+<div class="version-number">
+10.0.0
+</div>
+</div>
+<div class="nav-toc">
+<ul>
+  <li><a href="../../java.html">Java Documentation</a>
+  <ul>
+    <li><a href="../../java/http/index.html">Akka HTTP</a>
+    <ul>
+      <li><a href="../../java/http/introduction.html">Introduction</a></li>
+      <li><a href="../../java/http/configuration.html">Configuration</a></li>
+      <li><a href="../../java/http/http-model.html">HTTP Model</a></li>
+      <li><a href="../../java/http/common/index.html">Common Abstractions (Client- and Server-Side)</a></li>
+      <li><a href="../../java/http/implications-of-streaming-http-entity.html">Implications of the streaming nature of Request/Response Entities</a></li>
+      <li><a href="../../java/http/server-side/low-level-server-side-api.html">Low-Level Server-Side API</a></li>
+      <li><a href="../../java/http/routing-dsl/index.html">High-level Server-Side API</a></li>
+      <li><a href="../../java/http/server-side/websocket-support.html">Server-Side WebSocket Support</a></li>
+      <li><a href="../../java/http/client-side/index.html">Consuming HTTP-based Services (Client-Side)</a></li>
+      <li><a href="../../java/http/server-side-https-support.html">Server-Side HTTPS Support</a></li>
+      <li><a href="../../java/http/migration-guide/index.html">Migration Guides (Java)</a></li>
+    </ul></li>
+  </ul></li>
+  <li><a href="../../scala.html">Scala Documentation</a>
+  <ul>
+    <li><a href="../../scala/http/index.html">Akka HTTP</a>
+    <ul>
+      <li><a href="../../scala/http/introduction.html">Introduction</a></li>
+      <li><a href="../../scala/http/configuration.html">Configuration</a></li>
+      <li><a href="../../scala/http/common/http-model.html">HTTP Model</a></li>
+      <li><a href="../../scala/http/common/index.html">Common Abstractions (Client- and Server-Side)</a></li>
+      <li><a href="../../scala/http/implications-of-streaming-http-entity.html">Implications of the streaming nature of Request/Response Entities</a></li>
+      <li><a href="../../scala/http/low-level-server-side-api.html" class="active">Low-Level Server-Side API</a></li>
+      <li><a href="../../scala/http/routing-dsl/index.html">High-level Server-Side API</a></li>
+      <li><a href="../../scala/http/websocket-support.html">Server-Side WebSocket Support</a></li>
+      <li><a href="../../scala/http/client-side/index.html">Consuming HTTP-based Services (Client-Side)</a></li>
+      <li><a href="../../scala/http/server-side-https-support.html">Server-Side HTTPS Support</a></li>
+      <li><a href="../../scala/http/handling-blocking-operations-in-akka-http-routes.html">Handling blocking operations in Akka HTTP</a></li>
+      <li><a href="../../scala/http/migration-guide/index.html">Migration Guides</a></li>
+    </ul></li>
+  </ul></li>
+  <li><a href="../../security.html">Security announcements</a></li>
+</ul>
+</div>
+
+</nav>
+</div>
+
+<div class="small-12 medium-9 large-10 column">
+<section class="site-content">
+
+<div class="page-header row">
+<div class="medium-12 show-for-medium column">
+<div class="nav-breadcrumbs">
+<ul>
+  <li><a href="../../index.html">Akka HTTP</a></li>
+  <li><a href="../../scala.html">Scala Documentation</a></li>
+  <li><a href="../../scala/http/index.html">Akka HTTP</a></li>
+  <li>Low-Level Server-Side API</li>
+</ul>
+</div>
+</div>
+</div>
+
+<div class="page-content row">
+<div class="small-12 large-9 column" id="docs">
+<a id="http-low-level-server-side-api"></a>
+<h1><a href="#low-level-server-side-api" name="low-level-server-side-api" class="anchor"><span class="anchor-link"></span></a>Low-Level Server-Side API</h1>
+<p>Apart from the <a href="client-side/index.html#http-client-side">HTTP Client</a> Akka HTTP also provides an embedded, <a href="http://www.reactive-streams.org/">Reactive-Streams</a>-based, fully asynchronous HTTP/1.1 server implemented on top of <a href="https://doc.akka.io/docs/akka/2.4.14/scala/stream/index.html">Streams</a>.</p>
+<p>It sports the following features:</p>
+<ul>
+  <li>Full support for <a href="http://en.wikipedia.org/wiki/HTTP_persistent_connection">HTTP persistent connections</a></li>
+  <li>Full support for <a href="http://en.wikipedia.org/wiki/HTTP_pipelining">HTTP pipelining</a></li>
+  <li>Full support for asynchronous HTTP streaming including &ldquo;chunked&rdquo; transfer encoding accessible through an idiomatic API</li>
+  <li>Optional SSL/TLS encryption</li>
+  <li>WebSocket support</li>
+</ul>
+<p>The server-side components of Akka HTTP are split into two layers:</p>
+<ol>
+  <li>The basic low-level server implementation in the <code>akka-http-core</code> module</li>
+  <li>Higher-level functionality in the <code>akka-http</code> module</li>
+</ol>
+<p>The low-level server (1) is scoped with a clear focus on the essential functionality of an HTTP/1.1 server:</p>
+<ul>
+  <li>Connection management</li>
+  <li>Parsing and rendering of messages and headers</li>
+  <li>Timeout management (for requests and connections)</li>
+  <li>Response ordering (for transparent pipelining support)</li>
+</ul>
+<p>All non-core features of typical HTTP servers (like request routing, file serving, compression, etc.) are left to the higher layers, they are not implemented by the <code>akka-http-core</code>-level server itself. Apart from general focus this design keeps the server core small and light-weight as well as easy to understand and maintain.</p>
+<p>Depending on your needs you can either use the low-level API directly or rely on the high-level <a href="routing-dsl/index.html#http-high-level-server-side-api">Routing DSL</a> which can make the definition of more complex service logic much easier.</p><div class="callout note "><div class="callout-title">Note</div>It is recommended to read the <a href="implications-of-streaming-http-entity.html#implications-of-streaming-http-entities">Implications of the streaming nature of Request/Response Entities</a> section, as it explains the underlying full-stack streaming concepts, which may be unexpected when coming from a background with non-&ldquo;streaming first&rdquo; HTTP Servers.</div>
+<h2><a href="#streams-and-http" name="streams-and-http" class="anchor"><span class="anchor-link"></span></a>Streams and HTTP</h2>
+<p>The Akka HTTP server is implemented on top of <a href="https://doc.akka.io/docs/akka/2.4.14/scala/stream/index.html">Streams</a> and makes heavy use of it - in its implementation as well as on all levels of its API.</p>
+<p>On the connection level Akka HTTP offers basically the same kind of interface as <a href="https://doc.akka.io/docs/akka/2.4.14/scala/stream/stream-io.html">Working with streaming IO</a>: A socket binding is represented as a stream of incoming connections. The application pulls connections from this stream source and, for each of them, provides a <code>Flow[HttpRequest, HttpResponse, _]</code> to &ldquo;translate&rdquo; requests into responses.</p>
+<p>Apart from regarding a socket bound on the server-side as a <code>Source[IncomingConnection]</code> and each connection as a <code>Source[HttpRequest]</code> with a <code>Sink[HttpResponse]</code> the stream abstraction is also present inside a single HTTP message: The entities of HTTP requests and responses are generally modeled as a <code>Source[ByteString]</code>. See also the <a href="common/http-model.html#http-model-scala">HTTP Model</a> for more information on how HTTP messages are represented in Akka HTTP.</p>
+<h2><a href="#starting-and-stopping" name="starting-and-stopping" class="anchor"><span class="anchor-link"></span></a>Starting and Stopping</h2>
+<p>On the most basic level an Akka HTTP server is bound by invoking the <code>bind</code> method of the <a href="http://github.com/akka/akka-http/tree/v10.0.0/akka-http-core/src/main/scala/akka/http/scaladsl/Http.scala">akka.http.scaladsl.Http</a> extension:</p>
+<pre class="prettyprint"><code class="language-scala">import akka.actor.ActorSystem
+import akka.http.scaladsl.Http
+import akka.stream.ActorMaterializer
+import akka.stream.scaladsl._
+
+implicit val system = ActorSystem()
+implicit val materializer = ActorMaterializer()
+implicit val executionContext = system.dispatcher
+
+val serverSource: Source[Http.IncomingConnection, Future[Http.ServerBinding]] =
+  Http().bind(interface = &quot;localhost&quot;, port = 8080)
+val bindingFuture: Future[Http.ServerBinding] =
+  serverSource.to(Sink.foreach { connection =&gt; // foreach materializes the source
+    println(&quot;Accepted new connection from &quot; + connection.remoteAddress)
+    // ... and then actually handle the connection
+  }).run()</code></pre>
+<p>Arguments to the <code>Http().bind</code> method specify the interface and port to bind to and register interest in handling incoming HTTP connections. Additionally, the method also allows for the definition of socket options as well as a larger number of settings for configuring the server according to your needs.</p>
+<p>The result of the <code>bind</code> method is a <code>Source[Http.IncomingConnection]</code> which must be drained by the application in order to accept incoming connections. The actual binding is not performed before this source is materialized as part of a processing pipeline. In case the bind fails (e.g. because the port is already busy) the materialized stream will immediately be terminated with a respective exception. The binding is released (i.e. the underlying socket unbound) when the subscriber of the incoming connection source has cancelled its subscription. Alternatively one can use the <code>unbind()</code> method of the <code>Http.ServerBinding</code> instance that is created as part of the connection source&rsquo;s materialization process. The <code>Http.ServerBinding</code> also provides a way to get a hold of the actual local address of the bound socket, which is useful for example when binding to port zero (and thus letting the OS pick an available port).</p>
+<h2><a href="#request-response-cycle" name="request-response-cycle" class="anchor"><span class="anchor-link"></span></a>Request-Response Cycle</h2>
+<p>When a new connection has been accepted it will be published as an <code>Http.IncomingConnection</code> which consists of the remote address and methods to provide a <code>Flow[HttpRequest, HttpResponse, _]</code> to handle requests coming in over this connection.</p>
+<p>Requests are handled by calling one of the <code>handleWithXXX</code> methods with a handler, which can either be</p>
+<blockquote>
+  <ul>
+    <li>a <code>Flow[HttpRequest, HttpResponse, _]</code> for <code>handleWith</code>,</li>
+    <li>a function <code>HttpRequest =&gt; HttpResponse</code> for <code>handleWithSyncHandler</code>,</li>
+    <li>a function <code>HttpRequest =&gt; Future[HttpResponse]</code> for <code>handleWithAsyncHandler</code>.</li>
+  </ul>
+</blockquote>
+<p>Here is a complete example:</p>
+<pre class="prettyprint"><code class="language-scala">import akka.actor.ActorSystem
+import akka.http.scaladsl.Http
+import akka.http.scaladsl.model.HttpMethods._
+import akka.http.scaladsl.model._
+import akka.stream.ActorMaterializer
+import akka.stream.scaladsl.Sink
+
+implicit val system = ActorSystem()
+implicit val materializer = ActorMaterializer()
+implicit val executionContext = system.dispatcher
+
+val serverSource = Http().bind(interface = &quot;localhost&quot;, port = 8080)
+
+val requestHandler: HttpRequest =&gt; HttpResponse = {
+  case HttpRequest(GET, Uri.Path(&quot;/&quot;), _, _, _) =&gt;
+    HttpResponse(entity = HttpEntity(
+      ContentTypes.`text/html(UTF-8)`,
+      &quot;&lt;html&gt;&lt;body&gt;Hello world!&lt;/body&gt;&lt;/html&gt;&quot;))
+
+  case HttpRequest(GET, Uri.Path(&quot;/ping&quot;), _, _, _) =&gt;
+    HttpResponse(entity = &quot;PONG!&quot;)
+
+  case HttpRequest(GET, Uri.Path(&quot;/crash&quot;), _, _, _) =&gt;
+    sys.error(&quot;BOOM!&quot;)
+
+  case r: HttpRequest =&gt;
+    r.discardEntityBytes() // important to drain incoming HTTP Entity stream
+    HttpResponse(404, entity = &quot;Unknown resource!&quot;)
+}
+
+val bindingFuture: Future[Http.ServerBinding] =
+  serverSource.to(Sink.foreach { connection =&gt;
+    println(&quot;Accepted new connection from &quot; + connection.remoteAddress)
+
+    connection handleWithSyncHandler requestHandler
+    // this is equivalent to
+    // connection handleWith { Flow[HttpRequest] map requestHandler }
+  }).run()</code></pre>
+<p>In this example, a request is handled by transforming the request stream with a function <code>HttpRequest =&gt; HttpResponse</code> using <code>handleWithSyncHandler</code> (or equivalently, Akka Stream&rsquo;s <code>map</code> operator). Depending on the use case many other ways of providing a request handler are conceivable using Akka Stream&rsquo;s combinators.</p>
+<p>If the application provides a <code>Flow</code> it is also the responsibility of the application to generate exactly one response for every request and that the ordering of responses matches the ordering of the associated requests (which is relevant if HTTP pipelining is enabled where processing of multiple incoming requests may overlap). When relying on <code>handleWithSyncHandler</code> or <code>handleWithAsyncHandler</code>, or the <code>map</code> or <code>mapAsync</code> stream operators, this requirement will be automatically fulfilled.</p>
+<h3><a href="#streaming-request-response-entities" name="streaming-request-response-entities" class="anchor"><span class="anchor-link"></span></a>Streaming Request/Response Entities</h3>
+<p>Streaming of HTTP message entities is supported through subclasses of <code>HttpEntity</code>. The application needs to be able to deal with streamed entities when receiving a request as well as, in many cases, when constructing responses. See <a href="common/http-model.html#httpentity-scala">HttpEntity</a> for a description of the alternatives.</p>
+<p>If you rely on the <a href="common/marshalling.html#http-marshalling-scala">Marshalling</a> and/or <a href="common/unmarshalling.html#http-unmarshalling-scala">Unmarshalling</a> facilities provided by Akka HTTP then the conversion of custom types to and from streamed entities can be quite convenient.</p>
+<a id="http-closing-connection-low-level"></a>
+<h3><a href="#closing-a-connection" name="closing-a-connection" class="anchor"><span class="anchor-link"></span></a>Closing a connection</h3>
+<p>The HTTP connection will be closed when the handling <code>Flow</code> cancels its upstream subscription or the peer closes the connection. An often times more convenient alternative is to explicitly add a <code>Connection: close</code> header to an <code>HttpResponse</code>. This response will then be the last one on the connection and the server will actively close the connection when it has been sent out.</p>
+<p>Connection will also be closed if request entity has been cancelled (e.g. by attaching it to <code>Sink.cancelled</code>) or consumed only partially (e.g. by using <code>take</code> combinator). In order to prevent this behaviour entity should be explicitly drained by attaching it to <code>Sink.ignore</code>.</p>
+<h2><a href="#configuring-server-side-https" name="configuring-server-side-https" class="anchor"><span class="anchor-link"></span></a>Configuring Server-side HTTPS</h2>
+<p>For detailed documentation about configuring and using HTTPS on the server-side refer to <a href="server-side-https-support.html#serversidehttps-scala">Server-Side HTTPS Support</a>.</p>
+<a id="http-server-layer-scala"></a>
+<h2><a href="#stand-alone-http-layer-usage" name="stand-alone-http-layer-usage" class="anchor"><span class="anchor-link"></span></a>Stand-Alone HTTP Layer Usage</h2>
+<p>Due to its Reactive-Streams-based nature the Akka HTTP layer is fully detachable from the underlying TCP interface. While in most applications this &ldquo;feature&rdquo; will not be crucial it can be useful in certain cases to be able to &ldquo;run&rdquo; the HTTP layer (and, potentially, higher-layers) against data that do not come from the network but rather some other source. Potential scenarios where this might be useful include tests, debugging or low-level event-sourcing (e.g by replaying network traffic).</p>
+<p>On the server-side the stand-alone HTTP layer forms a <code>BidiFlow</code> that is defined like this:</p>
+<pre class="prettyprint"><code class="language-scala">/**
+ * The type of the server-side HTTP layer as a stand-alone BidiFlow
+ * that can be put atop the TCP layer to form an HTTP server.
+ *
+ * {{{
+ *                +------+
+ * HttpResponse ~&gt;|      |~&gt; SslTlsOutbound
+ *                | bidi |
+ * HttpRequest  &lt;~|      |&lt;~ SslTlsInbound
+ *                +------+
+ * }}}
+ */
+type ServerLayer = BidiFlow[HttpResponse, SslTlsOutbound, SslTlsInbound, HttpRequest, NotUsed]</code></pre>
+<p>You create an instance of <code>Http.ServerLayer</code> by calling one of the two overloads of the <code>Http().serverLayer</code> method, which also allows for varying degrees of configuration.</p>
+<h2><a href="#controlling-server-parallelism" name="controlling-server-parallelism" class="anchor"><span class="anchor-link"></span></a>Controlling server parallelism</h2>
+<p>Request handling can be parallelized on two axes, by handling several connections in parallel and by relying on HTTP pipelining to send several requests on one connection without waiting for a response first. In both cases the client controls the number of ongoing requests. To prevent being overloaded by too many requests, Akka HTTP can limit the number of requests it handles in parallel.</p>
+<p>To limit the number of simultaneously open connections, use the <code>akka.http.server.max-connections</code> setting. This setting applies to all of <code>Http.bindAndHandle*</code> methods. If you use <code>Http.bind</code>, incoming connections are represented by a <code>Source[IncomingConnection, ...]</code>. Use Akka Stream&rsquo;s combinators to apply backpressure to control the flow of incoming connections, e.g. by using <code>throttle</code> or <code>mapAsync</code>.</p>
+<p>HTTP pipelining is generally discouraged (and <a href="https://en.wikipedia.org/w/index.php?title=HTTP_pipelining&oldid=700966692#Implementation_in_web_browsers">disabled by most browsers</a>) but is nevertheless fully supported in Akka HTTP. The limit is applied on two levels. First, there&rsquo;s the <code>akka.http.server.pipeline-limit</code> config setting which prevents that more than the given number of outstanding requests is ever given to the user-supplied handler-flow. On the other hand, the handler flow itself can apply any kind of throttling itself. If you use one of the <code>Http.bindAndHandleSync</code> or <code>Http.bindAndHandleAsync</code> entry-points, you can specify the <code>parallelism</code> argument (default = 1, i.e. pipelining disabled) to control the number of concurrent requests per connection. If you use <code>Http.bindAndHandle</code> or <code>Http.bind</code>, the user-supplied handler flow has full control over how many request it accepts simultaneously by applying backpressure. In this case, you can e.g. use Akka Stream&rsquo;s <code>mapAsync</code> combinator with a given parallelism to limit the number of concurrently handled requests. Effectively, the more constraining one of these two measures, config setting and manual flow shaping, will determine how parallel requests on one connection are handled.</p>
+<a id="handling-http-server-failures-low-level-scala"></a>
+<h2><a href="#handling-http-server-failures-in-the-low-level-api" name="handling-http-server-failures-in-the-low-level-api" class="anchor"><span class="anchor-link"></span></a>Handling HTTP Server failures in the Low-Level API</h2>
+<p>There are various situations when failure may occur while initialising or running an Akka HTTP server. Akka by default will log all these failures, however sometimes one may want to react to failures in addition to them just being logged, for example by shutting down the actor system, or notifying some external monitoring end-point explicitly.</p>
+<p>There are multiple things that can fail when creating and materializing an HTTP Server (similarly, the same applied to a plain streaming <code>Tcp()</code> server). The types of failures that can happen on different layers of the stack, starting from being unable to start the server, and ending with failing to unmarshal an HttpRequest, examples of failures include (from outer-most, to inner-most):</p>
+<ul>
+  <li>Failure to <code>bind</code> to the specified address/port,</li>
+  <li>Failure while accepting new <code>IncommingConnection</code> s, for example when the OS has run out of file descriptors or memory,</li>
+  <li>Failure while handling a connection, for example if the incoming <code>HttpRequest</code> is malformed.</li>
+</ul>
+<p>This section describes how to handle each failure situation, and in which situations these failures may occur.</p>
+<h4><a href="#bind-failures" name="bind-failures" class="anchor"><span class="anchor-link"></span></a>Bind failures</h4>
+<p>The first type of failure is when the server is unable to bind to the given port. For example when the port is already taken by another application, or if the port is privileged (i.e. only usable by <code>root</code>). In this case the &ldquo;binding future&rdquo; will fail immediately, and we can react to if by listening on the Future&rsquo;s completion:</p>
+<pre class="prettyprint"><code class="language-scala">import akka.actor.ActorSystem
+import akka.http.scaladsl.Http
+import akka.http.scaladsl.Http.ServerBinding
+import akka.stream.ActorMaterializer
+
+import scala.concurrent.Future
+
+implicit val system = ActorSystem()
+implicit val materializer = ActorMaterializer()
+// needed for the future onFailure in the end
+implicit val executionContext = system.dispatcher
+
+// let&#39;s say the OS won&#39;t allow us to bind to 80.
+val (host, port) = (&quot;localhost&quot;, 80)
+val serverSource = Http().bind(host, port)
+
+val bindingFuture: Future[ServerBinding] = serverSource
+  .to(handleConnections) // Sink[Http.IncomingConnection, _]
+  .run()
+
+bindingFuture.onFailure {
+  case ex: Exception =&gt;
+    log.error(ex, &quot;Failed to bind to {}:{}!&quot;, host, port)
+}</code></pre>
+<p>Once the server has successfully bound to a port, the <code>Source[IncomingConnection, _]</code> starts running and emitting new incoming connections. This source technically can signal a failure as well, however this should only happen in very dramatic situations such as running out of file descriptors or memory available to the system, such that it&rsquo;s not able to accept a new incoming connection. Handling failures in Akka Streams is pretty straight forward, as failures are signaled through the stream starting from the stage which failed, all the way downstream to the final stages.</p>
+<h4><a href="#connections-source-failures" name="connections-source-failures" class="anchor"><span class="anchor-link"></span></a>Connections Source failures</h4>
+<p>In the example below we add a custom <code>GraphStage</code> (see <a href="https://doc.akka.io/docs/akka/2.4.14/scala/stream/stream-customize.html">Custom stream processing</a>) in order to react to the stream&rsquo;s failure. We signal a <code>failureMonitor</code> actor with the cause why the stream is going down, and let the Actor handle the rest – maybe it&rsquo;ll decide to restart the server or shutdown the ActorSystem, that however is not our concern anymore.</p>
+<pre class="prettyprint"><code class="language-scala">import akka.actor.ActorSystem
+import akka.actor.ActorRef
+import akka.http.scaladsl.Http
+import akka.stream.ActorMaterializer
+import akka.stream.scaladsl.Flow
+
+implicit val system = ActorSystem()
+implicit val materializer = ActorMaterializer()
+implicit val executionContext = system.dispatcher
+
+import Http._
+val (host, port) = (&quot;localhost&quot;, 8080)
+val serverSource = Http().bind(host, port)
+
+val failureMonitor: ActorRef = system.actorOf(MyExampleMonitoringActor.props)
+
+val reactToTopLevelFailures = Flow[IncomingConnection]
+  .watchTermination()((_, termination) =&gt; termination.onFailure {
+    case cause =&gt; failureMonitor ! cause
+  })
+
+serverSource
+  .via(reactToTopLevelFailures)
+  .to(handleConnections) // Sink[Http.IncomingConnection, _]
+  .run()</code></pre>
+<h4><a href="#connection-failures" name="connection-failures" class="anchor"><span class="anchor-link"></span></a>Connection failures</h4>
+<p>The third type of failure that can occur is when the connection has been properly established, however afterwards is terminated abruptly – for example by the client aborting the underlying TCP connection. To handle this failure we can use the same pattern as in the previous snippet, however apply it to the connection&rsquo;s Flow:</p>
+<pre class="prettyprint"><code class="language-scala">import akka.actor.ActorSystem
+import akka.http.scaladsl.Http
+import akka.http.scaladsl.model._
+import akka.stream.ActorMaterializer
+import akka.stream.scaladsl.Flow
+
+implicit val system = ActorSystem()
+implicit val materializer = ActorMaterializer()
+implicit val executionContext = system.dispatcher
+
+val (host, port) = (&quot;localhost&quot;, 8080)
+val serverSource = Http().bind(host, port)
+
+val reactToConnectionFailure = Flow[HttpRequest]
+  .recover[HttpRequest] {
+    case ex =&gt;
+      // handle the failure somehow
+      throw ex
+  }
+
+val httpEcho = Flow[HttpRequest]
+  .via(reactToConnectionFailure)
+  .map { request =&gt;
+    // simple streaming (!) &quot;echo&quot; response:
+    HttpResponse(entity = HttpEntity(ContentTypes.`text/plain(UTF-8)`, request.entity.dataBytes))
+  }
+
+serverSource
+  .runForeach { con =&gt;
+    con.handleWith(httpEcho)
+  }</code></pre>
+<p>These failures can be described more or less infrastructure related, they are failing bindings or connections. Most of the time you won&rsquo;t need to dive into those very deeply, as Akka will simply log errors of this kind anyway, which is a reasonable default for such problems.</p>
+<p>In order to learn more about handling exceptions in the actual routing layer, which is where your application code comes into the picture, refer to <a href="routing-dsl/exception-handling.html#exception-handling-scala">Exception Handling</a> which focuses explicitly on explaining how exceptions thrown in routes can be handled and transformed into <code>HttpResponse</code> s with appropriate error codes and human-readable failure descriptions.</p>
+<div class="nav-next">
+<p><strong>Next:</strong> <a href="../../scala/http/routing-dsl/index.html">High-level Server-Side API</a></p>
+</div>
+</div>
+<div class="large-3 show-for-large column" data-sticky-container>
+<nav class="sidebar sticky" data-sticky data-anchor="docs" data-sticky-on="large">
+<div class="page-nav">
+<div class="nav-title">On this page:</div>
+<div class="nav-toc">
+<ul>
+  <li><a href="../../scala/http/low-level-server-side-api.html#low-level-server-side-api">Low-Level Server-Side API</a>
+  <ul>
+    <li><a href="../../scala/http/low-level-server-side-api.html#streams-and-http">Streams and HTTP</a></li>
+    <li><a href="../../scala/http/low-level-server-side-api.html#starting-and-stopping">Starting and Stopping</a></li>
+    <li><a href="../../scala/http/low-level-server-side-api.html#request-response-cycle">Request-Response Cycle</a>
+    <ul>
+      <li><a href="../../scala/http/low-level-server-side-api.html#streaming-request-response-entities">Streaming Request/Response Entities</a></li>
+      <li><a href="../../scala/http/low-level-server-side-api.html#closing-a-connection">Closing a connection</a></li>
+    </ul></li>
+    <li><a href="../../scala/http/low-level-server-side-api.html#configuring-server-side-https">Configuring Server-side HTTPS</a></li>
+    <li><a href="../../scala/http/low-level-server-side-api.html#stand-alone-http-layer-usage">Stand-Alone HTTP Layer Usage</a></li>
+    <li><a href="../../scala/http/low-level-server-side-api.html#controlling-server-parallelism">Controlling server parallelism</a></li>
+    <li><a href="../../scala/http/low-level-server-side-api.html#handling-http-server-failures-in-the-low-level-api">Handling HTTP Server failures in the Low-Level API</a>
+    <ul>
+      <li><a href="../../scala/http/low-level-server-side-api.html#bind-failures">Bind failures</a></li>
+      <li><a href="../../scala/http/low-level-server-side-api.html#connections-source-failures">Connections Source failures</a></li>
+      <li><a href="../../scala/http/low-level-server-side-api.html#connection-failures">Connection failures</a></li>
+    </ul></li>
+  </ul></li>
+</ul>
+</div>
+</div>
+</nav>
+</div>
+</div>
+
+</section>
+</div>
+
+</div>
+
+<footer class="site-footer">
+
+<section class="site-footer-nav">
+<div class="expanded row">
+<div class="small-12 large-offset-2 large-10 column">
+<div class="row site-footer-content">
+
+<div class="small-12 medium-4 large-3 text-center column">
+<div class="nav-links">
+<ul>
+<!-- <li><a href="https://www.example.com/products/">Products</a> -->
+</ul>
+</div>
+</div>
+
+</div>
+</div>
+</div>
+</section>
+
+<section class="site-footer-base">
+<div class="expanded row">
+<div class="small-12 large-offset-2 large-10 column">
+<div class="row site-footer-content">
+
+<div class="small-12 text-center large-9 column">
+
+<!--
+<div class="copyright">
+<span class="text">&copy; 2016</span>
+<a href="https://www.example.com" class="logo">logo</a>
+</div>
+-->
+</div>
+
+</div>
+</div>
+</div>
+</section>
+</footer>
+
+</div>
+</div>
+</div>
+</body>
+
+<script type="text/javascript" src="../../lib/foundation/dist/foundation.min.js"></script>
+<script type="text/javascript">jQuery(document).foundation();</script>
+<script type="text/javascript" src="../../js/magellan.js"></script>
+
+<style type="text/css">@import "../../lib/prettify/prettify.css";</style>
+<script type="text/javascript" src="../../lib/prettify/prettify.js"></script>
+<script type="text/javascript" src="../../lib/prettify/lang-scala.js"></script>
+<script type="text/javascript">jQuery(function(){window.prettyPrint && prettyPrint()});</script>
+
+</html>

@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html class="no-js" lang="en">
+
+<head>
+<title>Denial-of-Service by stream leak on unconsumed closed connections</title>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta name="description" content='akka-http-docs'/>
+<link href="https://fonts.googleapis.com/css?family=Roboto:100normal,100italic,300normal,300italic,400normal,400italic,500normal,500italic,700normal,700italic,900normal,900italicc" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="../lib/jquery/jquery.min.js"></script>
+<script type="text/javascript" src="../js/page.js"></script>
+<link rel="stylesheet" type="text/css" href="../lib/normalize.css/normalize.css"/>
+<link rel="stylesheet" type="text/css" href="../lib/foundation/dist/foundation.min.css"/>
+<link rel="stylesheet" type="text/css" href="../css/page.css"/>
+
+<!--
+<link rel="shortcut icon" href="../images/favicon.ico" />
+-->
+</head>
+
+<body>
+<div class="off-canvas-wrapper">
+<div class="off-canvas-wrapper-inner" data-off-canvas-wrapper>
+
+<div class="off-canvas position-left" id="off-canvas-menu" data-off-canvas>
+<nav class="off-canvas-nav">
+<div class="nav-home">
+<a href="../security/2017-01-23-denial-of-service-via-leak-on-unconsumed-closed-connections.html" class="active">
+<span class="home-icon">⌂</span>Denial-of-Service by stream leak on unconsumed closed connections
+</a>
+<div class="version-number">
+10.0.2
+</div>
+</div>
+<div class="nav-toc">
+<ul>
+</ul>
+</div>
+
+</nav>
+</div>
+
+<div class="off-canvas-content" data-off-canvas-content>
+
+<header class="site-header expanded row">
+<div class="small-12 column">
+<a href="#" class="off-canvas-toggle hide-for-medium" data-toggle="off-canvas-menu"><svg class="svg-icon svg-icon-menu" version="1.1" id="Menu" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 20 20" enable-background="new 0 0 20 20" xml:space="preserve"> <path class="svg-icon-menu-path" fill="#53CDEC" d="M16.4,9H3.6C3.048,9,3,9.447,3,10c0,0.553,0.048,1,0.6,1H16.4c0.552,0,0.6-0.447,0.6-1C17,9.447,16.952,9,16.4,9z M16.4,13
+H3.6C3.048,13,3,13.447,3,14c0,0.553,0.048,1,0.6,1H16.4c0.552,0,0.6-0.447,0.6-1C17,13.447,16.952,13,16.4,13z M3.6,7H16.4
+C16.952,7,17,6.553,17,6c0-0.553-0.048-1-0.6-1H3.6C3.048,5,3,5.447,3,6C3,6.553,3.048,7,3.6,7z"/></svg>
+</a>
+<div class="title"><a href="../security/2017-01-23-denial-of-service-via-leak-on-unconsumed-closed-connections.html" class="active">Denial-of-Service by stream leak on unconsumed closed connections</a></div>
+
+<!--
+<a href="https://www.example.com" class="logo show-for-medium">logo</a>
+-->
+</div>
+</header>
+
+<div class="expanded row">
+
+<div class="medium-3 large-2 show-for-medium column">
+<nav class="site-nav">
+<div class="nav-home">
+<a href="../security/2017-01-23-denial-of-service-via-leak-on-unconsumed-closed-connections.html" class="active">
+<span class="home-icon">⌂</span>Denial-of-Service by stream leak on unconsumed closed connections
+</a>
+<div class="version-number">
+10.0.2
+</div>
+</div>
+<div class="nav-toc">
+<ul>
+</ul>
+</div>
+
+</nav>
+</div>
+
+<div class="small-12 medium-9 large-10 column">
+<section class="site-content">
+
+<div class="page-header row">
+<div class="medium-12 show-for-medium column">
+</div>
+</div>
+
+<div class="page-content row">
+<div class="small-12 large-9 column" id="docs">
+<h1><a href="#denial-of-service-by-stream-leak-on-unconsumed-closed-connections" name="denial-of-service-by-stream-leak-on-unconsumed-closed-connections" class="anchor"><span class="anchor-link"></span></a>Denial-of-Service by stream leak on unconsumed closed connections</h1>
+<h2><a href="#date" name="date" class="anchor"><span class="anchor-link"></span></a>Date</h2>
+<p>23 January 2017</p>
+<h2><a href="#description-of-vulnerability" name="description-of-vulnerability" class="anchor"><span class="anchor-link"></span></a>Description of Vulnerability</h2>
+<p>For requests containing request bodies (including request methods which would normally include entities like GET requests), a mistake in completion handling of a connection could lead to memory leaking after the connection had been closed before the entity was consumed. This may eventually lead to a failure of the system due to being out of memory.</p>
+<p>Please subscribe to the <a href="https://groups.google.com/forum/#!forum/akka-security">akka-security</a> mailing list to be notified promptly about future security issues.</p>
+<h2><a href="#severity" name="severity" class="anchor"><span class="anchor-link"></span></a>Severity</h2>
+<p>The <a href="https://en.wikipedia.org/wiki/CVSS">CVSS</a> score of this vulnerability is 6.4 (Medium), based on vector <a href="https://nvd.nist.gov/cvss.cfm?calculator&version=2&vector=%28AV:N/AC:L/Au:N/C:N/I:N/A:C/E:F/RL:OF/RC:C%29">AV:N/AC:L/Au:N/C:N/I:N/A:C/E:F/RL:OF/RC:C</a>.</p>
+<h2><a href="#affected-versions" name="affected-versions" class="anchor"><span class="anchor-link"></span></a>Affected Versions</h2>
+<ul>
+  <li>(experimental) Akka HTTP <code>2.4.11</code> and prior,</li>
+  <li>(stable) Akka HTTP <code>10.0.1</code> and prior.</li>
+</ul>
+<h2><a href="#fixed-versions" name="fixed-versions" class="anchor"><span class="anchor-link"></span></a>Fixed Versions</h2>
+<p>We have prepared patches for the affected versions, and have released the following versions which resolve the issue: </p>
+<ul>
+  <li>Akka HTTP <code>2.4.11.1</code> (Scala 2.11)</li>
+  <li>Akka HTTP <code>10.0.2</code> (Scala 2.11, 2.12)</li>
+</ul>
+<p>The patched releases contain no other changes except the single patch that addresses the memory leak vulnerability. <em>Binary and source compatibility has been maintained so the upgrade procedure is as simple as changing the library dependency.</em></p>
+<h2><a href="#additional-important-information" name="additional-important-information" class="anchor"><span class="anchor-link"></span></a>Additional Important Information</h2>
+<p>Note that Play and Lagom applications are not impacted by this vulnerability, regardless of whether they are using the Akka HTTP backend or the Netty backend.</p>
+<p>If you have any questions or need any help, please contact <a href="mailto:support@lightbend.com">support@lightbend.com</a>.</p>
+<h2><a href="#acknowledgements" name="acknowledgements" class="anchor"><span class="anchor-link"></span></a>Acknowledgements</h2>
+<p>We would like to thank Dmitry Kolesnikov &amp; Lari Hotari for their thorough investigation and bringing this issue to our attention.</p>
+</div>
+<div class="large-3 show-for-large column" data-sticky-container>
+<nav class="sidebar sticky" data-sticky data-anchor="docs" data-sticky-on="large">
+<div class="page-nav">
+<div class="nav-title">On this page:</div>
+<div class="nav-toc">
+<ul>
+  <li><a href="../security/2017-01-23-denial-of-service-via-leak-on-unconsumed-closed-connections.html#denial-of-service-by-stream-leak-on-unconsumed-closed-connections">Denial-of-Service by stream leak on unconsumed closed connections</a>
+  <ul>
+    <li><a href="../security/2017-01-23-denial-of-service-via-leak-on-unconsumed-closed-connections.html#date">Date</a></li>
+    <li><a href="../security/2017-01-23-denial-of-service-via-leak-on-unconsumed-closed-connections.html#description-of-vulnerability">Description of Vulnerability</a></li>
+    <li><a href="../security/2017-01-23-denial-of-service-via-leak-on-unconsumed-closed-connections.html#severity">Severity</a></li>
+    <li><a href="../security/2017-01-23-denial-of-service-via-leak-on-unconsumed-closed-connections.html#affected-versions">Affected Versions</a></li>
+    <li><a href="../security/2017-01-23-denial-of-service-via-leak-on-unconsumed-closed-connections.html#fixed-versions">Fixed Versions</a></li>
+    <li><a href="../security/2017-01-23-denial-of-service-via-leak-on-unconsumed-closed-connections.html#additional-important-information">Additional Important Information</a></li>
+    <li><a href="../security/2017-01-23-denial-of-service-via-leak-on-unconsumed-closed-connections.html#acknowledgements">Acknowledgements</a></li>
+  </ul></li>
+</ul>
+</div>
+</div>
+</nav>
+</div>
+</div>
+
+</section>
+</div>
+
+</div>
+
+<footer class="site-footer">
+
+<section class="site-footer-nav">
+<div class="expanded row">
+<div class="small-12 large-offset-2 large-10 column">
+<div class="row site-footer-content">
+
+<div class="small-12 medium-4 large-3 text-center column">
+<div class="nav-links">
+<ul>
+<!-- <li><a href="https://www.example.com/products/">Products</a> -->
+</ul>
+</div>
+</div>
+
+</div>
+</div>
+</div>
+</section>
+
+<section class="site-footer-base">
+<div class="expanded row">
+<div class="small-12 large-offset-2 large-10 column">
+<div class="row site-footer-content">
+
+<div class="small-12 text-center large-9 column">
+
+<!--
+<div class="copyright">
+<span class="text">&copy; 2017</span>
+<a href="https://www.example.com" class="logo">logo</a>
+</div>
+-->
+</div>
+
+</div>
+</div>
+</div>
+</section>
+</footer>
+
+</div>
+</div>
+</div>
+</body>
+
+<script type="text/javascript" src="../lib/foundation/dist/foundation.min.js"></script>
+<script type="text/javascript">jQuery(document).foundation();</script>
+<script type="text/javascript" src="../js/magellan.js"></script>
+
+<style type="text/css">@import "../lib/prettify/prettify.css";</style>
+<script type="text/javascript" src="../lib/prettify/prettify.js"></script>
+<script type="text/javascript" src="../lib/prettify/lang-scala.js"></script>
+<script type="text/javascript">jQuery(function(){window.prettyPrint && prettyPrint()});</script>
+
+</html>

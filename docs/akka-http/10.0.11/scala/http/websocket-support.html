@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html class="no-js" lang="en">
+
+<head>
+<title>Server-Side WebSocket Support &bull; Akka HTTP</title>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta name="description" content="Akka HTTP: Modern, fast, asynchronous, streaming-first HTTP server and client."/><link rel="canonical" href="https://doc.akka.io/docs/akka-http/10.0/scala/http/websocket-support.html"/>
+<script type="text/javascript" src="../../lib/jquery/jquery.min.js"></script>
+<script type="text/javascript" src="../../lib/foundation/dist/js/foundation.min.js"></script>
+<link rel="stylesheet" type="text/css" href="../../lib/normalize.css/normalize.css"/>
+<link rel="stylesheet" type="text/css" href="../../lib/foundation/dist/css/foundation.min.css"/>
+<link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/docsearch.js/2/docsearch.min.css" />
+<link rel="stylesheet" type="text/css" href="../../css/icons.css"/>
+<link rel="stylesheet" type="text/css" href="../../css/page.css"/>
+<link rel="shortcut icon" href="../../images/favicon.ico" />
+<meta name="theme-color" content="#15a9ce">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<!--Google Analytics-->
+<script type="text/javascript">
+var _gaq = _gaq || [];
+_gaq.push(['_setAccount', 'UA-21117439-1']);
+_gaq.push(['_setDomainName', 'akka.io']);
+_gaq.push(['_trackPageview']);
+(function() {
+var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+})()
+</script>
+<!--Google Analytics & Marketo-->
+<script type="text/javascript">
+(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+ga('create', 'UA-23127719-1', 'lightbend.com', {'allowLinker': true, 'name': 'tsTracker'});
+ga('tsTracker.require', 'linker');
+ga('tsTracker.linker:autoLink', ['lightbend.com','playframework.com','scala-lang.org','scaladays.org','spray.io','akka.io','scala-sbt.org','scala-ide.org']);
+ga('tsTracker.send', 'pageview');
+(function() {
+var didInit = false;
+function initMunchkin() {
+if(didInit === false) {
+didInit = true;
+Munchkin.init('558-NCX-702');
+}
+}
+var s = document.createElement('script');
+s.type = 'text/javascript';
+s.async = true;
+s.src = '//munchkin.marketo.net/munchkin.js';
+s.onreadystatechange = function() {
+if (this.readyState == 'complete' || this.readyState == 'loaded') {
+initMunchkin();
+}
+};
+s.onload = initMunchkin;
+document.getElementsByTagName('head')[0].appendChild(s);
+})();
+</script>
+
+</head>
+
+<body id="underlay" data-toggler="nav-open">
+
+<header class="site-header hide-for-large">
+<div class="sticky-header clearfix">
+<a href="https://akka.io"><img class="logo" src="../../images/akka-logo-reverse.svg"></a>
+
+<button class="menu-icon float-right" type="button" data-toggle="underlay overlay"></button>
+</div>
+<div id="overlay" class="overlay-nav" data-toggler="nav-open">
+<header class="nav-header">
+<div class="nav-header-title">
+<h1><a href="../../scala/http/index.html">Akka HTTP</a></h1>
+</div>
+<div class="nav-header-version">
+Version 10.0.9+56-76bd5fd8
+</div>
+<div class="nav-header-groups">
+<select class="supergroup" name="Languages"><option class="group" value="group-scala">Scala</option><option class="group" value="group-java">Java</option></select>
+</div>
+<div id="overlay-search-container" class="nav-header-search">
+<input id="overlay-search" type="search" class="search" placeholder="Search"/>
+</div>
+</header>
+<nav class="nav-toc">
+<ul>
+  <li><a href="../../scala/http/security.html" class="page">Security Announcements</a></li>
+  <li><a href="../../scala/http/introduction.html" class="page">Introduction</a></li>
+  <li><a href="../../scala/http/configuration.html" class="page">Configuration</a></li>
+  <li><a href="../../scala/http/common/index.html" class="page">Common Abstractions (Client- and Server-Side)</a></li>
+  <li><a href="../../scala/http/implications-of-streaming-http-entity.html" class="page">Implications of the streaming nature of Request/Response Entities</a></li>
+  <li><a href="../../scala/http/low-level-server-side-api.html" class="page">Low-Level Server-Side API</a></li>
+  <li><a href="../../scala/http/routing-dsl/index.html" class="page">High-level Server-Side API</a></li>
+  <li><a href="../../scala/http/websocket-support.html#server-side-websocket-support" class="active page">Server-Side WebSocket Support</a>
+  <ul>
+    <li><a href="../../scala/http/websocket-support.html#model" class="header">Model</a></li>
+    <li><a href="../../scala/http/websocket-support.html#server-api" class="header">Server API</a></li>
+    <li><a href="../../scala/http/websocket-support.html#routing-support" class="header">Routing support</a></li>
+  </ul></li>
+  <li><a href="../../scala/http/sse-support.html" class="page">Server-Sent Events Support</a></li>
+  <li><a href="../../scala/http/client-side/index.html" class="page">Consuming HTTP-based Services (Client-Side)</a></li>
+  <li><a href="../../scala/http/server-side-https-support.html" class="page">Server-Side HTTPS Support</a></li>
+  <li><a href="../../scala/http/handling-blocking-operations-in-akka-http-routes.html" class="page">Handling blocking operations in Akka HTTP</a></li>
+  <li><a href="../../scala/http/migration-guide/index.html" class="page">Migration Guides</a></li>
+  <li><a href="../../scala/http/compatibility-guidelines.html" class="page">Compatibility Guidelines</a></li>
+  <li><a href="../../scala/http/release-notes.html" class="page">Release Notes</a></li>
+</ul>
+</nav>
+</div>
+</header>
+
+<aside class="show-for-large">
+<header class="nav-header fixed-sidebar-header">
+<div class="nav-header-title">
+<h1><a href="../../scala/http/index.html">Akka HTTP</a></h1>
+</div>
+<div class="nav-header-version">
+Version 10.0.9+56-76bd5fd8
+</div>
+<div class="nav-header-groups">
+<select class="supergroup" name="Languages"><option class="group" value="group-scala">Scala</option><option class="group" value="group-java">Java</option></select>
+</div>
+<div class="nav-header-search">
+<input id="search" type="search" class="search" placeholder="Search"/>
+</div>
+</header>
+<nav class="site-nav fixed-sidebar-contents">
+<div class="nav-toc">
+<ul>
+  <li><a href="../../scala/http/security.html" class="page">Security Announcements</a></li>
+  <li><a href="../../scala/http/introduction.html" class="page">Introduction</a></li>
+  <li><a href="../../scala/http/configuration.html" class="page">Configuration</a></li>
+  <li><a href="../../scala/http/common/index.html" class="page">Common Abstractions (Client- and Server-Side)</a></li>
+  <li><a href="../../scala/http/implications-of-streaming-http-entity.html" class="page">Implications of the streaming nature of Request/Response Entities</a></li>
+  <li><a href="../../scala/http/low-level-server-side-api.html" class="page">Low-Level Server-Side API</a></li>
+  <li><a href="../../scala/http/routing-dsl/index.html" class="page">High-level Server-Side API</a></li>
+  <li><a href="../../scala/http/websocket-support.html#server-side-websocket-support" class="active page">Server-Side WebSocket Support</a>
+  <ul>
+    <li><a href="../../scala/http/websocket-support.html#model" class="header">Model</a></li>
+    <li><a href="../../scala/http/websocket-support.html#server-api" class="header">Server API</a></li>
+    <li><a href="../../scala/http/websocket-support.html#routing-support" class="header">Routing support</a></li>
+  </ul></li>
+  <li><a href="../../scala/http/sse-support.html" class="page">Server-Sent Events Support</a></li>
+  <li><a href="../../scala/http/client-side/index.html" class="page">Consuming HTTP-based Services (Client-Side)</a></li>
+  <li><a href="../../scala/http/server-side-https-support.html" class="page">Server-Side HTTPS Support</a></li>
+  <li><a href="../../scala/http/handling-blocking-operations-in-akka-http-routes.html" class="page">Handling blocking operations in Akka HTTP</a></li>
+  <li><a href="../../scala/http/migration-guide/index.html" class="page">Migration Guides</a></li>
+  <li><a href="../../scala/http/compatibility-guidelines.html" class="page">Compatibility Guidelines</a></li>
+  <li><a href="../../scala/http/release-notes.html" class="page">Release Notes</a></li>
+</ul>
+</div>
+</nav>
+<footer class="nav-footer fixed-sidebar-footer">
+<a href="https://akka.io"><img class="logo" src="../../images/akka-logo-reverse.svg"></a>
+
+</footer>
+</aside>
+
+<main class="fixed-shift-for-large expanded row">
+<section class="site-content small-12 column">
+
+<article class="page-content row">
+<div class="small-12 large-9 column" id="docs">
+<h1><a href="#server-side-websocket-support" name="server-side-websocket-support" class="anchor"><span class="anchor-link"></span></a>Server-Side WebSocket Support</h1>
+<p>WebSocket is a protocol that provides a bi-directional channel between browser and webserver usually run over an upgraded HTTP(S) connection. Data is exchanged in messages whereby a message can either be binary data or Unicode text.</p>
+<p>Akka HTTP provides a stream-based implementation of the WebSocket protocol that hides the low-level details of the underlying binary framing wire-protocol and provides a simple API to implement services using WebSocket.</p>
+<h2><a href="#model" name="model" class="anchor"><span class="anchor-link"></span></a>Model</h2>
+<p>The basic unit of data exchange in the WebSocket protocol is a message. A message can either be binary message, i.e. a sequence of octets or a text message, i.e. a sequence of Unicode code points.</p>
+<p>Akka HTTP provides a straight-forward model for this abstraction:</p>
+<pre class="prettyprint"><code class="language-scala">/**
+ * The ADT for WebSocket messages. A message can either be a binary or a text message.
+ */
+sealed trait Message extends akka.http.javadsl.model.ws.Message
+
+/**
+ * Represents a WebSocket text message. A text message can either be a [[TextMessage.Strict]] in which case
+ * the complete data is already available or it can be [[TextMessage.Streamed]] in which case `textStream`
+ * will return a Source streaming the data as it comes in.
+ */
+sealed trait TextMessage extends akka.http.javadsl.model.ws.TextMessage with Message {
+  /**
+   * The contents of this message as a stream.
+   */
+  def textStream: Source[String, _]
+
+  /** Java API */
+  override def getStreamedText: javadsl.Source[String, _] = textStream.asJava
+  override def asScala: TextMessage = this
+}
+sealed trait BinaryMessage extends akka.http.javadsl.model.ws.BinaryMessage with Message {
+  /**
+   * The contents of this message as a stream.
+   */
+  def dataStream: Source[ByteString, _]
+
+  /** Java API */
+  override def getStreamedData: javadsl.Source[ByteString, _] = dataStream.asJava
+  override def asScala: BinaryMessage = this
+}</code></pre>
+<p>The data of a message is provided as a stream because WebSocket messages do not have a predefined size and could (in theory) be infinitely long. However, only one message can be open per direction of the WebSocket connection, so that many application level protocols will want to make use of the delineation into (small) messages to transport single application-level data units like &ldquo;one event&rdquo; or &ldquo;one chat message&rdquo;.</p>
+<p>Many messages are small enough to be sent or received in one go. As an opportunity for optimization, the model provides a <code>Strict</code> subclass for each kind of message which contains data as a strict, i.e. non-streamed, <code>ByteString</code> or <code>String</code>.</p>
+<p>When receiving data from the network connection the WebSocket implementation tries to create a <code>Strict</code> message whenever possible, i.e. when the complete data was received in one chunk. However, the actual chunking of messages over a network connection and through the various streaming abstraction layers is not deterministic from the perspective of the application. Therefore, application code must be able to handle both streamed and strict messages and not expect certain messages to be strict. (Particularly, note that tests against <code>localhost</code> will behave differently than tests against remote peers where data is received over a physical network connection.)</p>
+<p>For sending data, use <code>TextMessage.apply(text: String)</code> to create a <code>Strict</code> message which is often the natural choice when the complete message has already been assembled. Otherwise, use <code>TextMessage.apply(textStream: Source[String, Any])</code> to create a streamed message from an Akka Stream source.</p>
+<h2><a href="#server-api" name="server-api" class="anchor"><span class="anchor-link"></span></a>Server API</h2>
+<p>The entrypoint for the WebSocket API is the synthetic <code>UpgradeToWebSocket</code> header which is added to a request if Akka HTTP encounters a WebSocket upgrade request.</p>
+<p>The WebSocket specification mandates that details of the WebSocket connection are negotiated by placing special-purpose HTTP-headers into request and response of the HTTP upgrade. In Akka HTTP these HTTP-level details of the WebSocket handshake are hidden from the application and don&rsquo;t need to be managed manually.</p>
+<p>Instead, the synthetic <code>UpgradeToWebSocket</code> represents a valid WebSocket upgrade request. An application can detect a WebSocket upgrade request by looking for the <code>UpgradeToWebSocket</code> header. It can choose to accept the upgrade and start a WebSocket connection by responding to that request with an <code>HttpResponse</code> generated by one of the <code>UpgradeToWebSocket.handleMessagesWith</code> methods. In its most general form this method expects two arguments: first, a handler <code>Flow[Message, Message, Any]</code> that will be used to handle WebSocket messages on this connection. Second, the application can optionally choose one of the proposed application-level sub-protocols by inspecting the values of <code>UpgradeToWebSocket.requestedProtocols</code> and pass the chosen protocol value to <code>handleMessages</code>.</p>
+<h3><a href="#handling-messages" name="handling-messages" class="anchor"><span class="anchor-link"></span></a>Handling Messages</h3>
+<p>A message handler is expected to be implemented as a <code>Flow[Message, Message, Any]</code>. For typical request-response scenarios this fits very well and such a <code>Flow</code> can be constructed from a simple function by using <code>Flow[Message].map</code> or <code>Flow[Message].mapAsync</code>.</p>
+<p>There are other use-cases, e.g. in a server-push model, where a server message is sent spontaneously, or in a true bi-directional scenario where input and output aren&rsquo;t logically connected. Providing the handler as a <code>Flow</code> in these cases may not fit. Another method, <code>UpgradeToWebSocket.handleMessagesWithSinkSource</code>, is provided which allows to pass an output-generating <code>Source[Message, Any]</code> and an input-receiving <code>Sink[Message, Any]</code> independently.</p>
+<p>Note that a handler is required to consume the data stream of each message to make place for new messages. Otherwise, subsequent messages may be stuck and message traffic in this direction will stall.</p>
+<h3><a href="#example" name="example" class="anchor"><span class="anchor-link"></span></a>Example</h3>
+<p>Let&rsquo;s look at an <a href="http://github.com/akka/akka-http/tree/v10.0.9+56-76bd5fd8/docs/src/test/scala/docs/http/scaladsl/server/WebSocketExampleSpec.scala">example</a>.</p>
+<p>WebSocket requests come in like any other requests. In the example, requests to <code>/greeter</code> are expected to be WebSocket requests:</p>
+<pre class="prettyprint"><code class="language-scala">val requestHandler: HttpRequest =&gt; HttpResponse = {
+  case req @ HttpRequest(GET, Uri.Path(&quot;/greeter&quot;), _, _, _) =&gt;
+    req.header[UpgradeToWebSocket] match {
+      case Some(upgrade) =&gt; upgrade.handleMessages(greeterWebSocketService)
+      case None          =&gt; HttpResponse(400, entity = &quot;Not a valid websocket request!&quot;)
+    }
+  case r: HttpRequest =&gt;
+    r.discardEntityBytes() // important to drain incoming HTTP Entity stream
+    HttpResponse(404, entity = &quot;Unknown resource!&quot;)
+}</code></pre>
+<p>It uses pattern matching on the path and then inspects the request to query for the <code>UpgradeToWebSocket</code> header. If such a header is found, it is used to generate a response by passing a handler for WebSocket messages to the <code>handleMessages</code> method. If no such header is found a &ldquo;400 Bad Request&rdquo; response is generated.</p>
+<p>The passed handler expects text messages where each message is expected to contain (a person&rsquo;s) name and then responds with another text message that contains a greeting:</p>
+<pre class="prettyprint"><code class="language-scala">// The Greeter WebSocket Service expects a &quot;name&quot; per message and
+// returns a greeting message for that name
+val greeterWebSocketService =
+  Flow[Message]
+    .mapConcat {
+      // we match but don&#39;t actually consume the text message here,
+      // rather we simply stream it back as the tail of the response
+      // this means we might start sending the response even before the
+      // end of the incoming message has been received
+      case tm: TextMessage =&gt; TextMessage(Source.single(&quot;Hello &quot;) ++ tm.textStream) :: Nil
+      case bm: BinaryMessage =&gt;
+        // ignore binary messages but drain content to avoid the stream being clogged
+        bm.dataStream.runWith(Sink.ignore)
+        Nil
+    }</code></pre><div class="callout note "><div class="callout-title">Note</div>
+<p>Inactive WebSocket connections will be dropped according to the <a href="common/timeouts.html#idle-timeouts-scala">idle-timeout settings</a>. In case you need to keep inactive connections alive, you can either tweak your idle-timeout or inject &lsquo;keep-alive&rsquo; messages regularly.</p></div>
+<h2><a href="#routing-support" name="routing-support" class="anchor"><span class="anchor-link"></span></a>Routing support</h2>
+<p>The routing DSL provides the <a href="routing-dsl/directives/websocket-directives/handleWebSocketMessages.html">handleWebSocketMessages</a> directive to install a WebSocket handler if the request was a WebSocket request. Otherwise, the directive rejects the request.</p>
+<p>Here&rsquo;s the above simple request handler rewritten as a route:</p>
+<pre class="prettyprint"><code class="language-scala">def greeter: Flow[Message, Message, Any] =
+  Flow[Message].mapConcat {
+    case tm: TextMessage =&gt;
+      TextMessage(Source.single(&quot;Hello &quot;) ++ tm.textStream ++ Source.single(&quot;!&quot;)) :: Nil
+    case bm: BinaryMessage =&gt;
+      // ignore binary messages but drain content to avoid the stream being clogged
+      bm.dataStream.runWith(Sink.ignore)
+      Nil
+  }
+val websocketRoute =
+  path(&quot;greeter&quot;) {
+    handleWebSocketMessages(greeter)
+  }
+
+// tests:
+// create a testing probe representing the client-side
+val wsClient = WSProbe()
+
+// WS creates a WebSocket request for testing
+WS(&quot;/greeter&quot;, wsClient.flow) ~&gt; websocketRoute ~&gt;
+  check {
+    // check response for WS Upgrade headers
+    isWebSocketUpgrade shouldEqual true
+
+    // manually run a WS conversation
+    wsClient.sendMessage(&quot;Peter&quot;)
+    wsClient.expectMessage(&quot;Hello Peter!&quot;)
+
+    wsClient.sendMessage(BinaryMessage(ByteString(&quot;abcdef&quot;)))
+    wsClient.expectNoMessage(100.millis)
+
+    wsClient.sendMessage(&quot;John&quot;)
+    wsClient.expectMessage(&quot;Hello John!&quot;)
+
+    wsClient.sendCompletion()
+    wsClient.expectCompletion()
+  }</code></pre>
+<p>The example also includes code demonstrating the testkit support for WebSocket services. It allows to create WebSocket requests to run against a route using <em>WS</em> which can be used to provide a mock WebSocket probe that allows manual testing of the WebSocket handler&rsquo;s behavior if the request was accepted.</p>
+</div>
+</article>
+
+<div class="row">
+<div class="small-12 large-9 column">
+<section class="nav-prev-next row">
+<div class="nav-prev small-6 column">
+<a href="../../scala/http/routing-dsl/HttpApp.html"><i class="icon-prev"></i> <span class="link-prev">HttpApp Bootstrap</span></a>
+</div>
+<div class="nav-next small-6 column clearfix">
+<a class="float-right" href="../../scala/http/sse-support.html">Server-Sent Events Support <i class="icon-next"></i></a>
+</div>
+</section>
+</div>
+</div>
+
+<div class="source-github row">
+The source code for this page can be found <a href="http://github.com/akka/akka-http/tree/master/docs/src/main/paradox/scala/http/websocket-support.md">here</a>.
+</div>
+
+
+<footer class="page-footer row clearfix">
+<img class="akka-icon float-left show-for-medium" src="../../images/akka-icon.svg">
+<section class="copyright">
+<div>&copy; 2011-2017 <a href="https://www.lightbend.com">Lightbend</a></div>
+<div>Akka HTTP is Open Source and available under the Apache 2 License.</div>
+</section>
+</footer>
+
+</section>
+</main>
+
+<script type="text/javascript" src="../../js/scrollsneak.js"></script>
+<script type="text/javascript">jQuery(document).foundation();</script>
+<script type="text/javascript" src="../../js/groups.js"></script>
+<script type="text/javascript" src="../../js/page.js"></script>
+<script type="text/javascript" src="../../js/magellan.js"></script>
+
+<style type="text/css">@import "../../lib/prettify/prettify.css";</style>
+<script type="text/javascript" src="../../lib/prettify/prettify.js"></script>
+<script type="text/javascript" src="../../lib/prettify/lang-scala.js"></script>
+<script type="text/javascript">jQuery(function(){window.prettyPrint && prettyPrint()});</script>
+
+<!-- Algolia docs search -->
+<script type="text/javascript" src="https://cdn.jsdelivr.net/docsearch.js/2/docsearch.min.js"></script>
+<style>.algolia-autocomplete { display: block !important }</style>
+<script type="text/javascript">
+var version = "10.0.9+56-76bd5fd8";
+
+var lang = "scala";
+var path = window.location.pathname;
+if (path.includes("/java/") || path.includes("java.html")) {
+lang = "java";
+}
+
+docsearch({
+apiKey: '0ccbb8bf5148554a406fbf07df0a93b9',
+indexName: 'akka-http',
+inputSelector: '#search',
+algoliaOptions: {
+hitsPerPage: 5,
+facetFilters: ["version:" + version, "language:" + lang]
+}
+});
+
+docsearch({
+apiKey: '0ccbb8bf5148554a406fbf07df0a93b9',
+indexName: 'akka-http',
+inputSelector: '#overlay-search',
+algoliaOptions: {
+hitsPerPage: 5,
+facetFilters: ["version:" + version, "language:" + lang]
+}
+});
+
+// set up "/" as global shortcut for focusing on search
+jQuery(document).keypress(function (event) {
+if (event.keyCode == 47) {
+jQuery("#search").focus();
+return false; // swallow key event, otherwise the / char would be input into the search box
+}
+});
+</script>
+
+
+</body>
+</html>

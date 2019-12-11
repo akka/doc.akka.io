@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html class="no-js" lang="en">
+
+<head>
+<title>Handling blocking operations in Akka HTTP</title>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta name="description" content="Akka HTTP: Modern, fast, asynchronous, streaming-first HTTP server and client."/><link rel="canonical" href="https://doc.akka.io/docs/akka-http/10.0/java/http/handling-blocking-operations-in-akka-http-routes.html"/>
+<script type="text/javascript" src="../../lib/jquery/jquery.min.js"></script>
+<script type="text/javascript" src="../../lib/foundation/dist/js/foundation.min.js"></script>
+<link rel="stylesheet" type="text/css" href="../../lib/normalize.css/normalize.css"/>
+<link rel="stylesheet" type="text/css" href="../../lib/foundation/dist/css/foundation.min.css"/>
+<link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/docsearch.js/2/docsearch.min.css" />
+<link rel="stylesheet" type="text/css" href="../../css/icons.css"/>
+<link rel="stylesheet" type="text/css" href="../../css/page.css"/>
+<link rel="shortcut icon" href="../../images/favicon.ico" />
+<meta name="theme-color" content="#15a9ce">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<!--Google Analytics-->
+<script type="text/javascript">
+var _gaq = _gaq || [];
+_gaq.push(['_setAccount', 'UA-21117439-1']);
+_gaq.push(['_setDomainName', 'akka.io']);
+_gaq.push(['_trackPageview']);
+(function() {
+var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+})()
+</script>
+<!--Google Analytics & Marketo-->
+<script type="text/javascript">
+(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+ga('create', 'UA-23127719-1', 'lightbend.com', {'allowLinker': true, 'name': 'tsTracker'});
+ga('tsTracker.require', 'linker');
+ga('tsTracker.linker:autoLink', ['lightbend.com','playframework.com','scala-lang.org','scaladays.org','spray.io','akka.io','scala-sbt.org','scala-ide.org']);
+ga('tsTracker.send', 'pageview');
+(function() {
+var didInit = false;
+function initMunchkin() {
+if(didInit === false) {
+didInit = true;
+Munchkin.init('558-NCX-702');
+}
+}
+var s = document.createElement('script');
+s.type = 'text/javascript';
+s.async = true;
+s.src = '//munchkin.marketo.net/munchkin.js';
+s.onreadystatechange = function() {
+if (this.readyState == 'complete' || this.readyState == 'loaded') {
+initMunchkin();
+}
+};
+s.onload = initMunchkin;
+document.getElementsByTagName('head')[0].appendChild(s);
+})();
+</script>
+
+</head>
+
+<body id="underlay" data-toggler="nav-open">
+
+<header class="site-header hide-for-large">
+<div class="sticky-header clearfix">
+<a href="https://akka.io"><img class="logo" src="../../images/akka-logo-reverse.svg"></a>
+
+<button class="menu-icon float-right" type="button" data-toggle="underlay overlay"></button>
+</div>
+<div id="overlay" class="overlay-nav" data-toggler="nav-open">
+<header class="nav-header">
+<div class="nav-header-title">
+<h1><a href="../../java/http/handling-blocking-operations-in-akka-http-routes.html">Handling blocking operations in Akka HTTP</a></h1>
+</div>
+<div class="nav-header-version">
+Version 10.0.7
+</div>
+<div class="nav-header-groups">
+<select class="supergroup" name="Languages"><option class="group" value="group-scala">Scala</option><option class="group" value="group-java">Java</option></select>
+</div>
+<div id="overlay-search-container" class="nav-header-search">
+<input id="overlay-search" type="search" class="search" placeholder="Search"/>
+</div>
+</header>
+<nav class="nav-toc">
+<ul>
+  <li><a href="../../java/http/handling-blocking-operations-in-akka-http-routes.html#problem" class="header">Problem</a></li>
+  <li><a href="../../java/http/handling-blocking-operations-in-akka-http-routes.html#solution-dedicated-dispatcher-for-blocking-operations" class="header">Solution: Dedicated dispatcher for blocking operations</a></li>
+</ul>
+</nav>
+</div>
+</header>
+
+<aside class="show-for-large">
+<header class="nav-header fixed-sidebar-header">
+<div class="nav-header-title">
+<h1><a href="../../java/http/handling-blocking-operations-in-akka-http-routes.html">Handling blocking operations in Akka HTTP</a></h1>
+</div>
+<div class="nav-header-version">
+Version 10.0.7
+</div>
+<div class="nav-header-groups">
+<select class="supergroup" name="Languages"><option class="group" value="group-scala">Scala</option><option class="group" value="group-java">Java</option></select>
+</div>
+<div class="nav-header-search">
+<input id="search" type="search" class="search" placeholder="Search"/>
+</div>
+</header>
+<nav class="site-nav fixed-sidebar-contents">
+<div class="nav-toc">
+<ul>
+  <li><a href="../../java/http/handling-blocking-operations-in-akka-http-routes.html#problem" class="header">Problem</a></li>
+  <li><a href="../../java/http/handling-blocking-operations-in-akka-http-routes.html#solution-dedicated-dispatcher-for-blocking-operations" class="header">Solution: Dedicated dispatcher for blocking operations</a></li>
+</ul>
+</div>
+</nav>
+<footer class="nav-footer fixed-sidebar-footer">
+<a href="https://akka.io"><img class="logo" src="../../images/akka-logo-reverse.svg"></a>
+
+</footer>
+</aside>
+
+<main class="fixed-shift-for-large expanded row">
+<section class="site-content small-12 column">
+
+<article class="page-content row">
+<div class="small-12 large-9 column" id="docs">
+<a id="handling-blocking-in-http-routes-java"></a>
+<h1><a href="#handling-blocking-operations-in-akka-http" name="handling-blocking-operations-in-akka-http" class="anchor"><span class="anchor-link"></span></a>Handling blocking operations in Akka HTTP</h1>
+<p>Sometimes it is difficult to avoid performing the blocking operations and there are good chances that the blocking is done inside a Future execution, which may lead to problems. It is important to handle the blocking operations correctly.</p>
+<h2><a href="#problem" name="problem" class="anchor"><span class="anchor-link"></span></a>Problem</h2>
+<p>Using <code>context.dispatcher()</code> as the dispatcher on which the blocking Future executes can be a problem - the same dispatcher is used by the routing infrastructure to actually handle the incoming requests. </p>
+<p>If all of the available threads are blocked, the routing infrastructure will end up <em>starving</em>. Therefore, routing infrastructure should not be blocked. Instead, a dedicated dispatcher for blocking operations should be used.</p><div class="callout note "><div class="callout-title">Note</div>
+<p>Blocking APIs should also be avoided if possible. Try to find or build Reactive APIs, such that blocking is minimised, or moved over to dedicated dispatchers.</p>
+<p>Often when integrating with existing libraries or systems it is not possible to avoid blocking APIs. The following solution explains how to handle blocking operations properly.</p>
+<p>Note that the same hints apply to managing blocking operations anywhere in Akka, including in Actors etc.</p></div>
+<p>In the thread state diagrams below the colours have the following meaning:</p>
+<ul>
+  <li>Turquoise - Sleeping state</li>
+  <li>Orange - Waiting state</li>
+  <li>Green - Runnable state</li>
+</ul>
+<p>The thread information was recorded using the YourKit profiler, however any good JVM profiler has this feature (including the free and bundled with the Oracle JDK VisualVM, as well as Oracle Flight Recorder). </p>
+<h3><a href="#problem-example-blocking-the-default-dispatcher" name="problem-example-blocking-the-default-dispatcher" class="anchor"><span class="anchor-link"></span></a>Problem example: blocking the default dispatcher</h3>
+<pre class="prettyprint"><code class="language-java">// BAD (due to blocking in Future, on default dispatcher)
+final Route routes = post( () -&gt;
+        completeWithFuture(CompletableFuture.supplyAsync(() -&gt; { // uses defaultDispatcher
+            try {
+                Thread.sleep(5000L); // will block on default dispatcher,
+            } catch (InterruptedException e) {
+            }
+            return HttpResponse.create() // Starving the routing infrastructure
+                    .withEntity(Long.toString(System.currentTimeMillis()));
+        }))
+);</code></pre>
+<p>Here the app is exposed to a load of continuous GET requests and large numbers of akka.actor.default-dispatcher threads are handling requests. The orange portion of the thread shows that it is idle. Idle threads are fine - they&rsquo;re ready to accept new work. However, large amounts of Turquoise (sleeping) threads are very bad!</p>
+<p><img src="DispatcherBehaviourOnBadCode.png" alt="DispatcherBehaviourOnBadCode.png" /></p>
+<p>Since we&rsquo;re using the Java <code>CompletableFuture</code> in this example, the blocking will happen on its default pool which is the <em>global</em> <code>ForkJoinPool.commonPool()</code>. With Scala Futures the in-scope provided dispatcher would be used. Both these dispatchers are ForkJoin pools by default, and are not best suited for blocking operations. For example, the above screenshot shows an Akka FJP dispatchers threads, named &ldquo;<code>default-akka.default-dispatcher2,3,4</code>&rdquo; going into the blocking state, after having been idle. It can be observed that the number of new threads increases, &ldquo;<code>default-akka.actor.default-dispatcher 18,19,20,...</code>&rdquo; however they go to sleep state immediately, thus wasting the resources. The same happens to the global <code>ForkJoinPool</code> when using Java Futures.</p>
+<p>The number of such new threads depends on the default dispatcher configuration, but it will likely not exceed 50. Since many POST requests are being processed, the entire thread pool is starved. The blocking operations dominate such that the routing infra has no thread available to handle the other requests.</p>
+<p>In essence, the <code>Thread.sleep()</code> operation has dominated all threads and caused anything executing on the default dispatcher to starve for resources (including any Actors that you have not configured an explicit dispatcher for).</p>
+<h2><a href="#solution-dedicated-dispatcher-for-blocking-operations" name="solution-dedicated-dispatcher-for-blocking-operations" class="anchor"><span class="anchor-link"></span></a>Solution: Dedicated dispatcher for blocking operations</h2>
+<p>In <code>application.conf</code>, the dispatcher dedicated to blocking behaviour should be configured as follows:</p>
+<pre class="prettyprint"><code class="language-conf">my-blocking-dispatcher {
+  type = Dispatcher
+  executor = &quot;thread-pool-executor&quot;
+  thread-pool-executor {
+    // or in Akka 2.4.2+
+    fixed-pool-size = 16
+  }
+  throughput = 100
+}
+</code></pre>
+<p>There are many dispatcher options available which can be found in <a href="https://doc.akka.io/docs/akka/2.4.18/scala/dispatchers.html">Dispatchers</a>.</p>
+<p>Here <code>thread-pool-executor</code> is used, which has a hardcoded limit of threads. It keeps a set number of threads available that allow for safe isolation of the blocking operations. The size settings should depend on the app&rsquo;s functionality and the number of cores the server has.</p>
+<p>Whenever blocking has to be done, use the above configured dispatcher instead of the default one:</p>
+<pre class="prettyprint"><code class="language-java">// GOOD (the blocking is now isolated onto a dedicated dispatcher):
+final Route routes = post(() -&gt; {
+    final MessageDispatcher dispatcher = system.dispatchers().lookup(&quot;my-blocking-dispatcher&quot;);
+    return completeWithFuture(CompletableFuture.supplyAsync(() -&gt; {
+                try {
+                    Thread.sleep(5000L);
+                } catch (InterruptedException e) {
+                }
+                return HttpResponse.create()
+                        .withEntity(Long.toString(System.currentTimeMillis()));
+            }, dispatcher // uses the good &quot;blocking dispatcher&quot; that we
+            // configured, instead of the default dispatcher to isolate the blocking.
+    ));
+});</code></pre>
+<p>This forces the app to use the same load, initially normal requests and then the blocking requests. The thread pool behaviour is shown in the figure.</p>
+<p><img src="DispatcherBehaviourOnGoodCode.png" alt="DispatcherBehaviourOnGoodCode.png" /></p>
+<p>Initially, the normal requests are easily handled by the default dispatcher - the green lines, which represent the actual execution.</p>
+<p>When blocking operations are issued, the <code>my-blocking-dispatcher</code> starts up to the number of configured threads. It handles sleeping. After a certain period of nothing happening to the threads, it shuts them down.</p>
+<p>If another bunch of operations have to be done, the pool will start new threads that will take care of putting them into sleep state, but the threads are not wasted.</p>
+<p>In this case, the throughput of the normal GET requests was not impacted - they were still served on the default dispatcher.</p>
+<p>This is the recommended way of dealing with any kind of blocking in reactive applications. It is referred to as &ldquo;bulkheading&rdquo; or &ldquo;isolating&rdquo; the bad behaving parts of an app. In this case, bad behaviour of blocking operations.</p>
+<p>There is good documentation available in Akka docs section, <a href="https://doc.akka.io/docs/akka/current/general/actor-systems.html#Blocking_Needs_Careful_Management">Blocking needs careful management</a>.</p>
+</div>
+</article>
+
+<div class="row">
+<div class="small-12 large-9 column">
+<section class="nav-prev-next row">
+<div class="nav-prev small-6 column">
+</div>
+<div class="nav-next small-6 column clearfix">
+</div>
+</section>
+</div>
+</div>
+
+<div class="source-github row">
+The source code for this page can be found <a href="http://github.com/akka/akka-http/tree/master/docs/src/main/paradox/java/http/handling-blocking-operations-in-akka-http-routes.md">here</a>.
+</div>
+
+
+<footer class="page-footer row clearfix">
+<img class="akka-icon float-left show-for-medium" src="../../images/akka-icon.svg">
+<section class="copyright">
+<div>&copy; 2011-2017 <a href="https://www.lightbend.com">Lightbend</a></div>
+<div>Akka HTTP is Open Source and available under the Apache 2 License.</div>
+</section>
+</footer>
+
+</section>
+</main>
+
+<script type="text/javascript" src="../../js/scrollsneak.js"></script>
+<script type="text/javascript">jQuery(document).foundation();</script>
+<script type="text/javascript" src="../../js/groups.js"></script>
+<script type="text/javascript" src="../../js/page.js"></script>
+<script type="text/javascript" src="../../js/magellan.js"></script>
+
+<style type="text/css">@import "../../lib/prettify/prettify.css";</style>
+<script type="text/javascript" src="../../lib/prettify/prettify.js"></script>
+<script type="text/javascript" src="../../lib/prettify/lang-scala.js"></script>
+<script type="text/javascript">jQuery(function(){window.prettyPrint && prettyPrint()});</script>
+
+<!-- Algolia docs search -->
+<script type="text/javascript" src="https://cdn.jsdelivr.net/docsearch.js/2/docsearch.min.js"></script>
+<style>.algolia-autocomplete { display: block !important }</style>
+<script type="text/javascript">
+var version = "10.0.7";
+
+var lang = "scala";
+var path = window.location.pathname;
+if (path.includes("/java/") || path.includes("java.html")) {
+lang = "java";
+}
+
+docsearch({
+apiKey: '0ccbb8bf5148554a406fbf07df0a93b9',
+indexName: 'akka-http',
+inputSelector: '#search',
+algoliaOptions: {
+hitsPerPage: 5,
+facetFilters: ["version:" + version, "language:" + lang]
+}
+});
+
+docsearch({
+apiKey: '0ccbb8bf5148554a406fbf07df0a93b9',
+indexName: 'akka-http',
+inputSelector: '#overlay-search',
+algoliaOptions: {
+hitsPerPage: 5,
+facetFilters: ["version:" + version, "language:" + lang]
+}
+});
+
+// set up "/" as global shortcut for focusing on search
+jQuery(document).keypress(function (event) {
+if (event.keyCode == 47) {
+jQuery("#search").focus();
+return false; // swallow key event, otherwise the / char would be input into the search box
+}
+});
+</script>
+
+
+</body>
+</html>

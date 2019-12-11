@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html class="no-js" lang="en">
+
+<head>
+<title>Unmarshalling &bull; Akka HTTP</title>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta name="description" content="Akka HTTP: Modern, fast, asynchronous, streaming-first HTTP server and client."/><link rel="canonical" href="https://doc.akka.io/docs/akka-http/10.0/java/http/common/unmarshalling.html"/>
+<script type="text/javascript" src="../../../lib/jquery/jquery.min.js"></script>
+<script type="text/javascript" src="../../../lib/foundation/dist/js/foundation.min.js"></script>
+<link rel="stylesheet" type="text/css" href="../../../lib/normalize.css/normalize.css"/>
+<link rel="stylesheet" type="text/css" href="../../../lib/foundation/dist/css/foundation.min.css"/>
+<link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/docsearch.js/2/docsearch.min.css" />
+<link rel="stylesheet" type="text/css" href="../../../css/icons.css"/>
+<link rel="stylesheet" type="text/css" href="../../../css/page.css"/>
+<link rel="shortcut icon" href="../../../images/favicon.ico" />
+<meta name="theme-color" content="#15a9ce">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<!--Google Analytics-->
+<script type="text/javascript">
+var _gaq = _gaq || [];
+_gaq.push(['_setAccount', 'UA-21117439-1']);
+_gaq.push(['_setDomainName', 'akka.io']);
+_gaq.push(['_trackPageview']);
+(function() {
+var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+})()
+</script>
+<!--Google Analytics & Marketo-->
+<script type="text/javascript">
+(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+ga('create', 'UA-23127719-1', 'lightbend.com', {'allowLinker': true, 'name': 'tsTracker'});
+ga('tsTracker.require', 'linker');
+ga('tsTracker.linker:autoLink', ['lightbend.com','playframework.com','scala-lang.org','scaladays.org','spray.io','akka.io','scala-sbt.org','scala-ide.org']);
+ga('tsTracker.send', 'pageview');
+(function() {
+var didInit = false;
+function initMunchkin() {
+if(didInit === false) {
+didInit = true;
+Munchkin.init('558-NCX-702');
+}
+}
+var s = document.createElement('script');
+s.type = 'text/javascript';
+s.async = true;
+s.src = '//munchkin.marketo.net/munchkin.js';
+s.onreadystatechange = function() {
+if (this.readyState == 'complete' || this.readyState == 'loaded') {
+initMunchkin();
+}
+};
+s.onload = initMunchkin;
+document.getElementsByTagName('head')[0].appendChild(s);
+})();
+</script>
+
+</head>
+
+<body id="underlay" data-toggler="nav-open">
+
+<header class="site-header hide-for-large">
+<div class="sticky-header clearfix">
+<a href="https://akka.io"><img class="logo" src="../../../images/akka-logo-reverse.svg"></a>
+
+<button class="menu-icon float-right" type="button" data-toggle="underlay overlay"></button>
+</div>
+<div id="overlay" class="overlay-nav" data-toggler="nav-open">
+<header class="nav-header">
+<div class="nav-header-title">
+<h1><a href="../../../java/http/index.html">Akka HTTP</a></h1>
+</div>
+<div class="nav-header-version">
+Version 10.0.9
+</div>
+<div class="nav-header-groups">
+<select class="supergroup" name="Languages"><option class="group" value="group-scala">Scala</option><option class="group" value="group-java">Java</option></select>
+</div>
+<div id="overlay-search-container" class="nav-header-search">
+<input id="overlay-search" type="search" class="search" placeholder="Search"/>
+</div>
+</header>
+<nav class="nav-toc">
+<ul>
+  <li><a href="../../../java/http/security.html" class="page">Security Announcements</a></li>
+  <li><a href="../../../java/http/introduction.html" class="page">Introduction</a></li>
+  <li><a href="../../../java/http/configuration.html" class="page">Configuration</a></li>
+  <li><a href="../../../java/http/common/index.html" class="page">Common Abstractions (Client- and Server-Side)</a>
+  <ul>
+    <li><a href="../../../java/http/common/http-model.html" class="page">HTTP Model</a></li>
+    <li><a href="../../../java/http/common/uri-model.html" class="page">The URI model</a></li>
+    <li><a href="../../../java/http/common/marshalling.html" class="page">Marshalling</a></li>
+    <li><a href="../../../java/http/common/unmarshalling.html#unmarshalling" class="active page">Unmarshalling</a>
+    <ul>
+      <li><a href="../../../java/http/common/unmarshalling.html#basic-design" class="header">Basic Design</a></li>
+      <li><a href="../../../java/http/common/unmarshalling.html#predefined-unmarshallers" class="header">Predefined Unmarshallers</a></li>
+      <li><a href="../../../java/http/common/unmarshalling.html#implicit-resolution" class="header">Implicit Resolution</a></li>
+      <li><a href="../../../java/http/common/unmarshalling.html#custom-unmarshallers" class="header">Custom Unmarshallers</a></li>
+      <li><a href="../../../java/http/common/unmarshalling.html#deriving-unmarshallers" class="header">Deriving Unmarshallers</a></li>
+      <li><a href="../../../java/http/common/unmarshalling.html#using-unmarshallers" class="header">Using Unmarshallers</a></li>
+    </ul></li>
+    <li><a href="../../../java/http/common/de-coding.html" class="page">Encoding / Decoding</a></li>
+    <li><a href="../../../java/http/common/json-support.html" class="page">Json Support</a></li>
+    <li><a href="../../../java/http/common/timeouts.html" class="page">Akka HTTP Timeouts</a></li>
+  </ul></li>
+  <li><a href="../../../java/http/implications-of-streaming-http-entity.html" class="page">Implications of the streaming nature of Request/Response Entities</a></li>
+  <li><a href="../../../java/http/server-side/low-level-server-side-api.html" class="page">Low-Level Server-Side API</a></li>
+  <li><a href="../../../java/http/routing-dsl/index.html" class="page">High-level Server-Side API</a></li>
+  <li><a href="../../../java/http/server-side/websocket-support.html" class="page">Server-Side WebSocket Support</a></li>
+  <li><a href="../../../java/http/client-side/index.html" class="page">Consuming HTTP-based Services (Client-Side)</a></li>
+  <li><a href="../../../java/http/server-side-https-support.html" class="page">Server-Side HTTPS Support</a></li>
+  <li><a href="../../../java/http/migration-guide/index.html" class="page">Migration Guides</a></li>
+  <li><a href="../../../java/http/release-notes.html" class="page">Release Notes</a></li>
+</ul>
+</nav>
+</div>
+</header>
+
+<aside class="show-for-large">
+<header class="nav-header fixed-sidebar-header">
+<div class="nav-header-title">
+<h1><a href="../../../java/http/index.html">Akka HTTP</a></h1>
+</div>
+<div class="nav-header-version">
+Version 10.0.9
+</div>
+<div class="nav-header-groups">
+<select class="supergroup" name="Languages"><option class="group" value="group-scala">Scala</option><option class="group" value="group-java">Java</option></select>
+</div>
+<div class="nav-header-search">
+<input id="search" type="search" class="search" placeholder="Search"/>
+</div>
+</header>
+<nav class="site-nav fixed-sidebar-contents">
+<div class="nav-toc">
+<ul>
+  <li><a href="../../../java/http/security.html" class="page">Security Announcements</a></li>
+  <li><a href="../../../java/http/introduction.html" class="page">Introduction</a></li>
+  <li><a href="../../../java/http/configuration.html" class="page">Configuration</a></li>
+  <li><a href="../../../java/http/common/index.html" class="page">Common Abstractions (Client- and Server-Side)</a>
+  <ul>
+    <li><a href="../../../java/http/common/http-model.html" class="page">HTTP Model</a></li>
+    <li><a href="../../../java/http/common/uri-model.html" class="page">The URI model</a></li>
+    <li><a href="../../../java/http/common/marshalling.html" class="page">Marshalling</a></li>
+    <li><a href="../../../java/http/common/unmarshalling.html#unmarshalling" class="active page">Unmarshalling</a>
+    <ul>
+      <li><a href="../../../java/http/common/unmarshalling.html#basic-design" class="header">Basic Design</a></li>
+      <li><a href="../../../java/http/common/unmarshalling.html#predefined-unmarshallers" class="header">Predefined Unmarshallers</a></li>
+      <li><a href="../../../java/http/common/unmarshalling.html#implicit-resolution" class="header">Implicit Resolution</a></li>
+      <li><a href="../../../java/http/common/unmarshalling.html#custom-unmarshallers" class="header">Custom Unmarshallers</a></li>
+      <li><a href="../../../java/http/common/unmarshalling.html#deriving-unmarshallers" class="header">Deriving Unmarshallers</a></li>
+      <li><a href="../../../java/http/common/unmarshalling.html#using-unmarshallers" class="header">Using Unmarshallers</a></li>
+    </ul></li>
+    <li><a href="../../../java/http/common/de-coding.html" class="page">Encoding / Decoding</a></li>
+    <li><a href="../../../java/http/common/json-support.html" class="page">Json Support</a></li>
+    <li><a href="../../../java/http/common/timeouts.html" class="page">Akka HTTP Timeouts</a></li>
+  </ul></li>
+  <li><a href="../../../java/http/implications-of-streaming-http-entity.html" class="page">Implications of the streaming nature of Request/Response Entities</a></li>
+  <li><a href="../../../java/http/server-side/low-level-server-side-api.html" class="page">Low-Level Server-Side API</a></li>
+  <li><a href="../../../java/http/routing-dsl/index.html" class="page">High-level Server-Side API</a></li>
+  <li><a href="../../../java/http/server-side/websocket-support.html" class="page">Server-Side WebSocket Support</a></li>
+  <li><a href="../../../java/http/client-side/index.html" class="page">Consuming HTTP-based Services (Client-Side)</a></li>
+  <li><a href="../../../java/http/server-side-https-support.html" class="page">Server-Side HTTPS Support</a></li>
+  <li><a href="../../../java/http/migration-guide/index.html" class="page">Migration Guides</a></li>
+  <li><a href="../../../java/http/release-notes.html" class="page">Release Notes</a></li>
+</ul>
+</div>
+</nav>
+<footer class="nav-footer fixed-sidebar-footer">
+<a href="https://akka.io"><img class="logo" src="../../../images/akka-logo-reverse.svg"></a>
+
+</footer>
+</aside>
+
+<main class="fixed-shift-for-large expanded row">
+<section class="site-content small-12 column">
+
+<article class="page-content row">
+<div class="small-12 large-9 column" id="docs">
+<a id="http-unmarshalling-java"></a>
+<h1><a href="#unmarshalling" name="unmarshalling" class="anchor"><span class="anchor-link"></span></a>Unmarshalling</h1>
+<p>TODO overhaul for Java</p>
+<p>&ldquo;Unmarshalling&rdquo; is the process of converting some kind of a lower-level representation, often a &ldquo;wire format&rdquo;, into a higher-level (object) structure. Other popular names for it are &ldquo;Deserialization&rdquo; or &ldquo;Unpickling&rdquo;.</p>
+<p>In Akka HTTP &ldquo;Unmarshalling&rdquo; means the conversion of a lower-level source object, e.g. a <code>MessageEntity</code> (which forms the &ldquo;entity body&rdquo; of an HTTP request or response) or a full <code>HttpRequest</code> or <code>HttpResponse</code>, into an instance of type <code>T</code>.</p>
+<h2><a href="#basic-design" name="basic-design" class="anchor"><span class="anchor-link"></span></a>Basic Design</h2>
+<p>Unmarshalling of instances of type <code>A</code> into instances of type <code>B</code> is performed by an <code>Unmarshaller[A, B]</code>. Akka HTTP also predefines a number of helpful aliases for the types of unmarshallers that you&rsquo;ll likely work with most:</p>
+<pre class="prettyprint"><code class="language-scala">type FromEntityUnmarshaller[T] = Unmarshaller[HttpEntity, T]
+type FromMessageUnmarshaller[T] = Unmarshaller[HttpMessage, T]
+type FromResponseUnmarshaller[T] = Unmarshaller[HttpResponse, T]
+type FromRequestUnmarshaller[T] = Unmarshaller[HttpRequest, T]
+type FromByteStringUnmarshaller[T] = Unmarshaller[ByteString, T]
+type FromStringUnmarshaller[T] = Unmarshaller[String, T]
+type FromStrictFormFieldUnmarshaller[T] = Unmarshaller[StrictForm.Field, T]</code></pre>
+<p>At its core an <code>Unmarshaller[A, B]</code> is very similar to a <code>Function&lt;A, CompletionStage&lt;B&gt;&gt;</code> and as such quite a bit simpler than its <a href="marshalling.html#http-marshalling-java">marshalling</a> counterpart. The process of unmarshalling does not have to support content negotiation which saves two additional layers of indirection that are required on the marshalling side.</p>
+<h2><a href="#predefined-unmarshallers" name="predefined-unmarshallers" class="anchor"><span class="anchor-link"></span></a>Predefined Unmarshallers</h2>
+<p>Akka HTTP already predefines a number of marshallers for the most common types. Specifically these are:</p>
+<ul>
+  <li><a href="https://doc.akka.io/japi/akka-http/10.0.9/?akka/http/scaladsl/unmarshalling/PredefinedFromStringUnmarshallers.html">PredefinedFromStringUnmarshallers</a>
+    <ul>
+      <li><code>Byte</code></li>
+      <li><code>Short</code></li>
+      <li><code>Int</code></li>
+      <li><code>Long</code></li>
+      <li><code>Float</code></li>
+      <li><code>Double</code></li>
+      <li><code>Boolean</code></li>
+    </ul>
+  </li>
+  <li><a href="https://doc.akka.io/japi/akka-http/10.0.9/?akka/http/scaladsl/unmarshalling/PredefinedFromEntityUnmarshallers.html">PredefinedFromEntityUnmarshallers</a>
+    <ul>
+      <li><code>Array[Byte]</code></li>
+      <li><code>ByteString</code></li>
+      <li><code>Array[Char]</code></li>
+      <li><code>String</code></li>
+      <li><code>akka.http.scaladsl.model.FormData</code></li>
+    </ul>
+  </li>
+  <li><a href="https://doc.akka.io/japi/akka-http/10.0.9/?akka/http/scaladsl/unmarshalling/GenericUnmarshallers.html">GenericUnmarshallers</a>
+    <ul>
+      <li><code>Unmarshaller[T, T]</code> (identity unmarshaller)</li>
+      <li><code>Unmarshaller[Option[A], B]</code>, if an <code>Unmarshaller[A, B]</code> is available</li>
+      <li><code>Unmarshaller[A, Option[B]]</code>, if an <code>Unmarshaller[A, B]</code> is available</li>
+    </ul>
+  </li>
+</ul>
+<h2><a href="#implicit-resolution" name="implicit-resolution" class="anchor"><span class="anchor-link"></span></a>Implicit Resolution</h2>
+<p>The unmarshalling infrastructure of Akka HTTP relies on a type-class based approach, which means that <code>Unmarshaller</code> instances from a certain type <code>A</code> to a certain type <code>B</code> have to be available implicitly.</p>
+<p>The implicits for most of the predefined unmarshallers in Akka HTTP are provided through the companion object of the <code>Unmarshaller</code> trait. This means that they are always available and never need to be explicitly imported. Additionally, you can simply &ldquo;override&rdquo; them by bringing your own custom version into local scope.</p>
+<h2><a href="#custom-unmarshallers" name="custom-unmarshallers" class="anchor"><span class="anchor-link"></span></a>Custom Unmarshallers</h2>
+<p>Akka HTTP gives you a few convenience tools for constructing unmarshallers for your own types. Usually you won&rsquo;t have to &ldquo;manually&rdquo; implement the <code>Unmarshaller</code> trait directly. Rather, it should be possible to use one of the convenience construction helpers defined on the <code>Unmarshaller</code> companion:</p>
+<p>TODO rewrite sample for Java <!--  --></p>
+<pre class="prettyprint"><code class="language-scala">/**
+ * Creates an `Unmarshaller` from the given function.
+ */
+def apply[A, B](f: ExecutionContext ⇒ A ⇒ Future[B]): Unmarshaller[A, B] =
+  withMaterializer(ec =&gt; _ =&gt; f(ec))
+
+def withMaterializer[A, B](f: ExecutionContext ⇒ Materializer =&gt; A ⇒ Future[B]): Unmarshaller[A, B] =
+  new Unmarshaller[A, B] {
+    def apply(a: A)(implicit ec: ExecutionContext, materializer: Materializer) =
+      try f(ec)(materializer)(a)
+      catch { case NonFatal(e) ⇒ FastFuture.failed(e) }
+  }
+
+/**
+ * Helper for creating a synchronous `Unmarshaller` from the given function.
+ */
+def strict[A, B](f: A ⇒ B): Unmarshaller[A, B] = Unmarshaller(_ =&gt; a ⇒ FastFuture.successful(f(a)))
+
+/**
+ * Helper for creating a &quot;super-unmarshaller&quot; from a sequence of &quot;sub-unmarshallers&quot;, which are tried
+ * in the given order. The first successful unmarshalling of a &quot;sub-unmarshallers&quot; is the one produced by the
+ * &quot;super-unmarshaller&quot;.
+ */
+def firstOf[A, B](unmarshallers: Unmarshaller[A, B]*): Unmarshaller[A, B] = //...</code></pre>
+<h2><a href="#deriving-unmarshallers" name="deriving-unmarshallers" class="anchor"><span class="anchor-link"></span></a>Deriving Unmarshallers</h2>
+<p>Sometimes you can save yourself some work by reusing existing unmarshallers for your custom ones. The idea is to &ldquo;wrap&rdquo; an existing unmarshaller with some logic to &ldquo;re-target&rdquo; it to your type.</p>
+<p>Usually what you want to do is to transform the output of some existing unmarshaller and convert it to your type. For this type of unmarshaller transformation Akka HTTP defines these methods:</p>
+<ul>
+  <li><code>baseUnmarshaller.transform</code></li>
+  <li><code>baseUnmarshaller.map</code></li>
+  <li><code>baseUnmarshaller.mapWithInput</code></li>
+  <li><code>baseUnmarshaller.flatMap</code></li>
+  <li><code>baseUnmarshaller.flatMapWithInput</code></li>
+  <li><code>baseUnmarshaller.recover</code></li>
+  <li><code>baseUnmarshaller.withDefaultValue</code></li>
+  <li><code>baseUnmarshaller.mapWithCharset</code> (only available for FromEntityUnmarshallers)</li>
+  <li><code>baseUnmarshaller.forContentTypes</code> (only available for FromEntityUnmarshallers)</li>
+</ul>
+<p>The method signatures should make their semantics relatively clear.</p>
+<h2><a href="#using-unmarshallers" name="using-unmarshallers" class="anchor"><span class="anchor-link"></span></a>Using Unmarshallers</h2>
+<p>In many places throughput Akka HTTP unmarshallers are used implicitly, e.g. when you want to access the <a href="../routing-dsl/directives/marshalling-directives/entity.html#entity-java">entity</a> of a request using the <a href="../routing-dsl/index.html#http-high-level-server-side-api-java">Routing DSL</a>.</p>
+<p>However, you can also use the unmarshalling infrastructure directly if you wish, which can be useful for example in tests. The best entry point for this is the <code>akka.http.scaladsl.unmarshalling.Unmarshal</code> object, which you can use like this: <!-- TODO rewrite for java --> <!-- .. includecode2:: ../../../../../test/java/docs/http/scaladsl/UnmarshalSpec.scala
+:snippet: use-unmarshal --></p>
+</div>
+</article>
+
+<div class="row">
+<div class="small-12 large-9 column">
+<section class="nav-prev-next row">
+<div class="nav-prev small-6 column">
+<a href="../../../java/http/common/marshalling.html"><i class="icon-prev"></i> <span class="link-prev">Marshalling</span></a>
+</div>
+<div class="nav-next small-6 column clearfix">
+<a class="float-right" href="../../../java/http/common/de-coding.html">Encoding / Decoding <i class="icon-next"></i></a>
+</div>
+</section>
+</div>
+</div>
+
+<div class="source-github row">
+The source code for this page can be found <a href="http://github.com/akka/akka-http/tree/master/docs/src/main/paradox/java/http/common/unmarshalling.md">here</a>.
+</div>
+
+
+<footer class="page-footer row clearfix">
+<img class="akka-icon float-left show-for-medium" src="../../../images/akka-icon.svg">
+<section class="copyright">
+<div>&copy; 2011-2017 <a href="https://www.lightbend.com">Lightbend</a></div>
+<div>Akka HTTP is Open Source and available under the Apache 2 License.</div>
+</section>
+</footer>
+
+</section>
+</main>
+
+<script type="text/javascript" src="../../../js/scrollsneak.js"></script>
+<script type="text/javascript">jQuery(document).foundation();</script>
+<script type="text/javascript" src="../../../js/groups.js"></script>
+<script type="text/javascript" src="../../../js/page.js"></script>
+<script type="text/javascript" src="../../../js/magellan.js"></script>
+
+<style type="text/css">@import "../../../lib/prettify/prettify.css";</style>
+<script type="text/javascript" src="../../../lib/prettify/prettify.js"></script>
+<script type="text/javascript" src="../../../lib/prettify/lang-scala.js"></script>
+<script type="text/javascript">jQuery(function(){window.prettyPrint && prettyPrint()});</script>
+
+<!-- Algolia docs search -->
+<script type="text/javascript" src="https://cdn.jsdelivr.net/docsearch.js/2/docsearch.min.js"></script>
+<style>.algolia-autocomplete { display: block !important }</style>
+<script type="text/javascript">
+var version = "10.0.9";
+
+var lang = "scala";
+var path = window.location.pathname;
+if (path.includes("/java/") || path.includes("java.html")) {
+lang = "java";
+}
+
+docsearch({
+apiKey: '0ccbb8bf5148554a406fbf07df0a93b9',
+indexName: 'akka-http',
+inputSelector: '#search',
+algoliaOptions: {
+hitsPerPage: 5,
+facetFilters: ["version:" + version, "language:" + lang]
+}
+});
+
+docsearch({
+apiKey: '0ccbb8bf5148554a406fbf07df0a93b9',
+indexName: 'akka-http',
+inputSelector: '#overlay-search',
+algoliaOptions: {
+hitsPerPage: 5,
+facetFilters: ["version:" + version, "language:" + lang]
+}
+});
+
+// set up "/" as global shortcut for focusing on search
+jQuery(document).keypress(function (event) {
+if (event.keyCode == 47) {
+jQuery("#search").focus();
+return false; // swallow key event, otherwise the / char would be input into the search box
+}
+});
+</script>
+
+
+</body>
+</html>

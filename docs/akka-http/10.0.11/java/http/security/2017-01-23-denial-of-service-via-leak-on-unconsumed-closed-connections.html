@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html class="no-js" lang="en">
+
+<head>
+<title>Denial-of-Service by stream leak on unconsumed closed connections</title>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta name="description" content="Akka HTTP: Modern, fast, asynchronous, streaming-first HTTP server and client."/><link rel="canonical" href="https://doc.akka.io/docs/akka-http/10.0/java/http/security/2017-01-23-denial-of-service-via-leak-on-unconsumed-closed-connections.html"/>
+<script type="text/javascript" src="../../../lib/jquery/jquery.min.js"></script>
+<script type="text/javascript" src="../../../lib/foundation/dist/js/foundation.min.js"></script>
+<link rel="stylesheet" type="text/css" href="../../../lib/normalize.css/normalize.css"/>
+<link rel="stylesheet" type="text/css" href="../../../lib/foundation/dist/css/foundation.min.css"/>
+<link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/docsearch.js/2/docsearch.min.css" />
+<link rel="stylesheet" type="text/css" href="../../../css/icons.css"/>
+<link rel="stylesheet" type="text/css" href="../../../css/page.css"/>
+<link rel="shortcut icon" href="../../../images/favicon.ico" />
+<link rel="apple-touch-icon" sizes="180x180" href="../../../images/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="../../../images/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="../../../images/favicon-16x16.png">
+<link rel="manifest" href="../../../images/manifest.json">
+<meta name="msapplication-TileImage" content="../../../images/mstile-150x150.png">
+<meta name="msapplication-TileColor" content="#15a9ce">
+<meta name="theme-color" content="#15a9ce">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<!--Google Analytics-->
+<script type="text/javascript">
+var _gaq = _gaq || [];
+_gaq.push(['_setAccount', 'UA-21117439-1']);
+_gaq.push(['_setDomainName', 'akka.io']);
+_gaq.push(['_trackPageview']);
+(function() {
+var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+})()
+</script>
+<!--Google Analytics & Marketo-->
+<script type="text/javascript">
+(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+ga('create', 'UA-23127719-1', 'lightbend.com', {'allowLinker': true, 'name': 'tsTracker'});
+ga('tsTracker.require', 'linker');
+ga('tsTracker.linker:autoLink', ['lightbend.com','playframework.com','scala-lang.org','scaladays.org','spray.io','akka.io','scala-sbt.org','scala-ide.org']);
+ga('tsTracker.send', 'pageview');
+(function() {
+var didInit = false;
+function initMunchkin() {
+if(didInit === false) {
+didInit = true;
+Munchkin.init('558-NCX-702');
+}
+}
+var s = document.createElement('script');
+s.type = 'text/javascript';
+s.async = true;
+s.src = '//munchkin.marketo.net/munchkin.js';
+s.onreadystatechange = function() {
+if (this.readyState == 'complete' || this.readyState == 'loaded') {
+initMunchkin();
+}
+};
+s.onload = initMunchkin;
+document.getElementsByTagName('head')[0].appendChild(s);
+})();
+</script>
+
+</head>
+
+<body id="underlay" data-toggler="nav-open">
+
+<header class="site-header hide-for-large">
+<div class="sticky-header clearfix">
+<a href="https://akka.io"><img class="logo" src="../../../images/akka-logo-reverse.svg"></a>
+
+<button class="menu-icon float-right" type="button" data-toggle="underlay overlay"></button>
+</div>
+<div id="overlay" class="overlay-nav" data-toggler="nav-open">
+<header class="nav-header">
+<div class="nav-header-title">
+<h1><a href="../../../java/http/security/2017-01-23-denial-of-service-via-leak-on-unconsumed-closed-connections.html">Denial-of-Service by stream leak on unconsumed closed connections</a></h1>
+</div>
+<div class="nav-header-version">
+Version 10.0.11
+</div>
+<div class="nav-header-groups">
+<select class="supergroup" name="Languages"><option class="group" value="group-scala">Scala</option><option class="group" value="group-java">Java</option></select>
+</div>
+<div id="overlay-search-container" class="nav-header-search">
+<input id="overlay-search" type="search" class="search" placeholder="Search"/>
+</div>
+</header>
+<nav class="nav-toc">
+<ul>
+  <li><a href="../../../java/http/security/2017-01-23-denial-of-service-via-leak-on-unconsumed-closed-connections.html#date" class="header">Date</a></li>
+  <li><a href="../../../java/http/security/2017-01-23-denial-of-service-via-leak-on-unconsumed-closed-connections.html#description-of-vulnerability" class="header">Description of Vulnerability</a></li>
+  <li><a href="../../../java/http/security/2017-01-23-denial-of-service-via-leak-on-unconsumed-closed-connections.html#severity" class="header">Severity</a></li>
+  <li><a href="../../../java/http/security/2017-01-23-denial-of-service-via-leak-on-unconsumed-closed-connections.html#affected-versions" class="header">Affected Versions</a></li>
+  <li><a href="../../../java/http/security/2017-01-23-denial-of-service-via-leak-on-unconsumed-closed-connections.html#fixed-versions" class="header">Fixed Versions</a></li>
+  <li><a href="../../../java/http/security/2017-01-23-denial-of-service-via-leak-on-unconsumed-closed-connections.html#additional-important-information" class="header">Additional Important Information</a></li>
+  <li><a href="../../../java/http/security/2017-01-23-denial-of-service-via-leak-on-unconsumed-closed-connections.html#acknowledgements" class="header">Acknowledgements</a></li>
+</ul>
+</nav>
+</div>
+</header>
+
+<aside class="show-for-large">
+<header class="nav-header fixed-sidebar-header">
+<div class="nav-header-title">
+<h1><a href="../../../java/http/security/2017-01-23-denial-of-service-via-leak-on-unconsumed-closed-connections.html">Denial-of-Service by stream leak on unconsumed closed connections</a></h1>
+</div>
+<div class="nav-header-version">
+Version 10.0.11
+</div>
+<div class="nav-header-groups">
+<select class="supergroup" name="Languages"><option class="group" value="group-scala">Scala</option><option class="group" value="group-java">Java</option></select>
+</div>
+<div class="nav-header-search">
+<input id="search" type="search" class="search" placeholder="Search"/>
+</div>
+</header>
+<nav class="site-nav fixed-sidebar-contents">
+<div class="nav-toc">
+<ul>
+  <li><a href="../../../java/http/security/2017-01-23-denial-of-service-via-leak-on-unconsumed-closed-connections.html#date" class="header">Date</a></li>
+  <li><a href="../../../java/http/security/2017-01-23-denial-of-service-via-leak-on-unconsumed-closed-connections.html#description-of-vulnerability" class="header">Description of Vulnerability</a></li>
+  <li><a href="../../../java/http/security/2017-01-23-denial-of-service-via-leak-on-unconsumed-closed-connections.html#severity" class="header">Severity</a></li>
+  <li><a href="../../../java/http/security/2017-01-23-denial-of-service-via-leak-on-unconsumed-closed-connections.html#affected-versions" class="header">Affected Versions</a></li>
+  <li><a href="../../../java/http/security/2017-01-23-denial-of-service-via-leak-on-unconsumed-closed-connections.html#fixed-versions" class="header">Fixed Versions</a></li>
+  <li><a href="../../../java/http/security/2017-01-23-denial-of-service-via-leak-on-unconsumed-closed-connections.html#additional-important-information" class="header">Additional Important Information</a></li>
+  <li><a href="../../../java/http/security/2017-01-23-denial-of-service-via-leak-on-unconsumed-closed-connections.html#acknowledgements" class="header">Acknowledgements</a></li>
+</ul>
+</div>
+</nav>
+<footer class="nav-footer fixed-sidebar-footer">
+<a href="https://akka.io"><img class="logo" src="../../../images/akka-logo-reverse.svg"></a>
+
+</footer>
+</aside>
+
+<main class="fixed-shift-for-large expanded row">
+<section class="site-content small-12 column">
+
+<article class="page-content row">
+<div class="small-12 large-9 column" id="docs">
+<h1><a href="#denial-of-service-by-stream-leak-on-unconsumed-closed-connections" name="denial-of-service-by-stream-leak-on-unconsumed-closed-connections" class="anchor"><span class="anchor-link"></span></a>Denial-of-Service by stream leak on unconsumed closed connections</h1>
+<h2><a href="#date" name="date" class="anchor"><span class="anchor-link"></span></a>Date</h2>
+<p>23 January 2017</p>
+<h2><a href="#description-of-vulnerability" name="description-of-vulnerability" class="anchor"><span class="anchor-link"></span></a>Description of Vulnerability</h2>
+<p>For requests containing request bodies (including request methods which would normally include entities like GET requests), a mistake in completion handling of a connection could lead to memory leaking after the connection had been closed before the entity was consumed. This may eventually lead to a failure of the system due to being out of memory.</p>
+<p>Please subscribe to the <a href="https://groups.google.com/forum/#!forum/akka-security">akka-security</a> mailing list to be notified promptly about future security issues.</p>
+<h2><a href="#severity" name="severity" class="anchor"><span class="anchor-link"></span></a>Severity</h2>
+<p>The <a href="https://en.wikipedia.org/wiki/CVSS">CVSS</a> score of this vulnerability is 6.4 (Medium), based on vector <a href="https://nvd.nist.gov/cvss.cfm?calculator&version=2&vector=%28AV:N/AC:L/Au:N/C:N/I:N/A:C/E:F/RL:OF/RC:C%29">AV:N/AC:L/Au:N/C:N/I:N/A:C/E:F/RL:OF/RC:C</a>.</p>
+<h2><a href="#affected-versions" name="affected-versions" class="anchor"><span class="anchor-link"></span></a>Affected Versions</h2>
+<ul>
+  <li>(experimental) Akka HTTP <code>2.4.11</code> and prior,</li>
+  <li>(stable) Akka HTTP <code>10.0.1</code> and prior.</li>
+</ul>
+<h2><a href="#fixed-versions" name="fixed-versions" class="anchor"><span class="anchor-link"></span></a>Fixed Versions</h2>
+<p>We have prepared patches for the affected versions, and have released the following versions which resolve the issue: </p>
+<ul>
+  <li>Akka HTTP <code>2.4.11.1</code> (Scala 2.11)</li>
+  <li>Akka HTTP <code>10.0.2</code> (Scala 2.11, 2.12)</li>
+</ul>
+<p>The patched releases contain no other changes except the single patch that addresses the memory leak vulnerability. <em>Binary and source compatibility has been maintained so the upgrade procedure is as simple as changing the library dependency.</em></p>
+<h2><a href="#additional-important-information" name="additional-important-information" class="anchor"><span class="anchor-link"></span></a>Additional Important Information</h2>
+<p>Note that Play and Lagom applications are not impacted by this vulnerability, regardless of whether they are using the Akka HTTP backend or the Netty backend.</p>
+<p>If you have any questions or need any help, please contact <a href="mailto:support@lightbend.com">support@lightbend.com</a>.</p>
+<h2><a href="#acknowledgements" name="acknowledgements" class="anchor"><span class="anchor-link"></span></a>Acknowledgements</h2>
+<p>We would like to thank Dmitry Kolesnikov &amp; Lari Hotari for their thorough investigation and bringing this issue to our attention.</p>
+</div>
+</article>
+
+<div class="row">
+<div class="small-12 large-9 column">
+<section class="nav-prev-next row">
+<div class="nav-prev small-6 column">
+</div>
+<div class="nav-next small-6 column clearfix">
+</div>
+</section>
+</div>
+</div>
+
+<div class="source-github row">
+The source code for this page can be found <a href="http://github.com/akka/akka-http/tree/master/docs/src/main/paradox/java/http/security/2017-01-23-denial-of-service-via-leak-on-unconsumed-closed-connections.md">here</a>.
+</div>
+
+
+<footer class="page-footer row clearfix">
+<img class="akka-icon float-left show-for-medium" src="../../../images/akka-icon.svg">
+<section class="copyright">
+<div>&copy; 2011-2017 <a href="https://www.lightbend.com">Lightbend</a></div>
+<div>Akka HTTP is Open Source and available under the Apache 2 License.</div>
+</section>
+</footer>
+
+</section>
+</main>
+
+<script type="text/javascript" src="../../../js/scrollsneak.js"></script>
+<script type="text/javascript">jQuery(document).foundation();</script>
+<script type="text/javascript" src="../../../js/groups.js"></script>
+<script type="text/javascript" src="../../../js/page.js"></script>
+<script type="text/javascript" src="../../../js/magellan.js"></script>
+
+<style type="text/css">@import "../../../lib/prettify/prettify.css";</style>
+<script type="text/javascript" src="../../../lib/prettify/prettify.js"></script>
+<script type="text/javascript" src="../../../lib/prettify/lang-scala.js"></script>
+<script type="text/javascript">jQuery(function(){window.prettyPrint && prettyPrint()});</script>
+
+<!-- Algolia docs search -->
+<script type="text/javascript" src="https://cdn.jsdelivr.net/docsearch.js/2/docsearch.min.js"></script>
+<style>.algolia-autocomplete { display: block !important }</style>
+<script type="text/javascript">
+var lang = "scala";
+var path = window.location.pathname;
+if (path.includes("/java/") || path.includes("java.html")) {
+lang = "java";
+}
+
+docsearch({
+apiKey: '0ccbb8bf5148554a406fbf07df0a93b9',
+indexName: 'akka-http',
+inputSelector: '#search',
+algoliaOptions: {
+hitsPerPage: 5,
+facetFilters: ["language:" + lang]
+}
+});
+
+docsearch({
+apiKey: '0ccbb8bf5148554a406fbf07df0a93b9',
+indexName: 'akka-http',
+inputSelector: '#overlay-search',
+algoliaOptions: {
+hitsPerPage: 5,
+facetFilters: ["language:" + lang]
+}
+});
+
+// set up "/" as global shortcut for focusing on search
+jQuery(document).keypress(function (event) {
+if (event.keyCode == 47) {
+jQuery("#search").focus();
+return false; // swallow key event, otherwise the / char would be input into the search box
+}
+});
+</script>
+
+
+</body>
+</html>
