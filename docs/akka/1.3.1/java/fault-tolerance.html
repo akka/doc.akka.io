@@ -1,0 +1,563 @@
+
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Fault Tolerance Through Supervisor Hierarchies (Java) &mdash; Akka Documentation</title>
+    <link rel="stylesheet" href="../_static/style.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/prettify.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/base.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
+    <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Exo:300,400,600,700" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '1.3.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+<script type="text/javascript" src="https://doc.akka.io/docs/akka/1.3.1/_static/warnOldDocs.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="../_static/toc.js"></script>
+    <script type="text/javascript" src="../_static/prettify.js"></script>
+    <script type="text/javascript" src="../_static/highlightCode.js"></script>
+    <script type="text/javascript" src="../_static/effects.core.js"></script>
+    <script type="text/javascript" src="../_static/effects.highlight.js"></script>
+    <script type="text/javascript" src="../_static/scrollTo.js"></script>
+    <script type="text/javascript" src="../_static/contentsFix.js"></script>
+    <link rel="shortcut icon" href="../_static/favicon.ico"/>
+    <link rel="top" title="Akka Documentation" href="../index.html" />
+    <link rel="up" title="Java API" href="index.html" />
+    <link rel="next" title="Dispatchers (Java)" href="dispatchers.html" />
+    <link rel="prev" title="Serialization (Java)" href="serialization.html" /> 
+  </head>
+  <body>
+  <div class="navbar">
+    <div class="navbar-inner">
+      <div class="container">
+        <div class="navbar-logo">
+          <a href="https://akka.io"><img src="../_static/logo-small.png" /></a>
+        </div>    
+        <ul class="nav">
+          <li><a href="https://akka.io/docs">Documentation</a></li>
+          <li><a href="https://akka.io/downloads">Download</a></li>
+          <li><a href="http://groups.google.com/group/akka-user">Mailing List</a></li>
+          <li><a href="http://github.com/akka/akka">Code</a></li>           
+          <li><a href="http://typesafe.com/products/typesafe-subscription">Commercial Support</a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="main">
+    <div class="container">
+      <div class="page-title">Fault Tolerance Through Supervisor Hierarchies (Java)</div><div class="pdf-link"><a href="https://doc.akka.io/docs/akka/1.3.1/Akka.pdf"><img src="../_static/pdf-icon.png" style="height: 40px;" /></a></div></div>
+    <div class="main-container">
+      <div class="container">
+        <div class="row">
+          <div class="span12">
+            <ul class="breadcrumb">           
+              <li>
+                 <span class="divider">|</span> <a href="dispatchers.html">Dispatchers (Java)</a> <span class="divider">»</span>
+              </li>
+              <li>
+                <a href="../index.html">Contents</a>
+              </li>
+              <li>
+                <span class="divider">«</span> <a href="serialization.html">Serialization (Java)</a> <span class="divider">|</span>
+              </li>
+              <li>
+                Version 1.3.1
+              </li>
+            </ul>         
+          </div>
+        </div>
+        <div class="row">
+          <div class="span9">
+            
+  <div class="section" id="fault-tolerance-through-supervisor-hierarchies-java">
+<span id="fault-tolerance-java"></span><h1>Fault Tolerance Through Supervisor Hierarchies (Java)</h1>
+<p>Module stability: <strong>SOLID</strong></p>
+<p>The &#8220;let it crash&#8221; approach to fault/error handling, implemented by linking actors, is very different to what Java and most non-concurrency oriented languages/frameworks have adopted. It’s a way of dealing with failure that is designed for concurrent and distributed systems.</p>
+<div class="section" id="concurrency">
+<h2>Concurrency</h2>
+<p>Throwing an exception in concurrent code (let’s assume we are using non-linked actors), will just simply blow up the thread that currently executes the actor.</p>
+<ul class="simple">
+<li>There is no way to find out that things went wrong (apart from inspecting the stack trace).</li>
+<li>There is nothing you can do about it.</li>
+</ul>
+<p>Here actors provide a clean way of getting notification of the error and do something about it.</p>
+<p>Linking actors also allow you to create sets of actors where you can be sure that either:
+- All are dead
+- None are dead</p>
+<p>This is very useful when you have thousands of concurrent actors. Some actors might have implicit dependencies and together implement a service, computation, user session etc.</p>
+<p>It encourages non-defensive programming. Don’t try to prevent things from go wrong, because they will, whether you want it or not. Instead; expect failure as a natural state in the life-cycle of your app, crash early and let someone else (that sees the whole picture), deal with it.</p>
+</div>
+<div class="section" id="distributed-actors">
+<h2>Distributed actors</h2>
+<p>You can’t build a fault-tolerant system with just one single box - you need at least two. Also, you (usually) need to know if one box is down and/or the service you are talking to on the other box is down. Here actor supervision/linking is a critical tool for not only monitoring the health of remote services, but to actually manage the service, do something about the problem if the actor or node is down. Such as restarting actors on the same node or on another node.</p>
+<p>In short, it is a very different way of thinking, but a way that is very useful (if not critical) to building fault-tolerant highly concurrent and distributed applications, which is as valid if you are writing applications for the JVM or the Erlang VM (the origin of the idea of &#8220;let-it-crash&#8221; and actor supervision).</p>
+</div>
+<div class="section" id="supervision">
+<h2>Supervision</h2>
+<p>Supervisor hierarchies originate from <a class="reference external" href="http://www.erlang.org/doc/design_principles/sup_princ.html#5">Erlang’s OTP framework</a>.</p>
+<p>A supervisor is responsible for starting, stopping and monitoring its child processes. The basic idea of a supervisor is that it should keep its child processes alive by restarting them when necessary. This makes for a completely different view on how to write fault-tolerant servers. Instead of trying all things possible to prevent an error from happening, this approach embraces failure. It shifts the view to look at errors as something natural and something that <strong>will</strong> happen, instead of trying to prevent it; embraces it. Just ‘Let It Crash™’, since the components will be reset to a stable state and restarted upon failure.</p>
+<p>Akka has two different restart strategies; All-For-One and One-For-One. Best explained using some pictures (referenced from <a class="reference external" href="http://erlang.org">erlang.org</a> ):</p>
+<div class="section" id="oneforone">
+<h3>OneForOne</h3>
+<p>The OneForOne fault handler will restart only the component that has crashed.
+<a class="reference external" href="image:http://www.erlang.org/doc/design_principles/sup4.gif">image:http://www.erlang.org/doc/design_principles/sup4.gif</a></p>
+</div>
+<div class="section" id="allforone">
+<h3>AllForOne</h3>
+<p>The AllForOne fault handler will restart all the components that the supervisor is managing, including the one that have crashed. This strategy should be used when you have a certain set of components that are coupled in some way that if one is crashing they all need to be reset to a stable state before continuing.
+<a class="reference external" href="image:http://www.erlang.org/doc/design_principles/sup5.gif">image:http://www.erlang.org/doc/design_principles/sup5.gif</a></p>
+</div>
+<div class="section" id="restart-callbacks">
+<h3>Restart callbacks</h3>
+<p>There are two different callbacks that an UntypedActor or TypedActor can hook in to:</p>
+<ul class="simple">
+<li>Pre restart</li>
+<li>Post restart</li>
+</ul>
+<p>These are called prior to and after the restart upon failure and can be used to clean up and reset/reinitialize state upon restart. This is important in order to reset the component failure and leave the component in a fresh and stable state before consuming further messages.</p>
+</div>
+<div class="section" id="defining-a-supervisor-s-restart-strategy">
+<h3>Defining a supervisor&#8217;s restart strategy</h3>
+<p>Both the Typed Actor supervisor configuration and the Actor supervisor configuration take a ‘FaultHandlingStrategy’ instance which defines the fault management. The different strategies are:</p>
+<ul class="simple">
+<li>AllForOne</li>
+<li>OneForOne</li>
+</ul>
+<p>These have the semantics outlined in the section above.</p>
+<p>Here is an example of how to define a restart strategy:</p>
+<div class="highlight-java"><div class="highlight"><pre><span class="k">new</span> <span class="nf">AllForOneStrategy</span><span class="o">(</span> <span class="c1">//Or OneForOneStrategy</span>
+  <span class="k">new</span> <span class="n">Class</span><span class="o">[]{</span> <span class="n">Exception</span><span class="o">.</span><span class="na">class</span> <span class="o">},</span> <span class="c1">//List of Exceptions/Throwables to handle</span>
+  <span class="mi">3</span><span class="o">,</span>               <span class="c1">// maximum number of restart retries</span>
+  <span class="mi">5000</span>             <span class="c1">// within time in millis</span>
+<span class="o">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="defining-actor-life-cycle">
+<h3>Defining actor life-cycle</h3>
+<p>The other common configuration element is the ‘LifeCycle’ which defines the life-cycle. The supervised actor can define one of two different life-cycle configurations:</p>
+<ul class="simple">
+<li>Permanent: which means that the actor will always be restarted.</li>
+<li>Temporary: which means that the actor will <strong>not</strong> be restarted, but it will be shut down through the regular shutdown process so the &#8216;postStop&#8217; callback function will called.</li>
+</ul>
+<p>Here is an example of how to define the life-cycle:</p>
+<div class="highlight-java"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">static</span> <span class="n">akka</span><span class="o">.</span><span class="na">config</span><span class="o">.</span><span class="na">Supervision</span><span class="o">.*;</span>
+
+<span class="n">getContext</span><span class="o">().</span><span class="na">setLifeCycle</span><span class="o">(</span><span class="n">permanent</span><span class="o">());</span> <span class="c1">//permanent() means that the component will always be restarted</span>
+<span class="n">getContext</span><span class="o">().</span><span class="na">setLifeCycle</span><span class="o">(</span><span class="n">temporary</span><span class="o">());</span> <span class="c1">//temporary() means that the component will not be restarted, but rather shut down normally</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="supervising-untyped-actor">
+<h2>Supervising Untyped Actor</h2>
+<div class="section" id="declarative-supervisor-configuration">
+<h3>Declarative supervisor configuration</h3>
+<p>The Actor’s supervision can be declaratively defined by creating a ‘Supervisor’ factory object. Here is an example:</p>
+<div class="highlight-java"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">static</span> <span class="n">akka</span><span class="o">.</span><span class="na">config</span><span class="o">.</span><span class="na">Supervision</span><span class="o">.*;</span>
+<span class="kn">import</span> <span class="nn">static</span> <span class="n">akka</span><span class="o">.</span><span class="na">actor</span><span class="o">.</span><span class="na">Actors</span><span class="o">.*;</span>
+
+<span class="n">Supervisor</span> <span class="n">supervisor</span> <span class="o">=</span> <span class="n">Supervisor</span><span class="o">.</span><span class="na">apply</span><span class="o">(</span>
+    <span class="k">new</span> <span class="nf">SupervisorConfig</span><span class="o">(</span>
+      <span class="k">new</span> <span class="nf">AllForOneStrategy</span><span class="o">(</span><span class="k">new</span> <span class="n">Class</span><span class="o">[]{</span><span class="n">Exception</span><span class="o">.</span><span class="na">class</span><span class="o">},</span> <span class="mi">3</span><span class="o">,</span> <span class="mi">5000</span><span class="o">),</span>
+      <span class="k">new</span> <span class="n">Supervise</span><span class="o">[]</span> <span class="o">{</span>
+        <span class="k">new</span> <span class="nf">Supervise</span><span class="o">(</span>
+          <span class="n">actorOf</span><span class="o">(</span><span class="n">MyActor1</span><span class="o">.</span><span class="na">class</span><span class="o">),</span>
+          <span class="n">permanent</span><span class="o">()),</span>
+        <span class="k">new</span> <span class="nf">Supervise</span><span class="o">(</span>
+          <span class="n">actorOf</span><span class="o">(</span><span class="n">MyActor2</span><span class="o">.</span><span class="na">class</span><span class="o">),</span>
+          <span class="n">permanent</span><span class="o">())</span>
+       <span class="o">}));</span>
+</pre></div>
+</div>
+<p>Supervisors created like this are implicitly instantiated and started.</p>
+<p>To configure a handler function for when the actor underlying the supervisor receives a MaximumNumberOfRestartsWithinTimeRangeReached message, you can specify
+a Procedure2&lt;ActorRef,MaximumNumberOfRestartsWithinTimeRangeReached&gt; when creating the SupervisorConfig. This handler will be called with the ActorRef of the supervisor and the
+MaximumNumberOfRestartsWithinTimeRangeReached message.</p>
+<div class="highlight-java"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">static</span> <span class="n">akka</span><span class="o">.</span><span class="na">config</span><span class="o">.</span><span class="na">Supervision</span><span class="o">.*;</span>
+<span class="kn">import</span> <span class="nn">static</span> <span class="n">akka</span><span class="o">.</span><span class="na">actor</span><span class="o">.</span><span class="na">Actors</span><span class="o">.*;</span>
+<span class="kn">import</span> <span class="nn">akka.event.EventHandler</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">akka.japi.Procedure2</span><span class="o">;</span>
+
+<span class="n">Procedure2</span><span class="o">&lt;</span><span class="n">ActorRef</span><span class="o">,</span> <span class="n">MaximumNumberOfRestartsWithinTimeRangeReached</span><span class="o">&gt;</span> <span class="n">handler</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Procedure2</span><span class="o">&lt;</span><span class="n">ActorRef</span><span class="o">,</span> <span class="n">MaximumNumberOfRestartsWithinTimeRangeReached</span><span class="o">&gt;()</span> <span class="o">{</span>
+  <span class="kd">public</span> <span class="kt">void</span> <span class="nf">apply</span><span class="o">(</span><span class="n">ActorRef</span> <span class="n">ref</span><span class="o">,</span> <span class="n">MaximumNumberOfRestartsWithinTimeRangeReached</span> <span class="n">max</span><span class="o">)</span> <span class="o">{</span>
+    <span class="n">EventHandler</span><span class="o">.</span><span class="na">error</span><span class="o">(</span><span class="n">ref</span><span class="o">,</span> <span class="n">max</span><span class="o">);</span>
+  <span class="o">}</span>
+<span class="o">};</span>
+
+<span class="n">Supervisor</span> <span class="n">supervisor</span> <span class="o">=</span> <span class="n">Supervisor</span><span class="o">.</span><span class="na">apply</span><span class="o">(</span>
+    <span class="k">new</span> <span class="nf">SupervisorConfig</span><span class="o">(</span>
+      <span class="k">new</span> <span class="nf">AllForOneStrategy</span><span class="o">(</span><span class="k">new</span> <span class="n">Class</span><span class="o">[]{</span><span class="n">Exception</span><span class="o">.</span><span class="na">class</span><span class="o">},</span> <span class="mi">3</span><span class="o">,</span> <span class="mi">5000</span><span class="o">),</span>
+      <span class="k">new</span> <span class="n">Supervise</span><span class="o">[]</span> <span class="o">{</span>
+        <span class="k">new</span> <span class="nf">Supervise</span><span class="o">(</span>
+          <span class="n">actorOf</span><span class="o">(</span><span class="n">MyActor1</span><span class="o">.</span><span class="na">class</span><span class="o">),</span>
+          <span class="n">permanent</span><span class="o">()),</span>
+        <span class="k">new</span> <span class="nf">Supervise</span><span class="o">(</span>
+          <span class="n">actorOf</span><span class="o">(</span><span class="n">MyActor2</span><span class="o">.</span><span class="na">class</span><span class="o">),</span>
+          <span class="n">permanent</span><span class="o">())</span>
+       <span class="o">},</span> <span class="n">handler</span><span class="o">));</span>
+</pre></div>
+</div>
+<p>You can link and unlink actors from a declaratively defined supervisor using the &#8216;link&#8217; and &#8216;unlink&#8217; methods:</p>
+<div class="highlight-java"><div class="highlight"><pre><span class="n">Supervisor</span> <span class="n">supervisor</span> <span class="o">=</span> <span class="n">Supervisor</span><span class="o">.</span><span class="na">apply</span><span class="o">(...);</span>
+<span class="n">supervisor</span><span class="o">.</span><span class="na">link</span><span class="o">(..);</span>
+<span class="n">supervisor</span><span class="o">.</span><span class="na">unlink</span><span class="o">(..);</span>
+</pre></div>
+</div>
+<p>You can also create declarative supervisors through the &#8216;SupervisorFactory&#8217; factory object. Use this factory instead of the &#8216;Supervisor&#8217; factory object if you want to control instantiation and starting of the Supervisor, if not then it is easier and better to use the &#8216;Supervisor&#8217; factory object.</p>
+<p>Example usage:</p>
+<div class="highlight-java"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">static</span> <span class="n">akka</span><span class="o">.</span><span class="na">config</span><span class="o">.</span><span class="na">Supervision</span><span class="o">.*;</span>
+<span class="kn">import</span> <span class="nn">static</span> <span class="n">akka</span><span class="o">.</span><span class="na">actor</span><span class="o">.</span><span class="na">Actors</span><span class="o">.*;</span>
+
+<span class="n">SupervisorFactory</span> <span class="n">factory</span> <span class="o">=</span> <span class="k">new</span> <span class="n">SupervisorFactory</span><span class="o">(</span>
+  <span class="k">new</span> <span class="nf">SupervisorConfig</span><span class="o">(</span>
+    <span class="k">new</span> <span class="nf">OneForOneStrategy</span><span class="o">(</span><span class="k">new</span> <span class="n">Class</span><span class="o">[]{</span><span class="n">Exception</span><span class="o">.</span><span class="na">class</span><span class="o">},</span> <span class="mi">3</span><span class="o">,</span> <span class="mi">5000</span><span class="o">),</span>
+    <span class="k">new</span> <span class="n">Supervise</span><span class="o">[]</span> <span class="o">{</span>
+      <span class="k">new</span> <span class="nf">Supervise</span><span class="o">(</span>
+        <span class="n">actorOf</span><span class="o">(</span><span class="n">MyActor1</span><span class="o">.</span><span class="na">class</span><span class="o">),</span>
+        <span class="n">permanent</span><span class="o">()),</span>
+      <span class="k">new</span> <span class="nf">Supervise</span><span class="o">(</span>
+        <span class="n">actorOf</span><span class="o">(</span><span class="n">MyActor2</span><span class="o">.</span><span class="na">class</span><span class="o">),</span>
+        <span class="n">temporary</span><span class="o">())</span>
+   <span class="o">}));</span>
+</pre></div>
+</div>
+<p>Then create a new instance our Supervisor and start it up explicitly.</p>
+<div class="highlight-java"><div class="highlight"><pre><span class="n">SupervisorFactory</span> <span class="n">supervisor</span> <span class="o">=</span> <span class="n">factory</span><span class="o">.</span><span class="na">newInstance</span><span class="o">();</span>
+<span class="n">supervisor</span><span class="o">.</span><span class="na">start</span><span class="o">();</span> <span class="c1">// start up all managed servers</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="declaratively-define-actors-as-remote-services">
+<h3>Declaratively define actors as remote services</h3>
+<p>You can expose your actors as remote services by specifying the registerAsRemote to <strong>true</strong> in Supervise.</p>
+<p>Here is an example:</p>
+<div class="highlight-java"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">static</span> <span class="n">akka</span><span class="o">.</span><span class="na">config</span><span class="o">.</span><span class="na">Supervision</span><span class="o">.*;</span>
+<span class="kn">import</span> <span class="nn">static</span> <span class="n">akka</span><span class="o">.</span><span class="na">actor</span><span class="o">.</span><span class="na">Actors</span><span class="o">.*;</span>
+
+<span class="n">Supervisor</span> <span class="n">supervisor</span> <span class="o">=</span> <span class="n">Supervisor</span><span class="o">.</span><span class="na">apply</span><span class="o">(</span>
+  <span class="k">new</span> <span class="nf">SupervisorConfig</span><span class="o">(</span>
+    <span class="k">new</span> <span class="nf">AllForOneStrategy</span><span class="o">(</span><span class="k">new</span> <span class="n">Class</span><span class="o">[]{</span><span class="n">Exception</span><span class="o">.</span><span class="na">class</span><span class="o">},</span> <span class="mi">3</span><span class="o">,</span> <span class="mi">5000</span><span class="o">),</span>
+    <span class="k">new</span> <span class="n">Supervise</span><span class="o">[]</span> <span class="o">{</span>
+      <span class="k">new</span> <span class="nf">Supervise</span><span class="o">(</span>
+        <span class="n">actorOf</span><span class="o">(</span><span class="n">MyActor1</span><span class="o">.</span><span class="na">class</span><span class="o">),</span>
+        <span class="n">permanent</span><span class="o">(),</span>
+        <span class="kc">true</span><span class="o">)</span>
+     <span class="o">}));</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="programmatic-linking-and-supervision-of-untyped-actors">
+<h3>Programmatic linking and supervision of Untyped Actors</h3>
+<p>Untyped Actors can at runtime create, spawn, link and supervise other actors. Linking and unlinking is done using one of the &#8216;link&#8217; and &#8216;unlink&#8217; methods available in the &#8216;ActorRef&#8217; (therefore prefixed with getContext() in these examples).</p>
+<p>Here is the API and how to use it from within an &#8216;Actor&#8217;:</p>
+<div class="highlight-java"><div class="highlight"><pre><span class="c1">// link and unlink actors</span>
+<span class="n">getContext</span><span class="o">().</span><span class="na">link</span><span class="o">(</span><span class="n">actorRef</span><span class="o">);</span>
+<span class="n">getContext</span><span class="o">().</span><span class="na">unlink</span><span class="o">(</span><span class="n">actorRef</span><span class="o">);</span>
+
+<span class="c1">// starts and links Actors atomically</span>
+<span class="n">getContext</span><span class="o">().</span><span class="na">startLink</span><span class="o">(</span><span class="n">actorRef</span><span class="o">);</span>
+<span class="n">getContext</span><span class="o">().</span><span class="na">startLinkRemote</span><span class="o">(</span><span class="n">actorRef</span><span class="o">);</span>
+
+<span class="c1">// spawns (creates and starts) actors</span>
+<span class="n">getContext</span><span class="o">().</span><span class="na">spawn</span><span class="o">(</span><span class="n">MyActor</span><span class="o">.</span><span class="na">class</span><span class="o">);</span>
+<span class="n">getContext</span><span class="o">().</span><span class="na">spawnRemote</span><span class="o">(</span><span class="n">MyActor</span><span class="o">.</span><span class="na">class</span><span class="o">);</span>
+
+<span class="c1">// spawns and links Actors atomically</span>
+<span class="n">getContext</span><span class="o">().</span><span class="na">spawnLink</span><span class="o">(</span><span class="n">MyActor</span><span class="o">.</span><span class="na">class</span><span class="o">);</span>
+<span class="n">getContext</span><span class="o">().</span><span class="na">spawnLinkRemote</span><span class="o">(</span><span class="n">MyActor</span><span class="o">.</span><span class="na">class</span><span class="o">);</span>
+</pre></div>
+</div>
+<p>A child actor can tell the supervising actor to unlink him by sending him the &#8216;Unlink(this)&#8217; message. When the supervisor receives the message he will unlink and shut down the child. The supervisor for an actor is available in the &#8216;supervisor: Option[Actor]&#8217; method in the &#8216;ActorRef&#8217; class. Here is how it can be used.</p>
+<div class="highlight-java"><div class="highlight"><pre><span class="n">ActorRef</span> <span class="n">supervisor</span> <span class="o">=</span> <span class="n">getContext</span><span class="o">().</span><span class="na">getSupervisor</span><span class="o">();</span>
+<span class="k">if</span> <span class="o">(</span><span class="n">supervisor</span> <span class="o">!=</span> <span class="kc">null</span><span class="o">)</span> <span class="n">supervisor</span><span class="o">.</span><span class="na">tell</span><span class="o">(</span><span class="k">new</span> <span class="n">Unlink</span><span class="o">(</span><span class="n">getContext</span><span class="o">()))</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="the-supervising-actor-s-side-of-things">
+<h3>The supervising actor&#8217;s side of things</h3>
+<p>If a linked Actor is failing and throws an exception then an ‘new Exit(deadActor, cause)’ message will be sent to the supervisor (however you should never try to catch this message in your own message handler, it is managed by the runtime).</p>
+<p>The supervising Actor also needs to define a fault handler that defines the restart strategy the Actor should accommodate when it traps an ‘Exit’ message. This is done by setting the ‘setFaultHandler’ method.</p>
+<p>The different options are:</p>
+<ul class="simple">
+<li>AllForOneStrategy(trapExit, maxNrOfRetries, withinTimeRange)<ul>
+<li>trapExit is an Array of classes inheriting from Throwable, they signal which types of exceptions this actor will handle</li>
+</ul>
+</li>
+<li>OneForOneStrategy(trapExit, maxNrOfRetries, withinTimeRange)<ul>
+<li>trapExit is an Array of classes inheriting from Throwable, they signal which types of exceptions this actor will handle</li>
+</ul>
+</li>
+</ul>
+<p>Here is an example:</p>
+<div class="highlight-java"><div class="highlight"><pre><span class="n">getContext</span><span class="o">().</span><span class="na">setFaultHandler</span><span class="o">(</span><span class="k">new</span> <span class="n">AllForOneStrategy</span><span class="o">(</span><span class="k">new</span> <span class="n">Class</span><span class="o">[]{</span><span class="n">MyException</span><span class="o">.</span><span class="na">class</span><span class="o">,</span> <span class="n">IOException</span><span class="o">.</span><span class="na">class</span><span class="o">},</span> <span class="mi">3</span><span class="o">,</span> <span class="mi">1000</span><span class="o">));</span>
+</pre></div>
+</div>
+<p>Putting all this together it can look something like this:</p>
+<div class="highlight-java"><div class="highlight"><pre><span class="kd">class</span> <span class="nc">MySupervisor</span> <span class="kd">extends</span> <span class="n">UntypedActor</span> <span class="o">{</span>
+  <span class="kd">public</span> <span class="nf">MySupervisor</span><span class="o">()</span> <span class="o">{</span>
+    <span class="n">getContext</span><span class="o">().</span><span class="na">setFaultHandler</span><span class="o">(</span><span class="k">new</span> <span class="n">AllForOneStrategy</span><span class="o">(</span><span class="k">new</span> <span class="n">Class</span><span class="o">[]{</span><span class="n">MyException</span><span class="o">.</span><span class="na">class</span><span class="o">,</span> <span class="n">IOException</span><span class="o">.</span><span class="na">class</span><span class="o">},</span> <span class="mi">3</span><span class="o">,</span> <span class="mi">1000</span><span class="o">));</span>
+  <span class="o">}</span>
+
+  <span class="kd">public</span> <span class="kt">void</span> <span class="nf">onReceive</span><span class="o">(</span><span class="n">Object</span> <span class="n">message</span><span class="o">)</span> <span class="kd">throws</span> <span class="n">Exception</span> <span class="o">{</span>
+    <span class="k">if</span> <span class="o">(</span><span class="n">message</span> <span class="k">instanceof</span> <span class="n">Register</span><span class="o">)</span> <span class="o">{</span>
+      <span class="n">Register</span> <span class="n">event</span> <span class="o">=</span> <span class="o">(</span><span class="n">Register</span><span class="o">)</span><span class="n">message</span><span class="o">;</span>
+      <span class="n">UntypedActorRef</span> <span class="n">actor</span> <span class="o">=</span> <span class="n">event</span><span class="o">.</span><span class="na">getActor</span><span class="o">();</span>
+      <span class="n">context</span><span class="o">.</span><span class="na">link</span><span class="o">(</span><span class="n">actor</span><span class="o">);</span>
+    <span class="o">}</span> <span class="k">else</span> <span class="k">throw</span> <span class="k">new</span> <span class="n">IllegalArgumentException</span><span class="o">(</span><span class="s">&quot;Unknown message: &quot;</span> <span class="o">+</span> <span class="n">message</span><span class="o">);</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<p>You can also link an actor from outside the supervisor like this:</p>
+<div class="highlight-java"><div class="highlight"><pre><span class="n">UntypedActor</span> <span class="n">supervisor</span> <span class="o">=</span> <span class="n">Actors</span><span class="o">.</span><span class="na">registry</span><span class="o">().</span><span class="na">actorsFor</span><span class="o">(</span><span class="n">MySupervisor</span><span class="o">.</span><span class="na">class</span><span class="o">])[</span><span class="mi">0</span><span class="o">];</span>
+<span class="n">supervisor</span><span class="o">.</span><span class="na">link</span><span class="o">(</span><span class="n">actorRef</span><span class="o">);</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="the-supervised-actor-s-side-of-things">
+<h3>The supervised actor&#8217;s side of things</h3>
+<p>The supervised actor needs to define a life-cycle. This is done by setting the lifeCycle field as follows:</p>
+<div class="highlight-java"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">static</span> <span class="n">akka</span><span class="o">.</span><span class="na">config</span><span class="o">.</span><span class="na">Supervision</span><span class="o">.*;</span>
+
+<span class="n">getContext</span><span class="o">().</span><span class="na">setLifeCycle</span><span class="o">(</span><span class="n">permanent</span><span class="o">());</span> <span class="c1">// Permanent or Temporary</span>
+</pre></div>
+</div>
+<p>Default is &#8216;Permanent&#8217; so if you don&#8217;t set the life-cycle then that is what you get.</p>
+<p>In the supervised Actor you can override the ‘preRestart’ and ‘postRestart’ callback methods to add hooks into the restart process. These methods take the reason for the failure, e.g. the exception that caused termination and restart of the actor as argument. It is in these methods that <strong>you</strong> have to add code to do cleanup before termination and initialization after restart. Here is an example:</p>
+<div class="highlight-java"><div class="highlight"><pre><span class="kd">class</span> <span class="nc">FaultTolerantService</span> <span class="kd">extends</span> <span class="n">UntypedActor</span> <span class="o">{</span>
+
+  <span class="nd">@Override</span>
+  <span class="kd">public</span> <span class="kt">void</span> <span class="nf">preRestart</span><span class="o">(</span><span class="n">Throwable</span> <span class="n">reason</span><span class="o">)</span> <span class="o">{</span>
+    <span class="o">...</span> <span class="c1">// clean up before restart</span>
+  <span class="o">}</span>
+
+  <span class="nd">@Override</span>
+  <span class="kd">public</span> <span class="kt">void</span> <span class="nf">postRestart</span><span class="o">(</span><span class="n">Throwable</span> <span class="n">reason</span><span class="o">)</span> <span class="o">{</span>
+    <span class="o">...</span> <span class="c1">// reinit stable state after restart</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="reply-to-initial-senders">
+<h3>Reply to initial senders</h3>
+<p>Supervised actors have the option to reply to the initial sender within preRestart, postRestart and postStop. A reply within these methods is possible after receive has thrown an exception. When receive returns normally it is expected that any necessary reply has already been done within receive. Here&#8217;s an example.</p>
+<div class="highlight-java"><div class="highlight"><pre><span class="kd">public</span> <span class="kd">class</span> <span class="nc">FaultTolerantService</span> <span class="kd">extends</span> <span class="n">UntypedActor</span> <span class="o">{</span>
+    <span class="kd">public</span> <span class="kt">void</span> <span class="nf">onReceive</span><span class="o">(</span><span class="n">Object</span> <span class="n">msg</span><span class="o">)</span> <span class="o">{</span>
+        <span class="c1">// do something that may throw an exception</span>
+        <span class="c1">// ...</span>
+
+        <span class="n">getContext</span><span class="o">().</span><span class="na">replySafe</span><span class="o">(</span><span class="s">&quot;ok&quot;</span><span class="o">);</span>
+    <span class="o">}</span>
+
+    <span class="nd">@Override</span>
+    <span class="kd">public</span> <span class="kt">void</span> <span class="nf">preRestart</span><span class="o">(</span><span class="n">Throwable</span> <span class="n">reason</span><span class="o">)</span> <span class="o">{</span>
+        <span class="n">getContext</span><span class="o">().</span><span class="na">replySafe</span><span class="o">(</span><span class="n">reason</span><span class="o">.</span><span class="na">getMessage</span><span class="o">());</span>
+    <span class="o">}</span>
+
+    <span class="nd">@Override</span>
+    <span class="kd">public</span> <span class="kt">void</span> <span class="nf">postStop</span><span class="o">()</span> <span class="o">{</span>
+        <span class="n">getContext</span><span class="o">().</span><span class="na">replySafe</span><span class="o">(</span><span class="s">&quot;stopped by supervisor&quot;</span><span class="o">);</span>
+    <span class="o">}</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<ul class="simple">
+<li>A reply within preRestart or postRestart must be a safe reply via getContext().replySafe() because a getContext().replyUnsafe() will throw an exception when the actor is restarted without having failed. This can be the case in context of AllForOne restart strategies.</li>
+<li>A reply within postStop must be a safe reply via getContext().replySafe() because a getContext().replyUnsafe() will throw an exception when the actor has been stopped by the application (and not by a supervisor) after successful execution of receive (or no execution at all).</li>
+</ul>
+</div>
+<div class="section" id="handling-too-many-actor-restarts-within-a-specific-time-limit">
+<h3>Handling too many actor restarts within a specific time limit</h3>
+<p>If you remember, when you define the &#8216;RestartStrategy&#8217; you also defined maximum number of restart retries within time in millis.</p>
+<div class="highlight-java"><div class="highlight"><pre><span class="k">new</span> <span class="nf">AllForOneStrategy</span><span class="o">(</span> <span class="c1">// FaultHandlingStrategy policy (AllForOneStrategy or OneForOneStrategy)</span>
+  <span class="k">new</span> <span class="n">Class</span><span class="o">[]{</span><span class="n">MyException</span><span class="o">.</span><span class="na">class</span><span class="o">,</span> <span class="n">IOException</span><span class="o">.</span><span class="na">class</span><span class="o">},</span> <span class="c1">//What types of errors will be handled</span>
+  <span class="mi">3</span><span class="o">,</span>               <span class="c1">// maximum number of restart retries</span>
+  <span class="mi">5000</span>             <span class="c1">// within time in millis</span>
+<span class="o">);</span>
+</pre></div>
+</div>
+<p>Now, what happens if this limit is reached?</p>
+<p>What will happen is that the failing actor will send a system message to its supervisor called &#8216;MaximumNumberOfRestartsWithinTimeRangeReached&#8217; with the following these properties:</p>
+<ul class="simple">
+<li>victim: ActorRef</li>
+<li>maxNrOfRetries: int</li>
+<li>withinTimeRange: int</li>
+<li>lastExceptionCausingRestart: Throwable</li>
+</ul>
+<p>If you want to be able to take action upon this event (highly recommended) then you have to create a message handle for it in the supervisor.</p>
+<p>Here is an example:</p>
+<div class="highlight-java"><div class="highlight"><pre><span class="kd">public</span> <span class="kd">class</span> <span class="nc">SampleUntypedActorSupervisor</span> <span class="kd">extends</span> <span class="n">UntypedActor</span> <span class="o">{</span>
+  <span class="o">...</span>
+
+  <span class="kd">public</span> <span class="kt">void</span> <span class="nf">onReceive</span><span class="o">(</span><span class="n">Object</span> <span class="n">message</span><span class="o">)</span> <span class="kd">throws</span> <span class="n">Exception</span> <span class="o">{</span>
+    <span class="k">if</span> <span class="o">(</span><span class="n">message</span> <span class="k">instanceof</span> <span class="n">MaximumNumberOfRestartsWithinTimeRangeReached</span><span class="o">)</span> <span class="o">{</span>
+       <span class="n">MaximumNumberOfRestartsWithinTimeRangeReached</span> <span class="n">event</span> <span class="o">=</span> <span class="o">(</span><span class="n">MaximumNumberOfRestartsWithinTimeRangeReached</span><span class="o">)</span><span class="n">message</span><span class="o">;</span>
+       <span class="o">...</span> <span class="o">=</span> <span class="n">event</span><span class="o">.</span><span class="na">getVictim</span><span class="o">();</span>
+       <span class="o">...</span> <span class="o">=</span> <span class="n">event</span><span class="o">.</span><span class="na">getMaxNrOfRetries</span><span class="o">();</span>
+       <span class="o">...</span> <span class="o">=</span> <span class="n">event</span><span class="o">.</span><span class="na">getWithinTimeRange</span><span class="o">();</span>
+       <span class="o">...</span> <span class="o">=</span> <span class="n">event</span><span class="o">.</span><span class="na">getLastExceptionCausingRestart</span><span class="o">();</span>
+    <span class="o">}</span> <span class="k">else</span> <span class="k">throw</span> <span class="k">new</span> <span class="n">IllegalArgumentException</span><span class="o">(</span><span class="s">&quot;Unknown message: &quot;</span> <span class="o">+</span> <span class="n">message</span><span class="o">);</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<p>You will also get this log warning similar to this:</p>
+<div class="highlight-console"><div class="highlight"><pre><span class="go">WAR [20100715-14:05:25.821] actor: Maximum number of restarts [5] within time range [5000] reached.</span>
+<span class="go">WAR [20100715-14:05:25.821] actor:     Will *not* restart actor [Actor[akka.actor.SupervisorHierarchySpec$CountDownActor:1279195525812]] anymore.</span>
+<span class="go">WAR [20100715-14:05:25.821] actor:     Last exception causing restart was [akka.actor.SupervisorHierarchySpec$FireWorkerException: Fire the worker!].</span>
+</pre></div>
+</div>
+<p>If you don&#8217;t define a message handler for this message then you don&#8217;t get an error but the message is simply not sent to the supervisor. Instead you will get a log warning.</p>
+</div>
+</div>
+<div class="section" id="supervising-typed-actors">
+<h2>Supervising Typed Actors</h2>
+<div class="section" id="id1">
+<h3>Declarative supervisor configuration</h3>
+<p>To configure Typed Actors for supervision you have to consult the ‘TypedActorConfigurator’ and its ‘configure’ method. This method takes a ‘RestartStrategy’ and an array of ‘Component’ definitions defining the Typed Actors and their ‘LifeCycle’. Finally you call the ‘supervise’ method to start everything up. The Java configuration elements reside in the ‘akka.config.JavaConfig’ class and need to be imported statically.</p>
+<p>Here is an example:</p>
+<div class="highlight-java"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">static</span> <span class="n">akka</span><span class="o">.</span><span class="na">config</span><span class="o">.</span><span class="na">Supervision</span><span class="o">.*;</span>
+<span class="kn">import</span> <span class="nn">static</span> <span class="n">akka</span><span class="o">.</span><span class="na">config</span><span class="o">.</span><span class="na">SupervisorConfig</span><span class="o">.*;</span>
+
+<span class="n">TypedActorConfigurator</span> <span class="n">manager</span> <span class="o">=</span> <span class="k">new</span> <span class="n">TypedActorConfigurator</span><span class="o">();</span>
+
+<span class="n">manager</span><span class="o">.</span><span class="na">configure</span><span class="o">(</span>
+  <span class="k">new</span> <span class="nf">AllForOneStrategy</span><span class="o">(</span><span class="k">new</span> <span class="n">Class</span><span class="o">[]{</span><span class="n">Exception</span><span class="o">.</span><span class="na">class</span><span class="o">},</span> <span class="mi">3</span><span class="o">,</span> <span class="mi">1000</span><span class="o">),</span>
+    <span class="k">new</span> <span class="n">SuperviseTypedActor</span><span class="o">[]</span> <span class="o">{</span>
+      <span class="k">new</span> <span class="nf">SuperviseTypedActor</span><span class="o">(</span>
+        <span class="n">Foo</span><span class="o">.</span><span class="na">class</span><span class="o">,</span>
+        <span class="n">FooImpl</span><span class="o">.</span><span class="na">class</span><span class="o">,</span>
+        <span class="n">temporary</span><span class="o">(),</span>
+        <span class="mi">1000</span><span class="o">),</span>
+      <span class="k">new</span> <span class="nf">SuperviseTypedActor</span><span class="o">(</span>
+        <span class="n">Bar</span><span class="o">.</span><span class="na">class</span><span class="o">,</span>
+        <span class="n">BarImpl</span><span class="o">.</span><span class="na">class</span><span class="o">,</span>
+        <span class="n">permanent</span><span class="o">(),</span>
+        <span class="mi">1000</span><span class="o">)</span>
+  <span class="o">}).</span><span class="na">supervise</span><span class="o">();</span>
+</pre></div>
+</div>
+<p>Then you can retrieve the Typed Actor as follows:</p>
+<div class="highlight-java"><div class="highlight"><pre><span class="n">Foo</span> <span class="n">foo</span> <span class="o">=</span> <span class="o">(</span><span class="n">Foo</span><span class="o">)</span> <span class="n">manager</span><span class="o">.</span><span class="na">getInstance</span><span class="o">(</span><span class="n">Foo</span><span class="o">.</span><span class="na">class</span><span class="o">);</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="id2">
+<h3>Restart callbacks</h3>
+<p>In the supervised TypedActor you can override the ‘preRestart’ and ‘postRestart’ callback methods to add hooks into the restart process. These methods take the reason for the failure, e.g. the exception that caused termination and restart of the actor as argument. It is in these methods that <strong>you</strong> have to add code to do cleanup before termination and initialization after restart. Here is an example:</p>
+<div class="highlight-java"><div class="highlight"><pre><span class="kd">class</span> <span class="nc">FaultTolerantService</span> <span class="kd">extends</span> <span class="n">TypedActor</span> <span class="o">{</span>
+
+  <span class="nd">@Override</span>
+  <span class="kd">public</span> <span class="kt">void</span> <span class="nf">preRestart</span><span class="o">(</span><span class="n">Throwable</span> <span class="n">reason</span><span class="o">)</span> <span class="o">{</span>
+    <span class="o">...</span> <span class="c1">// clean up before restart</span>
+  <span class="o">}</span>
+
+  <span class="nd">@Override</span>
+  <span class="kd">public</span> <span class="kt">void</span> <span class="nf">postRestart</span><span class="o">(</span><span class="n">Throwable</span> <span class="n">reason</span><span class="o">)</span> <span class="o">{</span>
+    <span class="o">...</span> <span class="c1">// reinit stable state after restart</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="programatic-linking-and-supervision-of-typedactors">
+<h3>Programatic linking and supervision of TypedActors</h3>
+<p>TypedActors can be linked and unlinked just like UntypedActors:</p>
+<div class="highlight-java"><div class="highlight"><pre><span class="n">TypedActor</span><span class="o">.</span><span class="na">link</span><span class="o">(</span><span class="n">supervisor</span><span class="o">,</span> <span class="n">supervised</span><span class="o">);</span>
+
+<span class="n">TypedActor</span><span class="o">.</span><span class="na">unlink</span><span class="o">(</span><span class="n">supervisor</span><span class="o">,</span> <span class="n">supervised</span><span class="o">);</span>
+</pre></div>
+</div>
+<p>If the parent TypedActor (supervisor) wants to be able to do handle failing child TypedActors, e.g. be able restart the linked TypedActor according to a given fault handling scheme then it has to set its ‘trapExit’ flag to an array of Exceptions that it wants to be able to trap:</p>
+<div class="highlight-java"><div class="highlight"><pre><span class="n">TypedActor</span><span class="o">.</span><span class="na">faultHandler</span><span class="o">(</span><span class="n">supervisor</span><span class="o">,</span> <span class="k">new</span> <span class="n">AllForOneStrategy</span><span class="o">(</span><span class="k">new</span> <span class="n">Class</span><span class="o">[]{</span><span class="n">IOException</span><span class="o">.</span><span class="na">class</span><span class="o">},</span> <span class="mi">3</span><span class="o">,</span> <span class="mi">2000</span><span class="o">));</span>
+</pre></div>
+</div>
+<p>For convenience there is an overloaded link that takes trapExit and faultHandler for the supervisor as arguments. Here is an example:</p>
+<div class="highlight-java"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">static</span> <span class="n">akka</span><span class="o">.</span><span class="na">actor</span><span class="o">.</span><span class="na">TypedActor</span><span class="o">.*;</span>
+<span class="kn">import</span> <span class="nn">static</span> <span class="n">akka</span><span class="o">.</span><span class="na">config</span><span class="o">.</span><span class="na">Supervision</span><span class="o">.*;</span>
+
+<span class="n">foo</span> <span class="o">=</span> <span class="n">newInstance</span><span class="o">(</span><span class="n">Foo</span><span class="o">.</span><span class="na">class</span><span class="o">,</span> <span class="n">FooImpl</span><span class="o">.</span><span class="na">class</span><span class="o">,</span> <span class="mi">1000</span><span class="o">);</span>
+<span class="n">bar</span> <span class="o">=</span> <span class="n">newInstance</span><span class="o">(</span><span class="n">Bar</span><span class="o">.</span><span class="na">class</span><span class="o">,</span> <span class="n">BarImpl</span><span class="o">.</span><span class="na">class</span><span class="o">,</span> <span class="mi">1000</span><span class="o">);</span>
+
+<span class="n">link</span><span class="o">(</span><span class="n">foo</span><span class="o">,</span> <span class="n">bar</span><span class="o">,</span> <span class="k">new</span> <span class="n">AllForOneStrategy</span><span class="o">(</span><span class="k">new</span> <span class="n">Class</span><span class="o">[]{</span><span class="n">IOException</span><span class="o">.</span><span class="na">class</span><span class="o">},</span> <span class="mi">3</span><span class="o">,</span> <span class="mi">2000</span><span class="o">));</span>
+
+<span class="c1">// alternative: chaining</span>
+<span class="n">bar</span> <span class="o">=</span> <span class="n">faultHandler</span><span class="o">(</span><span class="n">foo</span><span class="o">,</span> <span class="k">new</span> <span class="n">AllForOneStrategy</span><span class="o">(</span><span class="k">new</span> <span class="n">Class</span><span class="o">[]{</span><span class="n">IOException</span><span class="o">.</span><span class="na">class</span><span class="o">},</span> <span class="mi">3</span><span class="o">,</span> <span class="mi">2000</span><span class="o">)).</span><span class="na">newInstance</span><span class="o">(</span><span class="n">Bar</span><span class="o">.</span><span class="na">class</span><span class="o">,</span> <span class="mi">1000</span><span class="o">);</span>
+
+<span class="n">link</span><span class="o">(</span><span class="n">foo</span><span class="o">,</span> <span class="n">bar</span><span class="o">);</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+
+
+          </div>
+          <div class="span3"><p class="contents-title">Contents</p>
+              <div id="scroller-anchor">
+                <div id="scroller">
+                  <div id="toc"></div>
+                </div>
+              </div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="footer">
+  <div class="container">
+    <ul>
+      <li><h5>Akka</h5></li>
+      <li><a href="https://akka.io/docs">Documentation</a></li>
+      <li><a href="https://akka.io/downloads">Downloads</a></li>
+      <li><a href="https://akka.io/news">News</a></li>
+      <li><a href="http://letitcrash.com">Blog</a></li>
+    </ul>
+    <ul>
+      <li><h5>Contribute</h5></li>
+      <li><a href="http://github.com/akka/akka">Source Code</a></li>
+      <li><a href="http://groups.google.com/group/akka-user">Mailing List</a></li>      
+      <li><a href="http://www.assembla.com/spaces/akka/tickets">Report a Bug</a></li>      
+    </ul>
+    <ul>
+      <li><h5>Company</h5></li>
+      <li><a href="http://typesafe.com/products/typesafe-subscription">Commercial Support</a></li>
+      <li><a href="https://akka.io/team">Team</a></li>
+      <li><a href="mailto:info@typesafe.com">Contact</a></li>
+    </ul>
+    <ul>
+      <li><img src="../_static/watermark.png" align="center"/></li>
+    </ul>
+  </div>
+  <div class="container copyright">
+    <p style="float: left;">
+      © 2012 <a href="http://typesafe.com/">Typesafe Inc.</a> <span class="license">Akka is Open Source and available under the Apache 2 License.</span>
+    </p>
+    <p style="float: right; font-size: 12px;">
+      Last updated: Mar 08, 2012
+    </p>          
+  </div>
+</div>
+<script type="text/javascript">
+  $('#toc').toc();
+</script>
+  
+
+  </body>
+</html>

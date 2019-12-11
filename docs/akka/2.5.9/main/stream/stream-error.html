@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html class="no-js" lang="en">
+
+<head>
+<title>Error Handling in Streams &bull; Akka Documentation</title>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta name="description" content="Akka is a toolkit for building highly concurrent, distributed, and resilient message-driven applications for Java and Scala."/>
+<link rel="canonical" href="https://doc.akka.io/docs/akka/current/stream/stream-error.html"/>
+<script type="text/javascript" src="../lib/jquery/jquery.min.js"></script>
+<script type="text/javascript" src="../lib/foundation/dist/js/foundation.min.js"></script>
+<link rel="stylesheet" type="text/css" href="../lib/normalize.css/normalize.css"/>
+<link rel="stylesheet" type="text/css" href="../lib/foundation/dist/css/foundation.min.css"/>
+<link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/docsearch.js/2/docsearch.min.css" />
+<link rel="stylesheet" type="text/css" href="../css/icons.css"/>
+<link rel="stylesheet" type="text/css" href="../css/page.css"/>
+<link rel="shortcut icon" href="../images/favicon.ico" />
+<link rel="apple-touch-icon" sizes="180x180" href="../images/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="../images/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="../images/favicon-16x16.png">
+<link rel="manifest" href="../images/manifest.json">
+<meta name="msapplication-TileImage" content="../images/mstile-150x150.png">
+<meta name="msapplication-TileColor" content="#15a9ce">
+<meta name="theme-color" content="#15a9ce">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<!--Google Analytics-->
+<script type="text/javascript">
+var _gaq = _gaq || [];
+_gaq.push(['_setAccount', 'UA-21117439-1']);
+_gaq.push(['_setDomainName', 'akka.io']);
+_gaq.push(['_trackPageview']);
+(function() {
+var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+})()
+</script>
+<!--Google Analytics & Marketo-->
+<script type="text/javascript">
+(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+ga('create', 'UA-23127719-1', 'lightbend.com', {'allowLinker': true, 'name': 'tsTracker'});
+ga('tsTracker.require', 'linker');
+ga('tsTracker.linker:autoLink', ['lightbend.com','playframework.com','scala-lang.org','scaladays.org','spray.io','akka.io','scala-sbt.org','scala-ide.org']);
+ga('tsTracker.send', 'pageview');
+(function() {
+var didInit = false;
+function initMunchkin() {
+if(didInit === false) {
+didInit = true;
+Munchkin.init('558-NCX-702');
+}
+}
+var s = document.createElement('script');
+s.type = 'text/javascript';
+s.async = true;
+s.src = '//munchkin.marketo.net/munchkin.js';
+s.onreadystatechange = function() {
+if (this.readyState == 'complete' || this.readyState == 'loaded') {
+initMunchkin();
+}
+};
+s.onload = initMunchkin;
+document.getElementsByTagName('head')[0].appendChild(s);
+})();
+</script>
+
+</head>
+
+<body id="underlay" data-toggler="nav-open">
+
+<header class="site-header hide-for-large">
+<div class="sticky-header clearfix">
+<a href="https://akka.io"><img class="logo" src="../images/akka-logo-reverse.svg"></a>
+
+<button class="menu-icon float-right" type="button" data-toggle="underlay overlay"></button>
+</div>
+<div id="overlay" class="overlay-nav" data-toggler="nav-open">
+<header class="nav-header">
+<div class="nav-header-title">
+<h1><a href="../index.html">Akka Documentation</a></h1>
+</div>
+<div class="nav-header-version">
+Version 2.5.9
+</div>
+<div class="nav-header-groups">
+<select class="supergroup" name="Language"><option class="group" value="group-scala">Scala</option><option class="group" value="group-java">Java</option></select>
+</div>
+<div id="overlay-search-container" class="nav-header-search">
+<input id="overlay-search" type="search" class="search" placeholder="Search"/>
+</div>
+</header>
+<nav class="nav-toc">
+<ul>
+  <li><a href="../security/index.html" class="page">Security Announcements</a></li>
+  <li><a href="../guide/index.html" class="page">Getting Started Guide</a></li>
+  <li><a href="../general/index.html" class="page">General Concepts</a></li>
+  <li><a href="../index-actors.html" class="page">Actors</a></li>
+  <li><a href="../index-typed.html" class="page">Akka Typed</a></li>
+  <li><a href="../index-cluster.html" class="page">Clustering</a></li>
+  <li><a href="../stream/index.html" class="page">Streams</a>
+  <ul>
+    <li><a href="../stream/stream-introduction.html" class="page">Introduction</a></li>
+    <li><a href="../stream/stream-quickstart.html" class="page">Streams Quickstart Guide</a></li>
+    <li><a href="../general/stream/stream-design.html" class="page">Design Principles behind Akka Streams</a></li>
+    <li><a href="../stream/stream-flows-and-basics.html" class="page">Basics and working with Flows</a></li>
+    <li><a href="../stream/stream-graphs.html" class="page">Working with Graphs</a></li>
+    <li><a href="../stream/stream-composition.html" class="page">Modularity, Composition and Hierarchy</a></li>
+    <li><a href="../stream/stream-rate.html" class="page">Buffers and working with rate</a></li>
+    <li><a href="../stream/stream-dynamic.html" class="page">Dynamic stream handling</a></li>
+    <li><a href="../stream/stream-customize.html" class="page">Custom stream processing</a></li>
+    <li><a href="../stream/stream-integrations.html" class="page">Integration</a></li>
+    <li><a href="../stream/stream-error.html#error-handling-in-streams" class="active page">Error Handling in Streams</a>
+    <ul>
+      <li><a href="../stream/stream-error.html#recover" class="header">Recover</a></li>
+      <li><a href="../stream/stream-error.html#recover-with-retries" class="header">Recover with retries</a></li>
+      <li><a href="../stream/stream-error.html#delayed-restarts-with-a-backoff-stage" class="header">Delayed restarts with a backoff stage</a></li>
+      <li><a href="../stream/stream-error.html#supervision-strategies" class="header">Supervision Strategies</a></li>
+    </ul></li>
+    <li><a href="../stream/stream-io.html" class="page">Working with streaming IO</a></li>
+    <li><a href="../stream/stream-parallelism.html" class="page">Pipelining and Parallelism</a></li>
+    <li><a href="../stream/stream-testkit.html" class="page">Testing streams</a></li>
+    <li><a href="../stream/stages-overview.html" class="page">Overview of built-in stages and their semantics</a></li>
+    <li><a href="../stream/stream-substream.html" class="page">Substreams</a></li>
+    <li><a href="../stream/stream-cookbook.html" class="page">Streams Cookbook</a></li>
+    <li><a href="../general/stream/stream-configuration.html" class="page">Configuration</a></li>
+  </ul></li>
+  <li><a href="../index-network.html" class="page">Networking</a></li>
+  <li><a href="../index-futures.html" class="page">Futures and Agents</a></li>
+  <li><a href="../index-utilities.html" class="page">Utilities</a></li>
+  <li><a href="../common/other-modules.html" class="page">Other Akka modules</a></li>
+  <li><a href="../howto.html" class="page">HowTo: Common Patterns</a></li>
+  <li><a href="../project/index.html" class="page">Project Information</a></li>
+  <li><a href="../additional/index.html" class="page">Additional Information</a></li>
+</ul>
+</nav>
+</div>
+</header>
+
+<aside class="show-for-large">
+<header class="nav-header fixed-sidebar-header">
+<div class="nav-header-title">
+<h1><a href="../index.html">Akka Documentation</a></h1>
+</div>
+<div class="nav-header-version">
+Version 2.5.9
+</div>
+<div class="nav-header-groups">
+<select class="supergroup" name="Language"><option class="group" value="group-scala">Scala</option><option class="group" value="group-java">Java</option></select>
+</div>
+<div class="nav-header-search">
+<input id="search" type="search" class="search" placeholder="Search"/>
+</div>
+</header>
+<nav class="site-nav fixed-sidebar-contents">
+<div class="nav-toc">
+<ul>
+  <li><a href="../security/index.html" class="page">Security Announcements</a></li>
+  <li><a href="../guide/index.html" class="page">Getting Started Guide</a></li>
+  <li><a href="../general/index.html" class="page">General Concepts</a></li>
+  <li><a href="../index-actors.html" class="page">Actors</a></li>
+  <li><a href="../index-typed.html" class="page">Akka Typed</a></li>
+  <li><a href="../index-cluster.html" class="page">Clustering</a></li>
+  <li><a href="../stream/index.html" class="page">Streams</a>
+  <ul>
+    <li><a href="../stream/stream-introduction.html" class="page">Introduction</a></li>
+    <li><a href="../stream/stream-quickstart.html" class="page">Streams Quickstart Guide</a></li>
+    <li><a href="../general/stream/stream-design.html" class="page">Design Principles behind Akka Streams</a></li>
+    <li><a href="../stream/stream-flows-and-basics.html" class="page">Basics and working with Flows</a></li>
+    <li><a href="../stream/stream-graphs.html" class="page">Working with Graphs</a></li>
+    <li><a href="../stream/stream-composition.html" class="page">Modularity, Composition and Hierarchy</a></li>
+    <li><a href="../stream/stream-rate.html" class="page">Buffers and working with rate</a></li>
+    <li><a href="../stream/stream-dynamic.html" class="page">Dynamic stream handling</a></li>
+    <li><a href="../stream/stream-customize.html" class="page">Custom stream processing</a></li>
+    <li><a href="../stream/stream-integrations.html" class="page">Integration</a></li>
+    <li><a href="../stream/stream-error.html#error-handling-in-streams" class="active page">Error Handling in Streams</a>
+    <ul>
+      <li><a href="../stream/stream-error.html#recover" class="header">Recover</a></li>
+      <li><a href="../stream/stream-error.html#recover-with-retries" class="header">Recover with retries</a></li>
+      <li><a href="../stream/stream-error.html#delayed-restarts-with-a-backoff-stage" class="header">Delayed restarts with a backoff stage</a></li>
+      <li><a href="../stream/stream-error.html#supervision-strategies" class="header">Supervision Strategies</a></li>
+    </ul></li>
+    <li><a href="../stream/stream-io.html" class="page">Working with streaming IO</a></li>
+    <li><a href="../stream/stream-parallelism.html" class="page">Pipelining and Parallelism</a></li>
+    <li><a href="../stream/stream-testkit.html" class="page">Testing streams</a></li>
+    <li><a href="../stream/stages-overview.html" class="page">Overview of built-in stages and their semantics</a></li>
+    <li><a href="../stream/stream-substream.html" class="page">Substreams</a></li>
+    <li><a href="../stream/stream-cookbook.html" class="page">Streams Cookbook</a></li>
+    <li><a href="../general/stream/stream-configuration.html" class="page">Configuration</a></li>
+  </ul></li>
+  <li><a href="../index-network.html" class="page">Networking</a></li>
+  <li><a href="../index-futures.html" class="page">Futures and Agents</a></li>
+  <li><a href="../index-utilities.html" class="page">Utilities</a></li>
+  <li><a href="../common/other-modules.html" class="page">Other Akka modules</a></li>
+  <li><a href="../howto.html" class="page">HowTo: Common Patterns</a></li>
+  <li><a href="../project/index.html" class="page">Project Information</a></li>
+  <li><a href="../additional/index.html" class="page">Additional Information</a></li>
+</ul>
+</div>
+</nav>
+<footer class="nav-footer fixed-sidebar-footer">
+<a href="https://akka.io"><img class="logo" src="../images/akka-logo-reverse.svg"></a>
+
+</footer>
+</aside>
+
+<main class="fixed-shift-for-large expanded row">
+<section class="site-content small-12 column">
+
+<article class="page-content row">
+<div class="small-12 large-9 column" id="docs">
+<h1><a href="#error-handling-in-streams" name="error-handling-in-streams" class="anchor"><span class="anchor-link"></span></a>Error Handling in Streams</h1>
+<p>When a stage in a stream fails this will normally lead to the entire stream being torn down. Each of the stages downstream gets informed about the failure and each upstream stage sees a cancellation.</p>
+<p>In many cases you may want to avoid complete stream failure, this can be done in a few different ways:</p>
+<ul>
+  <li><code>recover</code> to emit a final element then complete the stream normally on upstream failure</li>
+  <li><code>recoverWithRetries</code> to create a new upstream and start consuming from that on failure</li>
+  <li>Restarting sections of the stream after a backoff</li>
+  <li>Using a supervision strategy for stages that support it</li>
+</ul>
+<p>In addition to these built in tools for error handling, a common pattern is to wrap the stream inside an actor, and have the actor restart the entire stream on failure.</p>
+<h2><a href="#recover" name="recover" class="anchor"><span class="anchor-link"></span></a>Recover</h2>
+<p><code>recover</code> allows you to emit a final element and then complete the stream on an upstream failure. Deciding which exceptions should be recovered is done through a <code>PartialFunction</code>. If an exception does not have a <span class="group-scala">matching case</span> <span class="group-java">match defined</span> the stream is failed. </p>
+<p>Recovering can be useful if you want to gracefully complete a stream on failure while letting downstream know that there was a failure.</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-scala">Source(0 to 6).map(n ⇒
+  if (n &lt; 5) n.toString
+  else throw new RuntimeException(&quot;Boom!&quot;)
+).recover {
+  case _: RuntimeException ⇒ &quot;stream truncated&quot;
+}.runForeach(println)</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-java">final Materializer mat = ActorMaterializer.create(system);
+Source.from(Arrays.asList(0, 1, 2, 3, 4, 5, 6)).map(n -&gt; {
+  if (n &lt; 5) return n.toString();
+  else throw new RuntimeException(&quot;Boom!&quot;);
+}).recover(new PFBuilder()
+    .match(RuntimeException.class, ex -&gt; &quot;stream truncated&quot;)
+    .build()
+).runForeach(System.out::println, mat);</code></pre></dd>
+</dl>
+<p>This will output:</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-scala">0
+1
+2
+3
+4
+stream truncated</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-java">0
+1
+2
+3
+4
+stream truncated</code></pre></dd>
+</dl>
+<h2><a href="#recover-with-retries" name="recover-with-retries" class="anchor"><span class="anchor-link"></span></a>Recover with retries</h2>
+<p><code>recoverWithRetries</code> allows you to put a new upstream in place of the failed one, recovering stream failures up to a specified maximum number of times. </p>
+<p>Deciding which exceptions should be recovered is done through a <code>PartialFunction</code>. If an exception does not have a <span class="group-scala">matching case</span> <span class="group-java">match defined</span> the stream is failed.</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-scala">val planB = Source(List(&quot;five&quot;, &quot;six&quot;, &quot;seven&quot;, &quot;eight&quot;))
+
+Source(0 to 10).map(n ⇒
+  if (n &lt; 5) n.toString
+  else throw new RuntimeException(&quot;Boom!&quot;)
+).recoverWithRetries(attempts = 1, {
+  case _: RuntimeException ⇒ planB
+}).runForeach(println)</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-java">final Materializer mat = ActorMaterializer.create(system);
+Source&lt;String, NotUsed&gt; planB = Source.from(Arrays.asList(&quot;five&quot;, &quot;six&quot;, &quot;seven&quot;, &quot;eight&quot;));
+
+Source.from(Arrays.asList(0, 1, 2, 3, 4, 5, 6)).map(n -&gt; {
+  if (n &lt; 5) return n.toString();
+  else throw new RuntimeException(&quot;Boom!&quot;);
+}).recoverWithRetries(
+    1, // max attempts
+    new PFBuilder()
+        .match(RuntimeException.class, ex -&gt; planB)
+        .build()
+).runForeach(System.out::println, mat);</code></pre></dd>
+</dl>
+<p>This will output:</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-scala">0
+1
+2
+3
+4
+five
+six
+seven
+eight</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-java">0
+1
+2
+3
+4
+five
+six
+seven
+eight</code></pre></dd>
+</dl>
+<a id="restart-with-backoff"></a>
+<h2><a href="#delayed-restarts-with-a-backoff-stage" name="delayed-restarts-with-a-backoff-stage" class="anchor"><span class="anchor-link"></span></a>Delayed restarts with a backoff stage</h2>
+<p>Just as Akka provides the <a href="../general/supervision.html#backoff-supervisor">backoff supervision pattern for actors</a>, Akka streams also provides a <code>RestartSource</code>, <code>RestartSink</code> and <code>RestartFlow</code> for implementing the so-called <em>exponential backoff supervision strategy</em>, starting a stage again when it fails or completes, each time with a growing time delay between restarts.</p>
+<p>This pattern is useful when the stage fails or completes because some external resource is not available and we need to give it some time to start-up again. One of the prime examples when this is useful is when a WebSocket connection fails due to the HTTP server it&rsquo;s running on going down, perhaps because it is overloaded. By using an exponential backoff, we avoid going into a tight reconnect loop, which both gives the HTTP server some time to recover, and it avoids using needless resources on the client side.</p>
+<p>The following snippet shows how to create a backoff supervisor using <span class="group-scala"><code>akka.stream.scaladsl.RestartSource</code></span> <span class="group-java"><code>akka.stream.javadsl.RestartSource</code></span> which will supervise the given <code>Source</code>. The <code>Source</code> in this case is a stream of Server Sent Events, produced by akka-http. If the stream fails or completes at any point, the request will be made again, in increasing intervals of 3, 6, 12, 24 and finally 30 seconds (at which point it will remain capped due to the <code>maxBackoff</code> parameter):</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-scala">val restartSource = RestartSource.withBackoff(
+  minBackoff = 3.seconds,
+  maxBackoff = 30.seconds,
+  randomFactor = 0.2 // adds 20% &quot;noise&quot; to vary the intervals slightly
+) { () ⇒
+  // Create a source from a future of a source
+  Source.fromFutureSource {
+    // Make a single request with akka-http
+    Http().singleRequest(HttpRequest(
+      uri = &quot;http://example.com/eventstream&quot;
+    ))
+      // Unmarshall it as a source of server sent events
+      .flatMap(Unmarshal(_).to[Source[ServerSentEvent, NotUsed]])
+  }
+}</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-java">Source&lt;ServerSentEvent, NotUsed&gt; eventStream = RestartSource.withBackoff(
+    Duration.apply(3, TimeUnit.SECONDS), // min backoff
+    Duration.apply(30, TimeUnit.SECONDS), // max backoff
+    0.2, // adds 20% &quot;noise&quot; to vary the intervals slightly
+    () -&gt;
+        // Create a source from a future of a source
+        Source.fromSourceCompletionStage(
+            // Issue a GET request on the event stream
+            Http.get(system).singleRequest(HttpRequest.create(&quot;http://example.com/eventstream&quot;))
+                .thenCompose(response -&gt;
+                    // Unmarshall it to a stream of ServerSentEvents
+                    EventStreamUnmarshalling.fromEventStream()
+                        .unmarshall(response, materializer)
+                )
+        )
+);</code></pre></dd>
+</dl>
+<p>Using a <code>randomFactor</code> to add a little bit of additional variance to the backoff intervals is highly recommended, in order to avoid multiple streams re-start at the exact same point in time, for example because they were stopped due to a shared resource such as the same server going down and re-starting after the same configured interval. By adding additional randomness to the re-start intervals the streams will start in slightly different points in time, thus avoiding large spikes of traffic hitting the recovering server or other resource that they all need to contact.</p>
+<p>The above <code>RestartSource</code> will never terminate unless the <code>Sink</code> it&rsquo;s fed into cancels. It will often be handy to use it in combination with a <a href="stream-dynamic.html#kill-switch"><code>KillSwitch</code></a>, so that you can terminate it when needed:</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-scala">val killSwitch = restartSource
+  .viaMat(KillSwitches.single)(Keep.right)
+  .toMat(Sink.foreach(event ⇒ println(s&quot;Got event: $event&quot;)))(Keep.left)
+  .run()
+
+doSomethingElse()
+
+killSwitch.shutdown()</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-java">KillSwitch killSwitch = eventStream
+    .viaMat(KillSwitches.single(), Keep.right())
+    .toMat(Sink.foreach(event -&gt; System.out.println(&quot;Got event: &quot; + event)), Keep.left())
+    .run(materializer);
+
+doSomethingElse();
+
+killSwitch.shutdown();</code></pre></dd>
+</dl>
+<p>Sinks and flows can also be supervised, using <span class="group-scala"><code>akka.stream.scaladsl.RestartSink</code> and <code>akka.stream.scaladsl.RestartFlow</code></span> <span class="group-java"><code>akka.stream.scaladsl.RestartSink</code> and <code>akka.stream.scaladsl.RestartFlow</code></span>. The <code>RestartSink</code> is restarted when it cancels, while the <code>RestartFlow</code> is restarted when either the in port cancels, the out port completes, or the out  port sends an error.</p>
+<h2><a href="#supervision-strategies" name="supervision-strategies" class="anchor"><span class="anchor-link"></span></a>Supervision Strategies</h2><div class="callout note "><div class="callout-title">Note</div>
+<p>The stages that support supervision strategies are explicitly documented to do so, if there is nothing in the documentation of a stage saying that it adheres to the supervision strategy it means it fails rather than applies supervision.</p></div>
+<p>The error handling strategies are inspired by actor supervision strategies, but the semantics have been adapted to the domain of stream processing. The most important difference is that supervision is not automatically applied to stream stages but instead something that each stage has to implement explicitly. </p>
+<p>For many stages it may not even make sense to implement support for supervision strategies, this is especially true for stages connecting to external technologies where for example a failed connection will likely still fail if a new connection is tried immediately (see <a href="stream-error.html#restart-with-backoff">Restart with back off</a> for such scenarios). </p>
+<p>For stages that do implement supervision, the strategies for how to handle exceptions from processing stream elements can be selected when materializing the stream through use of an attribute. </p>
+<p>There are three ways to handle exceptions from application code:</p>
+<ul>
+  <li><code>Stop</code> - The stream is completed with failure.</li>
+  <li><code>Resume</code> - The element is dropped and the stream continues.</li>
+  <li><code>Restart</code> - The element is dropped and the stream continues after restarting the stage. Restarting a stage means that any accumulated state is cleared. This is typically performed by creating a new instance of the stage.</li>
+</ul>
+<p>By default the stopping strategy is used for all exceptions, i.e. the stream will be completed with failure when an exception is thrown.</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-scala">implicit val materializer = ActorMaterializer()
+val source = Source(0 to 5).map(100 / _)
+val result = source.runWith(Sink.fold(0)(_ + _))
+// division by zero will fail the stream and the
+// result here will be a Future completed with Failure(ArithmeticException)</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-java">final Materializer mat = ActorMaterializer.create(system);
+final Source&lt;Integer, NotUsed&gt; source = Source.from(Arrays.asList(0, 1, 2, 3, 4, 5))
+  .map(elem -&gt; 100 / elem);
+final Sink&lt;Integer, CompletionStage&lt;Integer&gt;&gt; fold =
+  Sink.&lt;Integer, Integer&gt; fold(0, (acc, elem) -&gt; acc + elem);
+final CompletionStage&lt;Integer&gt; result = source.runWith(fold, mat);
+// division by zero will fail the stream and the
+// result here will be a Future completed with Failure(ArithmeticException)</code></pre></dd>
+</dl>
+<p>The default supervision strategy for a stream can be defined on the settings of the materializer.</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-scala">val decider: Supervision.Decider = {
+  case _: ArithmeticException ⇒ Supervision.Resume
+  case _                      ⇒ Supervision.Stop
+}
+implicit val materializer = ActorMaterializer(
+  ActorMaterializerSettings(system).withSupervisionStrategy(decider))
+val source = Source(0 to 5).map(100 / _)
+val result = source.runWith(Sink.fold(0)(_ + _))
+// the element causing division by zero will be dropped
+// result here will be a Future completed with Success(228)</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-java">final Function&lt;Throwable, Supervision.Directive&gt; decider = exc -&gt; {
+  if (exc instanceof ArithmeticException)
+    return Supervision.resume();
+  else
+    return Supervision.stop();
+};
+final Materializer mat = ActorMaterializer.create(
+  ActorMaterializerSettings.create(system).withSupervisionStrategy(decider),
+  system);
+final Source&lt;Integer, NotUsed&gt; source = Source.from(Arrays.asList(0, 1, 2, 3, 4, 5))
+  .map(elem -&gt; 100 / elem);
+final Sink&lt;Integer, CompletionStage&lt;Integer&gt;&gt; fold =
+  Sink.fold(0, (acc, elem) -&gt; acc + elem);
+final CompletionStage&lt;Integer&gt; result = source.runWith(fold, mat);
+// the element causing division by zero will be dropped
+// result here will be a Future completed with Success(228)</code></pre></dd>
+</dl>
+<p>Here you can see that all <code>ArithmeticException</code> will resume the processing, i.e. the elements that cause the division by zero are effectively dropped.</p><div class="callout note "><div class="callout-title">Note</div>
+<p>Be aware that dropping elements may result in deadlocks in graphs with cycles, as explained in <a href="stream-graphs.html#graph-cycles">Graph cycles, liveness and deadlocks</a>.</p></div>
+<p>The supervision strategy can also be defined for all operators of a flow.</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-scala">implicit val materializer = ActorMaterializer()
+val decider: Supervision.Decider = {
+  case _: ArithmeticException ⇒ Supervision.Resume
+  case _                      ⇒ Supervision.Stop
+}
+val flow = Flow[Int]
+  .filter(100 / _ &lt; 50).map(elem ⇒ 100 / (5 - elem))
+  .withAttributes(ActorAttributes.supervisionStrategy(decider))
+val source = Source(0 to 5).via(flow)
+
+val result = source.runWith(Sink.fold(0)(_ + _))
+// the elements causing division by zero will be dropped
+// result here will be a Future completed with Success(150)</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-java">final Materializer mat = ActorMaterializer.create(system);
+final Function&lt;Throwable, Supervision.Directive&gt; decider = exc -&gt; {
+  if (exc instanceof ArithmeticException)
+    return Supervision.resume();
+  else
+    return Supervision.stop();
+};
+final Flow&lt;Integer, Integer, NotUsed&gt; flow =
+    Flow.of(Integer.class).filter(elem -&gt; 100 / elem &lt; 50).map(elem -&gt; 100 / (5 - elem))
+    .withAttributes(ActorAttributes.withSupervisionStrategy(decider));
+final Source&lt;Integer, NotUsed&gt; source = Source.from(Arrays.asList(0, 1, 2, 3, 4, 5))
+  .via(flow); 
+final Sink&lt;Integer, CompletionStage&lt;Integer&gt;&gt; fold =
+  Sink.&lt;Integer, Integer&gt; fold(0, (acc, elem) -&gt; acc + elem);
+final CompletionStage&lt;Integer&gt; result = source.runWith(fold, mat);
+// the elements causing division by zero will be dropped
+// result here will be a Future completed with Success(150)</code></pre></dd>
+</dl>
+<p><code>Restart</code> works in a similar way as <code>Resume</code> with the addition that accumulated state, if any, of the failing processing stage will be reset.</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-scala">implicit val materializer = ActorMaterializer()
+val decider: Supervision.Decider = {
+  case _: IllegalArgumentException ⇒ Supervision.Restart
+  case _                           ⇒ Supervision.Stop
+}
+val flow = Flow[Int]
+  .scan(0) { (acc, elem) ⇒
+    if (elem &lt; 0) throw new IllegalArgumentException(&quot;negative not allowed&quot;)
+    else acc + elem
+  }
+  .withAttributes(ActorAttributes.supervisionStrategy(decider))
+val source = Source(List(1, 3, -1, 5, 7)).via(flow)
+val result = source.limit(1000).runWith(Sink.seq)
+// the negative element cause the scan stage to be restarted,
+// i.e. start from 0 again
+// result here will be a Future completed with Success(Vector(0, 1, 4, 0, 5, 12))</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-java">final Materializer mat = ActorMaterializer.create(system);
+final Function&lt;Throwable, Supervision.Directive&gt; decider = exc -&gt; {
+  if (exc instanceof IllegalArgumentException)
+    return Supervision.restart();
+  else
+    return Supervision.stop();
+};
+final Flow&lt;Integer, Integer, NotUsed&gt; flow =
+  Flow.of(Integer.class).scan(0, (acc, elem) -&gt; {
+    if (elem &lt; 0) throw new IllegalArgumentException(&quot;negative not allowed&quot;);
+    else return acc + elem;
+  })
+  .withAttributes(ActorAttributes.withSupervisionStrategy(decider));
+final Source&lt;Integer, NotUsed&gt; source = Source.from(Arrays.asList(1, 3, -1, 5, 7))
+  .via(flow);
+final CompletionStage&lt;List&lt;Integer&gt;&gt; result = source.grouped(1000)
+  .runWith(Sink.&lt;List&lt;Integer&gt;&gt;head(), mat);
+// the negative element cause the scan stage to be restarted,
+// i.e. start from 0 again
+// result here will be a Future completed with Success(List(0, 1, 4, 0, 5, 12))</code></pre></dd>
+</dl>
+<h3><a href="#errors-from-mapasync" name="errors-from-mapasync" class="anchor"><span class="anchor-link"></span></a>Errors from mapAsync</h3>
+<p>Stream supervision can also be applied to the futures of <code>mapAsync</code> and <code>mapAsyncUnordered</code> even if such failures happen in the future rather than inside the stage itself.</p>
+<p>Let&rsquo;s say that we use an external service to lookup email addresses and we would like to discard those that cannot be found.</p>
+<p>We start with the tweet stream of authors:</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-scala">val authors: Source[Author, NotUsed] =
+  tweets
+    .filter(_.hashtags.contains(akkaTag))
+    .map(_.author)</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-java">final Source&lt;Author, NotUsed&gt; authors = tweets
+  .filter(t -&gt; t.hashtags().contains(AKKA))
+  .map(t -&gt; t.author);
+</code></pre></dd>
+</dl>
+<p>Assume that we can lookup their email address using:</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-scala">def lookupEmail(handle: String): Future[String] =</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-java">public CompletionStage&lt;String&gt; lookupEmail(String handle)</code></pre></dd>
+</dl>
+<p>The <span class="group-scala"><code>Future</code></span> <span class="group-java"><code>CompletionStage</code></span> is completed <span class="group-scala">with <code>Failure</code></span> <span class="group-java">normally</span> if the email is not found.</p>
+<p>Transforming the stream of authors to a stream of email addresses by using the <code>lookupEmail</code> service can be done with <code>mapAsync</code> and we use <span class="group-scala"><code>Supervision.resumingDecider</code></span> <span class="group-java"><code>Supervision.getResumingDecider</code></span> to drop unknown email addresses:</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-scala">import ActorAttributes.supervisionStrategy
+import Supervision.resumingDecider
+
+val emailAddresses: Source[String, NotUsed] =
+  authors.via(
+    Flow[Author].mapAsync(4)(author ⇒ addressSystem.lookupEmail(author.handle))
+      .withAttributes(supervisionStrategy(resumingDecider)))</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-java">final Attributes resumeAttrib =
+  ActorAttributes.withSupervisionStrategy(Supervision.getResumingDecider());
+final Flow&lt;Author, String, NotUsed&gt; lookupEmail =
+    Flow.of(Author.class)
+    .mapAsync(4, author -&gt; addressSystem.lookupEmail(author.handle))
+    .withAttributes(resumeAttrib);
+final Source&lt;String, NotUsed&gt; emailAddresses = authors.via(lookupEmail);
+</code></pre></dd>
+</dl>
+<p>If we would not use <code>Resume</code> the default stopping strategy would complete the stream with failure on the first <span class="group-scala"><code>Future</code></span> <span class="group-java"><code>CompletionStage</code></span> that was completed <span class="group-scala">with <code>Failure</code></span><span class="group-java">exceptionally</span>.</p>
+</div>
+</article>
+
+<div class="row">
+<div class="small-12 large-9 column">
+<section class="nav-prev-next row">
+<div class="nav-prev small-6 column">
+<a href="../stream/stream-integrations.html"><i class="icon-prev"></i> <span class="link-prev">Integration</span></a>
+</div>
+<div class="nav-next small-6 column clearfix">
+<a class="float-right" href="../stream/stream-io.html">Working with streaming IO <i class="icon-next"></i></a>
+</div>
+</section>
+</div>
+</div>
+
+<div class="source-github row">
+Found an error in this documentation? The source code for this page can be found <a href="https://github.com/johanandren/akka/tree/master/akka-docs/src/main/paradox/stream/stream-error.md">here</a>.
+Please feel free to edit and contribute a pull request.
+</div>
+
+
+<footer class="page-footer row clearfix">
+<img class="akka-icon float-left show-for-medium" src="../images/akka-icon.svg">
+<section class="copyright">
+<div>&copy; 2011-2018 <a href="https://www.lightbend.com">Lightbend</a></div>
+<div>Akka is Open Source and available under the Apache 2 License.</div>
+</section>
+</footer>
+
+</section>
+</main>
+
+<script type="text/javascript" src="../js/scrollsneak.js"></script>
+<script type="text/javascript">jQuery(document).foundation();</script>
+<script type="text/javascript" src="../js/groups.js"></script>
+<script type="text/javascript" src="../js/page.js"></script>
+<script type="text/javascript" src="../js/magellan.js"></script>
+
+<style type="text/css">@import "../lib/prettify/prettify.css";</style>
+<script type="text/javascript" src="../lib/prettify/prettify.js"></script>
+<script type="text/javascript" src="../lib/prettify/lang-scala.js"></script>
+<script type="text/javascript">jQuery(function(){window.prettyPrint && prettyPrint()});</script>
+
+<!-- Algolia docs search -->
+<script type="text/javascript" src="https://cdn.jsdelivr.net/docsearch.js/2/docsearch.min.js"></script>
+<style>.algolia-autocomplete { display: block !important }</style>
+<script type="text/javascript">
+var lang = "scala";
+var path = window.location.pathname;
+if (path.includes("/java/") || path.includes("java.html")) {
+lang = "java";
+}
+
+docsearch({
+apiKey: '543bad5ad786495d9ccd445ed34ed082',
+indexName: 'akka_io',
+inputSelector: '#search',
+algoliaOptions: {
+hitsPerPage: 5,
+facetFilters: ["language:" + lang]
+}
+});
+
+docsearch({
+apiKey: '543bad5ad786495d9ccd445ed34ed082',
+indexName: 'akka_io',
+inputSelector: '#overlay-search',
+algoliaOptions: {
+hitsPerPage: 5,
+facetFilters: ["language:" + lang]
+}
+});
+
+// set up "/" as global shortcut for focusing on search
+jQuery(document).keypress(function (event) {
+if (event.keyCode == 47) {
+jQuery("#search").focus();
+return false; // swallow key event, otherwise the / char would be input into the search box
+}
+});
+</script>
+
+
+</body>
+</html>

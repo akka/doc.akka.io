@@ -1,0 +1,414 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Working with streaming IO &#8212; Akka Documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/style.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/prettify.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/base.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/docs.css" type="text/css" />
+    <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,600,700" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '2.5.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="../../_static/toc.js"></script>
+    <script type="text/javascript" src="../../_static/prettify.js"></script>
+    <script type="text/javascript" src="../../_static/highlightCode.js"></script>
+    <script type="text/javascript" src="../../_static/effects.core.js"></script>
+    <script type="text/javascript" src="../../_static/effects.highlight.js"></script>
+    <script type="text/javascript" src="../../_static/scrollTo.js"></script>
+    <script type="text/javascript" src="../../_static/contentsFix.js"></script>
+    <script type="text/javascript" src="../../_static/ga.js"></script>
+    <script type="text/javascript" src="../../_static/warnOldDocs.js"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/docsearch.js/1/docsearch.min.js"></script>
+    <link rel="shortcut icon" href="../../_static/favicon.ico"/>
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="Pipelining and Parallelism" href="stream-parallelism.html" />
+    <link rel="prev" title="Error Handling" href="stream-error.html" />
+    <!-- Hint to search engines that the "canonical" page is under "current", which will boost it appearing in search results -->
+    
+      <link rel="canonical" href="https://doc.akka.io/docs/akka/current/stream/stream-io.html" />
+    
+
+    <!--Google Analytics-->
+    <script type="text/javascript">
+      var _gaq = _gaq || [];
+      _gaq.push(['_setAccount', 'UA-21117439-1']);
+      _gaq.push(['_setDomainName', 'akka.io']);
+      _gaq.push(['_trackPageview']);
+      (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+      })()
+    </script>
+    <!--Google Analytics & Marketo-->
+    <script type="text/javascript">
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+      (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+      m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+      ga('create', 'UA-23127719-1', 'lightbend.com', {'allowLinker': true, 'name': 'tsTracker'});
+      ga('tsTracker.require', 'linker');
+      ga('tsTracker.linker:autoLink', ['lightbend.com','playframework.com','scala-lang.org','scaladays.org','spray.io','akka.io','scala-sbt.org','scala-ide.org']);
+      ga('tsTracker.send', 'pageview');
+
+      (function() {
+          var didInit = false;
+          function initMunchkin() {
+          if(didInit === false) {
+            didInit = true;
+            Munchkin.init('558-NCX-702');
+          }
+          }
+          var s = document.createElement('script');
+          s.type = 'text/javascript';
+          s.async = true;
+          s.src = '//munchkin.marketo.net/munchkin.js';
+          s.onreadystatechange = function() {
+          if (this.readyState == 'complete' || this.readyState == 'loaded') {
+            initMunchkin();
+          }
+          };
+          s.onload = initMunchkin;
+          document.getElementsByTagName('head')[0].appendChild(s);
+        })();
+    </script>
+
+
+  </head>
+  <body role="document">
+  <div class="navbar">
+    <div class="navbar-inner">
+      <div class="container">
+        <div class="navbar-logo">
+          <a href="https://akka.io"><img class="svg-logo" src="../../_static/akka_full_color.svg" /></a>
+        </div>
+        <ul class="nav">
+          <li><a href="https://akka.io/docs">Documentation</a></li>
+          <li><a href="https://doc.akka.io/docs/akka/current/additional/faq.html">FAQ</a></li>
+          <li><a href="https://akka.io/downloads">Download</a></li>
+          <li><a href="http://groups.google.com/group/akka-user">Mailing List</a></li>
+          <li><a href="http://github.com/akka/akka">Code</a></li>
+          <li><a href="http://www.lightbend.com/how/subscription">Commercial Support</a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="main">
+    <div class="container">
+      <div class="page-title">Working with streaming IO - Version 2.5.0</div>
+      <div class="pdf-link"><a href="../../AkkaScala.pdf" title="Akka Scala Documentation"><img src="../../_static/pdf-scala-icon.png" style="height: 40px;" /></a></div>
+      <div class="pdf-link"><a href="../../AkkaJava.pdf" title="Akka Java Documentation"><img src="../../_static/pdf-java-icon.png" style="height: 40px;" /></a></div>
+    </div>
+    <div class="main-container">
+      <div class="container">
+        <div class="row">
+          <div class="span12">
+            <div class="breadcrumb">
+              <div style="position: relative">
+                <input type="search" id="search" class="form-control" style="position: relative" placeholder="Search in the doc" />
+              </div>
+              <div>
+                <div>
+                  <span class="divider">«</span> <a href="stream-error.html">Error Handling</a> <span class="divider">|</span>
+                </div>
+                <div>
+                  <a href="../../java.html">Java Contents</a> <span class="divider">|</span> <a href="../../scala.html">Scala Contents</a>
+                </div>
+                <div>
+                  <span class="divider">|</span> <a href="stream-parallelism.html">Pipelining and Parallelism</a> <span class="divider">»</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="row">
+          <div class="span9">
+          </div><div class="span9">
+            
+  <div class="section" id="working-with-streaming-io">
+<span id="stream-io-scala"></span><h1>Working with streaming IO</h1>
+<p>Akka Streams provides a way of handling File IO and TCP connections with Streams.
+While the general approach is very similar to the <a class="reference internal" href="../io-tcp.html#io-scala-tcp"><span class="std std-ref">Actor based TCP handling</span></a> using Akka IO,
+by using Akka Streams you are freed of having to manually react to back-pressure signals,
+as the library does it transparently for you.</p>
+<div class="section" id="streaming-tcp">
+<h2>Streaming TCP</h2>
+<div class="section" id="accepting-connections-echo-server">
+<h3>Accepting connections: Echo Server</h3>
+<p>In order to implement a simple EchoServer we <code class="docutils literal"><span class="pre">bind</span></code> to a given address, which returns a <code class="docutils literal"><span class="pre">Source[IncomingConnection,</span> <span class="pre">Future[ServerBinding]]</span></code>,
+which will emit an <code class="xref py py-class docutils literal"><span class="pre">IncomingConnection</span></code> element for each new connection that the Server should handle:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span></span><span class="k">val</span> <span class="n">binding</span><span class="k">:</span> <span class="kt">Future</span><span class="o">[</span><span class="kt">ServerBinding</span><span class="o">]</span> <span class="k">=</span>
+  <span class="nc">Tcp</span><span class="o">().</span><span class="n">bind</span><span class="o">(</span><span class="s">&quot;127.0.0.1&quot;</span><span class="o">,</span> <span class="mi">8888</span><span class="o">).</span><span class="n">to</span><span class="o">(</span><span class="nc">Sink</span><span class="o">.</span><span class="n">ignore</span><span class="o">).</span><span class="n">run</span><span class="o">()</span>
+
+<span class="n">binding</span><span class="o">.</span><span class="n">map</span> <span class="o">{</span> <span class="n">b</span> <span class="k">=&gt;</span>
+  <span class="n">b</span><span class="o">.</span><span class="n">unbind</span><span class="o">()</span> <span class="n">onComplete</span> <span class="o">{</span>
+    <span class="k">case</span> <span class="k">_</span> <span class="k">=&gt;</span> <span class="c1">// ...</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<img alt="../../_images/tcp-stream-bind1.png" src="../../_images/tcp-stream-bind1.png" />
+<p>Next, we simply handle <em>each</em> incoming connection using a <code class="xref py py-class docutils literal"><span class="pre">Flow</span></code> which will be used as the processing stage
+to handle and emit <code class="docutils literal"><span class="pre">ByteString</span></code> s from and to the TCP Socket. Since one <code class="xref py py-class docutils literal"><span class="pre">ByteString</span></code> does not have to necessarily
+correspond to exactly one line of text (the client might be sending the line in chunks) we use the <code class="docutils literal"><span class="pre">Framing.delimiter</span></code>
+helper Flow to chunk the inputs up into actual lines of text. The last boolean
+argument indicates that we require an explicit line ending even for the last message before the connection is closed.
+In this example we simply add exclamation marks to each incoming text message and push it through the flow:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span></span><span class="k">import</span> <span class="nn">akka.stream.scaladsl.Framing</span>
+
+<span class="k">val</span> <span class="n">connections</span><span class="k">:</span> <span class="kt">Source</span><span class="o">[</span><span class="kt">IncomingConnection</span>, <span class="kt">Future</span><span class="o">[</span><span class="kt">ServerBinding</span><span class="o">]]</span> <span class="k">=</span>
+  <span class="nc">Tcp</span><span class="o">().</span><span class="n">bind</span><span class="o">(</span><span class="n">host</span><span class="o">,</span> <span class="n">port</span><span class="o">)</span>
+<span class="n">connections</span> <span class="n">runForeach</span> <span class="o">{</span> <span class="n">connection</span> <span class="k">=&gt;</span>
+  <span class="n">println</span><span class="o">(</span><span class="s">s&quot;New connection from: </span><span class="si">${</span><span class="n">connection</span><span class="o">.</span><span class="n">remoteAddress</span><span class="si">}</span><span class="s">&quot;</span><span class="o">)</span>
+
+  <span class="k">val</span> <span class="n">echo</span> <span class="k">=</span> <span class="nc">Flow</span><span class="o">[</span><span class="kt">ByteString</span><span class="o">]</span>
+    <span class="o">.</span><span class="n">via</span><span class="o">(</span><span class="nc">Framing</span><span class="o">.</span><span class="n">delimiter</span><span class="o">(</span>
+      <span class="nc">ByteString</span><span class="o">(</span><span class="s">&quot;\n&quot;</span><span class="o">),</span>
+      <span class="n">maximumFrameLength</span> <span class="k">=</span> <span class="mi">256</span><span class="o">,</span>
+      <span class="n">allowTruncation</span> <span class="k">=</span> <span class="kc">true</span><span class="o">))</span>
+    <span class="o">.</span><span class="n">map</span><span class="o">(</span><span class="k">_</span><span class="o">.</span><span class="n">utf8String</span><span class="o">)</span>
+    <span class="o">.</span><span class="n">map</span><span class="o">(</span><span class="k">_</span> <span class="o">+</span> <span class="s">&quot;!!!\n&quot;</span><span class="o">)</span>
+    <span class="o">.</span><span class="n">map</span><span class="o">(</span><span class="nc">ByteString</span><span class="o">(</span><span class="k">_</span><span class="o">))</span>
+
+  <span class="n">connection</span><span class="o">.</span><span class="n">handleWith</span><span class="o">(</span><span class="n">echo</span><span class="o">)</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<img alt="../../_images/tcp-stream-run1.png" src="../../_images/tcp-stream-run1.png" />
+<p>Notice that while most building blocks in Akka Streams are reusable and freely shareable, this is <em>not</em> the case for the
+incoming connection Flow, since it directly corresponds to an existing, already accepted connection its handling can
+only ever be materialized <em>once</em>.</p>
+<p>Closing connections is possible by cancelling the <em>incoming connection</em> <code class="xref py py-class docutils literal"><span class="pre">Flow</span></code> from your server logic (e.g. by
+connecting its downstream to a <code class="xref py py-class docutils literal"><span class="pre">Sink.cancelled</span></code> and its upstream to a <code class="xref py py-class docutils literal"><span class="pre">Source.empty</span></code>).
+It is also possible to shut down the server's socket by cancelling the <code class="xref py py-class docutils literal"><span class="pre">IncomingConnection</span></code> source <code class="docutils literal"><span class="pre">connections</span></code>.</p>
+<p>We can then test the TCP server by sending data to the TCP Socket using <code class="docutils literal"><span class="pre">netcat</span></code>:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span></span><span class="n">$</span> <span class="n">echo</span> <span class="o">-</span><span class="n">n</span> <span class="s">&quot;Hello World&quot;</span> <span class="o">|</span> <span class="n">netcat</span> <span class="mf">127.0</span><span class="o">.</span><span class="mf">0.1</span> <span class="mi">8888</span>
+<span class="nc">Hello</span> <span class="nc">World</span><span class="o">!!!</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="connecting-repl-client">
+<h3>Connecting: REPL Client</h3>
+<p>In this example we implement a rather naive Read Evaluate Print Loop client over TCP.
+Let's say we know a server has exposed a simple command line interface over TCP,
+and would like to interact with it using Akka Streams over TCP. To open an outgoing connection socket we use
+the <code class="docutils literal"><span class="pre">outgoingConnection</span></code> method:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span></span><span class="k">val</span> <span class="n">connection</span> <span class="k">=</span> <span class="nc">Tcp</span><span class="o">().</span><span class="n">outgoingConnection</span><span class="o">(</span><span class="s">&quot;127.0.0.1&quot;</span><span class="o">,</span> <span class="mi">8888</span><span class="o">)</span>
+
+<span class="k">val</span> <span class="n">replParser</span> <span class="k">=</span>
+  <span class="nc">Flow</span><span class="o">[</span><span class="kt">String</span><span class="o">].</span><span class="n">takeWhile</span><span class="o">(</span><span class="k">_</span> <span class="o">!=</span> <span class="s">&quot;q&quot;</span><span class="o">)</span>
+    <span class="o">.</span><span class="n">concat</span><span class="o">(</span><span class="nc">Source</span><span class="o">.</span><span class="n">single</span><span class="o">(</span><span class="s">&quot;BYE&quot;</span><span class="o">))</span>
+    <span class="o">.</span><span class="n">map</span><span class="o">(</span><span class="n">elem</span> <span class="k">=&gt;</span> <span class="nc">ByteString</span><span class="o">(</span><span class="s">s&quot;</span><span class="si">$elem</span><span class="s">\n&quot;</span><span class="o">))</span>
+
+<span class="k">val</span> <span class="n">repl</span> <span class="k">=</span> <span class="nc">Flow</span><span class="o">[</span><span class="kt">ByteString</span><span class="o">]</span>
+  <span class="o">.</span><span class="n">via</span><span class="o">(</span><span class="nc">Framing</span><span class="o">.</span><span class="n">delimiter</span><span class="o">(</span>
+    <span class="nc">ByteString</span><span class="o">(</span><span class="s">&quot;\n&quot;</span><span class="o">),</span>
+    <span class="n">maximumFrameLength</span> <span class="k">=</span> <span class="mi">256</span><span class="o">,</span>
+    <span class="n">allowTruncation</span> <span class="k">=</span> <span class="kc">true</span><span class="o">))</span>
+  <span class="o">.</span><span class="n">map</span><span class="o">(</span><span class="k">_</span><span class="o">.</span><span class="n">utf8String</span><span class="o">)</span>
+  <span class="o">.</span><span class="n">map</span><span class="o">(</span><span class="n">text</span> <span class="k">=&gt;</span> <span class="n">println</span><span class="o">(</span><span class="s">&quot;Server: &quot;</span> <span class="o">+</span> <span class="n">text</span><span class="o">))</span>
+  <span class="o">.</span><span class="n">map</span><span class="o">(</span><span class="k">_</span> <span class="k">=&gt;</span> <span class="n">readLine</span><span class="o">(</span><span class="s">&quot;&gt; &quot;</span><span class="o">))</span>
+  <span class="o">.</span><span class="n">via</span><span class="o">(</span><span class="n">replParser</span><span class="o">)</span>
+
+<span class="n">connection</span><span class="o">.</span><span class="n">join</span><span class="o">(</span><span class="n">repl</span><span class="o">).</span><span class="n">run</span><span class="o">()</span>
+</pre></div>
+</div>
+<p>The <code class="docutils literal"><span class="pre">repl</span></code> flow we use to handle the server interaction first prints the servers response, then awaits on input from
+the command line (this blocking call is used here just for the sake of simplicity) and converts it to a
+<code class="xref py py-class docutils literal"><span class="pre">ByteString</span></code> which is then sent over the wire to the server. Then we simply connect the TCP pipeline to this
+processing stage–at this point it will be materialized and start processing data once the server responds with
+an <em>initial message</em>.</p>
+<p>A resilient REPL client would be more sophisticated than this, for example it should split out the input reading into
+a separate mapAsync step and have a way to let the server write more data than one ByteString chunk at any given time,
+these improvements however are left as exercise for the reader.</p>
+</div>
+<div class="section" id="avoiding-deadlocks-and-liveness-issues-in-back-pressured-cycles">
+<h3>Avoiding deadlocks and liveness issues in back-pressured cycles</h3>
+<p>When writing such end-to-end back-pressured systems you may sometimes end up in a situation of a loop,
+in which <em>either side is waiting for the other one to start the conversation</em>. One does not need to look far
+to find examples of such back-pressure loops. In the two examples shown previously, we always assumed that the side we
+are connecting to would start the conversation, which effectively means both sides are back-pressured and can not get
+the conversation started. There are multiple ways of dealing with this which are explained in depth in <a class="reference internal" href="stream-graphs.html#graph-cycles-scala"><span class="std std-ref">Graph cycles, liveness and deadlocks</span></a>,
+however in client-server scenarios it is often the simplest to make either side simply send an initial message.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">In case of back-pressured cycles (which can occur even between different systems) sometimes you have to decide
+which of the sides has start the conversation in order to kick it off. This can be often done by injecting an
+initial message from one of the sides–a conversation starter.</p>
+</div>
+<p>To break this back-pressure cycle we need to inject some initial message, a &quot;conversation starter&quot;.
+First, we need to decide which side of the connection should remain passive and which active.
+Thankfully in most situations finding the right spot to start the conversation is rather simple, as it often is inherent
+to the protocol we are trying to implement using Streams. In chat-like applications, which our examples resemble,
+it makes sense to make the Server initiate the conversation by emitting a &quot;hello&quot; message:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span></span><span class="n">connections</span><span class="o">.</span><span class="n">runForeach</span> <span class="o">{</span> <span class="n">connection</span> <span class="k">=&gt;</span>
+
+  <span class="c1">// server logic, parses incoming commands</span>
+  <span class="k">val</span> <span class="n">commandParser</span> <span class="k">=</span> <span class="nc">Flow</span><span class="o">[</span><span class="kt">String</span><span class="o">].</span><span class="n">takeWhile</span><span class="o">(</span><span class="k">_</span> <span class="o">!=</span> <span class="s">&quot;BYE&quot;</span><span class="o">).</span><span class="n">map</span><span class="o">(</span><span class="k">_</span> <span class="o">+</span> <span class="s">&quot;!&quot;</span><span class="o">)</span>
+
+  <span class="k">import</span> <span class="nn">connection._</span>
+  <span class="k">val</span> <span class="n">welcomeMsg</span> <span class="k">=</span> <span class="s">s&quot;Welcome to: </span><span class="si">$localAddress</span><span class="s">, you are: </span><span class="si">$remoteAddress</span><span class="s">!&quot;</span>
+  <span class="k">val</span> <span class="n">welcome</span> <span class="k">=</span> <span class="nc">Source</span><span class="o">.</span><span class="n">single</span><span class="o">(</span><span class="n">welcomeMsg</span><span class="o">)</span>
+
+  <span class="k">val</span> <span class="n">serverLogic</span> <span class="k">=</span> <span class="nc">Flow</span><span class="o">[</span><span class="kt">ByteString</span><span class="o">]</span>
+    <span class="o">.</span><span class="n">via</span><span class="o">(</span><span class="nc">Framing</span><span class="o">.</span><span class="n">delimiter</span><span class="o">(</span>
+      <span class="nc">ByteString</span><span class="o">(</span><span class="s">&quot;\n&quot;</span><span class="o">),</span>
+      <span class="n">maximumFrameLength</span> <span class="k">=</span> <span class="mi">256</span><span class="o">,</span>
+      <span class="n">allowTruncation</span> <span class="k">=</span> <span class="kc">true</span><span class="o">))</span>
+    <span class="o">.</span><span class="n">map</span><span class="o">(</span><span class="k">_</span><span class="o">.</span><span class="n">utf8String</span><span class="o">)</span>
+    <span class="o">.</span><span class="n">via</span><span class="o">(</span><span class="n">commandParser</span><span class="o">)</span>
+    <span class="c1">// merge in the initial banner after parser</span>
+    <span class="o">.</span><span class="n">merge</span><span class="o">(</span><span class="n">welcome</span><span class="o">)</span>
+    <span class="o">.</span><span class="n">map</span><span class="o">(</span><span class="k">_</span> <span class="o">+</span> <span class="s">&quot;\n&quot;</span><span class="o">)</span>
+    <span class="o">.</span><span class="n">map</span><span class="o">(</span><span class="nc">ByteString</span><span class="o">(</span><span class="k">_</span><span class="o">))</span>
+
+  <span class="n">connection</span><span class="o">.</span><span class="n">handleWith</span><span class="o">(</span><span class="n">serverLogic</span><span class="o">)</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<p>To emit the initial message we merge a <code class="docutils literal"><span class="pre">Source</span></code> with a single element, after the command processing but before the
+framing and transformation to <code class="docutils literal"><span class="pre">ByteString</span></code> s this way we do not have to repeat such logic.</p>
+<p>In this example both client and server may need to close the stream based on a parsed command - <code class="docutils literal"><span class="pre">BYE</span></code> in the case
+of the server, and <code class="docutils literal"><span class="pre">q</span></code> in the case of the client. This is implemented by taking from the stream until <code class="docutils literal"><span class="pre">q</span></code> and
+and concatenating a <code class="docutils literal"><span class="pre">Source</span></code> with a single <code class="docutils literal"><span class="pre">BYE</span></code> element which will then be sent after the original source completed.</p>
+</div>
+</div>
+<div class="section" id="streaming-file-io">
+<h2>Streaming File IO</h2>
+<p>Akka Streams provide simple Sources and Sinks that can work with <code class="xref py py-class docutils literal"><span class="pre">ByteString</span></code> instances to perform IO operations
+on files.</p>
+<p>Streaming data from a file is as easy as creating a <cite>FileIO.fromPath</cite> given a target path, and an optional
+<code class="docutils literal"><span class="pre">chunkSize</span></code> which determines the buffer size determined as one &quot;element&quot; in such stream:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span></span><span class="k">import</span> <span class="nn">akka.stream.scaladsl._</span>
+<span class="k">val</span> <span class="n">file</span> <span class="k">=</span> <span class="nc">Paths</span><span class="o">.</span><span class="n">get</span><span class="o">(</span><span class="s">&quot;example.csv&quot;</span><span class="o">)</span>
+
+<span class="k">val</span> <span class="n">foreach</span><span class="k">:</span> <span class="kt">Future</span><span class="o">[</span><span class="kt">IOResult</span><span class="o">]</span> <span class="k">=</span> <span class="nc">FileIO</span><span class="o">.</span><span class="n">fromPath</span><span class="o">(</span><span class="n">file</span><span class="o">)</span>
+  <span class="o">.</span><span class="n">to</span><span class="o">(</span><span class="nc">Sink</span><span class="o">.</span><span class="n">ignore</span><span class="o">)</span>
+  <span class="o">.</span><span class="n">run</span><span class="o">()</span>
+</pre></div>
+</div>
+<p>Please note that these processing stages are backed by Actors and by default are configured to run on a pre-configured
+threadpool-backed dispatcher dedicated for File IO. This is very important as it isolates the blocking file IO operations from the rest
+of the ActorSystem allowing each dispatcher to be utilised in the most efficient way. If you want to configure a custom
+dispatcher for file IO operations globally, you can do so by changing the <code class="docutils literal"><span class="pre">akka.stream.blocking-io-dispatcher</span></code>,
+or for a specific stage by specifying a custom Dispatcher in code, like this:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span></span><span class="nc">FileIO</span><span class="o">.</span><span class="n">fromPath</span><span class="o">(</span><span class="n">file</span><span class="o">)</span>
+  <span class="o">.</span><span class="n">withAttributes</span><span class="o">(</span><span class="nc">ActorAttributes</span><span class="o">.</span><span class="n">dispatcher</span><span class="o">(</span><span class="s">&quot;custom-blocking-io-dispatcher&quot;</span><span class="o">))</span>
+</pre></div>
+</div>
+</div>
+</div>
+
+
+          </div>
+          <div class="span3"><p class="contents-title">Contents</p>
+              <div id="scroller-anchor">
+                <div id="scroller">
+                  <div id="toc"></div>
+                </div>
+              </div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="footer">
+  <div class="container">
+    <ul>
+      <li><h5>Akka</h5></li>
+      <li><a href="https://akka.io/docs">Documentation</a></li>
+      <li><a href="https://doc.akka.io/docs/akka/current/additional/faq.html">FAQ</a></li>
+      <li><a href="https://akka.io/downloads">Downloads</a></li>
+      <li><a href="https://akka.io/news">News</a></li>
+      <li><a href="http://letitcrash.com">Blog</a></li>
+    </ul>
+    <ul>
+      <li><h5>Contribute</h5></li>
+      <li><a href="https://akka.io/community">Community Projects</a></li>
+      <li><a href="http://github.com/akka/akka">Source Code</a></li>
+      <li><a href="http://groups.google.com/group/akka-user">Mailing List</a></li>
+      <li><a href="https://doc.akka.io/docs/akka/current/project/issue-tracking.html">Report a Bug</a></li>
+    </ul>
+    <ul>
+      <li><h5>Company</h5></li>
+      <li><a href="http://www.lightbend.com/how/subscription">Commercial Support</a></li>
+      <li><a href="https://akka.io/team">Team</a></li>
+      <li><a href="mailto:info@lightbend.com">Contact</a></li>
+    </ul>
+    <ul>
+      <li><img src="../../_static/akka_icon_reverse.svg" align="center"/></li>
+    </ul>
+  </div>
+  <div class="container copyright">
+    <p style="float: left;">
+      © 2015 <a href="http://www.lightbend.com/">Lightbend Inc.</a> <span class="license">Akka is Open Source and available under the Apache 2 License.</span>
+    </p>
+    <p style="float: right; font-size: 12px;">
+      Last updated: Apr 12, 2017
+    </p>
+  </div>
+</div>
+<script type="text/javascript">
+  var $toc = $('#toc');
+  $toc.toc();
+
+  // show clickable section sign when section header hovered:
+  $('.section h2,.section h3,.section h4,.section h5').each(function(i, el) {
+      var $el = $(el);
+      $el.prepend($("<a class='section-marker' href='#" + $el.attr("id") + "'>&sect;</a>"))
+  });
+</script>
+
+<!-- Algolia docs search -->
+<script type="text/javascript">
+  var version = DOCUMENTATION_OPTIONS.VERSION;
+
+  var lang = "scala";
+  var path = window.location.pathname;
+  if (path.includes("/java/") || path.includes("java.html")) lang = "java";
+
+  console.log("Search configured for:", lang, "@", version);
+
+  docsearch({
+    apiKey: '543bad5ad786495d9ccd445ed34ed082',
+    indexName: 'akka_io',
+    inputSelector: '#search',
+    algoliaOptions: {
+      hitsPerPage: 5,
+      facetFilters: '[' + '["language:' + lang + '","language:general"]' + ',"version:' + version + '"]'
+    }
+  });
+
+  // set up "/" as global shortcut for focusing on search
+  $(document).keypress(function (event) {
+    if (event.keyCode == 47) {
+      $("#q").focus();
+      return false; // swallow key event, otherwise the / char would be input into the search box
+    }
+  });
+</script>
+
+  
+
+  </body>
+</html>

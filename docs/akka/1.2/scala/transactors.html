@@ -1,0 +1,286 @@
+
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Transactors (Scala) &mdash; Akka Documentation</title>
+    <link rel="stylesheet" href="../_static/akka.css" type="text/css" />
+<link rel="stylesheet" href="https://doc.akka.io/docs/akka/1.2/_static/akka.css" type="text/css"/>
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/print.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '1.2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+<script type="text/javascript" src="https://doc.akka.io/docs/akka/1.2/_static/warnOldDocs.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="../_static/theme_extras.js"></script>
+    <link rel="top" title="Akka Documentation" href="../index.html" />
+    <link rel="up" title="Scala API" href="index.html" />
+    <link rel="next" title="Remote Actors (Scala)" href="remote-actors.html" />
+    <link rel="prev" title="Software Transactional Memory (Scala)" href="stm.html" /> 
+  </head>
+  <body>
+      <div class="header"><a href="../index.html"><img class="leftlogo" src="../_static/logo.png" alt="Logo"/></a><h1 class="heading"><a href="../index.html"><span>Akka Documentation</span></a></h1>
+       <h2 class="heading"><a href="../index.html"><span>Version 1.2</span></a></h2>
+       <h2 class="rightheading"><span><a href="https://akka.io/docs/akka/1.2/Akka.pdf">PDF</a></span></h2>
+      </div>
+      <div class="topnav">
+      
+        <p>
+        «&#160;&#160;<a href="stm.html">Software Transactional Memory (Scala)</a>
+        &#160;&#160;::&#160;&#160;
+        <a class="uplink" href="../index.html">Contents</a>
+        &#160;&#160;::&#160;&#160;
+        <a href="remote-actors.html">Remote Actors (Scala)</a>&#160;&#160;»
+        </p>
+
+      </div>
+      <div class="content">
+        
+        
+  <div class="section" id="transactors-scala">
+<span id="id1"></span><h1>Transactors (Scala)<a class="headerlink" href="#transactors-scala" title="Permalink to this headline">¶</a></h1>
+<div class="sidebar">
+<p class="first sidebar-title">Contents</p>
+<div class="contents local last topic" id="contents">
+<ul class="simple">
+<li><a class="reference internal" href="#why-transactors" id="id2">Why Transactors?</a><ul>
+<li><a class="reference internal" href="#actors-and-stm" id="id3">Actors and STM</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#coordinated-transactions" id="id4">Coordinated transactions</a></li>
+<li><a class="reference internal" href="#transactor" id="id5">Transactor</a></li>
+<li><a class="reference internal" href="#coordinating-typed-actors" id="id6">Coordinating Typed Actors</a></li>
+</ul>
+</div>
+</div>
+<p>Module stability: <strong>SOLID</strong></p>
+<div class="section" id="why-transactors">
+<h2><a class="toc-backref" href="#id2">Why Transactors?</a><a class="headerlink" href="#why-transactors" title="Permalink to this headline">¶</a></h2>
+<p>Actors are excellent for solving problems where you have many independent processes that can work in isolation and only interact with other Actors through message passing. This model fits many problems. But the actor model is unfortunately a terrible model for implementing truly shared state. E.g. when you need to have consensus and a stable view of state across many components. The classic example is the bank account where clients can deposit and withdraw, in which each operation needs to be atomic. For detailed discussion on the topic see <a class="reference external" href="http://www.slideshare.net/jboner/state-youre-doing-it-wrong-javaone-2009">this JavaOne presentation</a>.</p>
+<p><strong>STM</strong> on the other hand is excellent for problems where you need consensus and a stable view of the state by providing compositional transactional shared state. Some of the really nice traits of STM are that transactions compose, and it raises the abstraction level from lock-based concurrency.</p>
+<p>Akka&#8217;s Transactors combine Actors and STM to provide the best of the Actor model (concurrency and asynchronous event-based programming) and STM (compositional transactional shared state) by providing transactional, compositional, asynchronous, event-based message flows.</p>
+<p>If you need Durability then you should not use one of the in-memory data structures but one of the persistent ones.</p>
+<p>Generally, the STM is not needed very often when working with Akka. Some use-cases (that we can think of) are:</p>
+<ul class="simple">
+<li>When you really need composable message flows across many actors updating their <strong>internal local</strong> state but need them to do that atomically in one big transaction. Might not often, but when you do need this then you are screwed without it.</li>
+<li>When you want to share a datastructure across actors.</li>
+<li>When you need to use the persistence modules.</li>
+</ul>
+<div class="section" id="actors-and-stm">
+<h3><a class="toc-backref" href="#id3">Actors and STM</a><a class="headerlink" href="#actors-and-stm" title="Permalink to this headline">¶</a></h3>
+<p>You can combine Actors and STM in several ways. An Actor may use STM internally so that particular changes are guaranteed to be atomic. Actors may also share transactional datastructures as the STM provides safe shared state across threads.</p>
+<p>It&#8217;s also possible to coordinate transactions across Actors or threads so that either the transactions in a set all commit successfully or they all fail. This is the focus of Transactors and the explicit support for coordinated transactions in this section.</p>
+</div>
+</div>
+<div class="section" id="coordinated-transactions">
+<h2><a class="toc-backref" href="#id4">Coordinated transactions</a><a class="headerlink" href="#coordinated-transactions" title="Permalink to this headline">¶</a></h2>
+<p>Akka provides an explicit mechanism for coordinating transactions across Actors. Under the hood it uses a <tt class="docutils literal"><span class="pre">CountDownCommitBarrier</span></tt>, similar to a CountDownLatch.</p>
+<p>Here is an example of coordinating two simple counter Actors so that they both increment together in coordinated transactions. If one of them was to fail to increment, the other would also fail.</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">import</span> <span class="nn">akka.transactor.Coordinated</span>
+<span class="k">import</span> <span class="nn">akka.stm.Ref</span>
+<span class="k">import</span> <span class="nn">akka.actor.</span><span class="o">{</span><span class="nc">Actor</span><span class="o">,</span> <span class="nc">ActorRef</span><span class="o">}</span>
+
+<span class="k">case</span> <span class="k">class</span> <span class="nc">Increment</span><span class="o">(</span><span class="n">friend</span><span class="k">:</span> <span class="kt">Option</span><span class="o">[</span><span class="kt">ActorRef</span><span class="o">]</span> <span class="k">=</span> <span class="nc">None</span><span class="o">)</span>
+<span class="k">case</span> <span class="k">object</span> <span class="nc">GetCount</span>
+
+<span class="k">class</span> <span class="nc">Counter</span> <span class="k">extends</span> <span class="nc">Actor</span> <span class="o">{</span>
+  <span class="k">val</span> <span class="n">count</span> <span class="k">=</span> <span class="nc">Ref</span><span class="o">(</span><span class="mi">0</span><span class="o">)</span>
+
+  <span class="k">def</span> <span class="n">receive</span> <span class="k">=</span> <span class="o">{</span>
+    <span class="k">case</span> <span class="n">coordinated</span> <span class="k">@</span> <span class="nc">Coordinated</span><span class="o">(</span><span class="nc">Increment</span><span class="o">(</span><span class="n">friend</span><span class="o">))</span> <span class="k">=&gt;</span> <span class="o">{</span>
+      <span class="n">friend</span> <span class="n">foreach</span> <span class="o">(</span><span class="k">_</span> <span class="o">!</span> <span class="n">coordinated</span><span class="o">(</span><span class="nc">Increment</span><span class="o">()))</span>
+      <span class="n">coordinated</span> <span class="n">atomic</span> <span class="o">{</span>
+        <span class="n">count</span> <span class="n">alter</span> <span class="o">(</span><span class="k">_</span> <span class="o">+</span> <span class="mi">1</span><span class="o">)</span>
+      <span class="o">}</span>
+    <span class="o">}</span>
+    <span class="k">case</span> <span class="nc">GetCount</span> <span class="k">=&gt;</span> <span class="n">self</span><span class="o">.</span><span class="n">reply</span><span class="o">(</span><span class="n">count</span><span class="o">.</span><span class="n">get</span><span class="o">)</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+
+<span class="k">val</span> <span class="n">counter1</span> <span class="k">=</span> <span class="nc">Actor</span><span class="o">.</span><span class="n">actorOf</span><span class="o">[</span><span class="kt">Counter</span><span class="o">].</span><span class="n">start</span><span class="o">()</span>
+<span class="k">val</span> <span class="n">counter2</span> <span class="k">=</span> <span class="nc">Actor</span><span class="o">.</span><span class="n">actorOf</span><span class="o">[</span><span class="kt">Counter</span><span class="o">].</span><span class="n">start</span><span class="o">()</span>
+
+<span class="n">counter1</span> <span class="o">!</span> <span class="nc">Coordinated</span><span class="o">(</span><span class="nc">Increment</span><span class="o">(</span><span class="nc">Some</span><span class="o">(</span><span class="n">counter2</span><span class="o">)))</span>
+
+<span class="o">...</span>
+
+<span class="o">(</span><span class="n">counter1</span> <span class="o">?</span> <span class="nc">GetCount</span><span class="o">).</span><span class="n">as</span><span class="o">[</span><span class="kt">Int</span><span class="o">]</span> <span class="c1">// Some(1)</span>
+
+<span class="n">counter1</span><span class="o">.</span><span class="n">stop</span><span class="o">()</span>
+<span class="n">counter2</span><span class="o">.</span><span class="n">stop</span><span class="o">()</span>
+</pre></div>
+</div>
+<p>To start a new coordinated transaction that you will also participate in, just create a <tt class="docutils literal"><span class="pre">Coordinated</span></tt> object:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">val</span> <span class="n">coordinated</span> <span class="k">=</span> <span class="nc">Coordinated</span><span class="o">()</span>
+</pre></div>
+</div>
+<p>To start a coordinated transaction that you won&#8217;t participate in yourself you can create a <tt class="docutils literal"><span class="pre">Coordinated</span></tt> object with a message and send it directly to an actor. The recipient of the message will be the first member of the coordination set:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="n">actor</span> <span class="o">!</span> <span class="nc">Coordinated</span><span class="o">(</span><span class="nc">Message</span><span class="o">)</span>
+</pre></div>
+</div>
+<p>To receive a coordinated message in an actor simply match it in a case statement:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">def</span> <span class="n">receive</span> <span class="k">=</span> <span class="o">{</span>
+  <span class="k">case</span> <span class="n">coordinated</span> <span class="k">@</span> <span class="nc">Coordinated</span><span class="o">(</span><span class="nc">Message</span><span class="o">)</span> <span class="k">=&gt;</span> <span class="o">...</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<p>To include another actor in the same coordinated transaction that you&#8217;ve created or received, use the apply method on that object. This will increment the number of parties involved by one and create a new <tt class="docutils literal"><span class="pre">Coordinated</span></tt> object to be sent.</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="n">actor</span> <span class="o">!</span> <span class="n">coordinated</span><span class="o">(</span><span class="nc">Message</span><span class="o">)</span>
+</pre></div>
+</div>
+<p>To enter the coordinated transaction use the atomic method of the coordinated object:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="n">coordinated</span> <span class="n">atomic</span> <span class="o">{</span>
+  <span class="c1">// do something in transaction ...</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<p>The coordinated transaction will wait for the other transactions before committing. If any of the coordinated transactions fail then they all fail.</p>
+</div>
+<div class="section" id="transactor">
+<h2><a class="toc-backref" href="#id5">Transactor</a><a class="headerlink" href="#transactor" title="Permalink to this headline">¶</a></h2>
+<p>Transactors are actors that provide a general pattern for coordinating transactions, using the explicit coordination described above.</p>
+<p>Here&#8217;s an example of a simple transactor that will join a coordinated transaction:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">import</span> <span class="nn">akka.transactor.Transactor</span>
+<span class="k">import</span> <span class="nn">akka.stm.Ref</span>
+
+<span class="k">case</span> <span class="k">object</span> <span class="nc">Increment</span>
+
+<span class="k">class</span> <span class="nc">Counter</span> <span class="k">extends</span> <span class="nc">Transactor</span> <span class="o">{</span>
+  <span class="k">val</span> <span class="n">count</span> <span class="k">=</span> <span class="nc">Ref</span><span class="o">(</span><span class="mi">0</span><span class="o">)</span>
+
+  <span class="k">override</span> <span class="k">def</span> <span class="n">atomically</span> <span class="k">=</span> <span class="o">{</span>
+    <span class="k">case</span> <span class="nc">Increment</span> <span class="k">=&gt;</span> <span class="n">count</span> <span class="n">alter</span> <span class="o">(</span><span class="k">_</span> <span class="o">+</span> <span class="mi">1</span><span class="o">)</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<p>You could send this Counter transactor a <tt class="docutils literal"><span class="pre">Coordinated(Increment)</span></tt> message. If you were to send it just an <tt class="docutils literal"><span class="pre">Increment</span></tt> message it will create its own <tt class="docutils literal"><span class="pre">Coordinated</span></tt> (but in this particular case wouldn&#8217;t be coordinating transactions with any other transactors).</p>
+<p>To coordinate with other transactors override the <tt class="docutils literal"><span class="pre">coordinate</span></tt> method. The <tt class="docutils literal"><span class="pre">coordinate</span></tt> method maps a message to a set of <tt class="docutils literal"><span class="pre">SendTo</span></tt> objects, pairs of <tt class="docutils literal"><span class="pre">ActorRef</span></tt> and a message. You can use the <tt class="docutils literal"><span class="pre">include</span></tt> and <tt class="docutils literal"><span class="pre">sendTo</span></tt> methods to easily coordinate with other transactors. The <tt class="docutils literal"><span class="pre">include</span></tt> method will send on the same message that was received to other transactors. The <tt class="docutils literal"><span class="pre">sendTo</span></tt> method allows you to specify both the actor to send to, and the message to send.</p>
+<p>Example of coordinating an increment:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">import</span> <span class="nn">akka.transactor.Transactor</span>
+<span class="k">import</span> <span class="nn">akka.stm.Ref</span>
+<span class="k">import</span> <span class="nn">akka.actor.ActorRef</span>
+
+<span class="k">case</span> <span class="k">object</span> <span class="nc">Increment</span>
+
+<span class="k">class</span> <span class="nc">FriendlyCounter</span><span class="o">(</span><span class="n">friend</span><span class="k">:</span> <span class="kt">ActorRef</span><span class="o">)</span> <span class="k">extends</span> <span class="nc">Transactor</span> <span class="o">{</span>
+  <span class="k">val</span> <span class="n">count</span> <span class="k">=</span> <span class="nc">Ref</span><span class="o">(</span><span class="mi">0</span><span class="o">)</span>
+
+  <span class="k">override</span> <span class="k">def</span> <span class="n">coordinate</span> <span class="k">=</span> <span class="o">{</span>
+    <span class="k">case</span> <span class="nc">Increment</span> <span class="k">=&gt;</span> <span class="n">include</span><span class="o">(</span><span class="n">friend</span><span class="o">)</span>
+  <span class="o">}</span>
+
+  <span class="k">override</span> <span class="k">def</span> <span class="n">atomically</span> <span class="k">=</span> <span class="o">{</span>
+    <span class="k">case</span> <span class="nc">Increment</span> <span class="k">=&gt;</span> <span class="n">count</span> <span class="n">alter</span> <span class="o">(</span><span class="k">_</span> <span class="o">+</span> <span class="mi">1</span><span class="o">)</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<p>Using <tt class="docutils literal"><span class="pre">include</span></tt> to include more than one transactor:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">override</span> <span class="k">def</span> <span class="n">coordinate</span> <span class="k">=</span> <span class="o">{</span>
+  <span class="k">case</span> <span class="nc">Message</span> <span class="k">=&gt;</span> <span class="n">include</span><span class="o">(</span><span class="n">actor1</span><span class="o">,</span> <span class="n">actor2</span><span class="o">,</span> <span class="n">actor3</span><span class="o">)</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<p>Using <tt class="docutils literal"><span class="pre">sendTo</span></tt> to coordinate transactions but pass-on a different message than the one that was received:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">override</span> <span class="k">def</span> <span class="n">coordinate</span> <span class="k">=</span> <span class="o">{</span>
+  <span class="k">case</span> <span class="nc">Message</span> <span class="k">=&gt;</span> <span class="n">sendTo</span><span class="o">(</span><span class="n">someActor</span> <span class="o">-&gt;</span> <span class="nc">SomeOtherMessage</span><span class="o">)</span>
+  <span class="k">case</span> <span class="nc">SomeMessage</span> <span class="k">=&gt;</span> <span class="n">sendTo</span><span class="o">(</span><span class="n">actor1</span> <span class="o">-&gt;</span> <span class="nc">Message1</span><span class="o">,</span> <span class="n">actor2</span> <span class="o">-&gt;</span> <span class="nc">Message2</span><span class="o">)</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<p>To execute directly before or after the coordinated transaction, override the <tt class="docutils literal"><span class="pre">before</span></tt> and <tt class="docutils literal"><span class="pre">after</span></tt> methods. These methods also expect partial functions like the receive method. They do not execute within the transaction.</p>
+<p>To completely bypass coordinated transactions override the <tt class="docutils literal"><span class="pre">normally</span></tt> method. Any message matched by <tt class="docutils literal"><span class="pre">normally</span></tt> will not be matched by the other methods, and will not be involved in coordinated transactions. In this method you can implement normal actor behavior, or use the normal STM atomic for local transactions.</p>
+</div>
+<div class="section" id="coordinating-typed-actors">
+<h2><a class="toc-backref" href="#id6">Coordinating Typed Actors</a><a class="headerlink" href="#coordinating-typed-actors" title="Permalink to this headline">¶</a></h2>
+<p>It&#8217;s also possible to use coordinated transactions with typed actors. You can explicitly pass around <tt class="docutils literal"><span class="pre">Coordinated</span></tt> objects, or use built-in support with the <tt class="docutils literal"><span class="pre">&#64;Coordinated</span></tt> annotation and the <tt class="docutils literal"><span class="pre">Coordination.coordinate</span></tt> method.</p>
+<p>To specify a method should use coordinated transactions add the <tt class="docutils literal"><span class="pre">&#64;Coordinated</span></tt> annotation. <strong>Note</strong>: the <tt class="docutils literal"><span class="pre">&#64;Coordinated</span></tt> annotation only works with methods that return Unit (one-way methods).</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">trait</span> <span class="nc">Counter</span> <span class="o">{</span>
+  <span class="nd">@Coordinated</span> <span class="k">def</span> <span class="n">increment</span><span class="o">()</span>
+  <span class="k">def</span> <span class="n">get</span><span class="k">:</span> <span class="kt">Int</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<p>To coordinate transactions use a <tt class="docutils literal"><span class="pre">coordinate</span></tt> block:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="n">coordinate</span> <span class="o">{</span>
+  <span class="n">counter1</span><span class="o">.</span><span class="n">increment</span><span class="o">()</span>
+  <span class="n">counter2</span><span class="o">.</span><span class="n">increment</span><span class="o">()</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<p>Here&#8217;s an example of using <tt class="docutils literal"><span class="pre">&#64;Coordinated</span></tt> with a TypedActor to coordinate increments.</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">import</span> <span class="nn">akka.actor.TypedActor</span>
+<span class="k">import</span> <span class="nn">akka.stm.Ref</span>
+<span class="k">import</span> <span class="nn">akka.transactor.annotation.Coordinated</span>
+<span class="k">import</span> <span class="nn">akka.transactor.Coordination._</span>
+
+<span class="k">trait</span> <span class="nc">Counter</span> <span class="o">{</span>
+  <span class="nd">@Coordinated</span> <span class="k">def</span> <span class="n">increment</span><span class="o">()</span>
+  <span class="k">def</span> <span class="n">get</span><span class="k">:</span> <span class="kt">Int</span>
+<span class="o">}</span>
+
+<span class="k">class</span> <span class="nc">CounterImpl</span> <span class="k">extends</span> <span class="nc">TypedActor</span> <span class="k">with</span> <span class="nc">Counter</span> <span class="o">{</span>
+  <span class="k">val</span> <span class="n">ref</span> <span class="k">=</span> <span class="nc">Ref</span><span class="o">(</span><span class="mi">0</span><span class="o">)</span>
+  <span class="k">def</span> <span class="n">increment</span><span class="o">()</span> <span class="o">{</span> <span class="n">ref</span> <span class="n">alter</span> <span class="o">(</span><span class="k">_</span> <span class="o">+</span> <span class="mi">1</span><span class="o">)</span> <span class="o">}</span>
+  <span class="k">def</span> <span class="n">get</span> <span class="k">=</span> <span class="n">ref</span><span class="o">.</span><span class="n">get</span>
+<span class="o">}</span>
+
+<span class="o">...</span>
+
+<span class="k">val</span> <span class="n">counter1</span> <span class="k">=</span> <span class="nc">TypedActor</span><span class="o">.</span><span class="n">newInstance</span><span class="o">(</span><span class="n">classOf</span><span class="o">[</span><span class="kt">Counter</span><span class="o">],</span> <span class="n">classOf</span><span class="o">[</span><span class="kt">CounterImpl</span><span class="o">])</span>
+<span class="k">val</span> <span class="n">counter2</span> <span class="k">=</span> <span class="nc">TypedActor</span><span class="o">.</span><span class="n">newInstance</span><span class="o">(</span><span class="n">classOf</span><span class="o">[</span><span class="kt">Counter</span><span class="o">],</span> <span class="n">classOf</span><span class="o">[</span><span class="kt">CounterImpl</span><span class="o">])</span>
+
+<span class="n">coordinate</span> <span class="o">{</span>
+  <span class="n">counter1</span><span class="o">.</span><span class="n">increment</span><span class="o">()</span>
+  <span class="n">counter2</span><span class="o">.</span><span class="n">increment</span><span class="o">()</span>
+<span class="o">}</span>
+
+<span class="nc">TypedActor</span><span class="o">.</span><span class="n">stop</span><span class="o">(</span><span class="n">counter1</span><span class="o">)</span>
+<span class="nc">TypedActor</span><span class="o">.</span><span class="n">stop</span><span class="o">(</span><span class="n">counter2</span><span class="o">)</span>
+</pre></div>
+</div>
+<p>The <tt class="docutils literal"><span class="pre">coordinate</span></tt> block will wait for the transactions to complete. If you do not want to wait then you can specify this explicitly:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="n">coordinate</span><span class="o">(</span><span class="n">wait</span> <span class="k">=</span> <span class="kc">false</span><span class="o">)</span> <span class="o">{</span>
+  <span class="n">counter1</span><span class="o">.</span><span class="n">increment</span><span class="o">()</span>
+  <span class="n">counter2</span><span class="o">.</span><span class="n">increment</span><span class="o">()</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+</div>
+</div>
+
+
+      </div>
+      <div class="bottomnav">
+      
+        <p>
+        «&#160;&#160;<a href="stm.html">Software Transactional Memory (Scala)</a>
+        &#160;&#160;::&#160;&#160;
+        <a class="uplink" href="../index.html">Contents</a>
+        &#160;&#160;::&#160;&#160;
+        <a href="remote-actors.html">Remote Actors (Scala)</a>&#160;&#160;»
+        </p>
+
+      </div>
+
+    <div class="footer">
+        &copy; Copyright 2011, Typesafe Inc.
+      Last updated on Sep 19, 2011.
+    </div>
+  </body>
+</html>

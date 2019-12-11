@@ -1,0 +1,318 @@
+
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Futures (Java) &mdash; Akka Documentation</title>
+    <link rel="stylesheet" href="../_static/akka.css" type="text/css" />
+<link rel="stylesheet" href="https://doc.akka.io/docs/akka/1.2/_static/akka.css" type="text/css"/>
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/print.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '1.2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+<script type="text/javascript" src="https://doc.akka.io/docs/akka/1.2/_static/warnOldDocs.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="../_static/theme_extras.js"></script>
+    <link rel="top" title="Akka Documentation" href="../index.html" />
+    <link rel="up" title="Java API" href="index.html" />
+    <link rel="next" title="Dataflow Concurrency (Java)" href="dataflow.html" />
+    <link rel="prev" title="ActorRegistry (Java)" href="actor-registry.html" /> 
+  </head>
+  <body>
+      <div class="header"><a href="../index.html"><img class="leftlogo" src="../_static/logo.png" alt="Logo"/></a><h1 class="heading"><a href="../index.html"><span>Akka Documentation</span></a></h1>
+       <h2 class="heading"><a href="../index.html"><span>Version 1.2</span></a></h2>
+       <h2 class="rightheading"><span><a href="https://akka.io/docs/akka/1.2/Akka.pdf">PDF</a></span></h2>
+      </div>
+      <div class="topnav">
+      
+        <p>
+        «&#160;&#160;<a href="actor-registry.html">ActorRegistry (Java)</a>
+        &#160;&#160;::&#160;&#160;
+        <a class="uplink" href="../index.html">Contents</a>
+        &#160;&#160;::&#160;&#160;
+        <a href="dataflow.html">Dataflow Concurrency (Java)</a>&#160;&#160;»
+        </p>
+
+      </div>
+      <div class="content">
+        
+        
+  <div class="section" id="futures-java">
+<span id="id1"></span><h1>Futures (Java)<a class="headerlink" href="#futures-java" title="Permalink to this headline">¶</a></h1>
+<div class="sidebar">
+<p class="first sidebar-title">Contents</p>
+<div class="contents local last topic" id="contents">
+<ul class="simple">
+<li><a class="reference internal" href="#introduction" id="id2">Introduction</a></li>
+<li><a class="reference internal" href="#use-with-actors" id="id3">Use with Actors</a></li>
+<li><a class="reference internal" href="#use-directly" id="id4">Use Directly</a></li>
+<li><a class="reference internal" href="#functional-futures" id="id5">Functional Futures</a><ul>
+<li><a class="reference internal" href="#future-is-a-monad" id="id6">Future is a Monad</a></li>
+<li><a class="reference internal" href="#composing-futures" id="id7">Composing Futures</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#exceptions" id="id8">Exceptions</a></li>
+</ul>
+</div>
+</div>
+<div class="section" id="introduction">
+<h2><a class="toc-backref" href="#id2">Introduction</a><a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
+<p>In Akka, a <a class="reference external" href="http://en.wikipedia.org/wiki/Futures_and_promises">Future</a> is a data structure used to retrieve the result of some concurrent operation. This operation is usually performed by an <tt class="docutils literal"><span class="pre">Actor</span></tt> or by the <tt class="docutils literal"><span class="pre">Dispatcher</span></tt> directly. This result can be accessed synchronously (blocking) or asynchronously (non-blocking).</p>
+</div>
+<div class="section" id="use-with-actors">
+<h2><a class="toc-backref" href="#id3">Use with Actors</a><a class="headerlink" href="#use-with-actors" title="Permalink to this headline">¶</a></h2>
+<p>There are generally two ways of getting a reply from an <tt class="docutils literal"><span class="pre">UntypedActor</span></tt>: the first is by a sent message (<tt class="docutils literal"><span class="pre">actorRef.tell(msg);</span></tt>), which only works if the original sender was an <tt class="docutils literal"><span class="pre">UntypedActor</span></tt>) and the second is through a <tt class="docutils literal"><span class="pre">Future</span></tt>.</p>
+<p>Using the <tt class="docutils literal"><span class="pre">ActorRef</span></tt>&#8216;s <tt class="docutils literal"><span class="pre">sendRequestReplyFuture</span></tt> method to send a message will return a Future. To wait for and retrieve the actual result the simplest method is:</p>
+<div class="highlight-java"><div class="highlight"><pre><span class="n">Future</span><span class="o">[</span><span class="n">Object</span><span class="o">]</span> <span class="n">future</span> <span class="o">=</span> <span class="n">actorRef</span><span class="o">.</span><span class="na">sendRequestReplyFuture</span><span class="o">[</span><span class="n">Object</span><span class="o">](</span><span class="n">msg</span><span class="o">);</span>
+<span class="n">Object</span> <span class="n">result</span> <span class="o">=</span> <span class="n">future</span><span class="o">.</span><span class="na">get</span><span class="o">();</span> <span class="c1">//Block until result is available, usually bad practice</span>
+</pre></div>
+</div>
+<p>This will cause the current thread to block and wait for the <tt class="docutils literal"><span class="pre">UntypedActor</span></tt> to &#8216;complete&#8217; the <tt class="docutils literal"><span class="pre">Future</span></tt> with it&#8217;s reply. Due to the dynamic nature of Akka&#8217;s <tt class="docutils literal"><span class="pre">UntypedActor</span></tt>s this result can be anything. The safest way to deal with this is to specify the result to an <tt class="docutils literal"><span class="pre">Object</span></tt> as is shown in the above example. You can also use the expected result type instead of <tt class="docutils literal"><span class="pre">Any</span></tt>, but if an unexpected type were to be returned you will get a <tt class="docutils literal"><span class="pre">ClassCastException</span></tt>. For more elegant ways to deal with this and to use the result without blocking, refer to <a class="reference internal" href="#functional-futures">Functional Futures</a>.</p>
+</div>
+<div class="section" id="use-directly">
+<h2><a class="toc-backref" href="#id4">Use Directly</a><a class="headerlink" href="#use-directly" title="Permalink to this headline">¶</a></h2>
+<p>A common use case within Akka is to have some computation performed concurrently without needing the extra utility of an <tt class="docutils literal"><span class="pre">UntypedActor</span></tt>. If you find yourself creating a pool of <tt class="docutils literal"><span class="pre">UntypedActor</span></tt>s for the sole reason of performing a calculation in parallel, there is an easier (and faster) way:</p>
+<div class="highlight-java"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">akka.dispatch.Future</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">static</span> <span class="n">akka</span><span class="o">.</span><span class="na">dispatch</span><span class="o">.</span><span class="na">Futures</span><span class="o">.</span><span class="na">future</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">java.util.concurrent.Callable</span><span class="o">;</span>
+
+<span class="n">Future</span><span class="o">&lt;</span><span class="n">String</span><span class="o">&gt;</span> <span class="n">f</span> <span class="o">=</span> <span class="n">future</span><span class="o">(</span><span class="k">new</span> <span class="n">Callable</span><span class="o">&lt;</span><span class="n">String</span><span class="o">&gt;()</span> <span class="o">{</span>
+                          <span class="kd">public</span> <span class="n">String</span> <span class="nf">call</span><span class="o">()</span> <span class="o">{</span>
+                            <span class="k">return</span> <span class="s">&quot;Hello&quot;</span> <span class="o">+</span> <span class="s">&quot;World!&quot;</span><span class="o">;</span>
+                          <span class="o">}</span>
+                        <span class="o">});</span>
+<span class="n">String</span> <span class="n">result</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="na">get</span><span class="o">();</span> <span class="c1">//Blocks until timeout, default timeout is set in akka.conf, otherwise 5 seconds</span>
+</pre></div>
+</div>
+<p>In the above code the block passed to <tt class="docutils literal"><span class="pre">future</span></tt> will be executed by the default <tt class="docutils literal"><span class="pre">Dispatcher</span></tt>, with the return value of the block used to complete the <tt class="docutils literal"><span class="pre">Future</span></tt> (in this case, the result would be the string: &#8220;HelloWorld&#8221;). Unlike a <tt class="docutils literal"><span class="pre">Future</span></tt> that is returned from an <tt class="docutils literal"><span class="pre">UntypedActor</span></tt>, this <tt class="docutils literal"><span class="pre">Future</span></tt> is properly typed, and we also avoid the overhead of managing an <tt class="docutils literal"><span class="pre">UntypedActor</span></tt>.</p>
+</div>
+<div class="section" id="functional-futures">
+<h2><a class="toc-backref" href="#id5">Functional Futures</a><a class="headerlink" href="#functional-futures" title="Permalink to this headline">¶</a></h2>
+<p>A recent addition to Akka&#8217;s <tt class="docutils literal"><span class="pre">Future</span></tt> is several monadic methods that are very similar to the ones used by <tt class="docutils literal"><span class="pre">Scala</span></tt>&#8216;s collections. These allow you to create &#8216;pipelines&#8217; or &#8216;streams&#8217; that the result will travel through.</p>
+<div class="section" id="future-is-a-monad">
+<h3><a class="toc-backref" href="#id6">Future is a Monad</a><a class="headerlink" href="#future-is-a-monad" title="Permalink to this headline">¶</a></h3>
+<p>The first method for working with <tt class="docutils literal"><span class="pre">Future</span></tt> functionally is <tt class="docutils literal"><span class="pre">map</span></tt>. This method takes a <tt class="docutils literal"><span class="pre">Function</span></tt> which performs some operation on the result of the <tt class="docutils literal"><span class="pre">Future</span></tt>, and returning a new result. The return value of the <tt class="docutils literal"><span class="pre">map</span></tt> method is another <tt class="docutils literal"><span class="pre">Future</span></tt> that will contain the new result:</p>
+<div class="highlight-java"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">akka.dispatch.Future</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">static</span> <span class="n">akka</span><span class="o">.</span><span class="na">dispatch</span><span class="o">.</span><span class="na">Futures</span><span class="o">.</span><span class="na">future</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">static</span> <span class="n">akka</span><span class="o">.</span><span class="na">japi</span><span class="o">.</span><span class="na">Function</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">java.util.concurrent.Callable</span><span class="o">;</span>
+
+<span class="n">Future</span><span class="o">&lt;</span><span class="n">String</span><span class="o">&gt;</span> <span class="n">f1</span> <span class="o">=</span> <span class="n">future</span><span class="o">(</span><span class="k">new</span> <span class="n">Callable</span><span class="o">&lt;</span><span class="n">String</span><span class="o">&gt;()</span> <span class="o">{</span>
+                      <span class="kd">public</span> <span class="n">String</span> <span class="nf">call</span><span class="o">()</span> <span class="o">{</span>
+                          <span class="k">return</span> <span class="s">&quot;Hello&quot;</span> <span class="o">+</span> <span class="s">&quot;World&quot;</span><span class="o">;</span>
+                      <span class="o">}</span>
+                  <span class="o">});</span>
+
+<span class="n">Future</span><span class="o">&lt;</span><span class="n">Integer</span><span class="o">&gt;</span> <span class="n">f2</span> <span class="o">=</span> <span class="n">f1</span><span class="o">.</span><span class="na">map</span><span class="o">(</span><span class="k">new</span> <span class="n">Function</span><span class="o">&lt;</span><span class="n">String</span><span class="o">,</span> <span class="n">Integer</span><span class="o">&gt;()</span> <span class="o">{</span>
+                      <span class="kd">public</span> <span class="n">Integer</span> <span class="nf">apply</span><span class="o">(</span><span class="n">String</span> <span class="n">s</span><span class="o">)</span> <span class="o">{</span>
+                          <span class="k">return</span> <span class="n">s</span><span class="o">.</span><span class="na">length</span><span class="o">();</span>
+                      <span class="o">}</span>
+                  <span class="o">});</span>
+
+<span class="n">Integer</span> <span class="n">result</span> <span class="o">=</span> <span class="n">f2</span><span class="o">.</span><span class="na">get</span><span class="o">();</span>
+</pre></div>
+</div>
+<p>In this example we are joining two strings together within a Future. Instead of waiting for f1 to complete, we apply our function that calculates the length of the string using the <tt class="docutils literal"><span class="pre">map</span></tt> method. Now we have a second Future, f2, that will eventually contain an <tt class="docutils literal"><span class="pre">Integer</span></tt>. When our original <tt class="docutils literal"><span class="pre">Future</span></tt>, f1, completes, it will also apply our function and complete the second Future with it&#8217;s result. When we finally <tt class="docutils literal"><span class="pre">get</span></tt> the result, it will contain the number 10. Our original Future still contains the string &#8220;HelloWorld&#8221; and is unaffected by the <tt class="docutils literal"><span class="pre">map</span></tt>.</p>
+<p>Something to note when using these methods: if the <tt class="docutils literal"><span class="pre">Future</span></tt> is still being processed when one of these methods are called, it will be the completing thread that actually does the work. If the <tt class="docutils literal"><span class="pre">Future</span></tt> is already complete though, it will be run in our current thread. For example:</p>
+<div class="highlight-java"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">akka.dispatch.Future</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">static</span> <span class="n">akka</span><span class="o">.</span><span class="na">dispatch</span><span class="o">.</span><span class="na">Futures</span><span class="o">.</span><span class="na">future</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">static</span> <span class="n">akka</span><span class="o">.</span><span class="na">japi</span><span class="o">.</span><span class="na">Function</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">java.util.concurrent.Callable</span><span class="o">;</span>
+
+<span class="n">Future</span><span class="o">&lt;</span><span class="n">String</span><span class="o">&gt;</span> <span class="n">f1</span> <span class="o">=</span> <span class="n">future</span><span class="o">(</span><span class="k">new</span> <span class="n">Callable</span><span class="o">&lt;</span><span class="n">String</span><span class="o">&gt;()</span> <span class="o">{</span>
+                      <span class="kd">public</span> <span class="n">String</span> <span class="nf">call</span><span class="o">()</span> <span class="o">{</span>
+                          <span class="n">Thread</span><span class="o">.</span><span class="na">sleep</span><span class="o">(</span><span class="mi">1000</span><span class="o">);</span>
+                          <span class="k">return</span> <span class="s">&quot;Hello&quot;</span> <span class="o">+</span> <span class="s">&quot;World&quot;</span><span class="o">;</span>
+                      <span class="o">}</span>
+                  <span class="o">});</span>
+
+<span class="n">Future</span><span class="o">&lt;</span><span class="n">Integer</span><span class="o">&gt;</span> <span class="n">f2</span> <span class="o">=</span> <span class="n">f1</span><span class="o">.</span><span class="na">map</span><span class="o">(</span><span class="k">new</span> <span class="n">Function</span><span class="o">&lt;</span><span class="n">String</span><span class="o">,</span> <span class="n">Integer</span><span class="o">&gt;()</span> <span class="o">{</span>
+                      <span class="kd">public</span> <span class="n">Integer</span> <span class="nf">apply</span><span class="o">(</span><span class="n">String</span> <span class="n">s</span><span class="o">)</span> <span class="o">{</span>
+                          <span class="k">return</span> <span class="n">s</span><span class="o">.</span><span class="na">length</span><span class="o">();</span>
+                      <span class="o">}</span>
+                  <span class="o">});</span>
+
+<span class="n">Integer</span> <span class="n">result</span> <span class="o">=</span> <span class="n">f2</span><span class="o">.</span><span class="na">get</span><span class="o">();</span>
+</pre></div>
+</div>
+<p>The original <tt class="docutils literal"><span class="pre">Future</span></tt> will take at least 1 second to execute now, which means it is still being processed at the time we call <tt class="docutils literal"><span class="pre">map</span></tt>. The function we provide gets stored within the <tt class="docutils literal"><span class="pre">Future</span></tt> and later executed automatically by the dispatcher when the result is ready.</p>
+<p>If we do the opposite:</p>
+<div class="highlight-java"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">akka.dispatch.Future</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">static</span> <span class="n">akka</span><span class="o">.</span><span class="na">dispatch</span><span class="o">.</span><span class="na">Futures</span><span class="o">.</span><span class="na">future</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">static</span> <span class="n">akka</span><span class="o">.</span><span class="na">japi</span><span class="o">.</span><span class="na">Function</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">java.util.concurrent.Callable</span><span class="o">;</span>
+
+<span class="n">Future</span><span class="o">&lt;</span><span class="n">String</span><span class="o">&gt;</span> <span class="n">f1</span> <span class="o">=</span> <span class="n">future</span><span class="o">(</span><span class="k">new</span> <span class="n">Callable</span><span class="o">&lt;</span><span class="n">String</span><span class="o">&gt;()</span> <span class="o">{</span>
+                      <span class="kd">public</span> <span class="n">String</span> <span class="nf">call</span><span class="o">()</span> <span class="o">{</span>
+                          <span class="k">return</span> <span class="s">&quot;Hello&quot;</span> <span class="o">+</span> <span class="s">&quot;World&quot;</span><span class="o">;</span>
+                      <span class="o">}</span>
+                  <span class="o">});</span>
+
+<span class="n">Thread</span><span class="o">.</span><span class="na">sleep</span><span class="o">(</span><span class="mi">1000</span><span class="o">);</span>
+
+<span class="n">Future</span><span class="o">&lt;</span><span class="n">Integer</span><span class="o">&gt;</span> <span class="n">f2</span> <span class="o">=</span> <span class="n">f1</span><span class="o">.</span><span class="na">map</span><span class="o">(</span><span class="k">new</span> <span class="n">Function</span><span class="o">&lt;</span><span class="n">String</span><span class="o">,</span> <span class="n">Integer</span><span class="o">&gt;()</span> <span class="o">{</span>
+                      <span class="kd">public</span> <span class="n">Integer</span> <span class="nf">apply</span><span class="o">(</span><span class="n">String</span> <span class="n">s</span><span class="o">)</span> <span class="o">{</span>
+                          <span class="k">return</span> <span class="n">s</span><span class="o">.</span><span class="na">length</span><span class="o">();</span>
+                      <span class="o">}</span>
+                  <span class="o">});</span>
+
+<span class="n">Integer</span> <span class="n">result</span> <span class="o">=</span> <span class="n">f2</span><span class="o">.</span><span class="na">get</span><span class="o">();</span>
+</pre></div>
+</div>
+<p>Our little string has been processed long before our 1 second sleep has finished. Because of this, the dispatcher has moved onto other messages that need processing and can no longer calculate the length of the string for us, instead it gets calculated in the current thread just as if we weren&#8217;t using a <tt class="docutils literal"><span class="pre">Future</span></tt>.</p>
+<p>Normally this works quite well as it means there is very little overhead to running a quick function. If there is a possibility of the function taking a non-trivial amount of time to process it might be better to have this done concurrently, and for that we use <tt class="docutils literal"><span class="pre">flatMap</span></tt>:</p>
+<div class="highlight-java"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">akka.dispatch.Future</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">static</span> <span class="n">akka</span><span class="o">.</span><span class="na">dispatch</span><span class="o">.</span><span class="na">Futures</span><span class="o">.</span><span class="na">future</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">static</span> <span class="n">akka</span><span class="o">.</span><span class="na">japi</span><span class="o">.</span><span class="na">Function</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">java.util.concurrent.Callable</span><span class="o">;</span>
+
+<span class="n">Future</span><span class="o">&lt;</span><span class="n">String</span><span class="o">&gt;</span> <span class="n">f1</span> <span class="o">=</span> <span class="n">future</span><span class="o">(</span><span class="k">new</span> <span class="n">Callable</span><span class="o">&lt;</span><span class="n">String</span><span class="o">&gt;()</span> <span class="o">{</span>
+                      <span class="kd">public</span> <span class="n">String</span> <span class="nf">call</span><span class="o">()</span> <span class="o">{</span>
+                          <span class="k">return</span> <span class="s">&quot;Hello&quot;</span> <span class="o">+</span> <span class="s">&quot;World&quot;</span><span class="o">;</span>
+                      <span class="o">}</span>
+                  <span class="o">});</span>
+
+<span class="n">Future</span><span class="o">&lt;</span><span class="n">Integer</span><span class="o">&gt;</span> <span class="n">f2</span> <span class="o">=</span> <span class="n">f1</span><span class="o">.</span><span class="na">flatMap</span><span class="o">(</span><span class="k">new</span> <span class="n">Function</span><span class="o">&lt;</span><span class="n">String</span><span class="o">,</span> <span class="n">Future</span><span class="o">&lt;</span><span class="n">Integer</span><span class="o">&gt;&gt;()</span> <span class="o">{</span>
+                       <span class="kd">public</span> <span class="n">Future</span><span class="o">&lt;</span><span class="n">Integer</span><span class="o">&gt;</span> <span class="n">apply</span><span class="o">(</span><span class="kd">final</span> <span class="n">String</span> <span class="n">s</span><span class="o">)</span> <span class="o">{</span>
+                           <span class="k">return</span> <span class="nf">future</span><span class="o">(</span>
+                              <span class="k">new</span> <span class="n">Callable</span><span class="o">&lt;</span><span class="n">Integer</span><span class="o">&gt;()</span> <span class="o">{</span>
+                                  <span class="kd">public</span> <span class="n">Integer</span> <span class="nf">call</span><span class="o">()</span> <span class="o">{</span>
+                                     <span class="k">return</span> <span class="n">s</span><span class="o">.</span><span class="na">length</span><span class="o">();</span>
+                                  <span class="o">}</span>
+                             <span class="o">});</span>
+                       <span class="o">}</span>
+                  <span class="o">});</span>
+
+<span class="n">Integer</span> <span class="n">result</span> <span class="o">=</span> <span class="n">f2</span><span class="o">.</span><span class="na">get</span><span class="o">();</span>
+</pre></div>
+</div>
+<p>Now our second Future is executed concurrently as well. This technique can also be used to combine the results of several Futures into a single calculation, which will be better explained in the following sections.</p>
+</div>
+<div class="section" id="composing-futures">
+<h3><a class="toc-backref" href="#id7">Composing Futures</a><a class="headerlink" href="#composing-futures" title="Permalink to this headline">¶</a></h3>
+<p>It is very often desirable to be able to combine different Futures with eachother, below are some examples on how that can be done in a non-blocking fashion.</p>
+<div class="highlight-java"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">akka.dispatch.Future</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">static</span> <span class="n">akka</span><span class="o">.</span><span class="na">dispatch</span><span class="o">.</span><span class="na">Futures</span><span class="o">.</span><span class="na">sequence</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">akka.japi.Function</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">java.lang.Iterable</span><span class="o">;</span>
+
+<span class="n">Iterable</span><span class="o">&lt;</span><span class="n">Future</span><span class="o">&lt;</span><span class="n">Integer</span><span class="o">&gt;&gt;</span> <span class="n">listOfFutureInts</span> <span class="o">=</span> <span class="o">...</span> <span class="c1">//Some source generating a sequence of Future&lt;Integer&gt;:s</span>
+
+<span class="c1">// now we have a Future[Iterable[Int]]</span>
+<span class="n">Future</span><span class="o">&lt;</span><span class="n">Iterable</span><span class="o">&lt;</span><span class="n">Integer</span><span class="o">&gt;&gt;</span> <span class="n">futureListOfInts</span> <span class="o">=</span> <span class="n">sequence</span><span class="o">(</span><span class="n">listOfFutureInts</span><span class="o">);</span>
+
+<span class="c1">// Find the sum of the odd numbers</span>
+<span class="n">Long</span> <span class="n">totalSum</span> <span class="o">=</span> <span class="n">futureListOfInts</span><span class="o">.</span><span class="na">map</span><span class="o">(</span>
+    <span class="k">new</span> <span class="n">Function</span><span class="o">&lt;</span><span class="n">LinkedList</span><span class="o">&lt;</span><span class="n">Integer</span><span class="o">&gt;,</span> <span class="n">Long</span><span class="o">&gt;()</span> <span class="o">{</span>
+        <span class="kd">public</span> <span class="n">Long</span> <span class="nf">apply</span><span class="o">(</span><span class="n">LinkedList</span><span class="o">&lt;</span><span class="n">Integer</span><span class="o">&gt;</span> <span class="n">ints</span><span class="o">)</span> <span class="o">{</span>
+            <span class="kt">long</span> <span class="n">sum</span> <span class="o">=</span> <span class="mi">0</span><span class="o">;</span>
+            <span class="k">for</span><span class="o">(</span><span class="n">Integer</span> <span class="n">i</span> <span class="o">:</span> <span class="n">ints</span><span class="o">)</span>
+              <span class="n">sum</span> <span class="o">+=</span> <span class="n">i</span><span class="o">;</span>
+            <span class="k">return</span> <span class="n">sum</span><span class="o">;</span>
+        <span class="o">}</span>
+    <span class="o">}).</span><span class="na">get</span><span class="o">();</span>
+</pre></div>
+</div>
+<p>To better explain what happened in the example, <tt class="docutils literal"><span class="pre">Future.sequence</span></tt> is taking the <tt class="docutils literal"><span class="pre">Iterable&lt;Future&lt;Integer&gt;&gt;</span></tt> and turning it into a <tt class="docutils literal"><span class="pre">Future&lt;Iterable&lt;Integer&gt;&gt;</span></tt>. We can then use <tt class="docutils literal"><span class="pre">map</span></tt> to work with the <tt class="docutils literal"><span class="pre">Iterable&lt;Integer&gt;</span></tt> directly, and we aggregate the sum of the <tt class="docutils literal"><span class="pre">Iterable</span></tt>.</p>
+<p>The <tt class="docutils literal"><span class="pre">traverse</span></tt> method is similar to <tt class="docutils literal"><span class="pre">sequence</span></tt>, but it takes a sequence of <tt class="docutils literal"><span class="pre">A``s</span> <span class="pre">and</span> <span class="pre">applies</span> <span class="pre">a</span> <span class="pre">function</span> <span class="pre">from</span> <span class="pre">``A</span></tt> to <tt class="docutils literal"><span class="pre">Future&lt;B&gt;</span></tt> and returns a <tt class="docutils literal"><span class="pre">Future&lt;Iterable&lt;B&gt;&gt;</span></tt>, enabling parallel <tt class="docutils literal"><span class="pre">map</span></tt> over the sequence, if you use <tt class="docutils literal"><span class="pre">Futures.future</span></tt> to create the <tt class="docutils literal"><span class="pre">Future</span></tt>.</p>
+<div class="highlight-java"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">akka.dispatch.Future</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">static</span> <span class="n">akka</span><span class="o">.</span><span class="na">dispatch</span><span class="o">.</span><span class="na">Futures</span><span class="o">.</span><span class="na">traverse</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">static</span> <span class="n">akka</span><span class="o">.</span><span class="na">dispatch</span><span class="o">.</span><span class="na">Futures</span><span class="o">.</span><span class="na">future</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">java.lang.Iterable</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">akka.japi.Function</span><span class="o">;</span>
+
+<span class="n">Iterable</span><span class="o">&lt;</span><span class="n">String</span><span class="o">&gt;</span> <span class="n">listStrings</span> <span class="o">=</span> <span class="o">...</span> <span class="c1">//Just a sequence of Strings</span>
+
+<span class="n">Future</span><span class="o">&lt;</span><span class="n">Iterable</span><span class="o">&lt;</span><span class="n">String</span><span class="o">&gt;&gt;</span> <span class="n">result</span> <span class="o">=</span> <span class="n">traverse</span><span class="o">(</span><span class="n">listStrings</span><span class="o">,</span> <span class="k">new</span> <span class="n">Function</span><span class="o">&lt;</span><span class="n">String</span><span class="o">,</span><span class="n">Future</span><span class="o">&lt;</span><span class="n">String</span><span class="o">&gt;&gt;(){</span>
+        <span class="kd">public</span> <span class="n">Future</span><span class="o">&lt;</span><span class="n">String</span><span class="o">&gt;</span> <span class="n">apply</span><span class="o">(</span><span class="kd">final</span> <span class="n">String</span> <span class="n">r</span><span class="o">)</span> <span class="o">{</span>
+            <span class="k">return</span> <span class="nf">future</span><span class="o">(</span><span class="k">new</span> <span class="n">Callable</span><span class="o">&lt;</span><span class="n">String</span><span class="o">&gt;()</span> <span class="o">{</span>
+                      <span class="kd">public</span> <span class="n">String</span> <span class="nf">call</span><span class="o">()</span> <span class="o">{</span>
+                          <span class="k">return</span> <span class="n">r</span><span class="o">.</span><span class="na">toUpperCase</span><span class="o">();</span>
+                      <span class="o">}</span>
+                  <span class="o">});</span>
+        <span class="o">}</span>
+      <span class="o">});</span>
+
+<span class="n">result</span><span class="o">.</span><span class="na">get</span><span class="o">();</span> <span class="c1">//Returns the sequence of strings as upper case</span>
+</pre></div>
+</div>
+<p>It&#8217;s as simple as that!</p>
+<p>Then there&#8217;s a method that&#8217;s called <tt class="docutils literal"><span class="pre">fold</span></tt> that takes a start-value, a sequence of <tt class="docutils literal"><span class="pre">Future</span></tt>:s and a function from the type of the start-value, a timeout, and the type of the futures and returns something with the same type as the start-value, and then applies the function to all elements in the sequence of futures, non-blockingly, the execution will run on the Thread of the last completing Future in the sequence.</p>
+<div class="highlight-java"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">akka.dispatch.Future</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">static</span> <span class="n">akka</span><span class="o">.</span><span class="na">dispatch</span><span class="o">.</span><span class="na">Futures</span><span class="o">.</span><span class="na">fold</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">java.lang.Iterable</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">akka.japi.Function2</span><span class="o">;</span>
+
+<span class="n">Iterable</span><span class="o">&lt;</span><span class="n">Future</span><span class="o">&lt;</span><span class="n">String</span><span class="o">&gt;&gt;</span> <span class="n">futures</span> <span class="o">=</span> <span class="o">...</span> <span class="c1">//A sequence of Futures, in this case Strings</span>
+
+<span class="n">Future</span><span class="o">&lt;</span><span class="n">String</span><span class="o">&gt;</span> <span class="n">result</span> <span class="o">=</span> <span class="n">fold</span><span class="o">(</span><span class="s">&quot;&quot;</span><span class="o">,</span> <span class="mi">15000</span><span class="o">,</span> <span class="n">futures</span><span class="o">,</span> <span class="k">new</span> <span class="n">Function2</span><span class="o">&lt;</span><span class="n">String</span><span class="o">,</span> <span class="n">String</span><span class="o">,</span> <span class="n">String</span><span class="o">&gt;(){</span> <span class="c1">//Start value is the empty string, timeout is 15 seconds</span>
+        <span class="kd">public</span> <span class="n">String</span> <span class="nf">apply</span><span class="o">(</span><span class="n">String</span> <span class="n">r</span><span class="o">,</span> <span class="n">String</span> <span class="n">t</span><span class="o">)</span> <span class="o">{</span>
+            <span class="k">return</span> <span class="n">r</span> <span class="o">+</span> <span class="n">t</span><span class="o">;</span> <span class="c1">//Just concatenate</span>
+        <span class="o">}</span>
+      <span class="o">});</span>
+
+<span class="n">result</span><span class="o">.</span><span class="na">get</span><span class="o">();</span> <span class="c1">// Will produce a String that says &quot;testtesttesttest&quot;(... and so on).</span>
+</pre></div>
+</div>
+<p>That&#8217;s all it takes!</p>
+<p>If the sequence passed to <tt class="docutils literal"><span class="pre">fold</span></tt> is empty, it will return the start-value, in the case above, that will be 0. In some cases you don&#8217;t have a start-value and you&#8217;re able to use the value of the first completing Future in the sequence as the start-value, you can use <tt class="docutils literal"><span class="pre">reduce</span></tt>, it works like this:</p>
+<div class="highlight-java"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">akka.dispatch.Future</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">static</span> <span class="n">akka</span><span class="o">.</span><span class="na">dispatch</span><span class="o">.</span><span class="na">Futures</span><span class="o">.</span><span class="na">reduce</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">java.util.Iterable</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">akka.japi.Function2</span><span class="o">;</span>
+
+<span class="n">Iterable</span><span class="o">&lt;</span><span class="n">Future</span><span class="o">&lt;</span><span class="n">String</span><span class="o">&gt;&gt;</span> <span class="n">futures</span> <span class="o">=</span> <span class="o">...</span> <span class="c1">//A sequence of Futures, in this case Strings</span>
+
+<span class="n">Future</span><span class="o">&lt;</span><span class="n">String</span><span class="o">&gt;</span> <span class="n">result</span> <span class="o">=</span> <span class="n">reduce</span><span class="o">(</span><span class="n">futures</span><span class="o">,</span> <span class="mi">15000</span><span class="o">,</span> <span class="k">new</span> <span class="n">Function2</span><span class="o">&lt;</span><span class="n">String</span><span class="o">,</span> <span class="n">String</span><span class="o">,</span> <span class="n">String</span><span class="o">&gt;(){</span> <span class="c1">//Timeout is 15 seconds</span>
+        <span class="kd">public</span> <span class="n">String</span> <span class="nf">apply</span><span class="o">(</span><span class="n">String</span> <span class="n">r</span><span class="o">,</span> <span class="n">String</span> <span class="n">t</span><span class="o">)</span> <span class="o">{</span>
+            <span class="k">return</span> <span class="n">r</span> <span class="o">+</span> <span class="n">t</span><span class="o">;</span> <span class="c1">//Just concatenate</span>
+        <span class="o">}</span>
+      <span class="o">});</span>
+
+<span class="n">result</span><span class="o">.</span><span class="na">get</span><span class="o">();</span> <span class="c1">// Will produce a String that says &quot;testtesttesttest&quot;(... and so on).</span>
+</pre></div>
+</div>
+<p>Same as with <tt class="docutils literal"><span class="pre">fold</span></tt>, the execution will be done by the Thread that completes the last of the Futures, you can also parallize it by chunking your futures into sub-sequences and reduce them, and then reduce the reduced results again.</p>
+<p>This is just a sample of what can be done.</p>
+</div>
+</div>
+<div class="section" id="exceptions">
+<h2><a class="toc-backref" href="#id8">Exceptions</a><a class="headerlink" href="#exceptions" title="Permalink to this headline">¶</a></h2>
+<p>Since the result of a <tt class="docutils literal"><span class="pre">Future</span></tt> is created concurrently to the rest of the program, exceptions must be handled differently. It doesn&#8217;t matter if an <tt class="docutils literal"><span class="pre">UntypedActor</span></tt> or the dispatcher is completing the <tt class="docutils literal"><span class="pre">Future</span></tt>, if an <tt class="docutils literal"><span class="pre">Exception</span></tt> is caught the <tt class="docutils literal"><span class="pre">Future</span></tt> will contain it instead of a valid result. If a <tt class="docutils literal"><span class="pre">Future</span></tt> does contain an <tt class="docutils literal"><span class="pre">Exception</span></tt>, calling <tt class="docutils literal"><span class="pre">get</span></tt> will cause it to be thrown again so it can be handled properly.</p>
+</div>
+</div>
+
+
+      </div>
+      <div class="bottomnav">
+      
+        <p>
+        «&#160;&#160;<a href="actor-registry.html">ActorRegistry (Java)</a>
+        &#160;&#160;::&#160;&#160;
+        <a class="uplink" href="../index.html">Contents</a>
+        &#160;&#160;::&#160;&#160;
+        <a href="dataflow.html">Dataflow Concurrency (Java)</a>&#160;&#160;»
+        </p>
+
+      </div>
+
+    <div class="footer">
+        &copy; Copyright 2011, Typesafe Inc.
+      Last updated on Sep 19, 2011.
+    </div>
+  </body>
+</html>

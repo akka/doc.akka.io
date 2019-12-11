@@ -1,0 +1,836 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" /><meta name="description" content="Akka is a toolkit for building highly concurrent, distributed, and resilient message-driven applications for Java and Scala."/><link rel="canonical" href="https://doc.akka.io/docs/akka/2.3/scala/remoting.html"/>
+    
+    <title>Remoting &mdash; Akka Documentation</title>
+    
+    <link rel="stylesheet" href="../_static/style.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/prettify.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/base.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
+    <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,600,700" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '2.3.16',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="../_static/toc.js"></script>
+    <script type="text/javascript" src="../_static/prettify.js"></script>
+    <script type="text/javascript" src="../_static/highlightCode.js"></script>
+    <script type="text/javascript" src="../_static/effects.core.js"></script>
+    <script type="text/javascript" src="../_static/effects.highlight.js"></script>
+    <script type="text/javascript" src="../_static/scrollTo.js"></script>
+    <script type="text/javascript" src="../_static/contentsFix.js"></script>
+    <script type="text/javascript" src="../_static/ga.js"></script>
+    <link rel="shortcut icon" href="../_static/favicon.ico"/>
+    <link rel="top" title="Akka Documentation" href="../index.html" />
+    <link rel="up" title="Networking" href="index-network.html" />
+    <link rel="next" title="Serialization" href="serialization.html" />
+    <link rel="prev" title="Cluster Usage" href="cluster-usage.html" />
+    <!--Google Analytics-->
+    <script type="text/javascript">
+      var _gaq = _gaq || [];
+      _gaq.push(['_setAccount', 'UA-21117439-1']);
+      _gaq.push(['_setDomainName', 'akka.io']);
+      _gaq.push(['_trackPageview']);
+      (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+      })()
+    </script>
+    <!--Google Analytics & Marketo-->
+    <script type="text/javascript">
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+      (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+      m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+      ga('create', 'UA-23127719-1', 'typesafe.com', {'allowLinker': true, 'name': 'tsTracker'});
+      ga('tsTracker.require', 'linker');
+      ga('tsTracker.linker:autoLink', ['typesafe.com','playframework.com','scala-lang.org','scaladays.org','spray.io','akka.io','scala-sbt.org','scala-ide.org']);
+      ga('tsTracker.send', 'pageview');
+      
+      (function() {
+          var didInit = false;
+          function initMunchkin() {
+          if(didInit === false) {
+            didInit = true;
+            Munchkin.init('558-NCX-702');
+          }
+          }
+          var s = document.createElement('script');
+          s.type = 'text/javascript';
+          s.async = true;
+          s.src = '//munchkin.marketo.net/munchkin.js';
+          s.onreadystatechange = function() {
+          if (this.readyState == 'complete' || this.readyState == 'loaded') {
+            initMunchkin();
+          }
+          };
+          s.onload = initMunchkin;
+          document.getElementsByTagName('head')[0].appendChild(s);
+        })();
+    </script>
+
+  </head>
+  <body role="document">
+  <div class="navbar">
+    <div class="navbar-inner">
+      <div class="container">
+        <div class="navbar-logo">
+          <a href="https://akka.io"><img class="svg-logo" src="../_static/akka_full_color.svg" /></a>
+        </div>    
+        <ul class="nav">
+          <li><a href="https://akka.io/docs">Documentation</a></li>
+          <li><a href="https://akka.io/faq">FAQ</a></li>
+          <li><a href="https://akka.io/downloads">Download</a></li>
+          <li><a href="http://groups.google.com/group/akka-user">Mailing List</a></li>
+          <li><a href="http://github.com/akka/akka">Code</a></li>           
+          <li><a href="http://www.typesafe.com/how/subscription">Commercial Support</a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="main">
+    <div class="container">
+      <div class="page-title">Remoting</div>
+      <div class="pdf-link"><a href="../AkkaScala.pdf" title="Akka Scala Documentation"><img src="../_static/pdf-scala-icon.png" style="height: 40px;" /></a></div>
+      <div class="pdf-link"><a href="../AkkaJava.pdf" title="Akka Java Documentation"><img src="../_static/pdf-java-icon.png" style="height: 40px;" /></a></div>
+    </div>
+    <div class="main-container">
+      <div class="container">
+        <div class="row">
+          <div class="span12">
+            <ul class="breadcrumb">           
+              <li>
+                 <span class="divider">|</span> <a href="serialization.html">Serialization</a> <span class="divider">»</span>
+              </li>
+              <li>
+                <a href="../index.html">Contents</a>
+              </li>
+              <li>
+                <span class="divider">«</span> <a href="cluster-usage.html">Cluster Usage</a> <span class="divider">|</span>
+              </li>
+              <li>
+                Version 2.3.16
+              </li>
+            </ul>
+          </div>
+        </div>
+        <div class="row">
+          <div class="span9">
+            <div id="cse">Loading</div>
+          </div><div class="span9">
+            
+  <div class="section" id="remoting">
+<span id="remoting-scala"></span><h1>Remoting</h1>
+<p>For an introduction of remoting capabilities of Akka please see <a class="reference internal" href="../general/remoting.html#remoting"><span class="std std-ref">Location Transparency</span></a>.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">As explained in that chapter Akka remoting is designed for communication in a
+peer-to-peer fashion and it has limitations for client-server setups. In
+particular Akka Remoting does not work with Network Address Translation and
+Load Balancers, among others.</p>
+</div>
+<div class="section" id="preparing-your-actorsystem-for-remoting">
+<h2>Preparing your ActorSystem for Remoting</h2>
+<p>The Akka remoting is a separate jar file. Make sure that you have the following dependency in your project:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span></span><span class="s">&quot;com.typesafe.akka&quot;</span> <span class="o">%%</span> <span class="s">&quot;akka-remote&quot;</span> <span class="o">%</span> <span class="s">&quot;2.3.16&quot;</span>
+</pre></div>
+</div>
+<p>To enable remote capabilities in your Akka project you should, at a minimum, add the following changes
+to your <code class="docutils literal"><span class="pre">application.conf</span></code> file:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span></span>akka {
+  actor {
+    provider = &quot;akka.remote.RemoteActorRefProvider&quot;
+  }
+  remote {
+    enabled-transports = [&quot;akka.remote.netty.tcp&quot;]
+    netty.tcp {
+      hostname = &quot;127.0.0.1&quot;
+      port = 2552
+    }
+ }
+}
+</pre></div>
+</div>
+<p>As you can see in the example above there are four things you need to add to get started:</p>
+<ul class="simple">
+<li>Change provider from <code class="docutils literal"><span class="pre">akka.actor.LocalActorRefProvider</span></code> to <code class="docutils literal"><span class="pre">akka.remote.RemoteActorRefProvider</span></code></li>
+<li>Add host name - the machine you want to run the actor system on; this host
+name is exactly what is passed to remote systems in order to identify this
+system and consequently used for connecting back to this system if need be,
+hence set it to a reachable IP address or resolvable name in case you want to
+communicate across the network.</li>
+<li>Add port number - the port the actor system should listen on, set to 0 to have it chosen automatically</li>
+</ul>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The port number needs to be unique for each actor system on the same machine even if the actor
+systems have different names. This is because each actor system has its own networking subsystem
+listening for connections and handling messages as not to interfere with other actor systems.</p>
+</div>
+<p>The example above only illustrates the bare minimum of properties you have to add to enable remoting.
+All settings are described in <a class="reference internal" href="#remote-configuration-scala"><span class="std std-ref">Remote Configuration</span></a>.</p>
+</div>
+<div class="section" id="types-of-remote-interaction">
+<h2>Types of Remote Interaction</h2>
+<p>Akka has two ways of using remoting:</p>
+<ul class="simple">
+<li>Lookup    : used to look up an actor on a remote node with <code class="docutils literal"><span class="pre">actorSelection(path)</span></code></li>
+<li>Creation  : used to create an actor on a remote node with <code class="docutils literal"><span class="pre">actorOf(Props(...),</span> <span class="pre">actorName)</span></code></li>
+</ul>
+<p>In the next sections the two alternatives are described in detail.</p>
+</div>
+<div class="section" id="looking-up-remote-actors">
+<h2>Looking up Remote Actors</h2>
+<p><code class="docutils literal"><span class="pre">actorSelection(path)</span></code> will obtain an <code class="docutils literal"><span class="pre">ActorSelection</span></code> to an Actor on a remote node, e.g.:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span></span><span class="k">val</span> <span class="n">selection</span> <span class="k">=</span>
+  <span class="n">context</span><span class="o">.</span><span class="n">actorSelection</span><span class="o">(</span><span class="s">&quot;akka.tcp://actorSystemName@10.0.0.1:2552/user/actorName&quot;</span><span class="o">)</span>
+</pre></div>
+</div>
+<p>As you can see from the example above the following pattern is used to find an actor on a remote node:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span></span><span class="n">akka</span><span class="o">.&lt;</span><span class="n">protocol</span><span class="o">&gt;://&lt;</span><span class="n">actor</span> <span class="n">system</span><span class="o">&gt;@&lt;</span><span class="n">hostname</span><span class="o">&gt;:&lt;</span><span class="n">port</span><span class="o">&gt;/&lt;</span><span class="n">actor</span> <span class="n">path</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+<p>Once you obtained a selection to the actor you can interact with it they same way you would with a local actor, e.g.:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span></span><span class="n">selection</span> <span class="o">!</span> <span class="s">&quot;Pretty awesome feature&quot;</span>
+</pre></div>
+</div>
+<p>To acquire an <code class="xref py py-class docutils literal"><span class="pre">ActorRef</span></code> for an <code class="xref py py-class docutils literal"><span class="pre">ActorSelection</span></code> you need to
+send a message to the selection and use the <code class="docutils literal"><span class="pre">sender</span></code> reference of the reply from
+the actor. There is a built-in <code class="docutils literal"><span class="pre">Identify</span></code> message that all Actors will understand
+and automatically reply to with a <code class="docutils literal"><span class="pre">ActorIdentity</span></code> message containing the
+<code class="xref py py-class docutils literal"><span class="pre">ActorRef</span></code>. This can also be done with the <code class="docutils literal"><span class="pre">resolveOne</span></code> method of
+the <code class="xref py py-class docutils literal"><span class="pre">ActorSelection</span></code>, which returns a <code class="docutils literal"><span class="pre">Future</span></code> of the matching
+<code class="xref py py-class docutils literal"><span class="pre">ActorRef</span></code>.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">For more details on how actor addresses and paths are formed and used, please refer to <a class="reference internal" href="../general/addressing.html#addressing"><span class="std std-ref">Actor References, Paths and Addresses</span></a>.</p>
+</div>
+</div>
+<div class="section" id="creating-actors-remotely">
+<h2>Creating Actors Remotely</h2>
+<p>If you want to use the creation functionality in Akka remoting you have to further amend the
+<code class="docutils literal"><span class="pre">application.conf</span></code> file in the following way (only showing deployment section):</p>
+<div class="highlight-scala"><div class="highlight"><pre><span></span><span class="n">akka</span> <span class="o">{</span>
+  <span class="n">actor</span> <span class="o">{</span>
+    <span class="n">deployment</span> <span class="o">{</span>
+      <span class="o">/</span><span class="n">sampleActor</span> <span class="o">{</span>
+        <span class="n">remote</span> <span class="k">=</span> <span class="s">&quot;akka.tcp://sampleActorSystem@127.0.0.1:2553&quot;</span>
+      <span class="o">}</span>
+    <span class="o">}</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<p>The configuration above instructs Akka to react when an actor with path <code class="docutils literal"><span class="pre">/sampleActor</span></code> is created, i.e.
+using <code class="docutils literal"><span class="pre">system.actorOf(Props(...),</span> <span class="pre">&quot;sampleActor&quot;)</span></code>. This specific actor will not be directly instantiated,
+but instead the remote daemon of the remote system will be asked to create the actor,
+which in this sample corresponds to <code class="docutils literal"><span class="pre">sampleActorSystem&#64;127.0.0.1:2553</span></code>.</p>
+<p>Once you have configured the properties above you would do the following in code:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span></span><span class="k">val</span> <span class="n">actor</span> <span class="k">=</span> <span class="n">system</span><span class="o">.</span><span class="n">actorOf</span><span class="o">(</span><span class="nc">Props</span><span class="o">[</span><span class="kt">SampleActor</span><span class="o">],</span> <span class="s">&quot;sampleActor&quot;</span><span class="o">)</span>
+<span class="n">actor</span> <span class="o">!</span> <span class="s">&quot;Pretty slick&quot;</span>
+</pre></div>
+</div>
+<p>The actor class <code class="docutils literal"><span class="pre">SampleActor</span></code> has to be available to the runtimes using it, i.e. the classloader of the
+actor systems has to have a JAR containing the class.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p>In order to ensure serializability of <code class="docutils literal"><span class="pre">Props</span></code> when passing constructor
+arguments to the actor being created, do not make the factory an inner class:
+this will inherently capture a reference to its enclosing object, which in
+most cases is not serializable. It is best to create a factory method in the
+companion object of the actor’s class.</p>
+<p class="last">Serializability of all Props can be tested by setting the configuration item
+<code class="docutils literal"><span class="pre">akka.actor.serialize-creators=on</span></code>. Only Props whose <code class="docutils literal"><span class="pre">deploy</span></code> has
+<code class="docutils literal"><span class="pre">LocalScope</span></code> are exempt from this check.</p>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">You can use asterisks as wildcard matches for the actor paths, so you could specify:
+<code class="docutils literal"><span class="pre">/*/sampleActor</span></code> and that would match all <code class="docutils literal"><span class="pre">sampleActor</span></code> on that level in the hierarchy.
+You can also use wildcard in the last position to match all actors at a certain level:
+<code class="docutils literal"><span class="pre">/someParent/*</span></code>. Non-wildcard matches always have higher priority to match than wildcards, so:
+<code class="docutils literal"><span class="pre">/foo/bar</span></code> is considered <strong>more specific</strong> than <code class="docutils literal"><span class="pre">/foo/*</span></code> and only the highest priority match is used.
+Please note that it <strong>cannot</strong> be used to partially match section, like this: <code class="docutils literal"><span class="pre">/foo*/bar</span></code>, <code class="docutils literal"><span class="pre">/f*o/bar</span></code> etc.</p>
+</div>
+<div class="section" id="programmatic-remote-deployment">
+<h3>Programmatic Remote Deployment</h3>
+<p>To allow dynamically deployed systems, it is also possible to include
+deployment configuration in the <code class="xref py py-class docutils literal"><span class="pre">Props</span></code> which are used to create an
+actor: this information is the equivalent of a deployment section from the
+configuration file, and if both are given, the external configuration takes
+precedence.</p>
+<p>With these imports:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span></span><span class="k">import</span> <span class="nn">akka.actor.</span><span class="o">{</span> <span class="nc">Props</span><span class="o">,</span> <span class="nc">Deploy</span><span class="o">,</span> <span class="nc">Address</span><span class="o">,</span> <span class="nc">AddressFromURIString</span> <span class="o">}</span>
+<span class="k">import</span> <span class="nn">akka.remote.RemoteScope</span>
+</pre></div>
+</div>
+<p>and a remote address like this:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span></span><span class="k">val</span> <span class="n">one</span> <span class="k">=</span> <span class="nc">AddressFromURIString</span><span class="o">(</span><span class="s">&quot;akka.tcp://sys@host:1234&quot;</span><span class="o">)</span>
+<span class="k">val</span> <span class="n">two</span> <span class="k">=</span> <span class="nc">Address</span><span class="o">(</span><span class="s">&quot;akka.tcp&quot;</span><span class="o">,</span> <span class="s">&quot;sys&quot;</span><span class="o">,</span> <span class="s">&quot;host&quot;</span><span class="o">,</span> <span class="mi">1234</span><span class="o">)</span> <span class="c1">// this gives the same</span>
+</pre></div>
+</div>
+<p>you can advise the system to create a child on that remote node like so:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span></span><span class="k">val</span> <span class="n">ref</span> <span class="k">=</span> <span class="n">system</span><span class="o">.</span><span class="n">actorOf</span><span class="o">(</span><span class="nc">Props</span><span class="o">[</span><span class="kt">SampleActor</span><span class="o">].</span>
+  <span class="n">withDeploy</span><span class="o">(</span><span class="nc">Deploy</span><span class="o">(</span><span class="n">scope</span> <span class="k">=</span> <span class="nc">RemoteScope</span><span class="o">(</span><span class="n">address</span><span class="o">))))</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="lifecycle-and-failure-recovery-model">
+<h2>Lifecycle and Failure Recovery Model</h2>
+<a class="reference internal image-reference" href="../_images/association_lifecycle1.png"><img alt="../_images/association_lifecycle1.png" class="align-center" src="../_images/association_lifecycle1.png" style="width: 620px;" /></a>
+<p>Each link with a remote system can be in one of the four states as illustrated above. Before any communication
+happens with a remote system at a given <code class="docutils literal"><span class="pre">Address</span></code> the state of the association is <code class="docutils literal"><span class="pre">Idle</span></code>. The first time a message
+is attempted to be sent to the remote system or an inbound connection is accepted the state of the link transitions to
+<code class="docutils literal"><span class="pre">Active</span></code> denoting that the two systems has messages to send or receive and no failures were encountered so far.
+When a communication failure happens and the connection is lost between the two systems the link becomes <code class="docutils literal"><span class="pre">Gated</span></code>.</p>
+<p>In this state the system will not attempt to connect to the remote host and all outbound messages will be dropped. The time
+while the link is in the <code class="docutils literal"><span class="pre">Gated</span></code> state is controlled by the setting <code class="docutils literal"><span class="pre">akka.remote.retry-gate-closed-for</span></code>:
+after this time elapses the link state transitions to <code class="docutils literal"><span class="pre">Idle</span></code> again. <code class="docutils literal"><span class="pre">Gate</span></code> is one-sided in the
+sense that whenever a successful <em>inbound</em> connection is accepted from a remote system during <code class="docutils literal"><span class="pre">Gate</span></code> it automatically
+transitions to <code class="docutils literal"><span class="pre">Active</span></code> and communication resumes immediately.</p>
+<p>In the face of communication failures that are unrecoverable because the state of the participating systems are inconsistent,
+the remote system becomes <code class="docutils literal"><span class="pre">Quarantined</span></code>. Unlike <code class="docutils literal"><span class="pre">Gate</span></code>, quarantining is permanent and lasts until one of the systems
+is restarted. After a restart communication can be resumed again and the link can become <code class="docutils literal"><span class="pre">Active</span></code> again.</p>
+</div>
+<div class="section" id="watching-remote-actors">
+<h2>Watching Remote Actors</h2>
+<p>Watching a remote actor is not different than watching a local actor, as described in
+<a class="reference internal" href="actors.html#deathwatch-scala"><span class="std std-ref">Lifecycle Monitoring aka DeathWatch</span></a>.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last"><em>Caveat:</em> Watching an <code class="docutils literal"><span class="pre">ActorRef</span></code> acquired with <code class="docutils literal"><span class="pre">actorFor</span></code> does not trigger
+<code class="docutils literal"><span class="pre">Terminated</span></code> for lost connections. <code class="docutils literal"><span class="pre">actorFor</span></code> is deprecated in favor of
+<code class="docutils literal"><span class="pre">actorSelection</span></code>. Acquire the <code class="docutils literal"><span class="pre">ActorRef</span></code> to watch with <code class="docutils literal"><span class="pre">Identify</span></code> and
+<code class="docutils literal"><span class="pre">ActorIdentity</span></code> as described in <a class="reference internal" href="actors.html#actorselection-scala"><span class="std std-ref">Identifying Actors via Actor Selection</span></a>.</p>
+</div>
+<div class="section" id="failure-detector">
+<h3>Failure Detector</h3>
+<p>Under the hood remote death watch uses heartbeat messages and a failure detector to generate <code class="docutils literal"><span class="pre">Terminated</span></code>
+message from network failures and JVM crashes, in addition to graceful termination of watched
+actor.</p>
+<p>The heartbeat arrival times is interpreted by an implementation of
+<a class="reference external" href="http://ddg.jaist.ac.jp/pub/HDY+04.pdf">The Phi Accrual Failure Detector</a>.</p>
+<p>The suspicion level of failure is given by a value called <em>phi</em>.
+The basic idea of the phi failure detector is to express the value of <em>phi</em> on a scale that
+is dynamically adjusted to reflect current network conditions.</p>
+<p>The value of <em>phi</em> is calculated as:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span></span><span class="n">phi</span> <span class="k">=</span> <span class="o">-</span><span class="n">log10</span><span class="o">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">F</span><span class="o">(</span><span class="n">timeSinceLastHeartbeat</span><span class="o">))</span>
+</pre></div>
+</div>
+<p>where F is the cumulative distribution function of a normal distribution with mean
+and standard deviation estimated from historical heartbeat inter-arrival times.</p>
+<p>In the <a class="reference internal" href="#remote-configuration-scala"><span class="std std-ref">Remote Configuration</span></a> you can adjust the <code class="docutils literal"><span class="pre">akka.remote.watch-failure-detector.threshold</span></code>
+to define when a <em>phi</em> value is considered to be a failure.</p>
+<p>A low <code class="docutils literal"><span class="pre">threshold</span></code> is prone to generate many false positives but ensures
+a quick detection in the event of a real crash. Conversely, a high <code class="docutils literal"><span class="pre">threshold</span></code>
+generates fewer mistakes but needs more time to detect actual crashes. The
+default <code class="docutils literal"><span class="pre">threshold</span></code> is 10 and is appropriate for most situations. However in
+cloud environments, such as Amazon EC2, the value could be increased to 12 in
+order to account for network issues that sometimes occur on such platforms.</p>
+<p>The following chart illustrates how <em>phi</em> increase with increasing time since the
+previous heartbeat.</p>
+<img alt="../_images/phi11.png" src="../_images/phi11.png" />
+<p>Phi is calculated from the mean and standard deviation of historical
+inter arrival times. The previous chart is an example for standard deviation
+of 200 ms. If the heartbeats arrive with less deviation the curve becomes steeper,
+i.e. it is possible to determine failure more quickly. The curve looks like this for
+a standard deviation of 100 ms.</p>
+<img alt="../_images/phi21.png" src="../_images/phi21.png" />
+<p>To be able to survive sudden abnormalities, such as garbage collection pauses and
+transient network failures the failure detector is configured with a margin,
+<code class="docutils literal"><span class="pre">akka.remote.watch-failure-detector.acceptable-heartbeat-pause</span></code>. You may want to
+adjust the <a class="reference internal" href="#remote-configuration-scala"><span class="std std-ref">Remote Configuration</span></a> of this depending on you environment.
+This is how the curve looks like for <code class="docutils literal"><span class="pre">acceptable-heartbeat-pause</span></code> configured to
+3 seconds.</p>
+<img alt="../_images/phi31.png" src="../_images/phi31.png" />
+</div>
+</div>
+<div class="section" id="serialization">
+<h2>Serialization</h2>
+<p>When using remoting for actors you must ensure that the <code class="docutils literal"><span class="pre">props</span></code> and <code class="docutils literal"><span class="pre">messages</span></code> used for
+those actors are serializable. Failing to do so will cause the system to behave in an unintended way.</p>
+<p>For more information please see <a class="reference internal" href="serialization.html#serialization-scala"><span class="std std-ref">Serialization</span></a></p>
+</div>
+<div class="section" id="routers-with-remote-destinations">
+<h2>Routers with Remote Destinations</h2>
+<p>It is absolutely feasible to combine remoting with <a class="reference internal" href="routing.html#routing-scala"><span class="std std-ref">Routing</span></a>.</p>
+<p>A pool of remote deployed routees can be configured as:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span></span>akka.actor.deployment {
+  /parent/remotePool {
+    router = round-robin-pool
+    nr-of-instances = 10
+    target.nodes = [&quot;akka.tcp://app@10.0.0.2:2552&quot;, &quot;akka://app@10.0.0.3:2552&quot;]
+  }
+}
+</pre></div>
+</div>
+<p>This configuration setting will clone the actor defined in the <code class="docutils literal"><span class="pre">Props</span></code> of the <code class="docutils literal"><span class="pre">remotePool</span></code> 10
+times and deploy it evenly distributed across the two given target nodes.</p>
+<p>A group of remote actors can be configured as:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span></span>akka.actor.deployment {
+  /parent/remoteGroup {
+    router = round-robin-group
+    routees.paths = [
+      &quot;akka.tcp://app@10.0.0.1:2552/user/workers/w1&quot;, 
+      &quot;akka.tcp://app@10.0.0.2:2552/user/workers/w1&quot;,
+      &quot;akka.tcp://app@10.0.0.3:2552/user/workers/w1&quot;]
+  }
+}
+</pre></div>
+</div>
+<p>This configuration setting will send messages to the defined remote actor paths.
+It requires that you create the destination actors on the remote nodes with matching paths.
+That is not done by the router.</p>
+</div>
+<div class="section" id="remoting-sample">
+<span id="remote-sample-scala"></span><h2>Remoting Sample</h2>
+<p>There is a more extensive remote example that comes with <a class="reference external" href="http://www.typesafe.com/platform/getstarted">Typesafe Activator</a>.
+The tutorial named <a class="reference external" href="http://www.typesafe.com/activator/template/akka-sample-remote-scala">Akka Remote Samples with Scala</a>
+demonstrates both remote deployment and look-up of remote actors.</p>
+<div class="section" id="pluggable-transport-support">
+<h3>Pluggable transport support</h3>
+<p>Akka can be configured to use various transports to communicate with remote systems. The core
+component of this feature is the <code class="xref py py-meth docutils literal"><span class="pre">akka.remote.transport.Transport</span></code> SPI. Transport implementations must extend this trait.
+Transports can be loaded by setting the <code class="docutils literal"><span class="pre">akka.remote.enabled-transports</span></code> configuration key to point to one or
+more configuration sections containing driver descriptions.</p>
+<p>An example of setting up the default Netty based SSL driver as default:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span></span><span class="n">akka</span> <span class="o">{</span>
+  <span class="n">remote</span> <span class="o">{</span>
+    <span class="n">enabled</span><span class="o">-</span><span class="n">transports</span> <span class="k">=</span> <span class="o">[</span><span class="kt">akka.remote.netty.ssl</span><span class="o">]</span>
+
+    <span class="n">netty</span><span class="o">.</span><span class="n">ssl</span><span class="o">.</span><span class="n">security</span> <span class="o">{</span>
+      <span class="n">key</span><span class="o">-</span><span class="n">store</span> <span class="k">=</span> <span class="s">&quot;mykeystore&quot;</span>
+      <span class="n">trust</span><span class="o">-</span><span class="n">store</span> <span class="k">=</span> <span class="s">&quot;mytruststore&quot;</span>
+      <span class="n">key</span><span class="o">-</span><span class="n">store</span><span class="o">-</span><span class="n">password</span> <span class="k">=</span> <span class="s">&quot;changeme&quot;</span>
+      <span class="n">key</span><span class="o">-</span><span class="n">password</span> <span class="k">=</span> <span class="s">&quot;changeme&quot;</span>
+      <span class="n">trust</span><span class="o">-</span><span class="n">store</span><span class="o">-</span><span class="n">password</span> <span class="k">=</span> <span class="s">&quot;changeme&quot;</span>
+      <span class="n">protocol</span> <span class="k">=</span> <span class="s">&quot;TLSv1&quot;</span>
+      <span class="n">random</span><span class="o">-</span><span class="n">number</span><span class="o">-</span><span class="n">generator</span> <span class="k">=</span> <span class="s">&quot;AES128CounterSecureRNG&quot;</span>
+      <span class="n">enabled</span><span class="o">-</span><span class="n">algorithms</span> <span class="k">=</span> <span class="o">[</span><span class="kt">TLS_RSA_WITH_AES_128_CBC_SHA</span><span class="o">]</span>
+    <span class="o">}</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<p>An example of setting up a custom transport implementation:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span></span>akka {
+  remote {
+    applied-transports = [&quot;akka.remote.mytransport&quot;]
+
+    mytransport {
+      # The transport-class configuration entry is required, and
+      # it must contain the fully qualified name of the transport
+      # implementation
+      transport-class = &quot;my.package.MyTransport&quot;
+
+      # It is possible to decorate Transports with additional services.
+      # Adapters should be registered in the &quot;adapters&quot; sections to
+      # be able to apply them to transports
+      applied-adapters = []
+
+      # Driver specific configuration options has to be in the same
+      # section:
+      some-config = foo
+      another-config = bar
+    }
+</pre></div>
+</div>
+</div>
+<div class="section" id="remote-events">
+<h3>Remote Events</h3>
+<p>It is possible to listen to events that occur in Akka Remote, and to subscribe/unsubscribe to these events
+you simply register as listener to the below described types in on the <code class="docutils literal"><span class="pre">ActorSystem.eventStream</span></code>.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">To subscribe to any remote event, subscribe to
+<code class="xref py py-meth docutils literal"><span class="pre">RemotingLifecycleEvent</span></code>.  To subscribe to events related only to
+the lifecycle of associations, subscribe to
+<code class="xref py py-meth docutils literal"><span class="pre">akka.remote.AssociationEvent</span></code>.</p>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The use of term &quot;Association&quot; instead of &quot;Connection&quot; reflects that the
+remoting subsystem may use connectionless transports, but an association
+similar to transport layer connections is maintained between endpoints by
+the Akka protocol.</p>
+</div>
+<p>By default an event listener is registered which logs all of the events
+described below. This default was chosen to help setting up a system, but it is
+quite common to switch this logging off once that phase of the project is
+finished.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">In order to switch off the logging, set
+<code class="docutils literal"><span class="pre">akka.remote.log-remote-lifecycle-events&nbsp;=&nbsp;off</span></code> in your
+<code class="docutils literal"><span class="pre">application.conf</span></code>.</p>
+</div>
+<p>To be notified when an association is over (&quot;disconnected&quot;) listen to <code class="docutils literal"><span class="pre">DisassociatedEvent</span></code> which
+holds the direction of the association (inbound or outbound) and the addresses of the involved parties.</p>
+<p>To be notified  when an association is successfully established (&quot;connected&quot;) listen to <code class="docutils literal"><span class="pre">AssociatedEvent</span></code> which
+holds the direction of the association (inbound or outbound) and the addresses of the involved parties.</p>
+<p>To intercept errors directly related to associations, listen to <code class="docutils literal"><span class="pre">AssociationErrorEvent</span></code> which
+holds the direction of the association (inbound or outbound), the addresses of the involved parties and the
+<code class="docutils literal"><span class="pre">Throwable</span></code> cause.</p>
+<p>To be notified  when the remoting subsystem is ready to accept associations, listen to <code class="docutils literal"><span class="pre">RemotingListenEvent</span></code> which
+contains the addresses the remoting listens on.</p>
+<p>To be notified  when the remoting subsystem has been shut down, listen to <code class="docutils literal"><span class="pre">RemotingShutdownEvent</span></code>.</p>
+<p>To intercept generic remoting related errors, listen to <code class="docutils literal"><span class="pre">RemotingErrorEvent</span></code> which holds the <code class="docutils literal"><span class="pre">Throwable</span></code> cause.</p>
+</div>
+</div>
+<div class="section" id="remote-security">
+<h2>Remote Security</h2>
+<p>Akka provides a couple of ways to enhance security between remote nodes (client/server):</p>
+<ul class="simple">
+<li>Untrusted Mode</li>
+<li>Security Cookie Handshake</li>
+</ul>
+<div class="section" id="untrusted-mode">
+<h3>Untrusted Mode</h3>
+<p>As soon as an actor system can connect to another remotely, it may in principle
+send any possible message to any actor contained within that remote system. One
+example may be sending a <code class="xref py py-class docutils literal"><span class="pre">PoisonPill</span></code> to the system guardian, shutting
+that system down. This is not always desired, and it can be disabled with the
+following setting:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span></span><span class="n">akka</span><span class="o">.</span><span class="n">remote</span><span class="o">.</span><span class="n">untrusted</span><span class="o">-</span><span class="n">mode</span> <span class="k">=</span> <span class="n">on</span>
+</pre></div>
+</div>
+<p>This disallows sending of system messages (actor life-cycle commands,
+DeathWatch, etc.) and any message extending <code class="xref py py-class docutils literal"><span class="pre">PossiblyHarmful</span></code> to the
+system on which this flag is set. Should a client send them nonetheless they
+are dropped and logged (at DEBUG level in order to reduce the possibilities for
+a denial of service attack). <code class="xref py py-class docutils literal"><span class="pre">PossiblyHarmful</span></code> covers the predefined
+messages like <code class="xref py py-class docutils literal"><span class="pre">PoisonPill</span></code> and <code class="xref py py-class docutils literal"><span class="pre">Kill</span></code>, but it can also be added
+as a marker trait to user-defined messages.</p>
+<p>Messages sent with actor selection are by default discarded in untrusted mode, but
+permission to receive actor selection messages can be granted to specific actors
+defined in configuration:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span></span>akka.remote.trusted-selection-paths = [&quot;/user/receptionist&quot;, &quot;/user/namingService&quot;]
+</pre></div>
+</div>
+<p>The actual message must still not be of type <code class="xref py py-class docutils literal"><span class="pre">PossiblyHarmful</span></code>.</p>
+<p>In summary, the following operations are ignored by a system configured in
+untrusted mode when incoming via the remoting layer:</p>
+<ul class="simple">
+<li>remote deployment (which also means no remote supervision)</li>
+<li>remote DeathWatch</li>
+<li><code class="docutils literal"><span class="pre">system.stop()</span></code>, <code class="xref py py-class docutils literal"><span class="pre">PoisonPill</span></code>, <code class="xref py py-class docutils literal"><span class="pre">Kill</span></code></li>
+<li>sending any message which extends from the <code class="xref py py-class docutils literal"><span class="pre">PossiblyHarmful</span></code> marker
+interface, which includes <code class="xref py py-class docutils literal"><span class="pre">Terminated</span></code></li>
+<li>messages sent with actor selection, unless destination defined in <code class="docutils literal"><span class="pre">trusted-selection-paths</span></code>.</li>
+</ul>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Enabling the untrusted mode does not remove the capability of the client to
+freely choose the target of its message sends, which means that messages not
+prohibited by the above rules can be sent to any actor in the remote system.
+It is good practice for a client-facing system to only contain a well-defined
+set of entry point actors, which then forward requests (possibly after
+performing validation) to another actor system containing the actual worker
+actors. If messaging between these two server-side systems is done using
+local <code class="xref py py-class docutils literal"><span class="pre">ActorRef</span></code> (they can be exchanged safely between actor systems
+within the same JVM), you can restrict the messages on this interface by
+marking them <code class="xref py py-class docutils literal"><span class="pre">PossiblyHarmful</span></code> so that a client cannot forge them.</p>
+</div>
+</div>
+<div class="section" id="secure-cookie-handshake">
+<h3>Secure Cookie Handshake</h3>
+<p>Akka remoting also allows you to specify a secure cookie that will be exchanged and ensured to be identical
+in the connection handshake between the client and the server. If they are not identical then the client
+will be refused to connect to the server.</p>
+<p>The secure cookie can be any kind of string. But the recommended approach is to generate a cryptographically
+secure cookie using this script <code class="docutils literal"><span class="pre">$AKKA_HOME/scripts/generate_config_with_secure_cookie.sh</span></code> or from code
+using the <code class="docutils literal"><span class="pre">akka.util.Crypt.generateSecureCookie()</span></code> utility method.</p>
+<p>You have to ensure that both the connecting client and the server have the same secure cookie as well
+as the <code class="docutils literal"><span class="pre">require-cookie</span></code> option turned on.</p>
+<p>Here is an example config:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span></span><span class="n">akka</span><span class="o">.</span><span class="n">remote</span> <span class="o">{</span>
+  <span class="n">secure</span><span class="o">-</span><span class="n">cookie</span> <span class="k">=</span> <span class="s">&quot;090A030E0F0A05010900000A0C0E0C0B03050D05&quot;</span>
+  <span class="n">require</span><span class="o">-</span><span class="n">cookie</span> <span class="k">=</span> <span class="n">on</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="ssl">
+<h3>SSL</h3>
+<p>SSL can be used as the remote transport by adding <code class="docutils literal"><span class="pre">akka.remote.netty.ssl</span></code>
+to the <code class="docutils literal"><span class="pre">enabled-transport</span></code> configuration section. See a description of the settings
+in the <a class="reference internal" href="#remote-configuration-scala"><span class="std std-ref">Remote Configuration</span></a> section.</p>
+<p>The SSL support is implemented with Java Secure Socket Extension, please consult the offical
+<a class="reference external" href="http://docs.oracle.com/javase/7/docs/technotes/guides/security/jsse/JSSERefGuide.html">Java Secure Socket Extension documentation</a>
+and related resources for troubleshooting.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">When using SHA1PRNG on Linux it's recommended specify <code class="docutils literal"><span class="pre">-Djava.security.egd=file:/dev/./urandom</span></code> as argument
+to the JVM to prevent blocking. It is NOT as secure because it reuses the seed.
+Use '/dev/./urandom', not '/dev/urandom' as that doesn't work according to
+<a class="reference external" href="http://bugs.sun.com/view_bug.do?bug_id=6202721">Bug ID: 6202721</a>.</p>
+</div>
+</div>
+</div>
+<div class="section" id="remote-configuration">
+<span id="remote-configuration-scala"></span><h2>Remote Configuration</h2>
+<p>There are lots of configuration properties that are related to remoting in Akka. We refer to the
+<a class="reference internal" href="../general/configuration.html#config-akka-remote"><span class="std std-ref">reference configuration</span></a> for more information.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p>Setting properties like the listening IP and port number programmatically is
+best done by using something like the following:</p>
+<div class="last highlight-scala"><div class="highlight"><pre><span></span><span class="nc">ConfigFactory</span><span class="o">.</span><span class="n">parseString</span><span class="o">(</span><span class="s">&quot;akka.remote.netty.tcp.hostname=\&quot;1.2.3.4\&quot;&quot;</span><span class="o">)</span>
+    <span class="o">.</span><span class="n">withFallback</span><span class="o">(</span><span class="nc">ConfigFactory</span><span class="o">.</span><span class="n">load</span><span class="o">());</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+
+
+          </div>
+          <div class="span3"><p class="contents-title">Contents</p>
+              <div id="scroller-anchor">
+                <div id="scroller">
+                  <div id="toc"></div>
+                </div>
+              </div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="footer">
+  <div class="container">
+    <ul>
+      <li><h5>Akka</h5></li>
+      <li><a href="https://akka.io/docs">Documentation</a></li>
+      <li><a href="https://akka.io/faq">FAQ</a></li>
+      <li><a href="https://akka.io/downloads">Downloads</a></li>
+      <li><a href="https://akka.io/news">News</a></li>
+      <li><a href="http://letitcrash.com">Blog</a></li>
+    </ul>
+    <ul>
+      <li><h5>Contribute</h5></li>
+      <li><a href="https://akka.io/community">Community Projects</a></li>
+      <li><a href="http://github.com/akka/akka">Source Code</a></li>
+      <li><a href="http://groups.google.com/group/akka-user">Mailing List</a></li>      
+      <li><a href="https://doc.akka.io/docs/akka/current/project/issue-tracking.html">Report a Bug</a></li>      
+    </ul>
+    <ul>
+      <li><h5>Company</h5></li>
+      <li><a href="http://www.typesafe.com/how/subscription">Commercial Support</a></li>
+      <li><a href="https://akka.io/team">Team</a></li>
+      <li><a href="mailto:info@typesafe.com">Contact</a></li>
+    </ul>
+    <ul>
+      <li><img src="../_static/akka_icon_reverse.svg" align="center"/></li>
+    </ul>
+  </div>
+  <div class="container copyright">
+    <p style="float: left;">
+      © 2014 <a href="http://www.typesafe.com/">Typesafe Inc.</a> <span class="license">Akka is Open Source and available under the Apache 2 License.</span>
+    </p>
+    <p style="float: right; font-size: 12px;">
+      Last updated: Oct 28, 2016
+    </p>          
+  </div>
+</div>
+<script src="http://www.google.com/jsapi" type="text/javascript"></script>
+<script type="text/javascript">
+    google.load('search', '1', {language : 'en', style : google.loader.themes.MINIMALIST});
+    google.setOnLoadCallback(function() {
+    var customSearchOptions = {};  var customSearchControl = new google.search.CustomSearchControl(
+    '003065520604945464838:izzukx8-qba', customSearchOptions);
+    customSearchControl.setResultSetSize(google.search.Search.FILTERED_CSE_RESULTSET);
+    customSearchControl.draw('cse');
+    var path = window.location.pathname.split('/').slice(0,4);
+    if(window.location.hostname && path.length >= 4) {
+    var site = "site:" + window.location.hostname + path.join('/').toString();
+    customSearchControl.setSearchStartingCallback(this, function(c, s, q) { s.setQueryAddition(site); });
+    }
+    }, true);
+</script>
+<style type="text/css">
+    .gsc-control-cse {
+    font-family: Arial, sans-serif;
+    border-color: rgb(242, 242, 235);
+    background-color: rgb(242, 242, 235);
+    }
+    .gsc-control-cse .gsc-table-result {
+      font-family: Arial, sans-serif;
+      display: block;
+    }
+    input.gsc-input {
+    border-color: #BBBBBB;
+    }
+    input.gsc-search-button {
+    border-color: rgb(34, 57, 64);
+    background-color: rgb(68, 114, 129);
+    color: #FFFFFF;
+    }
+    .gsc-tabHeader.gsc-tabhInactive {
+    border-color: #777777;
+    background-color: #777777;
+    }
+    .gsc-tabHeader.gsc-tabhActive {
+    border-color: #333333;
+    background-color: #333333;
+    }
+    .gsc-tabsArea {
+    border-color: #333333;
+    }
+    .gsc-webResult.gsc-result,
+    .gsc-results .gsc-imageResult {
+      border-color: #666666;
+      background-color: #FFFFFF;
+      padding: 0.5em 0.5em;
+    }
+    .gsc-webResult.gsc-result:hover,
+    .gsc-imageResult:hover {
+      border-color: #AAAAAA;
+      background-color: #FFFFFF;
+      padding: 0.5em 0.5em;
+    }
+    .gsc-webResult.gsc-result.gsc-promotion:hover {
+    border-color: #AAAAAA;
+    background-color: #FFFFFF;
+    }
+    .gs-webResult.gs-result a.gs-title:link,
+    .gs-webResult.gs-result a.gs-title:link b,
+    .gs-imageResult a.gs-title:link,
+    .gs-imageResult a.gs-title:link b {
+    color: #444444;
+    }
+    .gs-webResult.gs-result a.gs-title:visited,
+    .gs-webResult.gs-result a.gs-title:visited b,
+    .gs-imageResult a.gs-title:visited,
+    .gs-imageResult a.gs-title:visited b {
+    color: #444444;
+    }
+    .gs-webResult.gs-result a.gs-title:hover,
+    .gs-webResult.gs-result a.gs-title:hover b,
+    .gs-imageResult a.gs-title:hover,
+    .gs-imageResult a.gs-title:hover b {
+    color: #444444;
+    }
+    .gs-webResult.gs-result a.gs-title:active,
+    .gs-webResult.gs-result a.gs-title:active b,
+    .gs-imageResult a.gs-title:active,
+    .gs-imageResult a.gs-title:active b {
+    color: #777777;
+    }
+    .gsc-cursor-page {
+    color: #444444;
+    }
+    a.gsc-trailing-more-results:link {
+    color: #444444;
+    }
+    .gs-webResult .gs-snippet,
+    .gs-imageResult .gs-snippet,
+    .gs-fileFormatType {
+    color: #333333;
+    }
+    .gs-webResult div.gs-visibleUrl,
+    .gs-imageResult div.gs-visibleUrl {
+    color: #000000;
+    }
+    .gs-webResult div.gs-visibleUrl-short {
+    color: #000000;
+    }
+    .gs-webResult div.gs-visibleUrl-short {
+    display: none;
+    }
+    .gs-webResult div.gs-visibleUrl-long {
+    display: block;
+    }
+    .gs-promotion div.gs-visibleUrl-short {
+    display: none;
+    }
+    .gs-promotion div.gs-visibleUrl-long {
+    display: block;
+    }
+    .gsc-cursor-box {
+    border-color: #FFFFFF;
+    }
+    .gsc-results .gsc-cursor-box .gsc-cursor-page {
+    border-color: #777777;
+    background-color: #FFFFFF;
+    color: #444444;
+    }
+    .gsc-results .gsc-cursor-box .gsc-cursor-current-page {
+    border-color: #333333;
+    background-color: #333333;
+    color: #444444;
+    }
+    .gsc-webResult.gsc-result.gsc-promotion {
+    border-color: #CCCCCC;
+    background-color: #E6E6E6;
+    }
+    .gsc-completion-title {
+    color: #444444;
+    }
+    .gsc-completion-snippet {
+    color: #333333;
+    }
+    .gs-promotion a.gs-title:link,
+    .gs-promotion a.gs-title:link *,
+    .gs-promotion .gs-snippet a:link {
+    color: #0000CC;
+    }
+    .gs-promotion a.gs-title:visited,
+    .gs-promotion a.gs-title:visited *,
+    .gs-promotion .gs-snippet a:visited {
+    color: #0000CC;
+    }
+    .gs-promotion a.gs-title:hover,
+    .gs-promotion a.gs-title:hover *,
+    .gs-promotion .gs-snippet a:hover {
+    color: #444444;
+    }
+    .gs-promotion a.gs-title:active,
+    .gs-promotion a.gs-title:active *,
+    .gs-promotion .gs-snippet a:active {
+    color: #00CC00;
+    }
+    .gs-promotion .gs-snippet,
+    .gs-promotion .gs-title .gs-promotion-title-right,
+    .gs-promotion .gs-title .gs-promotion-title-right *  {
+    color: #333333;
+    }
+    .gs-promotion .gs-visibleUrl,
+    .gs-promotion .gs-visibleUrl-short {
+    color: #00CC00;
+    }
+</style>
+<script type="text/javascript">
+  var $toc = $('#toc');
+  $toc.toc();
+
+  // change hash when TOC link clicked:
+  $toc.find("a").click(function() { window.location.hash = $(this).attr('href'); });
+
+  // show clickable section sign when section header hovered:
+  $('.section h2,.section h3,.section h4,.section h5').each(function(i, el) {
+      var $el = $(el);
+      $el.prepend($("<a class='section-marker' href='#" + $el.attr("id") + "'>&sect;</a>"))
+  });
+</script>
+  
+
+  </body>
+</html>

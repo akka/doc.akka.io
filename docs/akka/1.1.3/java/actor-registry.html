@@ -1,0 +1,142 @@
+
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>ActorRegistry (Java) &mdash; Akka Documentation</title>
+    <link rel="stylesheet" href="../_static/akka.css" type="text/css" />
+<link rel="stylesheet" href="https://doc.akka.io/docs/akka/1.1.3/_static/docs.css" type="text/css"/>
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/print.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '1.1.3',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+<script type="text/javascript" src="https://doc.akka.io/docs/akka/1.1.3/_static/warnOldDocs.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="../_static/theme_extras.js"></script>
+    <link rel="top" title="Akka Documentation" href="../index.html" />
+    <link rel="up" title="Java API" href="index.html" />
+    <link rel="next" title="Futures (Java)" href="futures.html" />
+    <link rel="prev" title="Typed Actors (Java)" href="typed-actors.html" /> 
+  </head>
+  <body>
+      <div class="header"><a href="../index.html"><img class="leftlogo" src="../_static/logo.png" alt="Logo"/></a><h1 class="heading"><a href="../index.html"><span>Akka Documentation</span></a></h1>
+       <h2 class="heading"><a href="../index.html"><span>Version 1.1.3</span></a></h2>
+       <h2 class="rightheading"><span><a href="https://akka.io/docs/akka/1.1.3/Akka.pdf">PDF</a></span></h2>
+      </div>
+      <div class="topnav">
+      
+        <p>
+        «&#160;&#160;<a href="typed-actors.html">Typed Actors (Java)</a>
+        &#160;&#160;::&#160;&#160;
+        <a class="uplink" href="../index.html">Contents</a>
+        &#160;&#160;::&#160;&#160;
+        <a href="futures.html">Futures (Java)</a>&#160;&#160;»
+        </p>
+
+      </div>
+      <div class="content">
+        
+        
+  <div class="section" id="actorregistry-java">
+<h1>ActorRegistry (Java)<a class="headerlink" href="#actorregistry-java" title="Permalink to this headline">¶</a></h1>
+<p>Module stability: <strong>SOLID</strong></p>
+<div class="section" id="actorregistry-finding-actors">
+<h2>ActorRegistry: Finding Actors<a class="headerlink" href="#actorregistry-finding-actors" title="Permalink to this headline">¶</a></h2>
+<p>Actors can be looked up using the &#8216;akka.actor.Actors.registry()&#8217; object. Through this registry you can look up actors by:</p>
+<ul class="simple">
+<li>uuid com.eaio.uuid.UUID – this uses the <tt class="docutils literal"><span class="pre">uuid</span></tt> field in the Actor class, returns the actor reference for the actor with specified uuid, if one exists, otherwise None</li>
+<li>id string – this uses the <tt class="docutils literal"><span class="pre">id</span></tt> field in the Actor class, which can be set by the user (default is the class name), returns all actor references to actors with specified id</li>
+<li>parameterized type - returns a <tt class="docutils literal"><span class="pre">ActorRef[]</span></tt> with all actors that are a subtype of this specific type</li>
+<li>specific actor class - returns a <tt class="docutils literal"><span class="pre">ActorRef[]</span></tt> with all actors of this exact class</li>
+</ul>
+<p>Actors are automatically registered in the ActorRegistry when they are started and removed when they are stopped. But you can explicitly register and unregister ActorRef&#8217;s if you need to using the <tt class="docutils literal"><span class="pre">register</span></tt> and <tt class="docutils literal"><span class="pre">unregister</span></tt> methods.</p>
+<p>Here is a summary of the API for finding actors:</p>
+<div class="highlight-java"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">static</span> <span class="n">akka</span><span class="o">.</span><span class="na">actor</span><span class="o">.</span><span class="na">Actors</span><span class="o">.*;</span>
+<span class="n">Option</span><span class="o">&lt;</span><span class="n">ActorRef</span><span class="o">&gt;</span> <span class="n">actor</span> <span class="o">=</span> <span class="n">registry</span><span class="o">().</span><span class="na">actorFor</span><span class="o">(</span><span class="n">uuid</span><span class="o">);</span>
+<span class="n">ActorRef</span><span class="o">[]</span> <span class="n">actors</span> <span class="o">=</span> <span class="n">registry</span><span class="o">().</span><span class="na">actors</span><span class="o">();</span>
+<span class="n">ActorRef</span><span class="o">[]</span> <span class="n">otherActors</span> <span class="o">=</span> <span class="n">registry</span><span class="o">().</span><span class="na">actorsFor</span><span class="o">(</span><span class="n">id</span><span class="o">);</span>
+<span class="n">ActorRef</span><span class="o">[]</span> <span class="n">moreActors</span> <span class="o">=</span> <span class="n">registry</span><span class="o">().</span><span class="na">actorsFor</span><span class="o">(</span><span class="n">clazz</span><span class="o">);</span>
+</pre></div>
+</div>
+<p>You can shut down all Actors in the system by invoking:</p>
+<div class="highlight-java"><div class="highlight"><pre><span class="n">registry</span><span class="o">().</span><span class="na">shutdownAll</span><span class="o">();</span>
+</pre></div>
+</div>
+<p>If you want to know when a new Actor is added to or removed from the registry, you can use the subscription API on the registry. You can register an Actor that should be notified when an event happens in the ActorRegistry:</p>
+<div class="highlight-java"><div class="highlight"><pre><span class="kt">void</span> <span class="nf">addListener</span><span class="o">(</span><span class="n">ActorRef</span> <span class="n">listener</span><span class="o">);</span>
+<span class="kt">void</span> <span class="nf">removeListener</span><span class="o">(</span><span class="n">ActorRef</span> <span class="n">listener</span><span class="o">);</span>
+</pre></div>
+</div>
+<p>The messages sent to this Actor are:</p>
+<div class="highlight-java"><div class="highlight"><pre><span class="kd">public</span> <span class="kd">class</span> <span class="nc">ActorRegistered</span> <span class="o">{</span>
+  <span class="n">ActorRef</span> <span class="nf">actor</span><span class="o">();</span>
+<span class="o">}</span>
+<span class="kd">public</span> <span class="kd">class</span> <span class="nc">ActorUnregistered</span> <span class="o">{</span>
+  <span class="n">ActorRef</span> <span class="nf">actor</span><span class="o">();</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<p>So your listener Actor needs to be able to handle these two messages. Example:</p>
+<div class="highlight-java"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">akka.actor.ActorRegistered</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">akka.actor.ActorUnregistered</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">akka.actor.UntypedActor</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">akka.event.EventHandler</span><span class="o">;</span>
+
+<span class="kd">public</span> <span class="kd">class</span> <span class="nc">RegistryListener</span> <span class="kd">extends</span> <span class="n">UntypedActor</span> <span class="o">{</span>
+  <span class="kd">public</span> <span class="kt">void</span> <span class="nf">onReceive</span><span class="o">(</span><span class="n">Object</span> <span class="n">message</span><span class="o">)</span> <span class="kd">throws</span> <span class="n">Exception</span> <span class="o">{</span>
+    <span class="k">if</span> <span class="o">(</span><span class="n">message</span> <span class="k">instanceof</span> <span class="n">ActorRegistered</span><span class="o">)</span> <span class="o">{</span>
+      <span class="n">ActorRegistered</span> <span class="n">event</span> <span class="o">=</span> <span class="o">(</span><span class="n">ActorRegistered</span><span class="o">)</span> <span class="n">message</span><span class="o">;</span>
+      <span class="n">EventHandler</span><span class="o">.</span><span class="na">info</span><span class="o">(</span><span class="k">this</span><span class="o">,</span> <span class="n">String</span><span class="o">.</span><span class="na">format</span><span class="o">(</span><span class="s">&quot;Actor registered: %s - %s&quot;</span><span class="o">,</span>
+          <span class="n">event</span><span class="o">.</span><span class="na">actor</span><span class="o">().</span><span class="na">actorClassName</span><span class="o">(),</span> <span class="n">event</span><span class="o">.</span><span class="na">actor</span><span class="o">().</span><span class="na">getUuid</span><span class="o">()));</span>
+        <span class="n">event</span><span class="o">.</span><span class="na">actor</span><span class="o">().</span><span class="na">actorClassName</span><span class="o">(),</span> <span class="n">event</span><span class="o">.</span><span class="na">actor</span><span class="o">().</span><span class="na">getUuid</span><span class="o">()));</span>
+    <span class="o">}</span> <span class="k">else</span> <span class="k">if</span> <span class="o">(</span><span class="n">message</span> <span class="k">instanceof</span> <span class="n">ActorUnregistered</span><span class="o">)</span> <span class="o">{</span>
+      <span class="c1">// ...</span>
+    <span class="o">}</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<p>The above actor can be added as listener of registry events:</p>
+<div class="highlight-java"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">static</span> <span class="n">akka</span><span class="o">.</span><span class="na">actor</span><span class="o">.</span><span class="na">Actors</span><span class="o">.*;</span>
+
+<span class="n">ActorRef</span> <span class="n">listener</span> <span class="o">=</span> <span class="n">actorOf</span><span class="o">(</span><span class="n">RegistryListener</span><span class="o">.</span><span class="na">class</span><span class="o">).</span><span class="na">start</span><span class="o">();</span>
+<span class="n">registry</span><span class="o">().</span><span class="na">addListener</span><span class="o">(</span><span class="n">listener</span><span class="o">);</span>
+</pre></div>
+</div>
+</div>
+</div>
+
+
+      </div>
+      <div class="bottomnav">
+      
+        <p>
+        «&#160;&#160;<a href="typed-actors.html">Typed Actors (Java)</a>
+        &#160;&#160;::&#160;&#160;
+        <a class="uplink" href="../index.html">Contents</a>
+        &#160;&#160;::&#160;&#160;
+        <a href="futures.html">Futures (Java)</a>&#160;&#160;»
+        </p>
+
+      </div>
+
+    <div class="footer">
+        &copy; Copyright 2011, Typesafe Inc.
+      Last updated on Jun 29, 2011.
+    </div>
+  </body>
+</html>

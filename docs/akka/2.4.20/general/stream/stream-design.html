@@ -1,0 +1,334 @@
+
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Design Principles behind Akka Streams &mdash; Akka Documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/style.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/prettify.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/base.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/docs.css" type="text/css" />
+    <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,600,700" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '2.4.20',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="../../_static/toc.js"></script>
+    <script type="text/javascript" src="../../_static/prettify.js"></script>
+    <script type="text/javascript" src="../../_static/highlightCode.js"></script>
+    <script type="text/javascript" src="../../_static/effects.core.js"></script>
+    <script type="text/javascript" src="../../_static/effects.highlight.js"></script>
+    <script type="text/javascript" src="../../_static/scrollTo.js"></script>
+    <script type="text/javascript" src="../../_static/contentsFix.js"></script>
+    <script type="text/javascript" src="../../_static/ga.js"></script>
+    <script type="text/javascript" src="../../_static/warnOldDocs.js"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/docsearch.js/1/docsearch.min.js"></script>
+    <link rel="shortcut icon" href="../../_static/favicon.ico"/>
+    <link rel="top" title="Akka Documentation" href="../../index.html" />
+    <link rel="up" title="Streams" href="../../scala/stream/index.html" />
+    <link rel="next" title="Basics and working with Flows" href="../../scala/stream/stream-flows-and-basics.html" />
+    <link rel="prev" title="Quick Start Guide" href="../../scala/stream/stream-quickstart.html" />
+    <!-- Hint to search engines that the "canonical" page is under "current", which will boost it appearing in search results -->
+    <link rel="canonical" href="https://doc.akka.io/docs/akka/2.4/general/stream/stream-design.html" />
+
+    <!--Google Analytics-->
+    <script type="text/javascript">
+      var _gaq = _gaq || [];
+      _gaq.push(['_setAccount', 'UA-21117439-1']);
+      _gaq.push(['_setDomainName', 'akka.io']);
+      _gaq.push(['_trackPageview']);
+      (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+      })()
+    </script>
+    <!--Google Analytics & Marketo-->
+    <script type="text/javascript">
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+      (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+      m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+      ga('create', 'UA-23127719-1', 'lightbend.com', {'allowLinker': true, 'name': 'tsTracker'});
+      ga('tsTracker.require', 'linker');
+      ga('tsTracker.linker:autoLink', ['lightbend.com','playframework.com','scala-lang.org','scaladays.org','spray.io','akka.io','scala-sbt.org','scala-ide.org']);
+      ga('tsTracker.send', 'pageview');
+
+      (function() {
+          var didInit = false;
+          function initMunchkin() {
+          if(didInit === false) {
+            didInit = true;
+            Munchkin.init('558-NCX-702');
+          }
+          }
+          var s = document.createElement('script');
+          s.type = 'text/javascript';
+          s.async = true;
+          s.src = '//munchkin.marketo.net/munchkin.js';
+          s.onreadystatechange = function() {
+          if (this.readyState == 'complete' || this.readyState == 'loaded') {
+            initMunchkin();
+          }
+          };
+          s.onload = initMunchkin;
+          document.getElementsByTagName('head')[0].appendChild(s);
+        })();
+    </script>
+
+
+  </head>
+  <body>
+  <div class="navbar">
+    <div class="navbar-inner">
+      <div class="container">
+        <div class="navbar-logo">
+          <a href="https://akka.io"><img class="svg-logo" src="../../_static/akka_full_color.svg" /></a>
+        </div>
+        <ul class="nav">
+          <li><a href="https://akka.io/docs">Documentation</a></li>
+          <li><a href="https://doc.akka.io/docs/akka/current/additional/faq.html">FAQ</a></li>
+          <li><a href="https://akka.io/downloads">Download</a></li>
+          <li><a href="http://groups.google.com/group/akka-user">Mailing List</a></li>
+          <li><a href="http://github.com/akka/akka">Code</a></li>
+          <li><a href="http://www.lightbend.com/how/subscription">Commercial Support</a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="main">
+    <div class="container">
+      <div class="page-title">Design Principles behind Akka Streams - Version 2.4.20</div>
+      <div class="pdf-link"><a href="../../AkkaScala.pdf" title="Akka Scala Documentation"><img src="../../_static/pdf-scala-icon.png" style="height: 40px;" /></a></div>
+      <div class="pdf-link"><a href="../../AkkaJava.pdf" title="Akka Java Documentation"><img src="../../_static/pdf-java-icon.png" style="height: 40px;" /></a></div>
+    </div>
+    <div class="main-container">
+      <div class="container">
+        <div class="row">
+          <div class="span12">
+            <div class="breadcrumb">
+              <div style="position: relative">
+                <input type="search" id="search" class="form-control" style="position: relative" placeholder="Search in the doc" />
+              </div>
+              <div>
+                <div>
+                  <span class="divider">«</span> <a href="../../scala/stream/stream-quickstart.html">Quick Start Guide</a> <span class="divider">|</span>
+                </div>
+                <div>
+                  <a href="../../java.html">Java Contents</a> <span class="divider">|</span> <a href="../../scala.html">Scala Contents</a>
+                </div>
+                <div>
+                  <span class="divider">|</span> <a href="../../scala/stream/stream-flows-and-basics.html">Basics and working with Flows</a> <span class="divider">»</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="row">
+          <div class="span9">
+          </div><div class="span9">
+            
+  <div class="section" id="design-principles-behind-akka-streams">
+<span id="stream-design"></span><h1>Design Principles behind Akka Streams</h1>
+<p>It took quite a while until we were reasonably happy with the look and feel of the API and the architecture of the implementation, and while being guided by intuition the design phase was very much exploratory research. This section details the findings and codifies them into a set of principles that have emerged during the process.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">As detailed in the introduction keep in mind that the Akka Streams API is completely decoupled from the Reactive Streams interfaces which are just an implementation detail for how to pass stream data between individual processing stages.</p>
+</div>
+<div class="section" id="what-shall-users-of-akka-streams-expect">
+<h2>What shall users of Akka Streams expect?</h2>
+<p>Akka is built upon a conscious decision to offer APIs that are minimal and consistent—as opposed to easy or intuitive. The credo is that we favor explicitness over magic, and if we provide a feature then it must work always, no exceptions. Another way to say this is that we minimize the number of rules a user has to learn instead of trying to keep the rules close to what we think users might expect.</p>
+<p>From this follows that the principles implemented by Akka Streams are:</p>
+<blockquote>
+<div><ul class="simple">
+<li>all features are explicit in the API, no magic</li>
+<li>supreme compositionality: combined pieces retain the function of each part</li>
+<li>exhaustive model of the domain of distributed bounded stream processing</li>
+</ul>
+</div></blockquote>
+<p>This means that we provide all the tools necessary to express any stream processing topology, that we model all the essential aspects of this domain (back-pressure, buffering, transformations, failure recovery, etc.) and that whatever the user builds is reusable in a larger context.</p>
+<div class="section" id="akka-streams-does-not-send-dropped-stream-elements-to-the-dead-letter-office">
+<h3>Akka Streams does not send dropped stream elements to the dead letter office</h3>
+<p>One important consequence of offering only features that can be relied upon is the restriction that Akka Streams cannot ensure that all objects sent through a processing topology will be processed. Elements can be dropped for a number of reasons:</p>
+<blockquote>
+<div><ul class="simple">
+<li>plain user code can consume one element in a <cite>map(...)</cite> stage and produce an entirely different one as its result</li>
+<li>common stream operators drop elements intentionally, e.g. take/drop/filter/conflate/buffer/…</li>
+<li>stream failure will tear down the stream without waiting for processing to finish, all elements that are in flight will be discarded</li>
+<li>stream cancellation will propagate upstream (e.g. from a <cite>take</cite> operator) leading to upstream processing steps being terminated without having processed all of their inputs</li>
+</ul>
+</div></blockquote>
+<p>This means that sending JVM objects into a stream that need to be cleaned up will require the user to ensure that this happens outside of the Akka Streams facilities (e.g. by cleaning them up after a timeout or when their results are observed on the stream output, or by using other means like finalizers etc.).</p>
+</div>
+<div class="section" id="resulting-implementation-constraints">
+<h3>Resulting Implementation Constraints</h3>
+<p>Compositionality entails reusability of partial stream topologies, which led us to the lifted approach of describing data flows as (partial) graphs that can act as composite sources, flows (a.k.a. pipes) and sinks of data. These building blocks shall then be freely shareable, with the ability to combine them freely to form larger graphs. The representation of these pieces must therefore be an immutable blueprint that is materialized in an explicit step in order to start the stream processing. The resulting stream processing engine is then also immutable in the sense of having a fixed topology that is prescribed by the blueprint. Dynamic networks need to be modeled by explicitly using the Reactive Streams interfaces for plugging different engines together.</p>
+<p>The process of materialization will often create specific objects that are useful to interact with the processing engine once it is running, for example for shutting it down or for extracting metrics. This means that the materialization function produces a result termed the <em>materialized value of a graph</em>.</p>
+</div>
+</div>
+<div class="section" id="interoperation-with-other-reactive-streams-implementations">
+<h2>Interoperation with other Reactive Streams implementations</h2>
+<p>Akka Streams fully implement the Reactive Streams specification and interoperate with all other conformant implementations. We chose to completely separate the Reactive Streams interfaces from the user-level API because we regard them to be an SPI that is not targeted at endusers. In order to obtain a <tt class="xref py py-class docutils literal"><span class="pre">Publisher</span></tt> or <tt class="xref py py-class docutils literal"><span class="pre">Subscriber</span></tt> from an Akka Stream topology, a corresponding <tt class="docutils literal"><span class="pre">Sink.asPublisher</span></tt> or <tt class="docutils literal"><span class="pre">Source.asSubscriber</span></tt> element must be used.</p>
+<p>All stream Processors produced by the default materialization of Akka Streams are restricted to having a single Subscriber, additional Subscribers will be rejected. The reason for this is that the stream topologies described using our DSL never require fan-out behavior from the Publisher sides of the elements, all fan-out is done using explicit elements like <tt class="xref py py-class docutils literal"><span class="pre">Broadcast[T]</span></tt>.</p>
+<p>This means that <tt class="docutils literal"><span class="pre">Sink.asPublisher(true)</span></tt> (for enabling fan-out support) must be used where broadcast behavior is needed for interoperation with other Reactive Streams implementations.</p>
+</div>
+<div class="section" id="what-shall-users-of-streaming-libraries-expect">
+<h2>What shall users of streaming libraries expect?</h2>
+<p>We expect libraries to be built on top of Akka Streams, in fact Akka HTTP is one such example that lives within the Akka project itself. In order to allow users to profit from the principles that are described for Akka Streams above, the following rules are established:</p>
+<blockquote>
+<div><ul class="simple">
+<li>libraries shall provide their users with reusable pieces, i.e. expose factories that return graphs, allowing full compositionality</li>
+<li>libraries may optionally and additionally provide facilities that consume and materialize graphs</li>
+</ul>
+</div></blockquote>
+<p>The reasoning behind the first rule is that compositionality would be destroyed if different libraries only accepted graphs and expected to materialize them: using two of these together would be impossible because materialization can only happen once. As a consequence, the functionality of a library must be expressed such that materialization can be done by the user, outside of the library’s control.</p>
+<p>The second rule allows a library to additionally provide nice sugar for the common case, an example of which is the Akka HTTP API that provides a <tt class="docutils literal"><span class="pre">handleWith</span></tt> method for convenient materialization.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p>One important consequence of this is that a reusable flow description cannot be bound to “live” resources, any connection to or allocation of such resources must be deferred until materialization time. Examples of “live” resources are already existing TCP connections, a multicast Publisher, etc.; a TickSource does not fall into this category if its timer is created only upon materialization (as is the case for our implementation).</p>
+<p class="last">Exceptions from this need to be well-justified and carefully documented.</p>
+</div>
+<div class="section" id="id1">
+<h3>Resulting Implementation Constraints</h3>
+<p>Akka Streams must enable a library to express any stream processing utility in terms of immutable blueprints. The most common building blocks are</p>
+<blockquote>
+<div><ul class="simple">
+<li>Source: something with exactly one output stream</li>
+<li>Sink: something with exactly one input stream</li>
+<li>Flow: something with exactly one input and one output stream</li>
+<li>BidiFlow: something with exactly two input streams and two output streams that conceptually behave like two Flows of opposite direction</li>
+<li>Graph: a packaged stream processing topology that exposes a certain set of input and output ports, characterized by an object of type <tt class="xref py py-class docutils literal"><span class="pre">Shape</span></tt>.</li>
+</ul>
+</div></blockquote>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">A source that emits a stream of streams is still just a normal Source, the kind of elements that are produced does not play a role in the static stream topology that is being expressed.</p>
+</div>
+</div>
+</div>
+<div class="section" id="the-difference-between-error-and-failure">
+<h2>The difference between Error and Failure</h2>
+<p>The starting point for this discussion is the <a class="reference external" href="http://www.reactivemanifesto.org/glossary#Failure">definition given by the Reactive Manifesto</a>. Translated to streams this means that an error is accessible within the stream as a normal data element, while a failure means that the stream itself has failed and is collapsing. In concrete terms, on the Reactive Streams interface level data elements (including errors) are signaled via <tt class="docutils literal"><span class="pre">onNext</span></tt> while failures raise the <tt class="docutils literal"><span class="pre">onError</span></tt> signal.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Unfortunately the method name for signaling <em>failure</em> to a Subscriber is called <tt class="docutils literal"><span class="pre">onError</span></tt> for historical reasons. Always keep in mind that the Reactive Streams interfaces (Publisher/Subscription/Subscriber) are modeling the low-level infrastructure for passing streams between execution units, and errors on this level are precisely the failures that we are talking about on the higher level that is modeled by Akka Streams.</p>
+</div>
+<p>There is only limited support for treating <tt class="docutils literal"><span class="pre">onError</span></tt> in Akka Streams compared to the operators that are available for the transformation of data elements, which is intentional in the spirit of the previous paragraph. Since <tt class="docutils literal"><span class="pre">onError</span></tt> signals that the stream is collapsing, its ordering semantics are not the same as for stream completion: transformation stages of any kind will just collapse with the stream, possibly still holding elements in implicit or explicit buffers. This means that data elements emitted before a failure can still be lost if the <tt class="docutils literal"><span class="pre">onError</span></tt> overtakes them.</p>
+<p>The ability for failures to propagate faster than data elements is essential for tearing down streams that are back-pressured—especially since back-pressure can be the failure mode (e.g. by tripping upstream buffers which then abort because they cannot do anything else; or if a dead-lock occurred).</p>
+<div class="section" id="the-semantics-of-stream-recovery">
+<h3>The semantics of stream recovery</h3>
+<p>A recovery element (i.e. any transformation that absorbs an <tt class="docutils literal"><span class="pre">onError</span></tt> signal and turns that into possibly more data elements followed normal stream completion) acts as a bulkhead that confines a stream collapse to a given region of the stream topology. Within the collapsed region buffered elements may be lost, but the outside is not affected by the failure.</p>
+<p>This works in the same fashion as a <tt class="docutils literal"><span class="pre">try</span></tt>–<tt class="docutils literal"><span class="pre">catch</span></tt> expression: it marks a region in which exceptions are caught, but the exact amount of code that was skipped within this region in case of a failure might not be known precisely—the placement of statements matters.</p>
+</div>
+</div>
+</div>
+
+
+          </div>
+          <div class="span3"><p class="contents-title">Contents</p>
+              <div id="scroller-anchor">
+                <div id="scroller">
+                  <div id="toc"></div>
+                </div>
+              </div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="footer">
+  <div class="container">
+    <ul>
+      <li><h5>Akka</h5></li>
+      <li><a href="https://akka.io/docs">Documentation</a></li>
+      <li><a href="https://doc.akka.io/docs/akka/current/additional/faq.html">FAQ</a></li>
+      <li><a href="https://akka.io/downloads">Downloads</a></li>
+      <li><a href="https://akka.io/news">News</a></li>
+      <li><a href="http://letitcrash.com">Blog</a></li>
+    </ul>
+    <ul>
+      <li><h5>Contribute</h5></li>
+      <li><a href="https://akka.io/community">Community Projects</a></li>
+      <li><a href="http://github.com/akka/akka">Source Code</a></li>
+      <li><a href="http://groups.google.com/group/akka-user">Mailing List</a></li>
+      <li><a href="https://doc.akka.io/docs/akka/current/project/issue-tracking.html">Report a Bug</a></li>
+    </ul>
+    <ul>
+      <li><h5>Company</h5></li>
+      <li><a href="http://www.lightbend.com/how/subscription">Commercial Support</a></li>
+      <li><a href="https://akka.io/team">Team</a></li>
+      <li><a href="mailto:info@lightbend.com">Contact</a></li>
+    </ul>
+    <ul>
+      <li><img src="../../_static/akka_icon_reverse.svg" align="center"/></li>
+    </ul>
+  </div>
+  <div class="container copyright">
+    <p style="float: left;">
+      © 2015 <a href="http://www.lightbend.com/">Lightbend Inc.</a> <span class="license">Akka is Open Source and available under the Apache 2 License.</span>
+    </p>
+    <p style="float: right; font-size: 12px;">
+      Last updated: Aug 10, 2017
+    </p>
+  </div>
+</div>
+<script type="text/javascript">
+  var $toc = $('#toc');
+  $toc.toc();
+
+  // show clickable section sign when section header hovered:
+  $('.section h2,.section h3,.section h4,.section h5').each(function(i, el) {
+      var $el = $(el);
+      $el.prepend($("<a class='section-marker' href='#" + $el.attr("id") + "'>&sect;</a>"))
+  });
+</script>
+
+<!-- Algolia docs search -->
+<script type="text/javascript">
+  var version = DOCUMENTATION_OPTIONS.VERSION;
+
+  var lang = "scala";
+  var path = window.location.pathname;
+  if (path.includes("/java/") || path.includes("java.html")) lang = "java";
+
+  console.log("Search configured for:", lang, "@", version);
+
+  docsearch({
+    apiKey: '543bad5ad786495d9ccd445ed34ed082',
+    indexName: 'akka_io',
+    inputSelector: '#search',
+    algoliaOptions: {
+      hitsPerPage: 5,
+      facetFilters: '[' + '["language:' + lang + '","language:general"]' + ',"version:' + version + '"]'
+    }
+  });
+
+  // set up "/" as global shortcut for focusing on search
+  $(document).keypress(function (event) {
+    if (event.keyCode == 47) {
+      $("#q").focus();
+      return false; // swallow key event, otherwise the / char would be input into the search box
+    }
+  });
+</script>
+
+  
+
+  </body>
+</html>

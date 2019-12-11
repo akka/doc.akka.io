@@ -1,0 +1,960 @@
+
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Serialization (Scala) &mdash; Akka Documentation</title>
+    <link rel="stylesheet" href="../_static/style.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/prettify.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/base.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
+    <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Exo:300,400,600,700" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '1.3.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+<script type="text/javascript" src="https://doc.akka.io/docs/akka/1.3.1/_static/warnOldDocs.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="../_static/toc.js"></script>
+    <script type="text/javascript" src="../_static/prettify.js"></script>
+    <script type="text/javascript" src="../_static/highlightCode.js"></script>
+    <script type="text/javascript" src="../_static/effects.core.js"></script>
+    <script type="text/javascript" src="../_static/effects.highlight.js"></script>
+    <script type="text/javascript" src="../_static/scrollTo.js"></script>
+    <script type="text/javascript" src="../_static/contentsFix.js"></script>
+    <link rel="shortcut icon" href="../_static/favicon.ico"/>
+    <link rel="top" title="Akka Documentation" href="../index.html" />
+    <link rel="up" title="Scala API" href="index.html" />
+    <link rel="next" title="Fault Tolerance Through Supervisor Hierarchies (Scala)" href="fault-tolerance.html" />
+    <link rel="prev" title="Remote Actors (Scala)" href="remote-actors.html" /> 
+  </head>
+  <body>
+  <div class="navbar">
+    <div class="navbar-inner">
+      <div class="container">
+        <div class="navbar-logo">
+          <a href="https://akka.io"><img src="../_static/logo-small.png" /></a>
+        </div>    
+        <ul class="nav">
+          <li><a href="https://akka.io/docs">Documentation</a></li>
+          <li><a href="https://akka.io/downloads">Download</a></li>
+          <li><a href="http://groups.google.com/group/akka-user">Mailing List</a></li>
+          <li><a href="http://github.com/akka/akka">Code</a></li>           
+          <li><a href="http://typesafe.com/products/typesafe-subscription">Commercial Support</a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="main">
+    <div class="container">
+      <div class="page-title">Serialization (Scala)</div><div class="pdf-link"><a href="https://doc.akka.io/docs/akka/1.3.1/Akka.pdf"><img src="../_static/pdf-icon.png" style="height: 40px;" /></a></div></div>
+    <div class="main-container">
+      <div class="container">
+        <div class="row">
+          <div class="span12">
+            <ul class="breadcrumb">           
+              <li>
+                 <span class="divider">|</span> <a href="fault-tolerance.html">Fault Tolerance Through Supervisor Hierarchies (Scala)</a> <span class="divider">»</span>
+              </li>
+              <li>
+                <a href="../index.html">Contents</a>
+              </li>
+              <li>
+                <span class="divider">«</span> <a href="remote-actors.html">Remote Actors (Scala)</a> <span class="divider">|</span>
+              </li>
+              <li>
+                Version 1.3.1
+              </li>
+            </ul>         
+          </div>
+        </div>
+        <div class="row">
+          <div class="span9">
+            
+  <div class="section" id="serialization-scala">
+<span id="id1"></span><h1>Serialization (Scala)</h1>
+<p>Module stability: <strong>SOLID</strong></p>
+<div class="section" id="serialization-of-actorref">
+<h2>Serialization of ActorRef</h2>
+<p>An Actor can be serialized in two different ways:</p>
+<ul class="simple">
+<li>Serializable RemoteActorRef - Serialized to an immutable, network-aware Actor reference that can be freely shared across the network. They &#8220;remember&#8221; and stay mapped to their original Actor instance and host node, and will always work as expected.</li>
+<li>Serializable LocalActorRef - Serialized by doing a deep copy of both the ActorRef and the Actor instance itself. Can be used to physically move an Actor from one node to another and continue the execution there.</li>
+</ul>
+<p>Both of these can be sent as messages over the network and/or store them to disk, in a persistent storage backend etc.</p>
+<p>Actor serialization in Akka is implemented through a type class <tt class="docutils literal"><span class="pre">Format[T</span> <span class="pre">&lt;:</span> <span class="pre">Actor]</span></tt> which publishes the <tt class="docutils literal"><span class="pre">fromBinary</span></tt> and <tt class="docutils literal"><span class="pre">toBinary</span></tt> methods for serialization. Here&#8217;s the complete definition of the type class:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="cm">/**</span>
+<span class="cm"> * Type class definition for Actor Serialization</span>
+<span class="cm"> */</span>
+<span class="k">trait</span> <span class="nc">FromBinary</span><span class="o">[</span><span class="kt">T</span> <span class="k">&lt;:</span> <span class="kt">Actor</span><span class="o">]</span> <span class="o">{</span>
+  <span class="k">def</span> <span class="n">fromBinary</span><span class="o">(</span><span class="n">bytes</span><span class="k">:</span> <span class="kt">Array</span><span class="o">[</span><span class="kt">Byte</span><span class="o">],</span> <span class="n">act</span><span class="k">:</span> <span class="kt">T</span><span class="o">)</span><span class="k">:</span> <span class="kt">T</span>
+<span class="o">}</span>
+
+<span class="k">trait</span> <span class="nc">ToBinary</span><span class="o">[</span><span class="kt">T</span> <span class="k">&lt;:</span> <span class="kt">Actor</span><span class="o">]</span> <span class="o">{</span>
+  <span class="k">def</span> <span class="n">toBinary</span><span class="o">(</span><span class="n">t</span><span class="k">:</span> <span class="kt">T</span><span class="o">)</span><span class="k">:</span> <span class="kt">Array</span><span class="o">[</span><span class="kt">Byte</span><span class="o">]</span>
+<span class="o">}</span>
+
+<span class="c1">// client needs to implement Format[] for the respective actor</span>
+<span class="k">trait</span> <span class="nc">Format</span><span class="o">[</span><span class="kt">T</span> <span class="k">&lt;:</span> <span class="kt">Actor</span><span class="o">]</span> <span class="nc">extends</span> <span class="nc">FromBinary</span><span class="o">[</span><span class="kt">T</span><span class="o">]</span> <span class="k">with</span> <span class="nc">ToBinary</span><span class="o">[</span><span class="kt">T</span><span class="o">]</span>
+</pre></div>
+</div>
+<div class="section" id="deep-serialization-of-an-actor-and-actorref">
+<h3>Deep serialization of an Actor and ActorRef</h3>
+<p>You can serialize the whole actor deeply, e.g. both the <tt class="docutils literal"><span class="pre">ActorRef</span></tt> and then instance of its <tt class="docutils literal"><span class="pre">Actor</span></tt>. This can be useful if you want to move an actor from one node to another, or if you want to store away an actor, with its state, into a database.</p>
+<p>Here is an example of how to serialize an Actor.</p>
+<p>Step 1: Define the actor</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">class</span> <span class="nc">MyActor</span> <span class="k">extends</span> <span class="nc">Actor</span> <span class="o">{</span>
+  <span class="k">var</span> <span class="n">count</span> <span class="k">=</span> <span class="mi">0</span>
+
+  <span class="k">def</span> <span class="n">receive</span> <span class="k">=</span> <span class="o">{</span>
+    <span class="k">case</span> <span class="s">&quot;hello&quot;</span> <span class="k">=&gt;</span>
+      <span class="n">count</span> <span class="k">=</span> <span class="n">count</span> <span class="o">+</span> <span class="mi">1</span>
+      <span class="n">self</span><span class="o">.</span><span class="n">reply</span><span class="o">(</span><span class="s">&quot;world &quot;</span> <span class="o">+</span> <span class="n">count</span><span class="o">)</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<p>Step 2: Implement the type class for the actor. ProtobufProtocol.Counter is something you need to define yourself, as
+explained in the Protobuf section.</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">import</span> <span class="nn">akka.serialization.</span><span class="o">{</span><span class="nc">Serializer</span><span class="o">,</span> <span class="nc">Format</span><span class="o">}</span>
+<span class="k">import</span> <span class="nn">akka.actor.Actor</span>
+<span class="k">import</span> <span class="nn">akka.actor.Actor._</span>
+
+<span class="k">object</span> <span class="nc">BinaryFormatMyActor</span> <span class="o">{</span>
+  <span class="k">implicit</span> <span class="k">object</span> <span class="nc">MyActorFormat</span> <span class="k">extends</span> <span class="nc">Format</span><span class="o">[</span><span class="kt">MyActor</span><span class="o">]</span> <span class="o">{</span>
+    <span class="k">def</span> <span class="n">fromBinary</span><span class="o">(</span><span class="n">bytes</span><span class="k">:</span> <span class="kt">Array</span><span class="o">[</span><span class="kt">Byte</span><span class="o">],</span> <span class="n">act</span><span class="k">:</span> <span class="kt">MyActor</span><span class="o">)</span> <span class="k">=</span> <span class="o">{</span>
+      <span class="k">val</span> <span class="n">p</span> <span class="k">=</span> <span class="nc">Serializer</span><span class="o">.</span><span class="nc">Protobuf</span><span class="o">.</span><span class="n">fromBinary</span><span class="o">(</span><span class="n">bytes</span><span class="o">,</span> <span class="nc">Some</span><span class="o">(</span><span class="n">classOf</span><span class="o">[</span><span class="kt">ProtobufProtocol.Counter</span><span class="o">])).</span><span class="n">asInstanceOf</span><span class="o">[</span><span class="kt">ProtobufProtocol.Counter</span><span class="o">]</span>
+      <span class="n">act</span><span class="o">.</span><span class="n">count</span> <span class="k">=</span> <span class="n">p</span><span class="o">.</span><span class="n">getCount</span>
+      <span class="n">act</span>
+    <span class="o">}</span>
+    <span class="k">def</span> <span class="n">toBinary</span><span class="o">(</span><span class="n">ac</span><span class="k">:</span> <span class="kt">MyActor</span><span class="o">)</span> <span class="k">=</span>
+      <span class="nc">ProtobufProtocol</span><span class="o">.</span><span class="nc">Counter</span><span class="o">.</span><span class="n">newBuilder</span><span class="o">.</span><span class="n">setCount</span><span class="o">(</span><span class="n">ac</span><span class="o">.</span><span class="n">count</span><span class="o">).</span><span class="n">build</span><span class="o">.</span><span class="n">toByteArray</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<p>Step 3: Import the type class module definition and serialize / de-serialize</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="n">it</span><span class="o">(</span><span class="s">&quot;should be able to serialize and de-serialize a stateful actor&quot;</span><span class="o">)</span> <span class="o">{</span>
+  <span class="k">import</span> <span class="nn">akka.serialization.ActorSerialization._</span>
+  <span class="k">import</span> <span class="nn">BinaryFormatMyActor._</span>
+
+  <span class="k">val</span> <span class="n">actor1</span> <span class="k">=</span> <span class="n">actorOf</span><span class="o">[</span><span class="kt">MyActor</span><span class="o">].</span><span class="n">start</span><span class="o">()</span>
+  <span class="o">(</span><span class="n">actor1</span> <span class="o">?</span> <span class="s">&quot;hello&quot;</span><span class="o">).</span><span class="n">as</span><span class="o">[</span><span class="kt">String</span><span class="o">].</span><span class="n">getOrElse</span><span class="o">(</span><span class="s">&quot;_&quot;</span><span class="o">)</span> <span class="n">should</span> <span class="n">equal</span><span class="o">(</span><span class="s">&quot;world 1&quot;</span><span class="o">)</span>
+  <span class="o">(</span><span class="n">actor1</span> <span class="o">?</span> <span class="s">&quot;hello&quot;</span><span class="o">).</span><span class="n">as</span><span class="o">[</span><span class="kt">String</span><span class="o">].</span><span class="n">getOrElse</span><span class="o">(</span><span class="s">&quot;_&quot;</span><span class="o">)</span> <span class="n">should</span> <span class="n">equal</span><span class="o">(</span><span class="s">&quot;world 2&quot;</span><span class="o">)</span>
+
+  <span class="k">val</span> <span class="n">bytes</span> <span class="k">=</span> <span class="n">toBinary</span><span class="o">(</span><span class="n">actor1</span><span class="o">)</span>
+  <span class="k">val</span> <span class="n">actor2</span> <span class="k">=</span> <span class="n">fromBinary</span><span class="o">(</span><span class="n">bytes</span><span class="o">)</span>
+  <span class="n">actor2</span><span class="o">.</span><span class="n">start</span><span class="o">()</span>
+  <span class="o">(</span><span class="n">actor2</span> <span class="o">?</span> <span class="s">&quot;hello&quot;</span><span class="o">).</span><span class="n">as</span><span class="o">[</span><span class="kt">String</span><span class="o">].</span><span class="n">getOrElse</span><span class="o">(</span><span class="s">&quot;_&quot;</span><span class="o">)</span> <span class="n">should</span> <span class="n">equal</span><span class="o">(</span><span class="s">&quot;world 3&quot;</span><span class="o">)</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="helper-type-class-for-stateless-actors">
+<h3>Helper Type Class for Stateless Actors</h3>
+<p>If your actor is stateless, then you can use the helper trait that Akka provides to serialize / de-serialize. Here&#8217;s the definition:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">trait</span> <span class="nc">StatelessActorFormat</span><span class="o">[</span><span class="kt">T</span> <span class="k">&lt;:</span> <span class="kt">Actor</span><span class="o">]</span> <span class="nc">extends</span> <span class="nc">Format</span><span class="o">[</span><span class="kt">T</span><span class="o">]</span> <span class="o">{</span>
+  <span class="k">def</span> <span class="n">fromBinary</span><span class="o">(</span><span class="n">bytes</span><span class="k">:</span> <span class="kt">Array</span><span class="o">[</span><span class="kt">Byte</span><span class="o">],</span> <span class="n">act</span><span class="k">:</span> <span class="kt">T</span><span class="o">)</span> <span class="k">=</span> <span class="n">act</span>
+  <span class="k">def</span> <span class="n">toBinary</span><span class="o">(</span><span class="n">ac</span><span class="k">:</span> <span class="kt">T</span><span class="o">)</span> <span class="k">=</span> <span class="nc">Array</span><span class="o">.</span><span class="n">empty</span><span class="o">[</span><span class="kt">Byte</span><span class="o">]</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<p>Then you use it as follows:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">class</span> <span class="nc">MyStatelessActor</span> <span class="k">extends</span> <span class="nc">Actor</span> <span class="o">{</span>
+  <span class="k">def</span> <span class="n">receive</span> <span class="k">=</span> <span class="o">{</span>
+    <span class="k">case</span> <span class="s">&quot;hello&quot;</span> <span class="k">=&gt;</span>
+      <span class="n">self</span><span class="o">.</span><span class="n">reply</span><span class="o">(</span><span class="s">&quot;world&quot;</span><span class="o">)</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<p>Just create an object for the helper trait for your actor:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">object</span> <span class="nc">BinaryFormatMyStatelessActor</span> <span class="o">{</span>
+  <span class="k">implicit</span> <span class="k">object</span> <span class="nc">MyStatelessActorFormat</span> <span class="k">extends</span> <span class="nc">StatelessActorFormat</span><span class="o">[</span><span class="kt">MyStatelessActor</span><span class="o">]</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<p>and use it for serialization:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="n">it</span><span class="o">(</span><span class="s">&quot;should be able to serialize and de-serialize a stateless actor&quot;</span><span class="o">)</span> <span class="o">{</span>
+  <span class="k">import</span> <span class="nn">akka.serialization.ActorSerialization._</span>
+  <span class="k">import</span> <span class="nn">BinaryFormatMyStatelessActor._</span>
+
+  <span class="k">val</span> <span class="n">actor1</span> <span class="k">=</span> <span class="n">actorOf</span><span class="o">[</span><span class="kt">MyStatelessActor</span><span class="o">].</span><span class="n">start</span><span class="o">()</span>
+  <span class="o">(</span><span class="n">actor1</span> <span class="o">?</span> <span class="s">&quot;hello&quot;</span><span class="o">).</span><span class="n">as</span><span class="o">[</span><span class="kt">String</span><span class="o">].</span><span class="n">getOrElse</span><span class="o">(</span><span class="s">&quot;_&quot;</span><span class="o">)</span> <span class="n">should</span> <span class="n">equal</span><span class="o">(</span><span class="s">&quot;world&quot;</span><span class="o">)</span>
+  <span class="o">(</span><span class="n">actor1</span> <span class="o">?</span> <span class="s">&quot;hello&quot;</span><span class="o">).</span><span class="n">as</span><span class="o">[</span><span class="kt">String</span><span class="o">].</span><span class="n">getOrElse</span><span class="o">(</span><span class="s">&quot;_&quot;</span><span class="o">)</span> <span class="n">should</span> <span class="n">equal</span><span class="o">(</span><span class="s">&quot;world&quot;</span><span class="o">)</span>
+
+  <span class="k">val</span> <span class="n">bytes</span> <span class="k">=</span> <span class="n">toBinary</span><span class="o">(</span><span class="n">actor1</span><span class="o">)</span>
+  <span class="k">val</span> <span class="n">actor2</span> <span class="k">=</span> <span class="n">fromBinary</span><span class="o">(</span><span class="n">bytes</span><span class="o">)</span>
+  <span class="n">actor2</span><span class="o">.</span><span class="n">start</span><span class="o">()</span>
+  <span class="o">(</span><span class="n">actor2</span> <span class="o">?</span> <span class="s">&quot;hello&quot;</span><span class="o">).</span><span class="n">as</span><span class="o">[</span><span class="kt">String</span><span class="o">].</span><span class="n">getOrElse</span><span class="o">(</span><span class="s">&quot;_&quot;</span><span class="o">)</span> <span class="n">should</span> <span class="n">equal</span><span class="o">(</span><span class="s">&quot;world&quot;</span><span class="o">)</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="helper-type-class-for-actors-with-external-serializer">
+<h3>Helper Type Class for actors with external serializer</h3>
+<p>Use the trait <tt class="docutils literal"><span class="pre">SerializerBasedActorFormat</span></tt> for specifying serializers.</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">trait</span> <span class="nc">SerializerBasedActorFormat</span><span class="o">[</span><span class="kt">T</span> <span class="k">&lt;:</span> <span class="kt">Actor</span><span class="o">]</span> <span class="nc">extends</span> <span class="nc">Format</span><span class="o">[</span><span class="kt">T</span><span class="o">]</span> <span class="o">{</span>
+  <span class="k">val</span> <span class="n">serializer</span><span class="k">:</span> <span class="kt">Serializer</span>
+  <span class="k">def</span> <span class="n">fromBinary</span><span class="o">(</span><span class="n">bytes</span><span class="k">:</span> <span class="kt">Array</span><span class="o">[</span><span class="kt">Byte</span><span class="o">],</span> <span class="n">act</span><span class="k">:</span> <span class="kt">T</span><span class="o">)</span> <span class="k">=</span> <span class="n">serializer</span><span class="o">.</span><span class="n">fromBinary</span><span class="o">(</span><span class="n">bytes</span><span class="o">,</span> <span class="nc">Some</span><span class="o">(</span><span class="n">act</span><span class="o">.</span><span class="n">self</span><span class="o">.</span><span class="n">actorClass</span><span class="o">)).</span><span class="n">asInstanceOf</span><span class="o">[</span><span class="kt">T</span><span class="o">]</span>
+  <span class="k">def</span> <span class="n">toBinary</span><span class="o">(</span><span class="n">ac</span><span class="k">:</span> <span class="kt">T</span><span class="o">)</span> <span class="k">=</span> <span class="n">serializer</span><span class="o">.</span><span class="n">toBinary</span><span class="o">(</span><span class="n">ac</span><span class="o">)</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<p>For a Java serializable actor:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">class</span> <span class="nc">MyJavaSerializableActor</span> <span class="k">extends</span> <span class="nc">Actor</span> <span class="k">with</span> <span class="n">scala</span><span class="o">.</span><span class="nc">Serializable</span> <span class="o">{</span>
+  <span class="k">var</span> <span class="n">count</span> <span class="k">=</span> <span class="mi">0</span>
+
+  <span class="k">def</span> <span class="n">receive</span> <span class="k">=</span> <span class="o">{</span>
+    <span class="k">case</span> <span class="s">&quot;hello&quot;</span> <span class="k">=&gt;</span>
+      <span class="n">count</span> <span class="k">=</span> <span class="n">count</span> <span class="o">+</span> <span class="mi">1</span>
+      <span class="n">self</span><span class="o">.</span><span class="n">reply</span><span class="o">(</span><span class="s">&quot;world &quot;</span> <span class="o">+</span> <span class="n">count</span><span class="o">)</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<p>Create a module for the type class ..</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">import</span> <span class="nn">akka.serialization.</span><span class="o">{</span><span class="nc">SerializerBasedActorFormat</span><span class="o">,</span> <span class="nc">Serializer</span><span class="o">}</span>
+
+<span class="k">object</span> <span class="nc">BinaryFormatMyJavaSerializableActor</span> <span class="o">{</span>
+  <span class="k">implicit</span> <span class="k">object</span> <span class="nc">MyJavaSerializableActorFormat</span> <span class="k">extends</span> <span class="nc">SerializerBasedActorFormat</span><span class="o">[</span><span class="kt">MyJavaSerializableActor</span><span class="o">]</span> <span class="o">{</span>
+    <span class="k">val</span> <span class="n">serializer</span> <span class="k">=</span> <span class="nc">Serializer</span><span class="o">.</span><span class="nc">Java</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<p>and serialize / de-serialize ..</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="n">it</span><span class="o">(</span><span class="s">&quot;should be able to serialize and de-serialize a stateful actor with a given serializer&quot;</span><span class="o">)</span> <span class="o">{</span>
+  <span class="k">import</span> <span class="nn">akka.actor.Actor._</span>
+  <span class="k">import</span> <span class="nn">akka.serialization.ActorSerialization._</span>
+  <span class="k">import</span> <span class="nn">BinaryFormatMyJavaSerializableActor._</span>
+
+  <span class="k">val</span> <span class="n">actor1</span> <span class="k">=</span> <span class="n">actorOf</span><span class="o">[</span><span class="kt">MyJavaSerializableActor</span><span class="o">].</span><span class="n">start</span><span class="o">()</span>
+  <span class="o">(</span><span class="n">actor1</span> <span class="o">?</span> <span class="s">&quot;hello&quot;</span><span class="o">).</span><span class="n">as</span><span class="o">[</span><span class="kt">String</span><span class="o">].</span><span class="n">getOrElse</span><span class="o">(</span><span class="s">&quot;_&quot;</span><span class="o">)</span> <span class="n">should</span> <span class="n">equal</span><span class="o">(</span><span class="s">&quot;world 1&quot;</span><span class="o">)</span>
+  <span class="o">(</span><span class="n">actor1</span> <span class="o">?</span> <span class="s">&quot;hello&quot;</span><span class="o">).</span><span class="n">as</span><span class="o">[</span><span class="kt">String</span><span class="o">].</span><span class="n">getOrElse</span><span class="o">(</span><span class="s">&quot;_&quot;</span><span class="o">)</span> <span class="n">should</span> <span class="n">equal</span><span class="o">(</span><span class="s">&quot;world 2&quot;</span><span class="o">)</span>
+
+  <span class="k">val</span> <span class="n">bytes</span> <span class="k">=</span> <span class="n">toBinary</span><span class="o">(</span><span class="n">actor1</span><span class="o">)</span>
+  <span class="k">val</span> <span class="n">actor2</span> <span class="k">=</span> <span class="n">fromBinary</span><span class="o">(</span><span class="n">bytes</span><span class="o">)</span>
+  <span class="n">actor2</span><span class="o">.</span><span class="n">start</span><span class="o">()</span>
+  <span class="o">(</span><span class="n">actor2</span> <span class="o">?</span> <span class="s">&quot;hello&quot;</span><span class="o">).</span><span class="n">as</span><span class="o">[</span><span class="kt">String</span><span class="o">].</span><span class="n">getOrElse</span><span class="o">(</span><span class="s">&quot;_&quot;</span><span class="o">)</span> <span class="n">should</span> <span class="n">equal</span><span class="o">(</span><span class="s">&quot;world 3&quot;</span><span class="o">)</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="serialization-of-a-remoteactorref">
+<h2>Serialization of a RemoteActorRef</h2>
+<p>You can serialize an <tt class="docutils literal"><span class="pre">ActorRef</span></tt> to an immutable, network-aware Actor reference that can be freely shared across the network, a reference that &#8220;remembers&#8221; and stay mapped to its original Actor instance and host node, and will always work as expected.</p>
+<p>The <tt class="docutils literal"><span class="pre">RemoteActorRef</span></tt> serialization is based upon Protobuf (Google Protocol Buffers) and you don&#8217;t need to do anything to use it, it works on any <tt class="docutils literal"><span class="pre">ActorRef</span></tt>.</p>
+<p>Currently Akka will <strong>not</strong> autodetect an <tt class="docutils literal"><span class="pre">ActorRef</span></tt> as part of your message and serialize it for you automatically, so you have to do that manually or as part of your custom serialization mechanisms.</p>
+<p>Here is an example of how to serialize an Actor.</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">import</span> <span class="nn">akka.serialization.RemoteActorSerialization._</span>
+
+<span class="k">val</span> <span class="n">actor1</span> <span class="k">=</span> <span class="n">actorOf</span><span class="o">[</span><span class="kt">MyActor</span><span class="o">]</span>
+
+<span class="k">val</span> <span class="n">bytes</span> <span class="k">=</span> <span class="n">toRemoteActorRefProtocol</span><span class="o">(</span><span class="n">actor1</span><span class="o">).</span><span class="n">toByteArray</span>
+</pre></div>
+</div>
+<p>To deserialize the <tt class="docutils literal"><span class="pre">ActorRef</span></tt> to a <tt class="docutils literal"><span class="pre">RemoteActorRef</span></tt> you need to use the <tt class="docutils literal"><span class="pre">fromBinaryToRemoteActorRef(bytes:</span> <span class="pre">Array[Byte])</span></tt> method on the <tt class="docutils literal"><span class="pre">ActorRef</span></tt> companion object:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">import</span> <span class="nn">akka.serialization.RemoteActorSerialization._</span>
+<span class="k">val</span> <span class="n">actor2</span> <span class="k">=</span> <span class="n">fromBinaryToRemoteActorRef</span><span class="o">(</span><span class="n">bytes</span><span class="o">)</span>
+</pre></div>
+</div>
+<p>You can also pass in a class loader to load the <tt class="docutils literal"><span class="pre">ActorRef</span></tt> class and dependencies from:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">import</span> <span class="nn">akka.serialization.RemoteActorSerialization._</span>
+<span class="k">val</span> <span class="n">actor2</span> <span class="k">=</span> <span class="n">fromBinaryToRemoteActorRef</span><span class="o">(</span><span class="n">bytes</span><span class="o">,</span> <span class="n">classLoader</span><span class="o">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="deep-serialization-of-a-typedactor">
+<h2>Deep serialization of a TypedActor</h2>
+<p>Serialization of typed actors works almost the same way as untyped actors. You can serialize the whole actor deeply, e.g. both the &#8216;proxied ActorRef&#8217; and the instance of its <tt class="docutils literal"><span class="pre">TypedActor</span></tt>.</p>
+<p>Here is the example from above implemented as a TypedActor.</p>
+<p>Step 1: Define the actor</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">import</span> <span class="nn">akka.actor.TypedActor</span>
+
+<span class="k">trait</span> <span class="nc">MyTypedActor</span> <span class="o">{</span>
+  <span class="k">def</span> <span class="n">requestReply</span><span class="o">(</span><span class="n">s</span><span class="k">:</span> <span class="kt">String</span><span class="o">)</span> <span class="k">:</span> <span class="kt">String</span>
+  <span class="k">def</span> <span class="n">oneWay</span><span class="o">()</span> <span class="k">:</span> <span class="kt">Unit</span>
+<span class="o">}</span>
+
+<span class="k">class</span> <span class="nc">MyTypedActorImpl</span> <span class="k">extends</span> <span class="nc">TypedActor</span> <span class="k">with</span> <span class="nc">MyTypedActor</span> <span class="o">{</span>
+  <span class="k">var</span> <span class="n">count</span> <span class="k">=</span> <span class="mi">0</span>
+
+  <span class="k">override</span> <span class="k">def</span> <span class="n">requestReply</span><span class="o">(</span><span class="n">message</span><span class="k">:</span> <span class="kt">String</span><span class="o">)</span> <span class="k">:</span> <span class="kt">String</span> <span class="o">=</span> <span class="o">{</span>
+    <span class="n">count</span> <span class="k">=</span> <span class="n">count</span> <span class="o">+</span> <span class="mi">1</span>
+    <span class="s">&quot;world &quot;</span> <span class="o">+</span> <span class="n">count</span>
+  <span class="o">}</span>
+
+  <span class="k">override</span> <span class="k">def</span> <span class="n">oneWay</span><span class="o">()</span> <span class="o">{</span>
+    <span class="n">count</span> <span class="k">=</span> <span class="n">count</span> <span class="o">+</span> <span class="mi">1</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<p>Step 2: Implement the type class for the actor</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">import</span> <span class="nn">akka.serialization.</span><span class="o">{</span><span class="nc">Serializer</span><span class="o">,</span> <span class="nc">Format</span><span class="o">}</span>
+
+<span class="k">class</span> <span class="nc">MyTypedActorFormat</span> <span class="k">extends</span> <span class="nc">Format</span><span class="o">[</span><span class="kt">MyTypedActorImpl</span><span class="o">]</span> <span class="o">{</span>
+  <span class="k">def</span> <span class="n">fromBinary</span><span class="o">(</span><span class="n">bytes</span><span class="k">:</span> <span class="kt">Array</span><span class="o">[</span><span class="kt">Byte</span><span class="o">],</span> <span class="n">act</span><span class="k">:</span> <span class="kt">MyTypedActorImpl</span><span class="o">)</span> <span class="k">=</span> <span class="o">{</span>
+    <span class="k">val</span> <span class="n">p</span> <span class="k">=</span> <span class="nc">Serializer</span><span class="o">.</span><span class="nc">Protobuf</span><span class="o">.</span><span class="n">fromBinary</span><span class="o">(</span><span class="n">bytes</span><span class="o">,</span> <span class="nc">Some</span><span class="o">(</span><span class="n">classOf</span><span class="o">[</span><span class="kt">ProtobufProtocol.Counter</span><span class="o">])).</span><span class="n">asInstanceOf</span><span class="o">[</span><span class="kt">ProtobufProtocol.Counter</span><span class="o">]</span>
+    <span class="n">act</span><span class="o">.</span><span class="n">count</span> <span class="k">=</span> <span class="n">p</span><span class="o">.</span><span class="n">getCount</span>
+    <span class="n">act</span>
+  <span class="o">}</span>
+  <span class="k">def</span> <span class="n">toBinary</span><span class="o">(</span><span class="n">ac</span><span class="k">:</span> <span class="kt">MyTypedActorImpl</span><span class="o">)</span> <span class="k">=</span> <span class="nc">ProtobufProtocol</span><span class="o">.</span><span class="nc">Counter</span><span class="o">.</span><span class="n">newBuilder</span><span class="o">.</span><span class="n">setCount</span><span class="o">(</span><span class="n">ac</span><span class="o">.</span><span class="n">count</span><span class="o">).</span><span class="n">build</span><span class="o">.</span><span class="n">toByteArray</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<p>Step 3: Import the type class module definition and serialize / de-serialize</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">import</span> <span class="nn">akka.serialization.TypedActorSerialization._</span>
+
+<span class="k">val</span> <span class="n">typedActor1</span> <span class="k">=</span> <span class="nc">TypedActor</span><span class="o">.</span><span class="n">newInstance</span><span class="o">(</span><span class="n">classOf</span><span class="o">[</span><span class="kt">MyTypedActor</span><span class="o">],</span> <span class="n">classOf</span><span class="o">[</span><span class="kt">MyTypedActorImpl</span><span class="o">],</span> <span class="mi">1000</span><span class="o">)</span>
+
+<span class="k">val</span> <span class="n">f</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">MyTypedActorFormat</span>
+<span class="k">val</span> <span class="n">bytes</span> <span class="k">=</span> <span class="n">toBinaryJ</span><span class="o">(</span><span class="n">typedActor1</span><span class="o">,</span> <span class="n">f</span><span class="o">)</span>
+
+<span class="k">val</span> <span class="n">typedActor2</span><span class="k">:</span> <span class="kt">MyTypedActor</span> <span class="o">=</span> <span class="n">fromBinaryJ</span><span class="o">(</span><span class="n">bytes</span><span class="o">,</span> <span class="n">f</span><span class="o">)</span>   <span class="c1">//type hint needed</span>
+<span class="n">typedActor2</span><span class="o">.</span><span class="n">requestReply</span><span class="o">(</span><span class="s">&quot;hello&quot;</span><span class="o">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="serialization-of-a-remote-typed-actorref">
+<h2>Serialization of a remote typed ActorRef</h2>
+<p>To deserialize the TypedActor to a <tt class="docutils literal"><span class="pre">RemoteTypedActorRef</span></tt> (an aspectwerkz proxy to a RemoteActorRef) you need to use the <tt class="docutils literal"><span class="pre">fromBinaryToRemoteTypedActorRef(bytes:</span> <span class="pre">Array[Byte])</span></tt> method on <tt class="docutils literal"><span class="pre">RemoteTypedActorSerialization</span></tt> object:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">import</span> <span class="nn">akka.serialization.RemoteTypedActorSerialization._</span>
+<span class="k">val</span> <span class="n">typedActor</span> <span class="k">=</span> <span class="n">fromBinaryToRemoteTypedActorRef</span><span class="o">(</span><span class="n">bytes</span><span class="o">)</span>
+
+<span class="c1">// you can also pass in a class loader</span>
+<span class="k">val</span> <span class="n">typedActor2</span> <span class="k">=</span> <span class="n">fromBinaryToRemoteTypedActorRef</span><span class="o">(</span><span class="n">bytes</span><span class="o">,</span> <span class="n">classLoader</span><span class="o">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="compression">
+<h2>Compression</h2>
+<p>Akka has a helper class for doing compression of binary data. This can be useful for example when storing data in one of the backing storages. It currently supports LZF which is a very fast compression algorithm suited for runtime dynamic compression.</p>
+<p>Here is an example of how it can be used:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">import</span> <span class="nn">akka.serialization.Compression</span>
+
+<span class="k">val</span> <span class="n">bytes</span><span class="k">:</span> <span class="kt">Array</span><span class="o">[</span><span class="kt">Byte</span><span class="o">]</span> <span class="k">=</span> <span class="o">...</span>
+<span class="k">val</span> <span class="n">compressBytes</span> <span class="k">=</span> <span class="nc">Compression</span><span class="o">.</span><span class="nc">LZF</span><span class="o">.</span><span class="n">compress</span><span class="o">(</span><span class="n">bytes</span><span class="o">)</span>
+<span class="k">val</span> <span class="n">uncompressBytes</span> <span class="k">=</span> <span class="nc">Compression</span><span class="o">.</span><span class="nc">LZF</span><span class="o">.</span><span class="n">uncompress</span><span class="o">(</span><span class="n">compressBytes</span><span class="o">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="using-the-serializable-trait-and-serializer-class-for-custom-serialization">
+<h2>Using the Serializable trait and Serializer class for custom serialization</h2>
+<p>If you are sending messages to a remote Actor and these messages implement one of the predefined interfaces/traits in the <tt class="docutils literal"><span class="pre">akka.serialization.Serializable.*</span></tt> object, then Akka will transparently detect which serialization format it should use as wire protocol and will automatically serialize and deserialize the message according to this protocol.</p>
+<p>Each serialization interface/trait in</p>
+<ul class="simple">
+<li>akka.serialization.Serializable.*</li>
+</ul>
+<p>has a matching serializer in</p>
+<ul class="simple">
+<li>akka.serialization.Serializer.*</li>
+</ul>
+<p>Note however that if you are using one of the Serializable interfaces then you don’t have to do anything else in regard to sending remote messages.</p>
+<p>The ones currently supported are (besides the default which is regular Java serialization):</p>
+<ul class="simple">
+<li>ScalaJSON (Scala only)</li>
+<li>JavaJSON (Java but some Scala structures)</li>
+<li>Protobuf (Scala and Java)</li>
+</ul>
+<p>Apart from the above, Akka also supports Scala object serialization through <a class="reference external" href="http://github.com/debasishg/sjson/tree/master">SJSON</a> that implements APIs similar to <tt class="docutils literal"><span class="pre">akka.serialization.Serializer.*</span></tt>. See the section on SJSON below for details.</p>
+</div>
+<div class="section" id="protobuf">
+<h2>Protobuf</h2>
+<p>Akka supports using <a class="reference external" href="http://code.google.com/p/protobuf">Google Protocol Buffers</a> to serialize your objects. Protobuf is a very efficient network serialization protocol which is also used internally by Akka. The remote actors understand Protobuf messages so if you just send them as they are they will be correctly serialized and unserialized.</p>
+<p>Here is an example.</p>
+<p>Let&#8217;s say you have this Protobuf message specification that you want to use as message between remote actors. First you need to compiled it with &#8216;protoc&#8217; compiler.</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="n">message</span> <span class="nc">ProtobufPOJO</span> <span class="o">{</span>
+  <span class="n">required</span> <span class="n">uint64</span> <span class="n">id</span> <span class="k">=</span> <span class="mi">1</span><span class="o">;</span>
+  <span class="n">required</span> <span class="n">string</span> <span class="n">name</span> <span class="k">=</span> <span class="mi">2</span><span class="o">;</span>
+  <span class="n">required</span> <span class="n">bool</span> <span class="n">status</span> <span class="k">=</span> <span class="mi">3</span><span class="o">;</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<p>When you compile the spec you will among other things get a message builder. You then use this builder to create the messages to send over the wire:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">val</span> <span class="n">resultFuture</span> <span class="k">=</span> <span class="n">remoteActor</span> <span class="o">?</span> <span class="nc">ProtobufPOJO</span><span class="o">.</span><span class="n">newBuilder</span>
+    <span class="o">.</span><span class="n">setId</span><span class="o">(</span><span class="mi">11</span><span class="o">)</span>
+    <span class="o">.</span><span class="n">setStatus</span><span class="o">(</span><span class="kc">true</span><span class="o">)</span>
+    <span class="o">.</span><span class="n">setName</span><span class="o">(</span><span class="s">&quot;Coltrane&quot;</span><span class="o">)</span>
+    <span class="o">.</span><span class="n">build</span>
+</pre></div>
+</div>
+<p>The remote Actor can then receive the Protobuf message typed as-is:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">class</span> <span class="nc">MyRemoteActor</span> <span class="k">extends</span> <span class="nc">Actor</span> <span class="o">{</span>
+  <span class="k">def</span> <span class="n">receive</span> <span class="k">=</span> <span class="o">{</span>
+    <span class="k">case</span> <span class="n">pojo</span><span class="k">:</span> <span class="kt">ProtobufPOJO</span> <span class="o">=&gt;</span>
+     <span class="k">val</span> <span class="n">id</span> <span class="k">=</span> <span class="n">pojo</span><span class="o">.</span><span class="n">getId</span>
+     <span class="k">val</span> <span class="n">status</span> <span class="k">=</span> <span class="n">pojo</span><span class="o">.</span><span class="n">getStatus</span>
+     <span class="k">val</span> <span class="n">name</span> <span class="k">=</span> <span class="n">pojo</span><span class="o">.</span><span class="n">getName</span>
+      <span class="o">...</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="json-scala">
+<h2>JSON: Scala</h2>
+<p>Use the <tt class="docutils literal"><span class="pre">akka.serialization.Serializable.ScalaJSON</span></tt> base class with its toJSON method. Akka’s Scala JSON is based upon the SJSON library.</p>
+<p>For your POJOs to be able to serialize themselves you have to extend the ScalaJSON[] trait as follows. JSON serialization is based on a type class protocol which you need to define for your own abstraction. The instance of the type class is defined as an implicit object which is used for serialization and de-serialization. You also need to implement the methods in terms of the APIs which sjson publishes.</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">import</span> <span class="nn">akka.serialization._</span>
+<span class="k">import</span> <span class="nn">akka.serialization.Serializable.ScalaJSON</span>
+<span class="k">import</span> <span class="nn">akka.serialization.JsonSerialization._</span>
+<span class="k">import</span> <span class="nn">akka.serialization.DefaultProtocol._</span>
+
+<span class="k">case</span> <span class="k">class</span> <span class="nc">MyMessage</span><span class="o">(</span><span class="k">val</span> <span class="n">id</span><span class="k">:</span> <span class="kt">String</span><span class="o">,</span> <span class="k">val</span> <span class="n">value</span><span class="k">:</span> <span class="kt">Tuple2</span><span class="o">[</span><span class="kt">String</span>, <span class="kt">Int</span><span class="o">])</span> <span class="k">extends</span> <span class="nc">ScalaJSON</span><span class="o">[</span><span class="kt">MyMessage</span><span class="o">]</span> <span class="o">{</span>
+  <span class="c1">// type class instance</span>
+  <span class="k">implicit</span> <span class="k">val</span> <span class="nc">MyMessageFormat</span><span class="k">:</span> <span class="kt">sjson.json.Format</span><span class="o">[</span><span class="kt">MyMessage</span><span class="o">]</span> <span class="k">=</span>
+    <span class="n">asProduct2</span><span class="o">(</span><span class="s">&quot;id&quot;</span><span class="o">,</span> <span class="s">&quot;value&quot;</span><span class="o">)(</span><span class="nc">MyMessage</span><span class="o">)(</span><span class="nc">MyMessage</span><span class="o">.</span><span class="n">unapply</span><span class="o">(</span><span class="n">_</span><span class="o">).</span><span class="n">get</span><span class="o">)</span>
+
+  <span class="k">def</span> <span class="n">toJSON</span><span class="k">:</span> <span class="kt">String</span> <span class="o">=</span> <span class="nc">JsValue</span><span class="o">.</span><span class="n">toJson</span><span class="o">(</span><span class="n">tojson</span><span class="o">(</span><span class="k">this</span><span class="o">))</span>
+  <span class="k">def</span> <span class="n">toBytes</span><span class="k">:</span> <span class="kt">Array</span><span class="o">[</span><span class="kt">Byte</span><span class="o">]</span> <span class="k">=</span> <span class="n">tobinary</span><span class="o">(</span><span class="k">this</span><span class="o">)</span>
+  <span class="k">def</span> <span class="n">fromBytes</span><span class="o">(</span><span class="n">bytes</span><span class="k">:</span> <span class="kt">Array</span><span class="o">[</span><span class="kt">Byte</span><span class="o">])</span> <span class="k">=</span> <span class="n">frombinary</span><span class="o">[</span><span class="kt">MyMessage</span><span class="o">](</span><span class="n">bytes</span><span class="o">)</span>
+  <span class="k">def</span> <span class="n">fromJSON</span><span class="o">(</span><span class="n">js</span><span class="k">:</span> <span class="kt">String</span><span class="o">)</span> <span class="k">=</span> <span class="n">fromjson</span><span class="o">[</span><span class="kt">MyMessage</span><span class="o">](</span><span class="nc">Js</span><span class="o">(</span><span class="n">js</span><span class="o">))</span>
+<span class="o">}</span>
+
+<span class="c1">// sample test case</span>
+<span class="n">it</span><span class="o">(</span><span class="s">&quot;should be able to serialize and de-serialize MyMessage&quot;</span><span class="o">)</span> <span class="o">{</span>
+  <span class="k">val</span> <span class="n">s</span> <span class="k">=</span> <span class="nc">MyMessage</span><span class="o">(</span><span class="s">&quot;Target&quot;</span><span class="o">,</span> <span class="o">(</span><span class="s">&quot;cooker&quot;</span><span class="o">,</span> <span class="mi">120</span><span class="o">))</span>
+  <span class="n">s</span><span class="o">.</span><span class="n">fromBytes</span><span class="o">(</span><span class="n">s</span><span class="o">.</span><span class="n">toBytes</span><span class="o">)</span> <span class="n">should</span> <span class="n">equal</span><span class="o">(</span><span class="n">s</span><span class="o">)</span>
+  <span class="n">s</span><span class="o">.</span><span class="n">fromJSON</span><span class="o">(</span><span class="n">s</span><span class="o">.</span><span class="n">toJSON</span><span class="o">)</span> <span class="n">should</span> <span class="n">equal</span><span class="o">(</span><span class="n">s</span><span class="o">)</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<p>Use akka.serialization.Serializer.ScalaJSON to do generic JSON serialization, e.g. serialize object that does not extend ScalaJSON using the JSON serializer. Serialization using Serializer can be done in two ways :-</p>
+<ol class="arabic simple">
+<li>Type class based serialization (recommended)</li>
+<li>Reflection based serialization</li>
+</ol>
+<p>We will discuss both of these techniques in this section. For more details refer to the discussion in the next section SJSON: Scala.</p>
+<div class="section" id="serializer-api-using-type-classes">
+<h3>Serializer API using type classes</h3>
+<p>Here are the steps that you need to follow:</p>
+<ol class="arabic simple">
+<li>Define your class</li>
+</ol>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">case</span> <span class="k">class</span> <span class="nc">MyMessage</span><span class="o">(</span><span class="k">val</span> <span class="n">id</span><span class="k">:</span> <span class="kt">String</span><span class="o">,</span> <span class="k">val</span> <span class="n">value</span><span class="k">:</span> <span class="kt">Tuple2</span><span class="o">[</span><span class="kt">String</span>, <span class="kt">Int</span><span class="o">])</span>
+</pre></div>
+</div>
+<ol class="arabic simple" start="2">
+<li>Define the type class instance</li>
+</ol>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">import</span> <span class="nn">akka.serialization.DefaultProtocol._</span>
+<span class="k">implicit</span> <span class="k">val</span> <span class="nc">MyMessageFormat</span><span class="k">:</span> <span class="kt">sjson.json.Format</span><span class="o">[</span><span class="kt">MyMessage</span><span class="o">]</span> <span class="k">=</span>
+  <span class="n">asProduct2</span><span class="o">(</span><span class="s">&quot;id&quot;</span><span class="o">,</span> <span class="s">&quot;value&quot;</span><span class="o">)(</span><span class="nc">MyMessage</span><span class="o">)(</span><span class="nc">MyMessage</span><span class="o">.</span><span class="n">unapply</span><span class="o">(</span><span class="n">_</span><span class="o">).</span><span class="n">get</span><span class="o">)</span>
+</pre></div>
+</div>
+<ol class="arabic simple" start="3">
+<li>Serialize</li>
+</ol>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">import</span> <span class="nn">akka.serialization.Serializer.ScalaJSON</span>
+<span class="k">import</span> <span class="nn">akka.serialization.JsonSerialization._</span>
+
+<span class="k">val</span> <span class="n">o</span> <span class="k">=</span> <span class="nc">MyMessage</span><span class="o">(</span><span class="s">&quot;dg&quot;</span><span class="o">,</span> <span class="o">(</span><span class="s">&quot;akka&quot;</span><span class="o">,</span> <span class="mi">100</span><span class="o">))</span>
+<span class="n">fromjson</span><span class="o">[</span><span class="kt">MyMessage</span><span class="o">](</span><span class="n">tojson</span><span class="o">(</span><span class="n">o</span><span class="o">))</span> <span class="n">should</span> <span class="n">equal</span><span class="o">(</span><span class="n">o</span><span class="o">)</span>
+<span class="n">frombinary</span><span class="o">[</span><span class="kt">MyMessage</span><span class="o">](</span><span class="n">tobinary</span><span class="o">(</span><span class="n">o</span><span class="o">))</span> <span class="n">should</span> <span class="n">equal</span><span class="o">(</span><span class="n">o</span><span class="o">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="serializer-api-using-reflection">
+<h3>Serializer API using reflection</h3>
+<p>You can also use the Serializer abstraction to serialize using the reflection based serialization API of sjson. But we recommend using the type class based one, because reflection based serialization has limitations due to type erasure. Here&#8217;s an example of reflection based serialization:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">import</span> <span class="nn">scala.reflect.BeanInfo</span>
+<span class="k">import</span> <span class="nn">akka.serialization.Serializer</span>
+
+<span class="nd">@BeanInfo</span> <span class="k">case</span> <span class="k">class</span> <span class="nc">Foo</span><span class="o">(</span><span class="n">name</span><span class="k">:</span> <span class="kt">String</span><span class="o">)</span> <span class="o">{</span>
+  <span class="k">def</span> <span class="k">this</span><span class="o">()</span> <span class="k">=</span> <span class="k">this</span><span class="o">(</span><span class="kc">null</span><span class="o">)</span>  <span class="c1">// default constructor is necessary for deserialization</span>
+<span class="o">}</span>
+
+<span class="k">val</span> <span class="n">foo</span> <span class="k">=</span> <span class="nc">Foo</span><span class="o">(</span><span class="s">&quot;bar&quot;</span><span class="o">)</span>
+
+<span class="k">val</span> <span class="n">json</span> <span class="k">=</span> <span class="nc">Serializer</span><span class="o">.</span><span class="nc">ScalaJSON</span><span class="o">.</span><span class="n">toBinary</span><span class="o">(</span><span class="n">foo</span><span class="o">)</span>
+
+<span class="k">val</span> <span class="n">fooCopy</span> <span class="k">=</span> <span class="nc">Serializer</span><span class="o">.</span><span class="nc">ScalaJSON</span><span class="o">.</span><span class="n">fromBinary</span><span class="o">(</span><span class="n">json</span><span class="o">)</span> <span class="c1">// returns a JsObject as an AnyRef</span>
+
+<span class="k">val</span> <span class="n">fooCopy2</span> <span class="k">=</span> <span class="nc">Serializer</span><span class="o">.</span><span class="nc">ScalaJSON</span><span class="o">.</span><span class="n">fromJSON</span><span class="o">(</span><span class="k">new</span> <span class="nc">String</span><span class="o">(</span><span class="n">json</span><span class="o">))</span> <span class="c1">// can also take a string as input</span>
+
+<span class="k">val</span> <span class="n">fooCopy3</span> <span class="k">=</span> <span class="nc">Serializer</span><span class="o">.</span><span class="nc">ScalaJSON</span><span class="o">.</span><span class="n">fromBinary</span><span class="o">[</span><span class="kt">Foo</span><span class="o">](</span><span class="n">json</span><span class="o">).</span><span class="n">asInstanceOf</span><span class="o">[</span><span class="kt">Foo</span><span class="o">]</span>
+</pre></div>
+</div>
+<p>Classes without a &#64;BeanInfo annotation cannot be serialized as JSON.
+So if you see something like that:</p>
+<div class="highlight-scala"><pre>scala&gt; Serializer.ScalaJSON.out(bar)
+Serializer.ScalaJSON.out(bar)
+java.lang.UnsupportedOperationException: Class class Bar not supported for conversion
+        at sjson.json.JsBean$class.toJSON(JsBean.scala:210)
+        at sjson.json.Serializer$SJSON$.toJSON(Serializer.scala:107)
+        at sjson.json.Serializer$SJSON$class.out(Serializer.scala:37)
+        at sjson.json.Serializer$SJSON$.out(Serializer.scala:107)
+        at akka.serialization.Serializer$ScalaJSON...</pre>
+</div>
+<p>it means, that you haven&#8217;t got a &#64;BeanInfo annotation on your class.</p>
+<p>You may also see this exception when trying to serialize a case class without any attributes, like this:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="nd">@BeanInfo</span> <span class="k">case</span> <span class="k">class</span> <span class="nc">Empty</span><span class="o">()</span> <span class="c1">// cannot be serialized</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="sjson-scala">
+<h2>SJSON: Scala</h2>
+<p>SJSON supports serialization of Scala objects into JSON. It implements support for built in Scala structures like List, Map or String as well as custom objects. SJSON is available as an Apache 2 licensed project on Github <a class="reference external" href="http://github.com/debasishg/sjson/tree/master">here</a>.</p>
+<p>Example: I have a Scala object as ..</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">val</span> <span class="n">addr</span> <span class="k">=</span> <span class="nc">Address</span><span class="o">(</span><span class="s">&quot;Market Street&quot;</span><span class="o">,</span> <span class="s">&quot;San Francisco&quot;</span><span class="o">,</span> <span class="s">&quot;956871&quot;</span><span class="o">)</span>
+</pre></div>
+</div>
+<p>where Address is a custom class defined by the user. Using SJSON, I can store it as JSON and retrieve as plain old Scala object. Here’s the simple assertion that validates the invariant. Note that during de-serialziation, the class name is specified. Hence what it gives back is an instance of Address.</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">val</span> <span class="n">serializer</span> <span class="k">=</span> <span class="n">sjson</span><span class="o">.</span><span class="n">json</span><span class="o">.</span><span class="nc">Serializer</span><span class="o">.</span><span class="nc">SJSON</span>
+
+<span class="n">addr</span> <span class="n">should</span> <span class="n">equal</span><span class="o">(</span>
+  <span class="n">serializer</span><span class="o">.</span><span class="n">in</span><span class="o">[</span><span class="kt">Address</span><span class="o">](</span><span class="n">serializer</span><span class="o">.</span><span class="n">out</span><span class="o">(</span><span class="n">addr</span><span class="o">)))</span>
+</pre></div>
+</div>
+<p>Note, that the class needs to have a default constructor. Otherwise the deserialization into the specified class will fail.</p>
+<p>There are situations, particularly when writing generic persistence libraries in Akka, when the exact class is not known during de-serialization. Using SJSON I can get it as AnyRef or Nothing ..</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="n">serializer</span><span class="o">.</span><span class="n">in</span><span class="o">[</span><span class="kt">AnyRef</span><span class="o">](</span><span class="n">serializer</span><span class="o">.</span><span class="n">out</span><span class="o">(</span><span class="n">addr</span><span class="o">))</span>
+</pre></div>
+</div>
+<p>or just as ..</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="n">serializer</span><span class="o">.</span><span class="n">in</span><span class="o">(</span><span class="n">serializer</span><span class="o">.</span><span class="n">out</span><span class="o">(</span><span class="n">addr</span><span class="o">))</span>
+</pre></div>
+</div>
+<p>What you get back from is a JsValue, an abstraction of the JSON object model. For details of JsValueimplementation, refer to <a class="reference external" href="http://databinder.net/dispatch/About">dispatch-json</a> that SJSON uses as the underlying JSON parser implementation. Once I have the JsValue model, I can use use extractors to get back individual attributes ..</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">val</span> <span class="n">serializer</span> <span class="k">=</span> <span class="n">sjson</span><span class="o">.</span><span class="n">json</span><span class="o">.</span><span class="nc">Serializer</span><span class="o">.</span><span class="nc">SJSON</span>
+
+<span class="k">val</span> <span class="n">a</span> <span class="k">=</span> <span class="n">serializer</span><span class="o">.</span><span class="n">in</span><span class="o">[</span><span class="kt">AnyRef</span><span class="o">](</span><span class="n">serializer</span><span class="o">.</span><span class="n">out</span><span class="o">(</span><span class="n">addr</span><span class="o">))</span>
+
+<span class="c1">// use extractors</span>
+<span class="k">val</span> <span class="n">c</span> <span class="k">=</span> <span class="-Symbol">&#39;city</span> <span class="o">?</span> <span class="n">str</span>
+<span class="k">val</span> <span class="n">c</span><span class="o">(</span><span class="nc">_city</span><span class="o">)</span> <span class="k">=</span> <span class="n">a</span>
+<span class="nc">_city</span> <span class="n">should</span> <span class="n">equal</span><span class="o">(</span><span class="s">&quot;San Francisco&quot;</span><span class="o">)</span>
+
+<span class="k">val</span> <span class="n">s</span> <span class="k">=</span> <span class="-Symbol">&#39;street</span> <span class="o">?</span> <span class="n">str</span>
+<span class="k">val</span> <span class="n">s</span><span class="o">(</span><span class="nc">_street</span><span class="o">)</span> <span class="k">=</span> <span class="n">a</span>
+<span class="nc">_street</span> <span class="n">should</span> <span class="n">equal</span><span class="o">(</span><span class="s">&quot;Market Street&quot;</span><span class="o">)</span>
+
+<span class="k">val</span> <span class="n">z</span> <span class="k">=</span> <span class="-Symbol">&#39;zip</span> <span class="o">?</span> <span class="n">str</span>
+<span class="k">val</span> <span class="n">z</span><span class="o">(</span><span class="nc">_zip</span><span class="o">)</span> <span class="k">=</span> <span class="n">a</span>
+<span class="nc">_zip</span> <span class="n">should</span> <span class="n">equal</span><span class="o">(</span><span class="s">&quot;956871&quot;</span><span class="o">)</span>
+</pre></div>
+</div>
+<div class="section" id="serialization-of-embedded-objects">
+<h3>Serialization of Embedded Objects</h3>
+<p>SJSON supports serialization of Scala objects that have other embedded objects. Suppose you have the following Scala classes .. Here Contact has an embedded Address Map ..</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="nd">@BeanInfo</span>
+<span class="k">case</span> <span class="k">class</span> <span class="nc">Contact</span><span class="o">(</span><span class="n">name</span><span class="k">:</span> <span class="kt">String</span><span class="o">,</span>
+                   <span class="o">@(</span><span class="nc">JSONTypeHint</span> <span class="nd">@field</span><span class="o">)(</span><span class="n">value</span> <span class="k">=</span> <span class="n">classOf</span><span class="o">[</span><span class="kt">Address</span><span class="o">])</span>
+                   <span class="n">addresses</span><span class="k">:</span> <span class="kt">Map</span><span class="o">[</span><span class="kt">String</span>, <span class="kt">Address</span><span class="o">])</span> <span class="o">{</span>
+
+  <span class="k">override</span> <span class="k">def</span> <span class="n">toString</span> <span class="k">=</span> <span class="s">&quot;name = &quot;</span> <span class="o">+</span> <span class="n">name</span> <span class="o">+</span> <span class="s">&quot; addresses = &quot;</span> <span class="o">+</span>
+    <span class="n">addresses</span><span class="o">.</span><span class="n">map</span><span class="o">(</span><span class="n">a</span> <span class="k">=&gt;</span> <span class="n">a</span><span class="o">.</span><span class="n">_1</span> <span class="o">+</span> <span class="s">&quot;:&quot;</span> <span class="o">+</span> <span class="n">a</span><span class="o">.</span><span class="n">_2</span><span class="o">.</span><span class="n">toString</span><span class="o">).</span><span class="n">mkString</span><span class="o">(</span><span class="s">&quot;,&quot;</span><span class="o">)</span>
+<span class="o">}</span>
+
+<span class="nd">@BeanInfo</span>
+<span class="k">case</span> <span class="k">class</span> <span class="nc">Address</span><span class="o">(</span><span class="n">street</span><span class="k">:</span> <span class="kt">String</span><span class="o">,</span> <span class="n">city</span><span class="k">:</span> <span class="kt">String</span><span class="o">,</span> <span class="n">zip</span><span class="k">:</span> <span class="kt">String</span><span class="o">)</span> <span class="o">{</span>
+  <span class="k">override</span> <span class="k">def</span> <span class="n">toString</span> <span class="k">=</span> <span class="s">&quot;address = &quot;</span> <span class="o">+</span> <span class="n">street</span> <span class="o">+</span> <span class="s">&quot;/&quot;</span> <span class="o">+</span> <span class="n">city</span> <span class="o">+</span> <span class="s">&quot;/&quot;</span> <span class="o">+</span> <span class="n">zip</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<p>With SJSON, I can do the following:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">val</span> <span class="n">a1</span> <span class="k">=</span> <span class="nc">Address</span><span class="o">(</span><span class="s">&quot;Market Street&quot;</span><span class="o">,</span> <span class="s">&quot;San Francisco&quot;</span><span class="o">,</span> <span class="s">&quot;956871&quot;</span><span class="o">)</span>
+<span class="k">val</span> <span class="n">a2</span> <span class="k">=</span> <span class="nc">Address</span><span class="o">(</span><span class="s">&quot;Monroe Street&quot;</span><span class="o">,</span> <span class="s">&quot;Denver&quot;</span><span class="o">,</span> <span class="s">&quot;80231&quot;</span><span class="o">)</span>
+<span class="k">val</span> <span class="n">a3</span> <span class="k">=</span> <span class="nc">Address</span><span class="o">(</span><span class="s">&quot;North Street&quot;</span><span class="o">,</span> <span class="s">&quot;Atlanta&quot;</span><span class="o">,</span> <span class="s">&quot;987671&quot;</span><span class="o">)</span>
+
+<span class="k">val</span> <span class="n">c</span> <span class="k">=</span> <span class="nc">Contact</span><span class="o">(</span><span class="s">&quot;Bob&quot;</span><span class="o">,</span> <span class="nc">Map</span><span class="o">(</span><span class="s">&quot;residence&quot;</span> <span class="o">-&gt;</span> <span class="n">a1</span><span class="o">,</span> <span class="s">&quot;office&quot;</span> <span class="o">-&gt;</span> <span class="n">a2</span><span class="o">,</span> <span class="s">&quot;club&quot;</span> <span class="o">-&gt;</span> <span class="n">a3</span><span class="o">))</span>
+<span class="k">val</span> <span class="n">co</span> <span class="k">=</span> <span class="n">serializer</span><span class="o">.</span><span class="n">out</span><span class="o">(</span><span class="n">c</span><span class="o">)</span>
+
+<span class="k">val</span> <span class="n">serializer</span> <span class="k">=</span> <span class="n">sjson</span><span class="o">.</span><span class="n">json</span><span class="o">.</span><span class="nc">Serializer</span><span class="o">.</span><span class="nc">SJSON</span>
+
+<span class="c1">// with class specified</span>
+<span class="n">c</span> <span class="n">should</span> <span class="n">equal</span><span class="o">(</span><span class="n">serializer</span><span class="o">.</span><span class="n">in</span><span class="o">[</span><span class="kt">Contact</span><span class="o">](</span><span class="n">co</span><span class="o">))</span>
+
+<span class="c1">// no class specified</span>
+<span class="k">val</span> <span class="n">a</span> <span class="k">=</span> <span class="n">serializer</span><span class="o">.</span><span class="n">in</span><span class="o">[</span><span class="kt">AnyRef</span><span class="o">](</span><span class="n">co</span><span class="o">)</span>
+
+<span class="c1">// extract name</span>
+<span class="k">val</span> <span class="n">n</span> <span class="k">=</span> <span class="-Symbol">&#39;name</span> <span class="o">?</span> <span class="n">str</span>
+<span class="k">val</span> <span class="n">n</span><span class="o">(</span><span class="nc">_name</span><span class="o">)</span> <span class="k">=</span> <span class="n">a</span>
+<span class="s">&quot;Bob&quot;</span> <span class="n">should</span> <span class="n">equal</span><span class="o">(</span><span class="nc">_name</span><span class="o">)</span>
+
+<span class="c1">// extract addresses</span>
+<span class="k">val</span> <span class="n">addrs</span> <span class="k">=</span> <span class="-Symbol">&#39;addresses</span> <span class="o">?</span> <span class="n">obj</span>
+<span class="k">val</span> <span class="n">addrs</span><span class="o">(</span><span class="nc">_addresses</span><span class="o">)</span> <span class="k">=</span> <span class="n">a</span>
+
+<span class="c1">// extract residence from addresses</span>
+<span class="k">val</span> <span class="n">res</span> <span class="k">=</span> <span class="-Symbol">&#39;residence</span> <span class="o">?</span> <span class="n">obj</span>
+<span class="k">val</span> <span class="n">res</span><span class="o">(</span><span class="nc">_raddr</span><span class="o">)</span> <span class="k">=</span> <span class="nc">_addresses</span>
+
+<span class="c1">// make an Address bean out of _raddr</span>
+<span class="k">val</span> <span class="n">address</span> <span class="k">=</span> <span class="nc">JsBean</span><span class="o">.</span><span class="n">fromJSON</span><span class="o">(</span><span class="nc">_raddr</span><span class="o">,</span> <span class="nc">Some</span><span class="o">(</span><span class="n">classOf</span><span class="o">[</span><span class="kt">Address</span><span class="o">]))</span>
+<span class="n">a1</span> <span class="n">should</span> <span class="n">equal</span><span class="o">(</span><span class="n">address</span><span class="o">)</span>
+
+<span class="k">object</span> <span class="nc">r</span> <span class="o">{</span> <span class="k">def</span> <span class="o">&gt;</span><span class="k">#</span> <span class="o">[</span><span class="kt">T</span><span class="o">](</span><span class="n">f</span><span class="k">:</span> <span class="kt">JsF</span><span class="o">[</span><span class="kt">T</span><span class="o">])</span> <span class="k">=</span> <span class="n">f</span><span class="o">(</span><span class="n">a</span><span class="o">.</span><span class="n">asInstanceOf</span><span class="o">[</span><span class="kt">JsValue</span><span class="o">])</span> <span class="o">}</span>
+
+<span class="c1">// still better: chain &#39;em up</span>
+<span class="s">&quot;Market Street&quot;</span> <span class="n">should</span> <span class="n">equal</span><span class="o">(</span>
+  <span class="o">(</span><span class="n">r</span> <span class="o">&gt;</span><span class="k">#</span> <span class="o">{</span> <span class="o">(</span><span class="-Symbol">&#39;addresses</span> <span class="o">?</span> <span class="n">obj</span><span class="o">)</span> <span class="n">andThen</span> <span class="o">(</span><span class="-Symbol">&#39;residence</span> <span class="o">?</span> <span class="n">obj</span><span class="o">)</span> <span class="n">andThen</span> <span class="o">(</span><span class="-Symbol">&#39;street</span> <span class="o">?</span> <span class="n">str</span><span class="o">)</span> <span class="o">}))</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="changing-property-names-during-serialization">
+<h3>Changing property names during serialization</h3>
+<div class="highlight-scala"><div class="highlight"><pre><span class="nd">@BeanInfo</span>
+<span class="k">case</span> <span class="k">class</span> <span class="nc">Book</span><span class="o">(</span><span class="n">id</span><span class="k">:</span> <span class="kt">Number</span><span class="o">,</span>
+           <span class="n">title</span><span class="k">:</span> <span class="kt">String</span><span class="o">,</span> <span class="o">@(</span><span class="nc">JSONProperty</span> <span class="nd">@getter</span><span class="o">)(</span><span class="n">value</span> <span class="k">=</span> <span class="s">&quot;ISBN&quot;</span><span class="o">)</span> <span class="n">isbn</span><span class="k">:</span> <span class="kt">String</span><span class="o">)</span> <span class="o">{</span>
+
+  <span class="k">override</span> <span class="k">def</span> <span class="n">toString</span> <span class="k">=</span> <span class="s">&quot;id = &quot;</span> <span class="o">+</span> <span class="n">id</span> <span class="o">+</span> <span class="s">&quot; title = &quot;</span> <span class="o">+</span> <span class="n">title</span> <span class="o">+</span> <span class="s">&quot; isbn = &quot;</span> <span class="o">+</span> <span class="n">isbn</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<p>When this will be serialized out, the property name will be changed.</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">val</span> <span class="n">b</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">Book</span><span class="o">(</span><span class="mi">100</span><span class="o">,</span> <span class="s">&quot;A Beautiful Mind&quot;</span><span class="o">,</span> <span class="s">&quot;012-456372&quot;</span><span class="o">)</span>
+<span class="k">val</span> <span class="n">jsBook</span> <span class="k">=</span> <span class="nc">Js</span><span class="o">(</span><span class="nc">JsBean</span><span class="o">.</span><span class="n">toJSON</span><span class="o">(</span><span class="n">b</span><span class="o">))</span>
+<span class="k">val</span> <span class="n">expected_book_map</span> <span class="k">=</span> <span class="nc">Map</span><span class="o">(</span>
+  <span class="nc">JsString</span><span class="o">(</span><span class="s">&quot;id&quot;</span><span class="o">)</span> <span class="o">-&gt;</span> <span class="nc">JsNumber</span><span class="o">(</span><span class="mi">100</span><span class="o">),</span>
+  <span class="nc">JsString</span><span class="o">(</span><span class="s">&quot;title&quot;</span><span class="o">)</span> <span class="o">-&gt;</span> <span class="nc">JsString</span><span class="o">(</span><span class="s">&quot;A Beautiful Mind&quot;</span><span class="o">),</span>
+  <span class="nc">JsString</span><span class="o">(</span><span class="s">&quot;ISBN&quot;</span><span class="o">)</span> <span class="o">-&gt;</span> <span class="nc">JsString</span><span class="o">(</span><span class="s">&quot;012-456372&quot;</span><span class="o">)</span>
+<span class="o">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="serialization-with-ignore-properties">
+<h3>Serialization with ignore properties</h3>
+<p>When serializing objects, some of the properties can be ignored declaratively. Consider the following class declaration:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="nd">@BeanInfo</span>
+<span class="k">case</span> <span class="k">class</span> <span class="nc">Journal</span><span class="o">(</span><span class="n">id</span><span class="k">:</span> <span class="kt">BigDecimal</span><span class="o">,</span>
+                    <span class="n">title</span><span class="k">:</span> <span class="kt">String</span><span class="o">,</span>
+                    <span class="n">author</span><span class="k">:</span> <span class="kt">String</span><span class="o">,</span>
+                    <span class="o">@(</span><span class="nc">JSONProperty</span> <span class="nd">@getter</span><span class="o">)(</span><span class="n">ignore</span> <span class="k">=</span> <span class="kc">true</span><span class="o">)</span> <span class="n">issn</span><span class="k">:</span> <span class="kt">String</span><span class="o">)</span> <span class="o">{</span>
+
+<span class="k">override</span> <span class="k">def</span> <span class="n">toString</span> <span class="k">=</span>
+    <span class="s">&quot;Journal: &quot;</span> <span class="o">+</span> <span class="n">id</span> <span class="o">+</span> <span class="s">&quot;/&quot;</span> <span class="o">+</span> <span class="n">title</span> <span class="o">+</span> <span class="s">&quot;/&quot;</span> <span class="o">+</span> <span class="n">author</span> <span class="o">+</span>
+      <span class="o">(</span><span class="n">issn</span> <span class="k">match</span> <span class="o">{</span>
+          <span class="k">case</span> <span class="kc">null</span> <span class="k">=&gt;</span> <span class="s">&quot;&quot;</span>
+          <span class="k">case</span> <span class="k">_</span> <span class="k">=&gt;</span> <span class="s">&quot;/&quot;</span> <span class="o">+</span> <span class="n">issn</span>
+        <span class="o">})</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<p>The annotation &#64;JSONProperty can be used to selectively ignore fields. When I serialize a Journal object out and then back in, the content of issn field will be null.</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">val</span> <span class="n">serializer</span> <span class="k">=</span> <span class="n">sjson</span><span class="o">.</span><span class="n">json</span><span class="o">.</span><span class="nc">Serializer</span><span class="o">.</span><span class="nc">SJSON</span>
+
+<span class="n">it</span><span class="o">(</span><span class="s">&quot;should ignore issn field&quot;</span><span class="o">)</span> <span class="o">{</span>
+    <span class="k">val</span> <span class="n">j</span> <span class="k">=</span> <span class="nc">Journal</span><span class="o">(</span><span class="mi">100</span><span class="o">,</span> <span class="s">&quot;IEEE Computer&quot;</span><span class="o">,</span> <span class="s">&quot;Alex Payne&quot;</span><span class="o">,</span> <span class="s">&quot;012-456372&quot;</span><span class="o">)</span>
+    <span class="n">serializer</span><span class="o">.</span><span class="n">in</span><span class="o">[</span><span class="kt">Journal</span><span class="o">](</span><span class="n">serializer</span><span class="o">.</span><span class="n">out</span><span class="o">(</span><span class="n">j</span><span class="o">)).</span><span class="n">asInstanceOf</span><span class="o">[</span><span class="kt">Journal</span><span class="o">].</span><span class="n">issn</span> <span class="n">should</span> <span class="n">equal</span><span class="o">(</span><span class="kc">null</span><span class="o">)</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<p>Similarly, we can ignore properties of an object <strong>only</strong> if they are null and not ignore otherwise. Just specify the annotation &#64;JSONProperty as &#64;JSONProperty {val ignoreIfNull = true}.</p>
+</div>
+<div class="section" id="serialization-with-type-hints-for-generic-data-members">
+<h3>Serialization with Type Hints for Generic Data Members</h3>
+<p>Consider the following Scala class:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="nd">@BeanInfo</span>
+<span class="k">case</span> <span class="k">class</span> <span class="nc">Contact</span><span class="o">(</span><span class="n">name</span><span class="k">:</span> <span class="kt">String</span><span class="o">,</span>
+                   <span class="o">@(</span><span class="nc">JSONTypeHint</span> <span class="nd">@field</span><span class="o">)(</span><span class="n">value</span> <span class="k">=</span> <span class="n">classOf</span><span class="o">[</span><span class="kt">Address</span><span class="o">])</span>
+                   <span class="n">addresses</span><span class="k">:</span> <span class="kt">Map</span><span class="o">[</span><span class="kt">String</span>, <span class="kt">Address</span><span class="o">])</span> <span class="o">{</span>
+
+  <span class="k">override</span> <span class="k">def</span> <span class="n">toString</span> <span class="k">=</span> <span class="s">&quot;name = &quot;</span> <span class="o">+</span> <span class="n">name</span> <span class="o">+</span> <span class="s">&quot; addresses = &quot;</span> <span class="o">+</span>
+    <span class="n">addresses</span><span class="o">.</span><span class="n">map</span><span class="o">(</span><span class="n">a</span> <span class="k">=&gt;</span> <span class="n">a</span><span class="o">.</span><span class="n">_1</span> <span class="o">+</span> <span class="s">&quot;:&quot;</span> <span class="o">+</span> <span class="n">a</span><span class="o">.</span><span class="n">_2</span><span class="o">.</span><span class="n">toString</span><span class="o">).</span><span class="n">mkString</span><span class="o">(</span><span class="s">&quot;,&quot;</span><span class="o">)</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<p>Because of erasure, you need to add the type hint declaratively through the annotation &#64;JSONTypeHint that
+SJSON will pick up during serialization. Now we can say:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">val</span> <span class="n">serializer</span> <span class="k">=</span> <span class="n">sjson</span><span class="o">.</span><span class="n">json</span><span class="o">.</span><span class="nc">Serializer</span><span class="o">.</span><span class="nc">SJSON</span>
+
+<span class="k">val</span> <span class="n">c</span> <span class="k">=</span> <span class="nc">Contact</span><span class="o">(</span><span class="s">&quot;Bob&quot;</span><span class="o">,</span> <span class="nc">Map</span><span class="o">(</span><span class="s">&quot;residence&quot;</span> <span class="o">-&gt;</span> <span class="n">a1</span><span class="o">,</span> <span class="s">&quot;office&quot;</span> <span class="o">-&gt;</span> <span class="n">a2</span><span class="o">,</span> <span class="s">&quot;club&quot;</span> <span class="o">-&gt;</span> <span class="n">a3</span><span class="o">))</span>
+<span class="k">val</span> <span class="n">co</span> <span class="k">=</span> <span class="n">serializer</span><span class="o">.</span><span class="n">out</span><span class="o">(</span><span class="n">c</span><span class="o">)</span>
+
+<span class="n">it</span><span class="o">(</span><span class="s">&quot;should give an instance of Contact&quot;</span><span class="o">)</span> <span class="o">{</span>
+  <span class="n">c</span> <span class="n">should</span> <span class="n">equal</span><span class="o">(</span><span class="n">serializer</span><span class="o">.</span><span class="n">in</span><span class="o">[</span><span class="kt">Contact</span><span class="o">](</span><span class="n">co</span><span class="o">))</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<p>With optional generic data members, we need to provide the hint to SJSON through another annotation &#64;OptionTypeHint.</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="nd">@BeanInfo</span>
+<span class="k">case</span> <span class="k">class</span> <span class="nc">ContactWithOptionalAddr</span><span class="o">(</span><span class="n">name</span><span class="k">:</span> <span class="kt">String</span><span class="o">,</span>
+                              <span class="o">@(</span><span class="nc">JSONTypeHint</span> <span class="nd">@field</span><span class="o">)(</span><span class="n">value</span> <span class="k">=</span> <span class="n">classOf</span><span class="o">[</span><span class="kt">Address</span><span class="o">])</span>
+                              <span class="o">@(</span><span class="nc">OptionTypeHint</span> <span class="nd">@field</span><span class="o">)(</span><span class="n">value</span> <span class="k">=</span> <span class="n">classOf</span><span class="o">[</span><span class="kt">Map</span><span class="o">[</span><span class="k">_</span>,<span class="k">_</span><span class="o">]])</span>
+                              <span class="n">addresses</span><span class="k">:</span> <span class="kt">Option</span><span class="o">[</span><span class="kt">Map</span><span class="o">[</span><span class="kt">String</span>, <span class="kt">Address</span><span class="o">]])</span> <span class="o">{</span>
+
+  <span class="k">override</span> <span class="k">def</span> <span class="n">toString</span> <span class="k">=</span> <span class="s">&quot;name = &quot;</span> <span class="o">+</span> <span class="n">name</span> <span class="o">+</span> <span class="s">&quot; &quot;</span> <span class="o">+</span>
+    <span class="o">(</span><span class="n">addresses</span> <span class="k">match</span> <span class="o">{</span>
+      <span class="k">case</span> <span class="nc">None</span> <span class="k">=&gt;</span> <span class="s">&quot;&quot;</span>
+      <span class="k">case</span> <span class="nc">Some</span><span class="o">(</span><span class="n">ad</span><span class="o">)</span> <span class="k">=&gt;</span> <span class="s">&quot; addresses = &quot;</span> <span class="o">+</span> <span class="n">ad</span><span class="o">.</span><span class="n">map</span><span class="o">(</span><span class="n">a</span> <span class="k">=&gt;</span> <span class="n">a</span><span class="o">.</span><span class="n">_1</span> <span class="o">+</span> <span class="s">&quot;:&quot;</span> <span class="o">+</span> <span class="n">a</span><span class="o">.</span><span class="n">_2</span><span class="o">.</span><span class="n">toString</span><span class="o">).</span><span class="n">mkString</span><span class="o">(</span><span class="s">&quot;,&quot;</span><span class="o">)</span>
+    <span class="o">})</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<p>Serialization works ok with optional members annotated as above.</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">val</span> <span class="n">serializer</span> <span class="k">=</span> <span class="n">sjson</span><span class="o">.</span><span class="n">json</span><span class="o">.</span><span class="nc">Serializer</span><span class="o">.</span><span class="nc">SJSON</span>
+
+<span class="n">describe</span><span class="o">(</span><span class="s">&quot;Bean with optional bean member serialization&quot;</span><span class="o">)</span> <span class="o">{</span>
+  <span class="n">it</span><span class="o">(</span><span class="s">&quot;should serialize with Option defined&quot;</span><span class="o">)</span> <span class="o">{</span>
+    <span class="k">val</span> <span class="n">c</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">ContactWithOptionalAddr</span><span class="o">(</span><span class="s">&quot;Debasish Ghosh&quot;</span><span class="o">,</span>
+      <span class="nc">Some</span><span class="o">(</span><span class="nc">Map</span><span class="o">(</span><span class="s">&quot;primary&quot;</span> <span class="o">-&gt;</span> <span class="k">new</span> <span class="nc">Address</span><span class="o">(</span><span class="s">&quot;10 Market Street&quot;</span><span class="o">,</span> <span class="s">&quot;San Francisco, CA&quot;</span><span class="o">,</span> <span class="s">&quot;94111&quot;</span><span class="o">),</span>
+          <span class="s">&quot;secondary&quot;</span> <span class="o">-&gt;</span> <span class="k">new</span> <span class="nc">Address</span><span class="o">(</span><span class="s">&quot;3300 Tamarac Drive&quot;</span><span class="o">,</span> <span class="s">&quot;Denver, CO&quot;</span><span class="o">,</span> <span class="s">&quot;98301&quot;</span><span class="o">))))</span>
+    <span class="n">c</span> <span class="n">should</span> <span class="n">equal</span><span class="o">(</span>
+      <span class="n">serializer</span><span class="o">.</span><span class="n">in</span><span class="o">[</span><span class="kt">ContactWithOptionalAddr</span><span class="o">](</span><span class="n">serializer</span><span class="o">.</span><span class="n">out</span><span class="o">(</span><span class="n">c</span><span class="o">)))</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<p>You can also specify a custom ClassLoader while using the SJSON serializer:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">object</span> <span class="nc">SJSON</span> <span class="o">{</span>
+  <span class="k">val</span> <span class="n">classLoader</span> <span class="k">=</span> <span class="c1">//.. specify a custom classloader</span>
+<span class="o">}</span>
+
+<span class="k">import</span> <span class="nn">SJSON._</span>
+<span class="n">serializer</span><span class="o">.</span><span class="n">out</span><span class="o">(..)</span>
+
+<span class="c1">//..</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="fighting-type-erasure">
+<h3>Fighting Type Erasure</h3>
+<p>Because of type erasure, it&#8217;s not always possible to infer the correct type during de-serialization of objects. Consider the following example:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">abstract</span> <span class="k">class</span> <span class="nc">A</span>
+<span class="nd">@BeanInfo</span> <span class="k">case</span> <span class="k">class</span> <span class="nc">B</span><span class="o">(</span><span class="n">param1</span><span class="k">:</span> <span class="kt">String</span><span class="o">)</span> <span class="k">extends</span> <span class="n">A</span>
+<span class="nd">@BeanInfo</span> <span class="k">case</span> <span class="k">class</span> <span class="nc">C</span><span class="o">(</span><span class="n">param1</span><span class="k">:</span> <span class="kt">String</span><span class="o">,</span> <span class="n">param2</span><span class="k">:</span> <span class="kt">String</span><span class="o">)</span> <span class="k">extends</span> <span class="n">A</span>
+
+<span class="nd">@BeanInfo</span> <span class="k">case</span> <span class="k">class</span> <span class="nc">D</span><span class="o">(@(</span><span class="nc">JSONTypeHint</span> <span class="nd">@field</span><span class="o">)(</span><span class="n">value</span> <span class="k">=</span> <span class="n">classOf</span><span class="o">[</span><span class="kt">A</span><span class="o">])</span><span class="n">param1</span><span class="k">:</span> <span class="kt">List</span><span class="o">[</span><span class="kt">A</span><span class="o">])</span>
+</pre></div>
+</div>
+<p>and the serialization code like the following:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">object</span> <span class="nc">TestSerialize</span><span class="o">{</span>
+ <span class="k">def</span> <span class="n">main</span><span class="o">(</span><span class="n">args</span><span class="k">:</span> <span class="kt">Array</span><span class="o">[</span><span class="kt">String</span><span class="o">])</span> <span class="o">{</span>
+   <span class="k">val</span> <span class="n">test1</span> <span class="k">=</span> <span class="k">new</span> <span class="n">D</span><span class="o">(</span><span class="nc">List</span><span class="o">(</span><span class="n">B</span><span class="o">(</span><span class="s">&quot;hello1&quot;</span><span class="o">)))</span>
+   <span class="k">val</span> <span class="n">json</span> <span class="k">=</span> <span class="n">sjson</span><span class="o">.</span><span class="n">json</span><span class="o">.</span><span class="nc">Serializer</span><span class="o">.</span><span class="nc">SJSON</span><span class="o">.</span><span class="n">out</span><span class="o">(</span><span class="n">test1</span><span class="o">)</span>
+   <span class="k">val</span> <span class="n">res</span> <span class="k">=</span> <span class="n">sjson</span><span class="o">.</span><span class="n">json</span><span class="o">.</span><span class="nc">Serializer</span><span class="o">.</span><span class="nc">SJSON</span><span class="o">.</span><span class="n">in</span><span class="o">[</span><span class="kt">D</span><span class="o">](</span><span class="n">json</span><span class="o">)</span>
+   <span class="k">val</span> <span class="n">res1</span><span class="k">:</span> <span class="kt">D</span> <span class="o">=</span> <span class="n">res</span><span class="o">.</span><span class="n">asInstanceOf</span><span class="o">[</span><span class="kt">D</span><span class="o">]</span>
+   <span class="n">println</span><span class="o">(</span><span class="n">res1</span><span class="o">)</span>
+ <span class="o">}</span> <span class="n">q</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<p>Note that the type hint on class D says A, but the actual instances that have been put into the object before serialization is one of the derived classes (B). During de-serialization, we have no idea of what can be inside D. The serializer.in API will fail since all hint it has is for A, which is abstract. In such cases, we need to handle the de-serialization by using extractors over the underlying data structure that we use for storing JSON objects, which is JsValue. Here&#8217;s an example:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">val</span> <span class="n">serializer</span> <span class="k">=</span> <span class="n">sjson</span><span class="o">.</span><span class="n">json</span><span class="o">.</span><span class="nc">Serializer</span><span class="o">.</span><span class="nc">SJSON</span>
+
+<span class="k">val</span> <span class="n">test1</span> <span class="k">=</span> <span class="k">new</span> <span class="n">D</span><span class="o">(</span><span class="nc">List</span><span class="o">(</span><span class="n">B</span><span class="o">(</span><span class="s">&quot;hello1&quot;</span><span class="o">)))</span>
+<span class="k">val</span> <span class="n">json</span> <span class="k">=</span> <span class="n">serializer</span><span class="o">.</span><span class="n">out</span><span class="o">(</span><span class="n">test1</span><span class="o">)</span>
+
+<span class="c1">// create a JsValue from the string</span>
+<span class="k">val</span> <span class="n">js</span> <span class="k">=</span> <span class="nc">Js</span><span class="o">(</span><span class="k">new</span> <span class="nc">String</span><span class="o">(</span><span class="n">json</span><span class="o">))</span>
+
+<span class="c1">// extract the named list argument</span>
+<span class="k">val</span> <span class="n">m</span> <span class="k">=</span> <span class="o">(</span><span class="nc">Symbol</span><span class="o">(</span><span class="s">&quot;param1&quot;</span><span class="o">)</span> <span class="o">?</span> <span class="n">list</span><span class="o">)</span>
+<span class="k">val</span> <span class="n">m</span><span class="o">(</span><span class="nc">_m</span><span class="o">)</span> <span class="k">=</span> <span class="n">js</span>
+
+<span class="c1">// extract the string within</span>
+<span class="k">val</span> <span class="n">s</span> <span class="k">=</span> <span class="o">(</span><span class="nc">Symbol</span><span class="o">(</span><span class="s">&quot;param1&quot;</span><span class="o">)</span> <span class="o">?</span> <span class="n">str</span><span class="o">)</span>
+
+<span class="c1">// form a list of B&#39;s</span>
+<span class="k">val</span> <span class="n">result</span> <span class="k">=</span> <span class="nc">_m</span><span class="o">.</span><span class="n">map</span><span class="o">{</span> <span class="n">e</span> <span class="k">=&gt;</span>
+  <span class="k">val</span> <span class="n">s</span><span class="o">(</span><span class="nc">_s</span><span class="o">)</span> <span class="k">=</span> <span class="n">e</span>
+  <span class="n">B</span><span class="o">(</span><span class="nc">_s</span><span class="o">)</span>
+<span class="o">}</span>
+
+<span class="c1">// form a D</span>
+<span class="n">println</span><span class="o">(</span><span class="s">&quot;result = &quot;</span> <span class="o">+</span> <span class="n">D</span><span class="o">(</span><span class="n">result</span><span class="o">))</span>
+</pre></div>
+</div>
+<p>The above snippet de-serializes correctly using extractors defined on JsValue. For more details on JsValue and the extractors, please refer to <a class="reference external" href="http://databinder.net/dispatch/About">dispatch-json</a> .</p>
+<p><strong>NOTE</strong>: Serialization with SJSON is based on bean introspection. In the current version of Scala (2.8.0.Beta1 and 2.7.7) there is a bug where bean introspection does not work properly for classes enclosed within another class. Please ensure that the beans are the top level classes in your application. They can be within objects though. A ticket has been filed in the Scala Tracker and also fixed in the trunk. Here&#8217;s the <a class="reference external" href="https://lampsvn.epfl.ch/trac/scala/ticket/3080">ticket</a> .</p>
+</div>
+<div class="section" id="type-class-based-serialization">
+<h3>Type class based Serialization</h3>
+<p>If type erasure hits you, reflection based serialization may not be the right option. In fact the last section shows some of the scenarios which may not be possible to handle using reflection based serialization of sjson. sjson also supports type class based serialization where you can provide a custom protocol for serialization as part of the type class implementation.</p>
+<p>Here&#8217;s a sample session at the REPL which shows the default serialization protocol of sjson:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="n">scala</span><span class="o">&gt;</span> <span class="k">import</span> <span class="nn">sjson.json._</span>
+<span class="k">import</span> <span class="nn">sjson.json._</span>
+
+<span class="n">scala</span><span class="o">&gt;</span> <span class="k">import</span> <span class="nn">DefaultProtocol._</span>
+<span class="k">import</span> <span class="nn">DefaultProtocol._</span>
+
+<span class="n">scala</span><span class="o">&gt;</span> <span class="k">val</span> <span class="n">str</span> <span class="k">=</span> <span class="s">&quot;debasish&quot;</span>
+<span class="n">str</span><span class="k">:</span> <span class="kt">java.lang.String</span> <span class="o">=</span> <span class="n">debasish</span>
+
+<span class="n">scala</span><span class="o">&gt;</span> <span class="k">import</span> <span class="nn">JsonSerialization._</span>
+<span class="k">import</span> <span class="nn">JsonSerialization._</span>
+
+<span class="n">scala</span><span class="o">&gt;</span> <span class="n">tojson</span><span class="o">(</span><span class="n">str</span><span class="o">)</span>
+<span class="n">res0</span><span class="k">:</span> <span class="kt">dispatch.json.JsValue</span> <span class="o">=</span> <span class="s">&quot;debasish&quot;</span>
+
+<span class="n">scala</span><span class="o">&gt;</span> <span class="n">fromjson</span><span class="o">[</span><span class="kt">String</span><span class="o">](</span><span class="n">res0</span><span class="o">)</span>
+<span class="n">res1</span><span class="k">:</span> <span class="kt">String</span> <span class="o">=</span> <span class="n">debasish</span>
+</pre></div>
+</div>
+<p>You can use serialization of generic data types using the default protocol as well:</p>
+<div class="highlight-scala"><pre>scala&gt; val list = List(10, 12, 14, 18)
+list: List[Int] = List(10, 12, 14, 18)
+
+scala&gt; tojson(list)
+res2: dispatch.json.JsValue = [10, 12, 14, 18]
+
+scala&gt; fromjson[List[Int]](res2)
+res3: List[Int] = List(10, 12, 14, 18)</pre>
+</div>
+<p>You can also define your own custom protocol, which as to be an implementation of the following type class:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">trait</span> <span class="nc">Writes</span><span class="o">[</span><span class="kt">T</span><span class="o">]</span> <span class="o">{</span>
+  <span class="k">def</span> <span class="n">writes</span><span class="o">(</span><span class="n">o</span><span class="k">:</span> <span class="kt">T</span><span class="o">)</span><span class="k">:</span> <span class="kt">JsValue</span>
+<span class="o">}</span>
+
+<span class="k">trait</span> <span class="nc">Reads</span><span class="o">[</span><span class="kt">T</span><span class="o">]</span> <span class="o">{</span>
+  <span class="k">def</span> <span class="n">reads</span><span class="o">(</span><span class="n">json</span><span class="k">:</span> <span class="kt">JsValue</span><span class="o">)</span><span class="k">:</span> <span class="kt">T</span>
+<span class="o">}</span>
+
+<span class="k">trait</span> <span class="nc">Format</span><span class="o">[</span><span class="kt">T</span><span class="o">]</span> <span class="nc">extends</span> <span class="nc">Writes</span><span class="o">[</span><span class="kt">T</span><span class="o">]</span> <span class="k">with</span> <span class="nc">Reads</span><span class="o">[</span><span class="kt">T</span><span class="o">]</span>
+</pre></div>
+</div>
+<p>Consider a case class and a custom protocol to serialize it into JSON. Here&#8217;s the type class implementation:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">object</span> <span class="nc">Protocols</span> <span class="o">{</span>
+  <span class="k">case</span> <span class="k">class</span> <span class="nc">Person</span><span class="o">(</span><span class="n">lastName</span><span class="k">:</span> <span class="kt">String</span><span class="o">,</span> <span class="n">firstName</span><span class="k">:</span> <span class="kt">String</span><span class="o">,</span> <span class="n">age</span><span class="k">:</span> <span class="kt">Int</span><span class="o">)</span>
+  <span class="k">object</span> <span class="nc">PersonProtocol</span> <span class="k">extends</span> <span class="nc">DefaultProtocol</span> <span class="o">{</span>
+    <span class="k">import</span> <span class="nn">dispatch.json._</span>
+    <span class="k">import</span> <span class="nn">JsonSerialization._</span>
+
+    <span class="k">implicit</span> <span class="k">object</span> <span class="nc">PersonFormat</span> <span class="k">extends</span> <span class="nc">Format</span><span class="o">[</span><span class="kt">Person</span><span class="o">]</span> <span class="o">{</span>
+      <span class="k">def</span> <span class="n">reads</span><span class="o">(</span><span class="n">json</span><span class="k">:</span> <span class="kt">JsValue</span><span class="o">)</span><span class="k">:</span> <span class="kt">Person</span> <span class="o">=</span> <span class="n">json</span> <span class="k">match</span> <span class="o">{</span>
+        <span class="k">case</span> <span class="nc">JsObject</span><span class="o">(</span><span class="n">m</span><span class="o">)</span> <span class="k">=&gt;</span>
+          <span class="nc">Person</span><span class="o">(</span><span class="n">fromjson</span><span class="o">[</span><span class="kt">String</span><span class="o">](</span><span class="n">m</span><span class="o">(</span><span class="nc">JsString</span><span class="o">(</span><span class="s">&quot;lastName&quot;</span><span class="o">))),</span>
+            <span class="n">fromjson</span><span class="o">[</span><span class="kt">String</span><span class="o">](</span><span class="n">m</span><span class="o">(</span><span class="nc">JsString</span><span class="o">(</span><span class="s">&quot;firstName&quot;</span><span class="o">))),</span> <span class="n">fromjson</span><span class="o">[</span><span class="kt">Int</span><span class="o">](</span><span class="n">m</span><span class="o">(</span><span class="nc">JsString</span><span class="o">(</span><span class="s">&quot;age&quot;</span><span class="o">))))</span>
+        <span class="k">case</span> <span class="k">_</span> <span class="k">=&gt;</span> <span class="k">throw</span> <span class="k">new</span> <span class="nc">RuntimeException</span><span class="o">(</span><span class="s">&quot;JsObject expected&quot;</span><span class="o">)</span>
+      <span class="o">}</span>
+
+      <span class="k">def</span> <span class="n">writes</span><span class="o">(</span><span class="n">p</span><span class="k">:</span> <span class="kt">Person</span><span class="o">)</span><span class="k">:</span> <span class="kt">JsValue</span> <span class="o">=</span>
+        <span class="nc">JsObject</span><span class="o">(</span><span class="nc">List</span><span class="o">(</span>
+          <span class="o">(</span><span class="n">tojson</span><span class="o">(</span><span class="s">&quot;lastName&quot;</span><span class="o">).</span><span class="n">asInstanceOf</span><span class="o">[</span><span class="kt">JsString</span><span class="o">],</span> <span class="n">tojson</span><span class="o">(</span><span class="n">p</span><span class="o">.</span><span class="n">lastName</span><span class="o">)),</span>
+          <span class="o">(</span><span class="n">tojson</span><span class="o">(</span><span class="s">&quot;firstName&quot;</span><span class="o">).</span><span class="n">asInstanceOf</span><span class="o">[</span><span class="kt">JsString</span><span class="o">],</span> <span class="n">tojson</span><span class="o">(</span><span class="n">p</span><span class="o">.</span><span class="n">firstName</span><span class="o">)),</span>
+          <span class="o">(</span><span class="n">tojson</span><span class="o">(</span><span class="s">&quot;age&quot;</span><span class="o">).</span><span class="n">asInstanceOf</span><span class="o">[</span><span class="kt">JsString</span><span class="o">],</span> <span class="n">tojson</span><span class="o">(</span><span class="n">p</span><span class="o">.</span><span class="n">age</span><span class="o">))</span> <span class="o">))</span>
+    <span class="o">}</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<p>and the serialization in action in the REPL:</p>
+<div class="highlight-scala"><pre>scala&gt; import sjson.json._
+import sjson.json._
+
+scala&gt; import Protocols._
+import Protocols._
+
+scala&gt; import PersonProtocol._
+import PersonProtocol._
+
+scala&gt; val p = Person("ghosh", "debasish", 20)
+p: sjson.json.Protocols.Person = Person(ghosh,debasish,20)
+
+scala&gt; import JsonSerialization._
+import JsonSerialization._
+
+scala&gt; tojson[Person](p)
+res1: dispatch.json.JsValue = {"lastName" : "ghosh", "firstName" : "debasish", "age" : 20}
+
+scala&gt; fromjson[Person](res1)
+res2: sjson.json.Protocols.Person = Person(ghosh,debasish,20)</pre>
+</div>
+<p>There are other nifty ways to implement case class serialization using sjson. For more details, have a look at the <a class="reference external" href="http://wiki.github.com/debasishg/sjson/typeclass-based-json-serialization">wiki</a> for sjson.</p>
+</div>
+</div>
+<div class="section" id="json-java">
+<h2>JSON: Java</h2>
+<p>Use the <tt class="docutils literal"><span class="pre">akka.serialization.Serializable.JavaJSON</span></tt> base class with its toJSONmethod. Akka’s Java JSON is based upon the Jackson library.</p>
+<p>For your POJOs to be able to serialize themselves you have to extend the JavaJSON base class.</p>
+<div class="highlight-java"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">akka.serialization.Serializable.JavaJSON</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">akka.serialization.SerializerFactory</span><span class="o">;</span>
+
+<span class="kd">class</span> <span class="nc">MyMessage</span> <span class="kd">extends</span> <span class="n">JavaJSON</span> <span class="o">{</span>
+  <span class="kd">private</span> <span class="n">String</span> <span class="n">name</span> <span class="o">=</span> <span class="kc">null</span><span class="o">;</span>
+  <span class="kd">public</span> <span class="nf">MyMessage</span><span class="o">(</span><span class="n">String</span> <span class="n">name</span><span class="o">)</span> <span class="o">{</span>
+    <span class="k">this</span><span class="o">.</span><span class="na">name</span> <span class="o">=</span> <span class="n">name</span><span class="o">;</span>
+  <span class="o">}</span>
+  <span class="kd">public</span> <span class="n">String</span> <span class="nf">getName</span><span class="o">()</span> <span class="o">{</span>
+    <span class="k">return</span> <span class="n">name</span><span class="o">;</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+
+<span class="n">MyMessage</span> <span class="n">message</span> <span class="o">=</span> <span class="k">new</span> <span class="n">MyMessage</span><span class="o">(</span><span class="s">&quot;json&quot;</span><span class="o">);</span>
+<span class="n">String</span> <span class="n">json</span> <span class="o">=</span> <span class="n">message</span><span class="o">.</span><span class="na">toJSON</span><span class="o">();</span>
+<span class="n">SerializerFactory</span> <span class="n">factory</span> <span class="o">=</span> <span class="k">new</span> <span class="n">SerializerFactory</span><span class="o">();</span>
+<span class="n">MyMessage</span> <span class="n">messageCopy</span> <span class="o">=</span> <span class="n">factory</span><span class="o">.</span><span class="na">getJavaJSON</span><span class="o">().</span><span class="na">in</span><span class="o">(</span><span class="n">json</span><span class="o">);</span>
+</pre></div>
+</div>
+<p>Use the akka.serialization.SerializerFactory.getJavaJSON to do generic JSON serialization, e.g. serialize object that does not extend JavaJSON using the JSON serializer.</p>
+<div class="highlight-java"><div class="highlight"><pre><span class="n">Foo</span> <span class="n">foo</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Foo</span><span class="o">();</span>
+<span class="n">SerializerFactory</span> <span class="n">factory</span> <span class="o">=</span> <span class="k">new</span> <span class="n">SerializerFactory</span><span class="o">();</span>
+<span class="n">String</span> <span class="n">json</span> <span class="o">=</span> <span class="n">factory</span><span class="o">.</span><span class="na">getJavaJSON</span><span class="o">().</span><span class="na">out</span><span class="o">(</span><span class="n">foo</span><span class="o">);</span>
+<span class="n">Foo</span> <span class="n">fooCopy</span> <span class="o">=</span> <span class="n">factory</span><span class="o">.</span><span class="na">getJavaJSON</span><span class="o">().</span><span class="na">in</span><span class="o">(</span><span class="n">json</span><span class="o">,</span> <span class="n">Foo</span><span class="o">.</span><span class="na">class</span><span class="o">);</span>
+</pre></div>
+</div>
+</div>
+</div>
+
+
+          </div>
+          <div class="span3"><p class="contents-title">Contents</p>
+              <div id="scroller-anchor">
+                <div id="scroller">
+                  <div id="toc"></div>
+                </div>
+              </div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="footer">
+  <div class="container">
+    <ul>
+      <li><h5>Akka</h5></li>
+      <li><a href="https://akka.io/docs">Documentation</a></li>
+      <li><a href="https://akka.io/downloads">Downloads</a></li>
+      <li><a href="https://akka.io/news">News</a></li>
+      <li><a href="http://letitcrash.com">Blog</a></li>
+    </ul>
+    <ul>
+      <li><h5>Contribute</h5></li>
+      <li><a href="http://github.com/akka/akka">Source Code</a></li>
+      <li><a href="http://groups.google.com/group/akka-user">Mailing List</a></li>      
+      <li><a href="http://www.assembla.com/spaces/akka/tickets">Report a Bug</a></li>      
+    </ul>
+    <ul>
+      <li><h5>Company</h5></li>
+      <li><a href="http://typesafe.com/products/typesafe-subscription">Commercial Support</a></li>
+      <li><a href="https://akka.io/team">Team</a></li>
+      <li><a href="mailto:info@typesafe.com">Contact</a></li>
+    </ul>
+    <ul>
+      <li><img src="../_static/watermark.png" align="center"/></li>
+    </ul>
+  </div>
+  <div class="container copyright">
+    <p style="float: left;">
+      © 2012 <a href="http://typesafe.com/">Typesafe Inc.</a> <span class="license">Akka is Open Source and available under the Apache 2 License.</span>
+    </p>
+    <p style="float: right; font-size: 12px;">
+      Last updated: Mar 08, 2012
+    </p>          
+  </div>
+</div>
+<script type="text/javascript">
+  $('#toc').toc();
+</script>
+  
+
+  </body>
+</html>

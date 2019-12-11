@@ -1,0 +1,206 @@
+
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>ZeroMQ &mdash; Akka Documentation</title>
+    <link rel="stylesheet" href="../_static/style.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/prettify.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/base.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
+    <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Exo:300,400,600,700" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '1.3.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+<script type="text/javascript" src="https://doc.akka.io/docs/akka/1.3.1/_static/warnOldDocs.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="../_static/toc.js"></script>
+    <script type="text/javascript" src="../_static/prettify.js"></script>
+    <script type="text/javascript" src="../_static/highlightCode.js"></script>
+    <script type="text/javascript" src="../_static/effects.core.js"></script>
+    <script type="text/javascript" src="../_static/effects.highlight.js"></script>
+    <script type="text/javascript" src="../_static/scrollTo.js"></script>
+    <script type="text/javascript" src="../_static/contentsFix.js"></script>
+    <link rel="shortcut icon" href="../_static/favicon.ico"/>
+    <link rel="top" title="Akka Documentation" href="../index.html" />
+    <link rel="up" title="Scala API" href="index.html" />
+    <link rel="next" title="HTTP Security" href="security.html" />
+    <link rel="prev" title="HTTP" href="http.html" /> 
+  </head>
+  <body>
+  <div class="navbar">
+    <div class="navbar-inner">
+      <div class="container">
+        <div class="navbar-logo">
+          <a href="https://akka.io"><img src="../_static/logo-small.png" /></a>
+        </div>    
+        <ul class="nav">
+          <li><a href="https://akka.io/docs">Documentation</a></li>
+          <li><a href="https://akka.io/downloads">Download</a></li>
+          <li><a href="http://groups.google.com/group/akka-user">Mailing List</a></li>
+          <li><a href="http://github.com/akka/akka">Code</a></li>           
+          <li><a href="http://typesafe.com/products/typesafe-subscription">Commercial Support</a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="main">
+    <div class="container">
+      <div class="page-title">ZeroMQ</div><div class="pdf-link"><a href="https://doc.akka.io/docs/akka/1.3.1/Akka.pdf"><img src="../_static/pdf-icon.png" style="height: 40px;" /></a></div></div>
+    <div class="main-container">
+      <div class="container">
+        <div class="row">
+          <div class="span12">
+            <ul class="breadcrumb">           
+              <li>
+                 <span class="divider">|</span> <a href="security.html">HTTP Security</a> <span class="divider">»</span>
+              </li>
+              <li>
+                <a href="../index.html">Contents</a>
+              </li>
+              <li>
+                <span class="divider">«</span> <a href="http.html">HTTP</a> <span class="divider">|</span>
+              </li>
+              <li>
+                Version 1.3.1
+              </li>
+            </ul>         
+          </div>
+        </div>
+        <div class="row">
+          <div class="span9">
+            
+  <div class="section" id="zeromq">
+<span id="zeromq-module"></span><h1>ZeroMQ</h1>
+<p>Module stability: <strong>IN PROGRESS</strong></p>
+<p>Akka provides a ZeroMQ module which abstracts a ZeroMQ connection and therefore allows interaction between Akka actors to take place over ZeroMQ connections. The messages can be of a proprietary format or they can be defined using Protobuf. In addition, the connection can be fault-tolerant by associating a supervisor with a socket, and upon a connection failure, reconnection can take place automatically.</p>
+<p>The ZeroMQ module for Akka is written against an API introduced in JZMQ, which uses JNI to interact with the native ZeroMQ library. Instead of using JZMQ, the module uses ZeroMQ binding for Scala that uses the native ZeroMQ library through JNA. In other words, the only native library that this module requires is the native ZeroMQ library.</p>
+<div class="section" id="connection">
+<h2>Connection</h2>
+<p>ZeroMQ supports multiple connectivity patterns, each aimed to meet a different set of requirements. Currently, this module supports publisher-subscriber connections and connections based on dealers and routers. For connecting or accepting connections, a socket must be created. Sockets are always created using <tt class="docutils literal"><span class="pre">akka.zeromq.ZeroMQ.newSocket</span></tt>, for example:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">val</span> <span class="n">socket</span> <span class="k">=</span> <span class="nc">ZeroMQ</span><span class="o">.</span><span class="n">newSocket</span><span class="o">(</span><span class="nc">SocketParameters</span><span class="o">(</span><span class="n">context</span><span class="o">,</span> <span class="nc">SocketType</span><span class="o">.</span><span class="nc">Pub</span><span class="o">))</span>
+</pre></div>
+</div>
+<p>after which the socket is either bound to an address and port or connected, for example:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="n">socket</span> <span class="o">!</span> <span class="nc">Bind</span><span class="o">(</span><span class="s">&quot;tcp://127.0.0.1:1234&quot;</span><span class="o">)</span>
+</pre></div>
+</div>
+<p>or:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="n">socket</span> <span class="o">!</span> <span class="nc">Connect</span><span class="o">(</span><span class="s">&quot;tcp://localhost:1234&quot;</span><span class="o">)</span>
+</pre></div>
+</div>
+<p>Also, a socket may be created with a listener that handles received messages as well as notifications:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">val</span> <span class="n">listener</span> <span class="k">=</span> <span class="n">actorOf</span><span class="o">(</span><span class="k">new</span> <span class="nc">Actor</span> <span class="o">{</span>
+  <span class="k">def</span> <span class="n">receive</span><span class="k">:</span> <span class="kt">Receive</span> <span class="o">=</span> <span class="o">{</span>
+    <span class="k">case</span> <span class="nc">Connecting</span> <span class="k">=&gt;</span> <span class="o">...</span>
+    <span class="k">case</span> <span class="k">_</span> <span class="k">=&gt;</span> <span class="o">...</span>
+  <span class="o">}</span>
+<span class="o">}).</span><span class="n">start</span>
+<span class="k">val</span> <span class="n">socket</span> <span class="k">=</span> <span class="nc">ZeroMQ</span><span class="o">.</span><span class="n">newSocket</span><span class="o">(</span><span class="nc">SocketParameters</span><span class="o">(</span><span class="n">context</span><span class="o">,</span> <span class="nc">SocketType</span><span class="o">.</span><span class="nc">Sub</span><span class="o">,</span> <span class="nc">Some</span><span class="o">(</span><span class="n">listener</span><span class="o">)))</span>
+<span class="n">socket</span> <span class="o">!</span> <span class="nc">Connect</span><span class="o">(</span><span class="s">&quot;tcp://localhost:1234&quot;</span><span class="o">)</span>
+</pre></div>
+</div>
+<p>The following sub-sections describe the supported connection patterns and how they can be used in an Akka environment. However, for a comprehensive discussion of connection patterns, please refer to <a class="reference external" href="http://zguide.zeromq.org/page:all">ZeroMQ &#8211; The Guide</a>.</p>
+<div class="section" id="publisher-subscriber-connection">
+<h3>Publisher-subscriber connection</h3>
+<p>In a publisher-subscriber (pub-sub) connection, the publisher accepts one or more subscribers. Each subscriber shall subscribe to one or more topics, whereas the publisher publishes messages to a set of topics. Also, a subscriber can subscribe to all available topics. An actor is subscribed to a topic as follows:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">val</span> <span class="n">socket</span> <span class="k">=</span> <span class="nc">ZeroMQ</span><span class="o">.</span><span class="n">newSocket</span><span class="o">(</span><span class="nc">SocketParameters</span><span class="o">(</span><span class="n">context</span><span class="o">,</span> <span class="nc">SocketType</span><span class="o">.</span><span class="nc">Sub</span><span class="o">,</span> <span class="nc">Some</span><span class="o">(</span><span class="n">listener</span><span class="o">)))</span>
+<span class="n">socket</span> <span class="o">!</span> <span class="nc">Connect</span><span class="o">(</span><span class="s">&quot;tcp://localhost:1234&quot;</span><span class="o">)</span>
+<span class="n">socket</span> <span class="o">!</span> <span class="nc">Subscribe</span><span class="o">(</span><span class="s">&quot;SomeTopic1&quot;</span><span class="o">)</span>
+</pre></div>
+</div>
+<p>Note that if the given string is empty (see below), the actor is subscribed to all topics. Accordingly, the actor is unsubscribed as follows:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="n">socket</span> <span class="o">!</span> <span class="nc">Unsubscribe</span><span class="o">(</span><span class="s">&quot;SomeTopic1&quot;</span><span class="o">)</span>
+</pre></div>
+</div>
+<p>In an Akka environment, pub-sub connections shall be used when an actor sends messages to one or more actors that do not interact with the actor that sent the message. The following piece of code creates a publisher actor, binds the socket, and sends a message to be published:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">import</span> <span class="nn">akka.zeromq._</span>
+<span class="k">val</span> <span class="n">socket</span> <span class="k">=</span> <span class="nc">ZeroMQ</span><span class="o">.</span><span class="n">newSocket</span><span class="o">(</span><span class="nc">SocketParameters</span><span class="o">(</span><span class="n">context</span><span class="o">,</span> <span class="nc">SocketType</span><span class="o">.</span><span class="nc">Pub</span><span class="o">))</span>
+<span class="n">socket</span> <span class="o">!</span> <span class="nc">Bind</span><span class="o">(</span><span class="s">&quot;tcp://127.0.0.1:1234&quot;</span><span class="o">)</span>
+<span class="n">socket</span> <span class="o">!</span> <span class="nc">ZMQMessage</span><span class="o">(</span><span class="s">&quot;hello&quot;</span><span class="o">.</span><span class="n">getBytes</span><span class="o">)</span>
+</pre></div>
+</div>
+<p>In the following code, the subscriber is configured to receive messages for all topics:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">import</span> <span class="nn">akka.zeromq._</span>
+<span class="k">val</span> <span class="n">listener</span> <span class="k">=</span> <span class="n">actorOf</span><span class="o">(</span><span class="k">new</span> <span class="nc">Actor</span> <span class="o">{</span>
+  <span class="k">def</span> <span class="n">receive</span><span class="k">:</span> <span class="kt">Receive</span> <span class="o">=</span> <span class="o">{</span>
+    <span class="k">case</span> <span class="n">message</span><span class="k">:</span> <span class="kt">ZMQMessage</span> <span class="o">=&gt;</span> <span class="o">...</span>
+    <span class="k">case</span> <span class="k">_</span> <span class="k">=&gt;</span> <span class="o">...</span>
+  <span class="o">}</span>
+<span class="o">}).</span><span class="n">start</span>
+<span class="k">val</span> <span class="n">socket</span> <span class="k">=</span> <span class="nc">ZMQ</span><span class="o">.</span><span class="n">newSocket</span><span class="o">(</span><span class="nc">SocketParameters</span><span class="o">(</span><span class="n">context</span><span class="o">,</span> <span class="nc">SocketType</span><span class="o">.</span><span class="nc">Sub</span><span class="o">,</span> <span class="nc">Some</span><span class="o">(</span><span class="n">listener</span><span class="o">)))</span>
+<span class="n">socket</span> <span class="o">!</span> <span class="nc">Connect</span><span class="o">(</span><span class="s">&quot;tcp://127.0.0.1:1234&quot;</span><span class="o">)</span>
+<span class="n">socket</span> <span class="o">!</span> <span class="nc">Subscribe</span><span class="o">(</span><span class="nc">Seq</span><span class="o">())</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+
+
+          </div>
+          <div class="span3"><p class="contents-title">Contents</p>
+              <div id="scroller-anchor">
+                <div id="scroller">
+                  <div id="toc"></div>
+                </div>
+              </div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="footer">
+  <div class="container">
+    <ul>
+      <li><h5>Akka</h5></li>
+      <li><a href="https://akka.io/docs">Documentation</a></li>
+      <li><a href="https://akka.io/downloads">Downloads</a></li>
+      <li><a href="https://akka.io/news">News</a></li>
+      <li><a href="http://letitcrash.com">Blog</a></li>
+    </ul>
+    <ul>
+      <li><h5>Contribute</h5></li>
+      <li><a href="http://github.com/akka/akka">Source Code</a></li>
+      <li><a href="http://groups.google.com/group/akka-user">Mailing List</a></li>      
+      <li><a href="http://www.assembla.com/spaces/akka/tickets">Report a Bug</a></li>      
+    </ul>
+    <ul>
+      <li><h5>Company</h5></li>
+      <li><a href="http://typesafe.com/products/typesafe-subscription">Commercial Support</a></li>
+      <li><a href="https://akka.io/team">Team</a></li>
+      <li><a href="mailto:info@typesafe.com">Contact</a></li>
+    </ul>
+    <ul>
+      <li><img src="../_static/watermark.png" align="center"/></li>
+    </ul>
+  </div>
+  <div class="container copyright">
+    <p style="float: left;">
+      © 2012 <a href="http://typesafe.com/">Typesafe Inc.</a> <span class="license">Akka is Open Source and available under the Apache 2 License.</span>
+    </p>
+    <p style="float: right; font-size: 12px;">
+      Last updated: Mar 08, 2012
+    </p>          
+  </div>
+</div>
+<script type="text/javascript">
+  $('#toc').toc();
+</script>
+  
+
+  </body>
+</html>

@@ -1,0 +1,330 @@
+
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Durable Mailboxes &mdash; Akka Documentation</title>
+    <link rel="stylesheet" href="../_static/style.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/prettify.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/base.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
+    <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Exo:300,400,600,700" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '1.3.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+<script type="text/javascript" src="https://doc.akka.io/docs/akka/1.3.1/_static/warnOldDocs.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="../_static/toc.js"></script>
+    <script type="text/javascript" src="../_static/prettify.js"></script>
+    <script type="text/javascript" src="../_static/highlightCode.js"></script>
+    <script type="text/javascript" src="../_static/effects.core.js"></script>
+    <script type="text/javascript" src="../_static/effects.highlight.js"></script>
+    <script type="text/javascript" src="../_static/scrollTo.js"></script>
+    <script type="text/javascript" src="../_static/contentsFix.js"></script>
+    <link rel="shortcut icon" href="../_static/favicon.ico"/>
+    <link rel="top" title="Akka Documentation" href="../index.html" />
+    <link rel="up" title="Additional Information" href="index.html" />
+    <link rel="next" title="Add-on Modules" href="add-on-modules.html" />
+    <link rel="prev" title="Additional Information" href="index.html" /> 
+  </head>
+  <body>
+  <div class="navbar">
+    <div class="navbar-inner">
+      <div class="container">
+        <div class="navbar-logo">
+          <a href="https://akka.io"><img src="../_static/logo-small.png" /></a>
+        </div>    
+        <ul class="nav">
+          <li><a href="https://akka.io/docs">Documentation</a></li>
+          <li><a href="https://akka.io/downloads">Download</a></li>
+          <li><a href="http://groups.google.com/group/akka-user">Mailing List</a></li>
+          <li><a href="http://github.com/akka/akka">Code</a></li>           
+          <li><a href="http://typesafe.com/products/typesafe-subscription">Commercial Support</a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="main">
+    <div class="container">
+      <div class="page-title">Durable Mailboxes</div><div class="pdf-link"><a href="https://doc.akka.io/docs/akka/1.3.1/Akka.pdf"><img src="../_static/pdf-icon.png" style="height: 40px;" /></a></div></div>
+    <div class="main-container">
+      <div class="container">
+        <div class="row">
+          <div class="span12">
+            <ul class="breadcrumb">           
+              <li>
+                 <span class="divider">|</span> <a href="add-on-modules.html">Add-on Modules</a> <span class="divider">»</span>
+              </li>
+              <li>
+                <a href="../index.html">Contents</a>
+              </li>
+              <li>
+                <span class="divider">«</span> <a href="index.html">Additional Information</a> <span class="divider">|</span>
+              </li>
+              <li>
+                Version 1.3.1
+              </li>
+            </ul>         
+          </div>
+        </div>
+        <div class="row">
+          <div class="span9">
+            
+  <div class="section" id="durable-mailboxes">
+<h1>Durable Mailboxes</h1>
+<div class="section" id="overview">
+<h2>Overview</h2>
+<p>Akka supports a set of durable mailboxes. A durable mailbox is a
+replacement for the standard actor mailbox that is durable. What this means in
+practice is that if there are pending messages in the actor&#8217;s mailbox when the
+node of the actor resides on crashes, then when you restart the node, the actor
+will be able to continue processing as if nothing had happened; with all pending
+messages still in its mailbox.</p>
+<div class="sidebar">
+<p class="first sidebar-title"><strong>IMPORTANT</strong></p>
+<p class="last">None of these mailboxes work with blocking message send, e.g. the message send
+operations that are relying on futures; <tt class="docutils literal"><span class="pre">!!</span></tt>, <tt class="docutils literal"><span class="pre">!!!</span></tt>, <tt class="docutils literal"><span class="pre">sendRequestReply</span></tt>
+and <tt class="docutils literal"><span class="pre">sendRequestReplyFuture</span></tt>, <tt class="docutils literal"><span class="pre">ask</span></tt> or <a href="#id1"><span class="problematic" id="id2">``</span></a>?`. If the node has crashed and then restarted, the
+thread that was blocked waiting for the reply is gone and there is no way we can
+deliver the message.</p>
+</div>
+<p>The durable mailboxes currently supported are:</p>
+<blockquote>
+<div><ul class="simple">
+<li><tt class="docutils literal"><span class="pre">FileDurableMailboxStorage</span></tt> &#8211; backed by a journaling transaction log on the local file system</li>
+<li><tt class="docutils literal"><span class="pre">RedisDurableMailboxStorage</span></tt> &#8211; backed by Redis</li>
+<li><tt class="docutils literal"><span class="pre">ZooKeeperDurableMailboxStorage</span></tt> &#8211; backed by ZooKeeper</li>
+<li><tt class="docutils literal"><span class="pre">BeanstalkDurableMailboxStorage</span></tt> &#8211; backed by Beanstalkd</li>
+<li><tt class="docutils literal"><span class="pre">MongoNaiveDurableMailboxStorage</span></tt> &#8211; backed by MongoDB</li>
+</ul>
+</div></blockquote>
+<p>We&#8217;ll walk through each one of these in detail in the sections below.</p>
+</div>
+<div class="section" id="file-based-durable-mailbox">
+<h2>File-based durable mailbox</h2>
+<p>This mailbox is backed by a journaling transaction log on the local file
+system. It is the simplest want to use since it does not require an extra
+infrastructure piece to administer, but it is usually sufficient and just what
+you need.</p>
+<p>The durable dispatchers and their configuration options reside in the <tt class="docutils literal"><span class="pre">akka.actor.mailbox</span></tt> package.</p>
+<p>You configure durable mailboxes through the durable dispatchers, the actor
+is oblivious to which type of mailbox it is using. Here is an example:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">val</span> <span class="n">dispatcher</span> <span class="k">=</span> <span class="nc">DurableEventBasedDispatcher</span><span class="o">(</span>
+  <span class="s">&quot;my:dispatcher:name&quot;</span><span class="o">,</span>
+  <span class="nc">FileDurableMailboxStorage</span><span class="o">)</span>
+<span class="c1">//Then set the actors dispatcher to this dispatcher</span>
+</pre></div>
+</div>
+<p>or for a thread-based durable dispatcher.</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="n">self</span><span class="o">.</span><span class="n">dispatcher</span> <span class="k">=</span> <span class="nc">DurableThreadBasedDispatcher</span><span class="o">(</span>
+  <span class="n">self</span><span class="o">,</span>
+  <span class="nc">FileDurableMailboxStorage</span><span class="o">)</span>
+</pre></div>
+</div>
+<p>There are 2 different durable dispatchers,
+<tt class="docutils literal"><span class="pre">DurableEventBasedDispatcher</span></tt> and <tt class="docutils literal"><span class="pre">DurableThreadBasedDispatcher</span></tt>,
+which are durable versions of <tt class="docutils literal"><span class="pre">ExecutorBasedEventDrivenDispatcher</span></tt> and <tt class="docutils literal"><span class="pre">ThreadBasedDispatcher</span></tt>.</p>
+<p>This gives you an excellent way of creating bulkheads in your application,
+where groups of actors sharing the same dispatcher also share the same backing storage.</p>
+<p><a href="#id3"><span class="problematic" id="id4">|more|</span></a> Read more about that in the <a class="reference external" href="https://doc.akka.io/dispatchers-scala">Akka Dispatcher Documentation</a>.</p>
+<p>You can also configure and tune the file-based durable mailbox. This is done in
+the <tt class="docutils literal"><span class="pre">akka.actor.mailbox.file-based</span></tt> section in the <tt class="docutils literal"><span class="pre">akka.conf</span></tt> configuration
+file.</p>
+<div class="highlight-conf"><pre>akka {
+  actor {
+    mailbox {
+      file-based {
+        directory-path = "./_mb"
+        max-items = 2147483647
+        max-size = 2147483647
+        max-items = 2147483647
+        max-age = 0
+        max-journal-size = 16777216 # 16 * 1024 * 1024
+        max-memory-size = 134217728 # 128 * 1024 * 1024
+        max-journal-overflow = 10
+        max-journal-size-absolute = 9223372036854775807
+        discard-old-when-full = on
+        keep-journal = on
+        sync-journal = off
+      }
+    }
+  }
+}</pre>
+</div>
+</div>
+<div class="section" id="redis-based-durable-mailbox">
+<h2>Redis-based durable mailbox</h2>
+<p>This mailbox is backed by a Redis queue. <a class="reference external" href="http://redis.io">Redis</a> Is a very
+fast NOSQL database that has a wide range of data structure abstractions, one of
+them is a queue which is what we are using in this implementation. This means
+that you have to start up a Redis server that can host these durable
+mailboxes. Read more in the Redis documentation on how to do that.</p>
+<p>Here is an example of how you can configure your dispatcher to use this mailbox:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">val</span> <span class="n">dispatcher</span> <span class="k">=</span> <span class="nc">DurableEventBasedDispatcher</span><span class="o">(</span>
+  <span class="s">&quot;my:service&quot;</span><span class="o">,</span>
+  <span class="nc">RedisDurableMailboxStorage</span><span class="o">)</span>
+</pre></div>
+</div>
+<p>or for a thread-based durable dispatcher.</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="n">self</span><span class="o">.</span><span class="n">dispatcher</span> <span class="k">=</span> <span class="nc">DurableThreadBasedDispatcher</span><span class="o">(</span>
+  <span class="n">self</span><span class="o">,</span>
+  <span class="nc">RedisDurableMailboxStorage</span><span class="o">)</span>
+</pre></div>
+</div>
+<p>You also need to configure the IP and port for the Redis server. This is done in
+the <tt class="docutils literal"><span class="pre">akka.actor.mailbox.redis</span></tt> section in the <tt class="docutils literal"><span class="pre">akka.conf</span></tt> configuration
+file.</p>
+<div class="highlight-conf"><pre>akka {
+  actor {
+    mailbox {
+      redis {
+        hostname = "127.0.0.1"
+        port = 6379
+      }
+    }
+  }
+}</pre>
+</div>
+</div>
+<div class="section" id="zookeeper-based-durable-mailbox">
+<h2>ZooKeeper-based durable mailbox</h2>
+<p>This mailbox is backed by <a class="reference external" href="http://zookeeper.apache.org/">ZooKeeper</a>. ZooKeeper
+is a centralized service for maintaining configuration information, naming,
+providing distributed synchronization, and providing group services This means
+that you have to start up a ZooKeeper server (for production a ZooKeeper server
+ensamble) that can host these durable mailboxes. Read more in the ZooKeeper
+documentation on how to do that.</p>
+<p>Here is an example of how you can configure your dispatcher to use this mailbox:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">val</span> <span class="n">dispatcher</span> <span class="k">=</span> <span class="nc">DurableEventBasedDispatcher</span><span class="o">(</span>
+  <span class="s">&quot;my:service&quot;</span><span class="o">,</span>
+  <span class="nc">ZooKeeperDurableMailboxStorage</span><span class="o">)</span>
+</pre></div>
+</div>
+<p>or for a thread-based durable dispatcher.</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="n">self</span><span class="o">.</span><span class="n">dispatcher</span> <span class="k">=</span> <span class="nc">DurableThreadBasedDispatcher</span><span class="o">(</span>
+  <span class="n">self</span><span class="o">,</span>
+  <span class="nc">ZooKeeperDurableMailboxStorage</span><span class="o">)</span>
+</pre></div>
+</div>
+<p>You also need to configure ZooKeeper server addresses, timeouts, etc. This is
+done in the <tt class="docutils literal"><span class="pre">akka.actor.mailbox.zookeeper</span></tt> section in the <tt class="docutils literal"><span class="pre">akka.conf</span></tt>
+configuration file.</p>
+<div class="highlight-conf"><pre>akka {
+  actor {
+    mailbox {
+      zookeeper {
+        server-addresses = "localhost:2181"
+        session-timeout = 60
+        connection-timeout = 30
+        blocking-queue = on
+      }
+    }
+  }
+}</pre>
+</div>
+</div>
+<div class="section" id="beanstalk-based-durable-mailbox">
+<h2>Beanstalk-based durable mailbox</h2>
+<p>This mailbox is backed by <a class="reference external" href="http://kr.github.com/beanstalkd/">Beanstalkd</a>.
+Beanstalk is a simple, fast work queue. This means that you have to start up a
+Beanstalk server that can host these durable mailboxes. Read more in the
+Beanstalk documentation on how to do that.</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">val</span> <span class="n">dispatcher</span> <span class="k">=</span> <span class="nc">DurableEventBasedDispatcher</span><span class="o">(</span>
+  <span class="s">&quot;my:service&quot;</span><span class="o">,</span>
+  <span class="nc">BeanstalkDurableMailboxStorage</span><span class="o">)</span>
+</pre></div>
+</div>
+<p>or for a thread-based durable dispatcher.</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="n">self</span><span class="o">.</span><span class="n">dispatcher</span> <span class="k">=</span> <span class="nc">DurableThreadBasedDispatcher</span><span class="o">(</span>
+  <span class="n">self</span><span class="o">,</span>
+  <span class="nc">BeanstalkDurableMailboxStorage</span><span class="o">)</span>
+</pre></div>
+</div>
+<p>You also need to configure the IP, and port, and so on, for the Beanstalk
+server. This is done in the <tt class="docutils literal"><span class="pre">akka.actor.mailbox.beanstalk</span></tt> section in the
+<tt class="docutils literal"><span class="pre">akka.conf</span></tt> configuration file.</p>
+<div class="highlight-conf"><pre>akka {
+  actor {
+    mailbox {
+      beanstalk {
+        hostname = "127.0.0.1"
+        port = 11300
+        reconnect-window = 5
+        message-submit-delay = 0
+        message-submit-timeout = 5
+        message-time-to-live = 120
+      }
+    }
+  }
+}</pre>
+</div>
+</div>
+</div>
+
+
+          </div>
+          <div class="span3"><p class="contents-title">Contents</p>
+              <div id="scroller-anchor">
+                <div id="scroller">
+                  <div id="toc"></div>
+                </div>
+              </div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="footer">
+  <div class="container">
+    <ul>
+      <li><h5>Akka</h5></li>
+      <li><a href="https://akka.io/docs">Documentation</a></li>
+      <li><a href="https://akka.io/downloads">Downloads</a></li>
+      <li><a href="https://akka.io/news">News</a></li>
+      <li><a href="http://letitcrash.com">Blog</a></li>
+    </ul>
+    <ul>
+      <li><h5>Contribute</h5></li>
+      <li><a href="http://github.com/akka/akka">Source Code</a></li>
+      <li><a href="http://groups.google.com/group/akka-user">Mailing List</a></li>      
+      <li><a href="http://www.assembla.com/spaces/akka/tickets">Report a Bug</a></li>      
+    </ul>
+    <ul>
+      <li><h5>Company</h5></li>
+      <li><a href="http://typesafe.com/products/typesafe-subscription">Commercial Support</a></li>
+      <li><a href="https://akka.io/team">Team</a></li>
+      <li><a href="mailto:info@typesafe.com">Contact</a></li>
+    </ul>
+    <ul>
+      <li><img src="../_static/watermark.png" align="center"/></li>
+    </ul>
+  </div>
+  <div class="container copyright">
+    <p style="float: left;">
+      © 2012 <a href="http://typesafe.com/">Typesafe Inc.</a> <span class="license">Akka is Open Source and available under the Apache 2 License.</span>
+    </p>
+    <p style="float: right; font-size: 12px;">
+      Last updated: Mar 08, 2012
+    </p>          
+  </div>
+</div>
+<script type="text/javascript">
+  $('#toc').toc();
+</script>
+  
+
+  </body>
+</html>

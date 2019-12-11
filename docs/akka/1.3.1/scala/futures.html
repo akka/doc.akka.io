@@ -1,0 +1,366 @@
+
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Futures (Scala) &mdash; Akka Documentation</title>
+    <link rel="stylesheet" href="../_static/style.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/prettify.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/base.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
+    <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Exo:300,400,600,700" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '1.3.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+<script type="text/javascript" src="https://doc.akka.io/docs/akka/1.3.1/_static/warnOldDocs.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="../_static/toc.js"></script>
+    <script type="text/javascript" src="../_static/prettify.js"></script>
+    <script type="text/javascript" src="../_static/highlightCode.js"></script>
+    <script type="text/javascript" src="../_static/effects.core.js"></script>
+    <script type="text/javascript" src="../_static/effects.highlight.js"></script>
+    <script type="text/javascript" src="../_static/scrollTo.js"></script>
+    <script type="text/javascript" src="../_static/contentsFix.js"></script>
+    <link rel="shortcut icon" href="../_static/favicon.ico"/>
+    <link rel="top" title="Akka Documentation" href="../index.html" />
+    <link rel="up" title="Scala API" href="index.html" />
+    <link rel="next" title="Dataflow Concurrency (Scala)" href="dataflow.html" />
+    <link rel="prev" title="ActorRegistry (Scala)" href="actor-registry.html" /> 
+  </head>
+  <body>
+  <div class="navbar">
+    <div class="navbar-inner">
+      <div class="container">
+        <div class="navbar-logo">
+          <a href="https://akka.io"><img src="../_static/logo-small.png" /></a>
+        </div>    
+        <ul class="nav">
+          <li><a href="https://akka.io/docs">Documentation</a></li>
+          <li><a href="https://akka.io/downloads">Download</a></li>
+          <li><a href="http://groups.google.com/group/akka-user">Mailing List</a></li>
+          <li><a href="http://github.com/akka/akka">Code</a></li>           
+          <li><a href="http://typesafe.com/products/typesafe-subscription">Commercial Support</a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="main">
+    <div class="container">
+      <div class="page-title">Futures (Scala)</div><div class="pdf-link"><a href="https://doc.akka.io/docs/akka/1.3.1/Akka.pdf"><img src="../_static/pdf-icon.png" style="height: 40px;" /></a></div></div>
+    <div class="main-container">
+      <div class="container">
+        <div class="row">
+          <div class="span12">
+            <ul class="breadcrumb">           
+              <li>
+                 <span class="divider">|</span> <a href="dataflow.html">Dataflow Concurrency (Scala)</a> <span class="divider">»</span>
+              </li>
+              <li>
+                <a href="../index.html">Contents</a>
+              </li>
+              <li>
+                <span class="divider">«</span> <a href="actor-registry.html">ActorRegistry (Scala)</a> <span class="divider">|</span>
+              </li>
+              <li>
+                Version 1.3.1
+              </li>
+            </ul>         
+          </div>
+        </div>
+        <div class="row">
+          <div class="span9">
+            
+  <div class="section" id="futures-scala">
+<span id="id1"></span><h1>Futures (Scala)</h1>
+<div class="section" id="introduction">
+<h2>Introduction</h2>
+<p>In Akka, a <a class="reference external" href="http://en.wikipedia.org/wiki/Futures_and_promises">Future</a> is a data structure used to retrieve the result of some concurrent operation. This operation is usually performed by an <tt class="docutils literal"><span class="pre">Actor</span></tt> or by the <tt class="docutils literal"><span class="pre">Dispatcher</span></tt> directly. This result can be accessed synchronously (blocking) or asynchronously (non-blocking).</p>
+</div>
+<div class="section" id="use-with-actors">
+<h2>Use with Actors</h2>
+<p>There are generally two ways of getting a reply from an <tt class="docutils literal"><span class="pre">Actor</span></tt>: the first is by a sent message (<tt class="docutils literal"><span class="pre">actor</span> <span class="pre">!</span> <span class="pre">msg</span></tt>), which only works if the original sender was an <tt class="docutils literal"><span class="pre">Actor</span></tt>) and the second is through a <tt class="docutils literal"><span class="pre">Future</span></tt>.</p>
+<p>Using an <tt class="docutils literal"><span class="pre">Actor</span></tt>&#8216;s <tt class="docutils literal"><span class="pre">?</span></tt> method to send a message will return a Future. To wait for and retrieve the actual result the simplest method is:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">val</span> <span class="n">future</span> <span class="k">=</span> <span class="n">actor</span> <span class="o">?</span> <span class="n">msg</span>
+<span class="k">val</span> <span class="n">result</span><span class="k">:</span> <span class="kt">Any</span> <span class="o">=</span> <span class="n">future</span><span class="o">.</span><span class="n">get</span><span class="o">()</span>
+</pre></div>
+</div>
+<p>This will cause the current thread to block and wait for the <tt class="docutils literal"><span class="pre">Actor</span></tt> to &#8216;complete&#8217; the <tt class="docutils literal"><span class="pre">Future</span></tt> with it&#8217;s reply. Due to the dynamic nature of Akka&#8217;s <tt class="docutils literal"><span class="pre">Actor</span></tt>s this result will be untyped and will default to <tt class="docutils literal"><span class="pre">Nothing</span></tt>. The safest way to deal with this is to cast the result to an <tt class="docutils literal"><span class="pre">Any</span></tt> as is shown in the above example. You can also use the expected result type instead of <tt class="docutils literal"><span class="pre">Any</span></tt>, but if an unexpected type were to be returned you will get a <tt class="docutils literal"><span class="pre">ClassCastException</span></tt>. For more elegant ways to deal with this and to use the result without blocking, refer to <a class="reference internal" href="#functional-futures">Functional Futures</a>.</p>
+</div>
+<div class="section" id="use-directly">
+<h2>Use Directly</h2>
+<p>A common use case within Akka is to have some computation performed concurrently without needing the extra utility of an <tt class="docutils literal"><span class="pre">Actor</span></tt>. If you find yourself creating a pool of <tt class="docutils literal"><span class="pre">Actor</span></tt>s for the sole reason of performing a calculation in parallel, there is an easier (and faster) way:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">import</span> <span class="nn">akka.dispatch.Future</span>
+
+<span class="k">val</span> <span class="n">future</span> <span class="k">=</span> <span class="nc">Future</span> <span class="o">{</span>
+  <span class="s">&quot;Hello&quot;</span> <span class="o">+</span> <span class="s">&quot;World&quot;</span>
+<span class="o">}</span>
+<span class="k">val</span> <span class="n">result</span> <span class="k">=</span> <span class="n">future</span><span class="o">.</span><span class="n">get</span><span class="o">()</span>
+</pre></div>
+</div>
+<p>In the above code the block passed to <tt class="docutils literal"><span class="pre">Future</span></tt> will be executed by the default <tt class="docutils literal"><span class="pre">Dispatcher</span></tt>, with the return value of the block used to complete the <tt class="docutils literal"><span class="pre">Future</span></tt> (in this case, the result would be the string: &#8220;HelloWorld&#8221;). Unlike a <tt class="docutils literal"><span class="pre">Future</span></tt> that is returned from an <tt class="docutils literal"><span class="pre">Actor</span></tt>, this <tt class="docutils literal"><span class="pre">Future</span></tt> is properly typed, and we also avoid the overhead of managing an <tt class="docutils literal"><span class="pre">Actor</span></tt>.</p>
+</div>
+<div class="section" id="oncomplete">
+<h2>onComplete</h2>
+<p>The mother of <a href="#id2"><span class="problematic" id="id3">``</span></a>Future`-composition is the onComplete callback, which allows you to get notified asynchronously when the <a href="#id4"><span class="problematic" id="id5">``</span></a>Future```gets completed:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">val</span> <span class="n">future</span><span class="k">:</span> <span class="kt">Future</span><span class="o">[</span><span class="kt">Any</span><span class="o">]</span> <span class="k">=</span> <span class="o">...</span>
+<span class="n">future</span> <span class="n">onComplete</span> <span class="o">{</span>
+  <span class="n">_</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="n">get</span> <span class="k">match</span> <span class="o">{</span>
+    <span class="k">case</span> <span class="nc">Left</span><span class="o">(</span><span class="n">problem</span><span class="o">)</span> <span class="k">=&gt;</span> <span class="n">handleCompletedWithException</span><span class="o">(</span><span class="n">problem</span><span class="o">)</span>
+    <span class="k">case</span> <span class="nc">Right</span><span class="o">(</span><span class="n">result</span><span class="o">)</span> <span class="k">=&gt;</span> <span class="n">handleCompletedWithResult</span><span class="o">(</span><span class="n">result</span><span class="o">)</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+
+<span class="c1">//You can also short that down to:</span>
+<span class="n">future</span> <span class="n">onComplete</span> <span class="o">{</span> <span class="n">_</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="n">get</span><span class="o">.</span><span class="n">fold</span><span class="o">(</span><span class="n">handleCompletedWithException</span><span class="o">(</span><span class="n">_</span><span class="o">),</span> <span class="n">handleCompletedWithResult</span><span class="o">(</span><span class="n">_</span><span class="o">))</span> <span class="o">}</span>
+
+
+<span class="c1">//There&#39;s also a callback named ``onResult`` that only deals with results (and the other, ``onException`` is described further down in this document)</span>
+<span class="n">future</span> <span class="n">onResult</span> <span class="o">{</span>
+  <span class="k">case</span> <span class="s">&quot;foo&quot;</span> <span class="k">=&gt;</span> <span class="n">logResult</span><span class="o">(</span><span class="s">&quot;GOT MYSELF A FOO OH YEAH BABY!&quot;</span><span class="o">)</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="functional-futures">
+<h2>Functional Futures</h2>
+<p>A recent addition to Akka&#8217;s <tt class="docutils literal"><span class="pre">Future</span></tt> is several monadic methods that are very similar to the ones used by Scala&#8217;s collections. These allow you to create &#8216;pipelines&#8217; or &#8216;streams&#8217; that the result will travel through.</p>
+<div class="section" id="future-is-a-monad">
+<h3>Future is a Monad</h3>
+<p>The first method for working with <tt class="docutils literal"><span class="pre">Future</span></tt> functionally is <tt class="docutils literal"><span class="pre">map</span></tt>. This method takes a <tt class="docutils literal"><span class="pre">Function</span></tt> which performs some operation on the result of the <tt class="docutils literal"><span class="pre">Future</span></tt>, and returning a new result. The return value of the <tt class="docutils literal"><span class="pre">map</span></tt> method is another <tt class="docutils literal"><span class="pre">Future</span></tt> that will contain the new result:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">val</span> <span class="n">f1</span> <span class="k">=</span> <span class="nc">Future</span> <span class="o">{</span>
+  <span class="s">&quot;Hello&quot;</span> <span class="o">+</span> <span class="s">&quot;World&quot;</span>
+<span class="o">}</span>
+
+<span class="k">val</span> <span class="n">f2</span> <span class="k">=</span> <span class="n">f1</span> <span class="n">map</span> <span class="o">{</span> <span class="n">x</span> <span class="k">=&gt;</span>
+  <span class="n">x</span><span class="o">.</span><span class="n">length</span>
+<span class="o">}</span>
+
+<span class="k">val</span> <span class="n">result</span> <span class="k">=</span> <span class="n">f2</span><span class="o">.</span><span class="n">get</span>
+</pre></div>
+</div>
+<p>In this example we are joining two strings together within a Future. Instead of waiting for this to complete, we apply our function that calculates the length of the string using the <tt class="docutils literal"><span class="pre">map</span></tt> method. Now we have a second Future that will eventually contain an <tt class="docutils literal"><span class="pre">Int</span></tt>. When our original <tt class="docutils literal"><span class="pre">Future</span></tt> completes, it will also apply our function and complete the second Future with it&#8217;s result. When we finally <tt class="docutils literal"><span class="pre">get</span></tt> the result, it will contain the number 10. Our original Future still contains the string &#8220;HelloWorld&#8221; and is unaffected by the <tt class="docutils literal"><span class="pre">map</span></tt>.</p>
+<p>The <tt class="docutils literal"><span class="pre">map</span></tt> method is fine if we are modifying a single <tt class="docutils literal"><span class="pre">Future</span></tt>, but if 2 or more <tt class="docutils literal"><span class="pre">Future</span></tt>s are involved <tt class="docutils literal"><span class="pre">map</span></tt> will not allow you to combine them together:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">val</span> <span class="n">f1</span> <span class="k">=</span> <span class="nc">Future</span> <span class="o">{</span>
+  <span class="s">&quot;Hello&quot;</span> <span class="o">+</span> <span class="s">&quot;World&quot;</span>
+<span class="o">}</span>
+
+<span class="k">val</span> <span class="n">f2</span> <span class="k">=</span> <span class="nc">Future</span> <span class="o">{</span>
+  <span class="mi">3</span>
+<span class="o">}</span>
+
+<span class="k">val</span> <span class="n">f3</span> <span class="k">=</span> <span class="n">f1</span> <span class="n">map</span> <span class="o">{</span> <span class="n">x</span> <span class="k">=&gt;</span>
+  <span class="n">f2</span> <span class="n">map</span> <span class="o">{</span> <span class="n">y</span> <span class="k">=&gt;</span>
+    <span class="n">x</span><span class="o">.</span><span class="n">length</span> <span class="o">*</span> <span class="n">y</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+
+<span class="k">val</span> <span class="n">result</span> <span class="k">=</span> <span class="n">f2</span><span class="o">.</span><span class="n">get</span><span class="o">.</span><span class="n">get</span>
+</pre></div>
+</div>
+<p>The <tt class="docutils literal"><span class="pre">get</span></tt> method had to be used twice because <tt class="docutils literal"><span class="pre">f3</span></tt> is a <tt class="docutils literal"><span class="pre">Future[Future[Int]]</span></tt> instead of the desired <tt class="docutils literal"><span class="pre">Future[Int]</span></tt>. Instead, the <tt class="docutils literal"><span class="pre">flatMap</span></tt> method should be used:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">val</span> <span class="n">f1</span> <span class="k">=</span> <span class="nc">Future</span> <span class="o">{</span>
+  <span class="s">&quot;Hello&quot;</span> <span class="o">+</span> <span class="s">&quot;World&quot;</span>
+<span class="o">}</span>
+
+<span class="k">val</span> <span class="n">f2</span> <span class="k">=</span> <span class="nc">Future</span> <span class="o">{</span>
+  <span class="mi">3</span>
+<span class="o">}</span>
+
+<span class="k">val</span> <span class="n">f3</span> <span class="k">=</span> <span class="n">f1</span> <span class="n">flatMap</span> <span class="o">{</span> <span class="n">x</span> <span class="k">=&gt;</span>
+  <span class="n">f2</span> <span class="n">map</span> <span class="o">{</span> <span class="n">y</span> <span class="k">=&gt;</span>
+    <span class="n">x</span><span class="o">.</span><span class="n">length</span> <span class="o">*</span> <span class="n">y</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+
+<span class="k">val</span> <span class="n">result</span> <span class="k">=</span> <span class="n">f2</span><span class="o">.</span><span class="n">get</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="for-comprehensions">
+<h3>For Comprehensions</h3>
+<p>Since <tt class="docutils literal"><span class="pre">Future</span></tt> has a <tt class="docutils literal"><span class="pre">map</span></tt> and <tt class="docutils literal"><span class="pre">flatMap</span></tt> method it can be easily used in a &#8216;for comprehension&#8217;:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">val</span> <span class="n">f</span> <span class="k">=</span> <span class="k">for</span> <span class="o">{</span>
+  <span class="n">a</span> <span class="k">&lt;-</span> <span class="nc">Future</span><span class="o">(</span><span class="mi">10</span> <span class="o">/</span> <span class="mi">2</span><span class="o">)</span> <span class="c1">// 10 / 2 = 5</span>
+  <span class="n">b</span> <span class="k">&lt;-</span> <span class="nc">Future</span><span class="o">(</span><span class="n">a</span> <span class="o">+</span> <span class="mi">1</span><span class="o">)</span>  <span class="c1">//  5 + 1 = 6</span>
+  <span class="n">c</span> <span class="k">&lt;-</span> <span class="nc">Future</span><span class="o">(</span><span class="n">a</span> <span class="o">-</span> <span class="mi">1</span><span class="o">)</span>  <span class="c1">//  5 - 1 = 4</span>
+<span class="o">}</span> <span class="k">yield</span> <span class="n">b</span> <span class="o">*</span> <span class="n">c</span>         <span class="c1">//  6 * 4 = 24</span>
+
+<span class="k">val</span> <span class="n">result</span> <span class="k">=</span> <span class="n">f</span><span class="o">.</span><span class="n">get</span>
+</pre></div>
+</div>
+<p>Something to keep in mind when doing this is even though it looks like parts of the above example can run in parallel, each step of the for comprehension is run sequentially. This will happen on separate threads for each step but there isn&#8217;t much benefit over running the calculations all within a single Future. The real benefit comes when the <tt class="docutils literal"><span class="pre">Future</span></tt>s are created first, and then combining them together.</p>
+</div>
+<div class="section" id="composing-futures">
+<h3>Composing Futures</h3>
+<p>The example for comprehension above is an example of composing <tt class="docutils literal"><span class="pre">Future</span></tt>s. A common use case for this is combining the replies of several <tt class="docutils literal"><span class="pre">Actor</span></tt>s into a single calculation without resorting to calling <tt class="docutils literal"><span class="pre">get</span></tt> or <tt class="docutils literal"><span class="pre">await</span></tt> to block for each result. First an example of using <tt class="docutils literal"><span class="pre">get</span></tt>:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">val</span> <span class="n">f1</span> <span class="k">=</span> <span class="n">actor1</span> <span class="o">?</span> <span class="n">msg1</span>
+<span class="k">val</span> <span class="n">f2</span> <span class="k">=</span> <span class="n">actor2</span> <span class="o">?</span> <span class="n">msg2</span>
+
+<span class="k">val</span> <span class="n">a</span><span class="k">:</span> <span class="kt">Int</span> <span class="o">=</span> <span class="n">f1</span><span class="o">.</span><span class="n">get</span>
+<span class="k">val</span> <span class="n">b</span><span class="k">:</span> <span class="kt">Int</span> <span class="o">=</span> <span class="n">f2</span><span class="o">.</span><span class="n">get</span>
+
+<span class="k">val</span> <span class="n">f3</span> <span class="k">=</span> <span class="n">actor3</span> <span class="o">?</span> <span class="o">(</span><span class="n">a</span> <span class="o">+</span> <span class="n">b</span><span class="o">)</span>
+
+<span class="k">val</span> <span class="n">result</span><span class="k">:</span> <span class="kt">String</span> <span class="o">=</span> <span class="n">f3</span><span class="o">.</span><span class="n">get</span>
+</pre></div>
+</div>
+<p>Here we wait for the results from the first 2 <tt class="docutils literal"><span class="pre">Actor</span></tt>s before sending that result to the third <tt class="docutils literal"><span class="pre">Actor</span></tt>. We called <tt class="docutils literal"><span class="pre">get</span></tt> 3 times, which caused our little program to block 3 times before getting our final result. Now compare that to this example:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">val</span> <span class="n">f1</span> <span class="k">=</span> <span class="n">actor1</span> <span class="o">?</span> <span class="n">msg1</span>
+<span class="k">val</span> <span class="n">f2</span> <span class="k">=</span> <span class="n">actor2</span> <span class="o">?</span> <span class="n">msg2</span>
+
+<span class="k">val</span> <span class="n">f3</span> <span class="k">=</span> <span class="k">for</span> <span class="o">{</span>
+  <span class="n">a</span><span class="k">:</span> <span class="kt">Int</span>    <span class="kt">&lt;-</span> <span class="kt">f1</span>
+  <span class="n">b</span><span class="k">:</span> <span class="kt">Int</span>    <span class="kt">&lt;-</span> <span class="kt">f2</span>
+  <span class="n">c</span><span class="k">:</span> <span class="kt">String</span> <span class="kt">&lt;-</span> <span class="kt">actor3</span> <span class="kt">?</span> <span class="o">(</span><span class="kt">a</span> <span class="kt">+</span> <span class="kt">b</span><span class="o">)</span>
+<span class="o">}</span> <span class="k">yield</span> <span class="n">c</span>
+
+<span class="k">val</span> <span class="n">result</span> <span class="k">=</span> <span class="n">f3</span><span class="o">.</span><span class="n">get</span>
+</pre></div>
+</div>
+<p>Here we have 2 actors processing a single message each. Once the 2 results are available (note that we don&#8217;t block to get these results!), they are being added together and sent to a third <tt class="docutils literal"><span class="pre">Actor</span></tt>, which replies with a string, which we assign to &#8216;result&#8217;.</p>
+<p>This is fine when dealing with a known amount of Actors, but can grow unwieldy if we have more then a handful. The <tt class="docutils literal"><span class="pre">sequence</span></tt> and <tt class="docutils literal"><span class="pre">traverse</span></tt> helper methods can make it easier to handle more complex use cases. Both of these methods are ways of turning, for a subclass <tt class="docutils literal"><span class="pre">T</span></tt> of <tt class="docutils literal"><span class="pre">Traversable</span></tt>, <tt class="docutils literal"><span class="pre">T[Future[A]]</span></tt> into a <tt class="docutils literal"><span class="pre">Future[T[A]]</span></tt>. For example:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="c1">// oddActor returns odd numbers sequentially from 1</span>
+<span class="k">val</span> <span class="n">listOfFutures</span><span class="k">:</span> <span class="kt">List</span><span class="o">[</span><span class="kt">Future</span><span class="o">[</span><span class="kt">Int</span><span class="o">]]</span> <span class="k">=</span> <span class="nc">List</span><span class="o">.</span><span class="n">fill</span><span class="o">(</span><span class="mi">100</span><span class="o">)(</span><span class="n">oddActor</span> <span class="o">?</span> <span class="nc">GetNext</span><span class="o">)</span>
+
+<span class="c1">// now we have a Future[List[Int]]</span>
+<span class="k">val</span> <span class="n">futureList</span> <span class="k">=</span> <span class="nc">Future</span><span class="o">.</span><span class="n">sequence</span><span class="o">(</span><span class="n">listOfFutures</span><span class="o">)</span>
+
+<span class="c1">// Find the sum of the odd numbers</span>
+<span class="k">val</span> <span class="n">oddSum</span> <span class="k">=</span> <span class="n">futureList</span><span class="o">.</span><span class="n">map</span><span class="o">(</span><span class="n">_</span><span class="o">.</span><span class="n">sum</span><span class="o">).</span><span class="n">get</span>
+</pre></div>
+</div>
+<p>To better explain what happened in the example, <tt class="docutils literal"><span class="pre">Future.sequence</span></tt> is taking the <tt class="docutils literal"><span class="pre">List[Future[Int]]</span></tt> and turning it into a <tt class="docutils literal"><span class="pre">Future[List[Int]]</span></tt>. We can then use <tt class="docutils literal"><span class="pre">map</span></tt> to work with the <tt class="docutils literal"><span class="pre">List[Int]</span></tt> directly, and we find the sum of the <tt class="docutils literal"><span class="pre">List</span></tt>.</p>
+<p>The <tt class="docutils literal"><span class="pre">traverse</span></tt> method is similar to <tt class="docutils literal"><span class="pre">sequence</span></tt>, but it takes a <tt class="docutils literal"><span class="pre">T[A]</span></tt> and a function <tt class="docutils literal"><span class="pre">T</span> <span class="pre">=&gt;</span> <span class="pre">Future[B]</span></tt> to return a <tt class="docutils literal"><span class="pre">Future[T[B]]</span></tt>, where <tt class="docutils literal"><span class="pre">T</span></tt> is again a subclass of Traversable. For example, to use <tt class="docutils literal"><span class="pre">traverse</span></tt> to sum the first 100 odd numbers:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">val</span> <span class="n">oddSum</span> <span class="k">=</span> <span class="nc">Future</span><span class="o">.</span><span class="n">traverse</span><span class="o">((</span><span class="mi">1</span> <span class="n">to</span> <span class="mi">100</span><span class="o">).</span><span class="n">toList</span><span class="o">)(</span><span class="n">x</span> <span class="k">=&gt;</span> <span class="nc">Future</span><span class="o">(</span><span class="n">x</span> <span class="o">*</span> <span class="mi">2</span> <span class="o">-</span> <span class="mi">1</span><span class="o">)).</span><span class="n">map</span><span class="o">(</span><span class="n">_</span><span class="o">.</span><span class="n">sum</span><span class="o">).</span><span class="n">get</span>
+</pre></div>
+</div>
+<p>This is the same result as this example:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">val</span> <span class="n">oddSum</span> <span class="k">=</span> <span class="nc">Future</span><span class="o">.</span><span class="n">sequence</span><span class="o">((</span><span class="mi">1</span> <span class="n">to</span> <span class="mi">100</span><span class="o">).</span><span class="n">toList</span><span class="o">.</span><span class="n">map</span><span class="o">(</span><span class="n">x</span> <span class="k">=&gt;</span> <span class="nc">Future</span><span class="o">(</span><span class="n">x</span> <span class="o">*</span> <span class="mi">2</span> <span class="o">-</span> <span class="mi">1</span><span class="o">))).</span><span class="n">map</span><span class="o">(</span><span class="n">_</span><span class="o">.</span><span class="n">sum</span><span class="o">).</span><span class="n">get</span>
+</pre></div>
+</div>
+<p>But it may be faster to use <tt class="docutils literal"><span class="pre">traverse</span></tt> as it doesn&#8217;t have to create an intermediate <tt class="docutils literal"><span class="pre">List[Future[Int]]</span></tt>.</p>
+<p>Then there&#8217;s a method that&#8217;s called <tt class="docutils literal"><span class="pre">fold</span></tt> that takes a start-value, a sequence of <tt class="docutils literal"><span class="pre">Future</span></tt>:s and a function from the type of the start-value and the type of the futures and returns something with the same type as the start-value, and then applies the function to all elements in the sequence of futures, non-blockingly, the execution will run on the Thread of the last completing Future in the sequence.</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">val</span> <span class="n">futures</span> <span class="k">=</span> <span class="k">for</span><span class="o">(</span><span class="n">i</span> <span class="k">&lt;-</span> <span class="mi">1</span> <span class="n">to</span> <span class="mi">1000</span><span class="o">)</span> <span class="k">yield</span> <span class="nc">Future</span><span class="o">(</span><span class="n">i</span> <span class="o">*</span> <span class="mi">2</span><span class="o">)</span> <span class="c1">// Create a sequence of Futures</span>
+
+<span class="k">val</span> <span class="n">futureSum</span> <span class="k">=</span> <span class="nc">Futures</span><span class="o">.</span><span class="n">fold</span><span class="o">(</span><span class="mi">0</span><span class="o">)(</span><span class="n">futures</span><span class="o">)(</span><span class="k">_</span> <span class="o">+</span> <span class="n">_</span><span class="o">)</span>
+</pre></div>
+</div>
+<p>That&#8217;s all it takes!</p>
+<p>If the sequence passed to <tt class="docutils literal"><span class="pre">fold</span></tt> is empty, it will return the start-value, in the case above, that will be 0. In some cases you don&#8217;t have a start-value and you&#8217;re able to use the value of the first completing Future in the sequence as the start-value, you can use <tt class="docutils literal"><span class="pre">reduce</span></tt>, it works like this:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">val</span> <span class="n">futures</span> <span class="k">=</span> <span class="k">for</span><span class="o">(</span><span class="n">i</span> <span class="k">&lt;-</span> <span class="mi">1</span> <span class="n">to</span> <span class="mi">1000</span><span class="o">)</span> <span class="k">yield</span> <span class="nc">Future</span><span class="o">(</span><span class="n">i</span> <span class="o">*</span> <span class="mi">2</span><span class="o">)</span> <span class="c1">// Create a sequence of Futures</span>
+
+<span class="k">val</span> <span class="n">futureSum</span> <span class="k">=</span> <span class="nc">Futures</span><span class="o">.</span><span class="n">reduce</span><span class="o">(</span><span class="n">futures</span><span class="o">)(</span><span class="k">_</span> <span class="o">+</span> <span class="n">_</span><span class="o">)</span>
+</pre></div>
+</div>
+<p>Same as with <tt class="docutils literal"><span class="pre">fold</span></tt>, the execution will be done by the Thread that completes the last of the Futures, you can also parallize it by chunking your futures into sub-sequences and reduce them, and then reduce the reduced results again.</p>
+<p>This is just a sample of what can be done, but to use more advanced techniques it is easier to take advantage of Scalaz, which Akka has support for in its akka-scalaz module.</p>
+</div>
+<div class="section" id="scalaz">
+<h3>Scalaz</h3>
+<p>Akka also has a Scalaz module (<a class="reference internal" href="../additional/add-on-modules.html#add-on-modules"><em>Add-on Modules</em></a>) for a more complete support of programming in a functional style.</p>
+</div>
+</div>
+<div class="section" id="exceptions">
+<h2>Exceptions</h2>
+<p>Since the result of a <tt class="docutils literal"><span class="pre">Future</span></tt> is created concurrently to the rest of the program, exceptions must be handled differently. It doesn&#8217;t matter if an <tt class="docutils literal"><span class="pre">Actor</span></tt> or the dispatcher is completing the <tt class="docutils literal"><span class="pre">Future</span></tt>, if an <tt class="docutils literal"><span class="pre">Exception</span></tt> is caught the <tt class="docutils literal"><span class="pre">Future</span></tt> will contain it instead of a valid result. If a <tt class="docutils literal"><span class="pre">Future</span></tt> does contain an <tt class="docutils literal"><span class="pre">Exception</span></tt>, calling <tt class="docutils literal"><span class="pre">get</span></tt> will cause it to be thrown again so it can be handled properly.</p>
+<p>It is also possible to handle an <tt class="docutils literal"><span class="pre">Exception</span></tt> by returning a different result. This is done with the <tt class="docutils literal"><span class="pre">recover</span></tt> method. For example:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">val</span> <span class="n">future</span> <span class="k">=</span> <span class="n">actor</span> <span class="o">?</span> <span class="n">msg1</span> <span class="n">recover</span> <span class="o">{</span>
+  <span class="k">case</span> <span class="n">e</span><span class="k">:</span> <span class="kt">ArithmeticException</span> <span class="o">=&gt;</span> <span class="mi">0</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<p>In this example, if an <tt class="docutils literal"><span class="pre">ArithmeticException</span></tt> was thrown while the <tt class="docutils literal"><span class="pre">Actor</span></tt> processed the message, our <tt class="docutils literal"><span class="pre">Future</span></tt> would have a result of 0. The <tt class="docutils literal"><span class="pre">failure</span></tt> method works very similarly to the standard try/catch blocks, so multiple <tt class="docutils literal"><span class="pre">Exception</span></tt>s can be handled in this manner, and if an <tt class="docutils literal"><span class="pre">Exception</span></tt> is not handled this way it will be behave as if we hadn&#8217;t used the <tt class="docutils literal"><span class="pre">failure</span></tt> method.</p>
+<p>You also have the option to register a callback that will be executed if the <tt class="docutils literal"><span class="pre">Future</span></tt> is completed with an exception:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">val</span> <span class="n">f</span><span class="k">:</span> <span class="kt">Future</span><span class="o">[</span><span class="kt">Any</span><span class="o">]</span> <span class="k">=</span> <span class="o">...</span>
+  <span class="n">f</span> <span class="n">onException</span> <span class="o">{</span>
+    <span class="k">case</span> <span class="n">npe</span><span class="k">:</span> <span class="kt">NullPointerExcep</span> <span class="o">=&gt;</span> <span class="n">doSomething</span>
+    <span class="k">case</span> <span class="mi">6</span> <span class="k">=&gt;</span> <span class="n">doSomethingElse</span>
+    <span class="k">case</span> <span class="nc">SomeRegex</span><span class="o">(</span><span class="n">param</span><span class="o">)</span> <span class="k">=&gt;</span> <span class="n">doSomethingOther</span>
+    <span class="k">case</span> <span class="k">_</span> <span class="k">=&gt;</span> <span class="n">doAnything</span>
+  <span class="o">}</span> <span class="c1">// Applies the specified partial function to the result of the future when it is completed with an exception</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="timeouts">
+<h2>Timeouts</h2>
+<p>Waiting forever for a <tt class="docutils literal"><span class="pre">Future</span></tt> to be completed can be dangerous. It could cause your program to block indefinitly or produce a memory leak. <tt class="docutils literal"><span class="pre">Future</span></tt> has support for a timeout already builtin with a default of 5000 milliseconds (taken from &#8216;akka.conf&#8217;). A timeout can also be specified when creating a <tt class="docutils literal"><span class="pre">Future</span></tt>:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">val</span> <span class="n">future</span> <span class="k">=</span> <span class="nc">Future</span><span class="o">(</span> <span class="o">{</span> <span class="n">doSomething</span> <span class="o">},</span> <span class="mi">10000</span> <span class="o">)</span>
+</pre></div>
+</div>
+<p>This example creates a <tt class="docutils literal"><span class="pre">Future</span></tt> with a 10 second timeout.</p>
+<p>If the timeout is reached the <tt class="docutils literal"><span class="pre">Future</span></tt> becomes unusable, even if an attempt is made to complete it. It is possible to have a <tt class="docutils literal"><span class="pre">Future</span></tt> perform an action on timeout if needed with the <tt class="docutils literal"><span class="pre">onTimeout</span></tt> method:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">val</span> <span class="n">future1</span> <span class="k">=</span> <span class="n">actor</span> <span class="o">?</span> <span class="n">msg</span> <span class="n">onTimeout</span> <span class="o">{</span> <span class="k">_</span> <span class="k">=&gt;</span>
+  <span class="n">println</span><span class="o">(</span><span class="s">&quot;Timed out!&quot;</span><span class="o">)</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+</div>
+</div>
+
+
+          </div>
+          <div class="span3"><p class="contents-title">Contents</p>
+              <div id="scroller-anchor">
+                <div id="scroller">
+                  <div id="toc"></div>
+                </div>
+              </div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="footer">
+  <div class="container">
+    <ul>
+      <li><h5>Akka</h5></li>
+      <li><a href="https://akka.io/docs">Documentation</a></li>
+      <li><a href="https://akka.io/downloads">Downloads</a></li>
+      <li><a href="https://akka.io/news">News</a></li>
+      <li><a href="http://letitcrash.com">Blog</a></li>
+    </ul>
+    <ul>
+      <li><h5>Contribute</h5></li>
+      <li><a href="http://github.com/akka/akka">Source Code</a></li>
+      <li><a href="http://groups.google.com/group/akka-user">Mailing List</a></li>      
+      <li><a href="http://www.assembla.com/spaces/akka/tickets">Report a Bug</a></li>      
+    </ul>
+    <ul>
+      <li><h5>Company</h5></li>
+      <li><a href="http://typesafe.com/products/typesafe-subscription">Commercial Support</a></li>
+      <li><a href="https://akka.io/team">Team</a></li>
+      <li><a href="mailto:info@typesafe.com">Contact</a></li>
+    </ul>
+    <ul>
+      <li><img src="../_static/watermark.png" align="center"/></li>
+    </ul>
+  </div>
+  <div class="container copyright">
+    <p style="float: left;">
+      © 2012 <a href="http://typesafe.com/">Typesafe Inc.</a> <span class="license">Akka is Open Source and available under the Apache 2 License.</span>
+    </p>
+    <p style="float: right; font-size: 12px;">
+      Last updated: Mar 08, 2012
+    </p>          
+  </div>
+</div>
+<script type="text/javascript">
+  $('#toc').toc();
+</script>
+  
+
+  </body>
+</html>

@@ -1,0 +1,535 @@
+
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" /><meta name="description" content="Akka is a toolkit for building highly concurrent, distributed, and resilient message-driven applications for Java and Scala."/><link rel="canonical" href="https://doc.akka.io/docs/akka/2.1/general/supervision.html"/>
+    
+    <title>Supervision and Monitoring &mdash; Akka Documentation</title>
+    
+    <link rel="stylesheet" href="../_static/style.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/prettify.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/base.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
+    <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Exo:300,400,600,700" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '2.1.4',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+<script type="text/javascript" src="https://doc.akka.io/docs/akka/2.1.4/_static/warnOldDocs.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="../_static/toc.js"></script>
+    <script type="text/javascript" src="../_static/prettify.js"></script>
+    <script type="text/javascript" src="../_static/highlightCode.js"></script>
+    <script type="text/javascript" src="../_static/effects.core.js"></script>
+    <script type="text/javascript" src="../_static/effects.highlight.js"></script>
+    <script type="text/javascript" src="../_static/scrollTo.js"></script>
+    <script type="text/javascript" src="../_static/contentsFix.js"></script>
+    <script type="text/javascript" src="../_static/ga.js"></script>
+    <link rel="shortcut icon" href="../_static/favicon.ico"/>
+    <link rel="top" title="Akka Documentation" href="../index.html" />
+    <link rel="up" title="General" href="index.html" />
+    <link rel="next" title="Actor References, Paths and Addresses" href="addressing.html" />
+    <link rel="prev" title="What is an Actor?" href="actors.html" />
+    <!--Google Analytics-->
+    <script type="text/javascript">
+      var _gaq = _gaq || [];
+      _gaq.push(['_setAccount', 'UA-21117439-1']);
+      _gaq.push(['_setDomainName', 'akka.io']);
+      _gaq.push(['_trackPageview']);
+      (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+      })()
+    </script>
+
+  </head>
+  <body>
+  <div class="navbar">
+    <div class="navbar-inner">
+      <div class="container">
+        <div class="navbar-logo">
+          <a href="https://akka.io"><img src="../_static/logo-small.png" /></a>
+        </div>    
+        <ul class="nav">
+          <li><a href="https://akka.io/docs">Documentation</a></li>
+          <li><a href="https://akka.io/faq">FAQ</a></li>
+          <li><a href="http://typesafe.com/stack/downloads/akka">Download</a></li>
+          <li><a href="http://groups.google.com/group/akka-user">Mailing List</a></li>
+          <li><a href="http://github.com/akka/akka">Code</a></li>           
+          <li><a href="http://typesafe.com/products/typesafe-subscription">Commercial Support</a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="main">
+    <div class="container">
+      <div class="page-title">Supervision and Monitoring</div>
+      <div class="pdf-link"><a href="../Akka.pdf"><img src="../_static/pdf-icon.png" style="height: 40px;" /></a></div>
+    </div>
+    <div class="main-container">
+      <div class="container">
+        <div class="row">
+          <div class="span12">
+            <ul class="breadcrumb">           
+              <li>
+                 <span class="divider">|</span> <a href="addressing.html">Actor References, Paths and Addresses</a> <span class="divider">»</span>
+              </li>
+              <li>
+                <a href="../index.html">Contents</a>
+              </li>
+              <li>
+                <span class="divider">«</span> <a href="actors.html">What is an Actor?</a> <span class="divider">|</span>
+              </li>
+              <li>
+                Version 2.1.4
+              </li>
+            </ul>
+          </div>
+        </div>
+        <div class="row">
+          <div class="span9">
+            <div id="cse">Loading</div>
+          </div><div class="span9">
+            
+  <div class="section" id="supervision-and-monitoring">
+<span id="supervision"></span><h1>Supervision and Monitoring</h1>
+<p>This chapter outlines the concept behind supervision, the primitives offered
+and their semantics. For details on how that translates into real code, please
+refer to the corresponding chapters for Scala and Java APIs.</p>
+<div class="section" id="what-supervision-means">
+<span id="supervision-directives"></span><h2>What Supervision Means</h2>
+<p>As described in <a class="reference internal" href="actor-systems.html#actor-systems"><em>Actor Systems</em></a> supervision describes a dependency
+relationship between actors: the supervisor delegates tasks to subordinates and
+therefore must respond to their failures.  When a subordinate detects a failure
+(i.e. throws an exception), it suspends itself and all its subordinates and
+sends a message to its supervisor, signaling failure.  Depending on the nature
+of the work to be supervised and the nature of the failure, the supervisor has
+a choice of the following four options:</p>
+<ol class="arabic simple">
+<li>Resume the subordinate, keeping its accumulated internal state</li>
+<li>Restart the subordinate, clearing out its accumulated internal state</li>
+<li>Terminate the subordinate permanently</li>
+<li>Escalate the failure</li>
+</ol>
+<p>It is important to always view an actor as part of a supervision hierarchy,
+which explains the existence of the fourth choice (as a supervisor also is
+subordinate to another supervisor higher up) and has implications on the first
+three: resuming an actor resumes all its subordinates, restarting an actor
+entails restarting all its subordinates (but see below for more details),
+similarly terminating an actor will also terminate all its subordinates. It
+should be noted that the default behavior of the <tt class="xref py py-meth docutils literal"><span class="pre">preRestart</span></tt> hook of the
+<tt class="xref py py-class docutils literal"><span class="pre">Actor</span></tt> class is to terminate all its children before restarting, but
+this hook can be overridden; the recursive restart applies to all children left
+after this hook has been executed.</p>
+<p>Each supervisor is configured with a function translating all possible failure
+causes (i.e. exceptions) into one of the four choices given above; notably,
+this function does not take the failed actor’s identity as an input. It is
+quite easy to come up with examples of structures where this might not seem
+flexible enough, e.g. wishing for different strategies to be applied to
+different subordinates. At this point it is vital to understand that
+supervision is about forming a recursive fault handling structure. If you try
+to do too much at one level, it will become hard to reason about, hence the
+recommended way in this case is to add a level of supervision.</p>
+<p>Akka implements a specific form called “parental supervision”. Actors can only
+be created by other actors—where the top-level actor is provided by the
+library—and each created actor is supervised by its parent. This restriction
+makes the formation of actor supervision hierarchies implicit and encourages
+sound design decisions. It should be noted that this also guarantees that
+actors cannot be orphaned or attached to supervisors from the outside, which
+might otherwise catch them unawares. In addition, this yields a natural and
+clean shutdown procedure for (sub-trees of) actor applications.</p>
+</div>
+<div class="section" id="the-top-level-supervisors">
+<span id="toplevel-supervisors"></span><h2>The Top-Level Supervisors</h2>
+<img alt="../_images/guardians.png" class="align-center" src="../_images/guardians.png" style="width: 360px;" />
+<p>An actor system will during its creation start at least three actors, shown in
+the image above. For more information about the consequences for actor paths
+see <a class="reference internal" href="addressing.html#toplevel-paths"><em>Top-Level Scopes for Actor Paths</em></a>.</p>
+<div class="section" id="user-the-guardian-actor">
+<span id="user-guardian"></span><h3><tt class="docutils literal"><span class="pre">/user</span></tt>: The Guardian Actor</h3>
+<p>The actor which is probably most interacted with is the parent of all
+user-created actors, the guardian named <tt class="docutils literal"><span class="pre">&quot;/user&quot;</span></tt>. Actors created using
+<tt class="docutils literal"><span class="pre">system.actorOf()</span></tt> are children of this actor. This means that when this
+guardian terminates, all normal actors in the system will be shutdown, too. It
+also means that this guardian’s supervisor strategy determines how the
+top-level normal actors are supervised. Since Akka 2.1 it is possible to
+configure this using the setting <tt class="docutils literal"><span class="pre">akka.actor.guardian-supervisor-strategy</span></tt>,
+which takes the fully-qualified class-name of a
+<tt class="xref py py-class docutils literal"><span class="pre">SupervisorStrategyConfigurator</span></tt>. When the guardian escalates a failure,
+the root guardian’s response will be to terminate the guardian, which in effect
+will shut down the whole actor system.</p>
+</div>
+<div class="section" id="system-the-system-guardian">
+<h3><tt class="docutils literal"><span class="pre">/system</span></tt>: The System Guardian</h3>
+<p>This special guardian has been introduced in order to achieve an orderly
+shut-down sequence where logging remains active while all normal actors
+terminate, even though logging itself is implemented using actors. This is
+realized by having the system guardian watch the user guardian and initiate its own
+shut-down upon reception of the <tt class="xref py py-class docutils literal"><span class="pre">Terminated</span></tt> message. The top-level
+system actors are supervised using a strategy which will restart indefinitely
+upon all types of <tt class="xref py py-class docutils literal"><span class="pre">Exception</span></tt> except for
+<tt class="xref py py-class docutils literal"><span class="pre">ActorInitializationException</span></tt> and <tt class="xref py py-class docutils literal"><span class="pre">ActorKilledException</span></tt>, which
+will terminate the child in question.  All other throwables are escalated,
+which will shut down the whole actor system.</p>
+</div>
+<div class="section" id="the-root-guardian">
+<h3><tt class="docutils literal"><span class="pre">/</span></tt>: The Root Guardian</h3>
+<p>The root guardian is the grand-parent of all so-called “top-level” actors and
+supervises all the special actors mentioned in <a class="reference internal" href="addressing.html#toplevel-paths"><em>Top-Level Scopes for Actor Paths</em></a> using the
+<tt class="docutils literal"><span class="pre">SupervisorStrategy.stoppingStrategy</span></tt>, whose purpose is to terminate the
+child upon any type of <tt class="xref py py-class docutils literal"><span class="pre">Exception</span></tt>. All other throwables will be
+escalated … but to whom? Since every real actor has a supervisor, the
+supervisor of the root guardian cannot be a real actor. And because this means
+that it is “outside of the bubble”, it is called the “bubble-walker”. This is a
+synthetic <tt class="xref py py-class docutils literal"><span class="pre">ActorRef</span></tt> which in effect stops its child upon the first sign
+of trouble and sets the actor system’s <tt class="docutils literal"><span class="pre">isTerminated</span></tt> status to <tt class="docutils literal"><span class="pre">true</span></tt> as
+soon as the root guardian is fully terminated (all children recursively
+stopped).</p>
+</div>
+</div>
+<div class="section" id="what-restarting-means">
+<span id="supervision-restart"></span><h2>What Restarting Means</h2>
+<p>When presented with an actor which failed while processing a certain message,
+causes for the failure fall into three categories:</p>
+<ul class="simple">
+<li>Systematic (i.e. programming) error for the specific message received</li>
+<li>(Transient) failure of some external resource used during processing the message</li>
+<li>Corrupt internal state of the actor</li>
+</ul>
+<p>Unless the failure is specifically recognizable, the third cause cannot be
+ruled out, which leads to the conclusion that the internal state needs to be
+cleared out. If the supervisor decides that its other children or itself is not
+affected by the corruption—e.g. because of conscious application of the error
+kernel pattern—it is therefore best to restart the child. This is carried out
+by creating a new instance of the underlying <tt class="xref py py-class docutils literal"><span class="pre">Actor</span></tt> class and replacing
+the failed instance with the fresh one inside the child’s <tt class="xref py py-class docutils literal"><span class="pre">ActorRef</span></tt>;
+the ability to do this is one of the reasons for encapsulating actors within
+special references. The new actor then resumes processing its mailbox, meaning
+that the restart is not visible outside of the actor itself with the notable
+exception that the message during which the failure occurred is not
+re-processed.</p>
+<p>The precise sequence of events during a restart is the following:</p>
+<ol class="arabic simple">
+<li>suspend the actor (which means that it will not process normal messages until
+resumed), and recursively suspend all children</li>
+<li>call the old instance’s <tt class="xref py py-meth docutils literal"><span class="pre">preRestart</span></tt> hook (defaults to sending
+termination requests to all children and calling <tt class="xref py py-meth docutils literal"><span class="pre">postStop</span></tt>)</li>
+<li>wait for all children which were requested to terminate (using
+<tt class="docutils literal"><span class="pre">context.stop()</span></tt>) during <tt class="xref py py-meth docutils literal"><span class="pre">preRestart</span></tt> to actually terminate;
+this—like all actor operations—is non-blocking, the termination notice from
+the last killed child will effect the progression to the next step</li>
+<li>create new actor instance by invoking the originally provided factory again</li>
+<li>invoke <tt class="xref py py-meth docutils literal"><span class="pre">postRestart</span></tt> on the new instance (which by default also calls <tt class="xref py py-meth docutils literal"><span class="pre">preStart</span></tt>)</li>
+<li>send restart request to all children which were not killed in step 3;
+restarted children will follow the same process recursively, from step 2</li>
+<li>resume the actor</li>
+</ol>
+</div>
+<div class="section" id="what-lifecycle-monitoring-means">
+<h2>What Lifecycle Monitoring Means</h2>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Lifecycle Monitoring in Akka is usually referred to as <tt class="docutils literal"><span class="pre">DeathWatch</span></tt></p>
+</div>
+<p>In contrast to the special relationship between parent and child described
+above, each actor may monitor any other actor. Since actors emerge from
+creation fully alive and restarts are not visible outside of the affected
+supervisors, the only state change available for monitoring is the transition
+from alive to dead. Monitoring is thus used to tie one actor to another so that
+it may react to the other actor’s termination, in contrast to supervision which
+reacts to failure.</p>
+<p>Lifecycle monitoring is implemented using a <tt class="xref py py-class docutils literal"><span class="pre">Terminated</span></tt> message to be
+received by the monitoring actor, where the default behavior is to throw a
+special <tt class="xref py py-class docutils literal"><span class="pre">DeathPactException</span></tt> if not otherwise handled. In order to
+start listening for <tt class="xref py py-class docutils literal"><span class="pre">Terminated</span></tt> messages is to use <tt class="docutils literal"><span class="pre">ActorContext.watch(targetActorRef)</span></tt>
+and then <tt class="docutils literal"><span class="pre">ActorContext.unwatch(targetActorRef)</span></tt> to stop listening for that.
+One important property is that the message will be delivered irrespective of the order in
+which the monitoring request and target’s termination occur, i.e. you still get
+the message even if at the time of registration the target is already dead.</p>
+<p>Monitoring is particularly useful if a supervisor cannot simply restart its
+children and has to terminate them, e.g. in case of errors during actor
+initialization. In that case it should monitor those children and re-create
+them or schedule itself to retry this at a later time.</p>
+<p>Another common use case is that an actor needs to fail in the absence of an
+external resource, which may also be one of its own children. If a third party
+terminates a child by way of the <tt class="docutils literal"><span class="pre">system.stop(child)</span></tt> method or sending a
+<tt class="xref py py-class docutils literal"><span class="pre">PoisonPill</span></tt>, the supervisor might well be affected.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">DeathWatch for Akka Remote does not (yet) get triggered by connection failures –
+which means that if the parent node or the network goes down, nobody will get notified.
+This feature may be added in a future release of Akka Remoting.
+Akka Cluster, however, has such functionality.</p>
+</div>
+</div>
+<div class="section" id="one-for-one-strategy-vs-all-for-one-strategy">
+<h2>One-For-One Strategy vs. All-For-One Strategy</h2>
+<p>There are two classes of supervision strategies which come with Akka:
+<tt class="xref py py-class docutils literal"><span class="pre">OneForOneStrategy</span></tt> and <tt class="xref py py-class docutils literal"><span class="pre">AllForOneStrategy</span></tt>. Both are configured
+with a mapping from exception type to supervision directive (see
+<a class="reference internal" href="#supervision-directives"><em>above</em></a>) and limits on how often a child is allowed to fail
+before terminating it. The difference between them is that the former applies
+the obtained directive only to the failed child, whereas the latter applies it
+to all siblings as well. Normally, you should use the
+<tt class="xref py py-class docutils literal"><span class="pre">OneForOneStrategy</span></tt>, which also is the default if none is specified
+explicitly.</p>
+<p>The <tt class="xref py py-class docutils literal"><span class="pre">AllForOneStrategy</span></tt> is applicable in cases where the ensemble of
+children has so tight dependencies among them, that a failure of one child
+affects the function of the others, i.e. they are intricably linked. Since a
+restart does not clear out the mailbox, it often is best to terminate the children
+upon failure and re-create them explicitly from the supervisor (by watching the
+children’s lifecycle); otherwise you have to make sure that it is no problem
+for any of the actors to receive a message which was queued before the restart
+but processed afterwards.</p>
+<p>Normally stopping a child (i.e. not in response to a failure) will not
+automatically terminate the other children in an all-for-one strategy, that can
+easily be done by watching their lifecycle: if the <tt class="xref py py-class docutils literal"><span class="pre">Terminated</span></tt> message
+is not handled by the supervisor, it will throw a <tt class="xref py py-class docutils literal"><span class="pre">DeathPactException</span></tt>
+which (depending on its supervisor) will restart it, and the default
+<tt class="xref py py-meth docutils literal"><span class="pre">preRestart</span></tt> action will terminate all children. Of course this can be
+handled explicitly as well.</p>
+<p>Please note that creating one-off actors from an all-for-one supervisor entails
+that failures escalated by the temporary actor will affect all the permanent
+ones. If this is not desired, install an intermediate supervisor; this can very
+easily be done by declaring a router of size 1 for the worker, see
+<a class="reference internal" href="../scala/routing.html#routing-scala"><em>Routing (Scala)</em></a> or <a class="reference internal" href="../java/routing.html#routing-java"><em>Routing (Java)</em></a>.</p>
+</div>
+</div>
+
+
+          </div>
+          <div class="span3"><p class="contents-title">Contents</p>
+              <div id="scroller-anchor">
+                <div id="scroller">
+                  <div id="toc"></div>
+                </div>
+              </div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="footer">
+  <div class="container">
+    <ul>
+      <li><h5>Akka</h5></li>
+      <li><a href="https://akka.io/docs">Documentation</a></li>
+      <li><a href="https://akka.io/faq">FAQ</a></li>
+      <li><a href="http://typesafe.com/stack/downloads/akka">Downloads</a></li>
+      <li><a href="https://akka.io/news">News</a></li>
+      <li><a href="http://letitcrash.com">Blog</a></li>
+    </ul>
+    <ul>
+      <li><h5>Contribute</h5></li>
+      <li><a href="https://akka.io/community">Community Projects</a></li>
+      <li><a href="http://github.com/akka/akka">Source Code</a></li>
+      <li><a href="http://groups.google.com/group/akka-user">Mailing List</a></li>      
+      <li><a href="https://doc.akka.io/docs/akka/current/project/issue-tracking.html">Report a Bug</a></li>      
+    </ul>
+    <ul>
+      <li><h5>Company</h5></li>
+      <li><a href="http://typesafe.com/products/typesafe-subscription">Commercial Support</a></li>
+      <li><a href="https://akka.io/team">Team</a></li>
+      <li><a href="mailto:info@typesafe.com">Contact</a></li>
+    </ul>
+    <ul>
+      <li><img src="../_static/watermark.png" align="center"/></li>
+    </ul>
+  </div>
+  <div class="container copyright">
+    <p style="float: left;">
+      © 2012 <a href="http://typesafe.com/">Typesafe Inc.</a> <span class="license">Akka is Open Source and available under the Apache 2 License.</span>
+    </p>
+    <p style="float: right; font-size: 12px;">
+      Last updated: May 14, 2013
+    </p>          
+  </div>
+</div>
+<script src="http://www.google.com/jsapi" type="text/javascript"></script>
+<script type="text/javascript">
+    google.load('search', '1', {language : 'en', style : google.loader.themes.MINIMALIST});
+    google.setOnLoadCallback(function() {
+    var customSearchOptions = {};  var customSearchControl = new google.search.CustomSearchControl(
+    '003065520604945464838:izzukx8-qba', customSearchOptions);
+    customSearchControl.setResultSetSize(google.search.Search.FILTERED_CSE_RESULTSET);
+    customSearchControl.draw('cse');
+    var path = window.location.pathname.split('/').slice(0,4);
+    if(window.location.hostname && path.length >= 4) {
+    var site = "site:" + window.location.hostname + path.join('/').toString();
+    customSearchControl.setSearchStartingCallback(this, function(c, s, q) { s.setQueryAddition(site); });
+    }
+    }, true);
+</script>
+<style type="text/css">
+    .gsc-control-cse {
+    font-family: Arial, sans-serif;
+    border-color: rgb(242, 242, 235);
+    background-color: rgb(242, 242, 235);
+    }
+    .gsc-control-cse .gsc-table-result {
+      font-family: Arial, sans-serif;
+      display: block;
+    }
+    input.gsc-input {
+    border-color: #BBBBBB;
+    }
+    input.gsc-search-button {
+    border-color: rgb(34, 57, 64);
+    background-color: rgb(68, 114, 129);
+    color: #FFFFFF;
+    }
+    .gsc-tabHeader.gsc-tabhInactive {
+    border-color: #777777;
+    background-color: #777777;
+    }
+    .gsc-tabHeader.gsc-tabhActive {
+    border-color: #333333;
+    background-color: #333333;
+    }
+    .gsc-tabsArea {
+    border-color: #333333;
+    }
+    .gsc-webResult.gsc-result,
+    .gsc-results .gsc-imageResult {
+      border-color: #666666;
+      background-color: #FFFFFF;
+      padding: 0.5em 0.5em;
+    }
+    .gsc-webResult.gsc-result:hover,
+    .gsc-imageResult:hover {
+      border-color: #AAAAAA;
+      background-color: #FFFFFF;
+      padding: 0.5em 0.5em;
+    }
+    .gsc-webResult.gsc-result.gsc-promotion:hover {
+    border-color: #AAAAAA;
+    background-color: #FFFFFF;
+    }
+    .gs-webResult.gs-result a.gs-title:link,
+    .gs-webResult.gs-result a.gs-title:link b,
+    .gs-imageResult a.gs-title:link,
+    .gs-imageResult a.gs-title:link b {
+    color: #444444;
+    }
+    .gs-webResult.gs-result a.gs-title:visited,
+    .gs-webResult.gs-result a.gs-title:visited b,
+    .gs-imageResult a.gs-title:visited,
+    .gs-imageResult a.gs-title:visited b {
+    color: #444444;
+    }
+    .gs-webResult.gs-result a.gs-title:hover,
+    .gs-webResult.gs-result a.gs-title:hover b,
+    .gs-imageResult a.gs-title:hover,
+    .gs-imageResult a.gs-title:hover b {
+    color: #444444;
+    }
+    .gs-webResult.gs-result a.gs-title:active,
+    .gs-webResult.gs-result a.gs-title:active b,
+    .gs-imageResult a.gs-title:active,
+    .gs-imageResult a.gs-title:active b {
+    color: #777777;
+    }
+    .gsc-cursor-page {
+    color: #444444;
+    }
+    a.gsc-trailing-more-results:link {
+    color: #444444;
+    }
+    .gs-webResult .gs-snippet,
+    .gs-imageResult .gs-snippet,
+    .gs-fileFormatType {
+    color: #333333;
+    }
+    .gs-webResult div.gs-visibleUrl,
+    .gs-imageResult div.gs-visibleUrl {
+    color: #000000;
+    }
+    .gs-webResult div.gs-visibleUrl-short {
+    color: #000000;
+    }
+    .gs-webResult div.gs-visibleUrl-short {
+    display: none;
+    }
+    .gs-webResult div.gs-visibleUrl-long {
+    display: block;
+    }
+    .gs-promotion div.gs-visibleUrl-short {
+    display: none;
+    }
+    .gs-promotion div.gs-visibleUrl-long {
+    display: block;
+    }
+    .gsc-cursor-box {
+    border-color: #FFFFFF;
+    }
+    .gsc-results .gsc-cursor-box .gsc-cursor-page {
+    border-color: #777777;
+    background-color: #FFFFFF;
+    color: #444444;
+    }
+    .gsc-results .gsc-cursor-box .gsc-cursor-current-page {
+    border-color: #333333;
+    background-color: #333333;
+    color: #444444;
+    }
+    .gsc-webResult.gsc-result.gsc-promotion {
+    border-color: #CCCCCC;
+    background-color: #E6E6E6;
+    }
+    .gsc-completion-title {
+    color: #444444;
+    }
+    .gsc-completion-snippet {
+    color: #333333;
+    }
+    .gs-promotion a.gs-title:link,
+    .gs-promotion a.gs-title:link *,
+    .gs-promotion .gs-snippet a:link {
+    color: #0000CC;
+    }
+    .gs-promotion a.gs-title:visited,
+    .gs-promotion a.gs-title:visited *,
+    .gs-promotion .gs-snippet a:visited {
+    color: #0000CC;
+    }
+    .gs-promotion a.gs-title:hover,
+    .gs-promotion a.gs-title:hover *,
+    .gs-promotion .gs-snippet a:hover {
+    color: #444444;
+    }
+    .gs-promotion a.gs-title:active,
+    .gs-promotion a.gs-title:active *,
+    .gs-promotion .gs-snippet a:active {
+    color: #00CC00;
+    }
+    .gs-promotion .gs-snippet,
+    .gs-promotion .gs-title .gs-promotion-title-right,
+    .gs-promotion .gs-title .gs-promotion-title-right *  {
+    color: #333333;
+    }
+    .gs-promotion .gs-visibleUrl,
+    .gs-promotion .gs-visibleUrl-short {
+    color: #00CC00;
+    }
+</style>
+<script type="text/javascript">
+  $('#toc').toc();
+</script>
+  
+
+  </body>
+</html>

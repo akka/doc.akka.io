@@ -1,0 +1,1011 @@
+<!DOCTYPE html>
+<html class="no-js" lang="en">
+
+<head>
+<title>Using TCP &bull; Akka Documentation</title>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta name="description" content="Akka is a toolkit for building highly concurrent, distributed, and resilient message-driven applications for Java and Scala."/>
+<link rel="canonical" href="https://doc.akka.io/docs/akka/current/io-tcp.html"/>
+<script type="text/javascript" src="../lib/jquery/jquery.min.js"></script>
+<script type="text/javascript" src="../lib/foundation/dist/js/foundation.min.js"></script>
+<link rel="stylesheet" type="text/css" href="../lib/normalize.css/normalize.css"/>
+<link rel="stylesheet" type="text/css" href="../lib/foundation/dist/css/foundation.min.css"/>
+<link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/docsearch.js/2/docsearch.min.css" />
+<link rel="stylesheet" type="text/css" href="../css/icons.css"/>
+<link rel="stylesheet" type="text/css" href="../css/page.css"/>
+<link rel="shortcut icon" href="../images/favicon.ico" />
+<link rel="apple-touch-icon" sizes="180x180" href="../images/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="../images/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="../images/favicon-16x16.png">
+<link rel="manifest" href="../images/manifest.json">
+<meta name="msapplication-TileImage" content="../images/mstile-150x150.png">
+<meta name="msapplication-TileColor" content="#15a9ce">
+<meta name="theme-color" content="#15a9ce">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<!--Google Analytics-->
+<script type="text/javascript">
+var _gaq = _gaq || [];
+_gaq.push(['_setAccount', 'UA-21117439-1']);
+_gaq.push(['_setDomainName', 'akka.io']);
+_gaq.push(['_trackPageview']);
+(function() {
+var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+})()
+</script>
+<!--Google Analytics & Marketo-->
+<script type="text/javascript">
+(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+ga('create', 'UA-23127719-1', 'lightbend.com', {'allowLinker': true, 'name': 'tsTracker'});
+ga('tsTracker.require', 'linker');
+ga('tsTracker.linker:autoLink', ['lightbend.com','playframework.com','scala-lang.org','scaladays.org','spray.io','akka.io','scala-sbt.org','scala-ide.org']);
+ga('tsTracker.send', 'pageview');
+(function() {
+var didInit = false;
+function initMunchkin() {
+if(didInit === false) {
+didInit = true;
+Munchkin.init('558-NCX-702');
+}
+}
+var s = document.createElement('script');
+s.type = 'text/javascript';
+s.async = true;
+s.src = '//munchkin.marketo.net/munchkin.js';
+s.onreadystatechange = function() {
+if (this.readyState == 'complete' || this.readyState == 'loaded') {
+initMunchkin();
+}
+};
+s.onload = initMunchkin;
+document.getElementsByTagName('head')[0].appendChild(s);
+})();
+</script>
+
+</head>
+
+<body id="underlay" data-toggler="nav-open">
+
+<header class="site-header hide-for-large">
+<div class="sticky-header clearfix">
+<a href="https://akka.io"><img class="logo" src="../images/akka-logo-reverse.svg"></a>
+
+<button class="menu-icon float-right" type="button" data-toggle="underlay overlay"></button>
+</div>
+<div id="overlay" class="overlay-nav" data-toggler="nav-open">
+<header class="nav-header">
+<div class="nav-header-title">
+<h1><a href="../java/index.html">Akka Documentation</a></h1>
+</div>
+<div class="nav-header-version">
+Version 2.5.3
+</div>
+<div class="nav-header-groups">
+<select class="supergroup" name="Languages"><option class="group" value="group-scala">Scala</option><option class="group" value="group-java">Java</option></select>
+</div>
+<div id="overlay-search-container" class="nav-header-search">
+<input id="overlay-search" type="search" class="search" placeholder="Search"/>
+</div>
+</header>
+<nav class="nav-toc">
+<ul>
+  <li><a href="../java/security/index.html" class="page">Security Announcements</a></li>
+  <li><a href="../java/guide/index.html" class="page">Getting Started Guide</a></li>
+  <li><a href="../java/general/index.html" class="page">General Concepts</a></li>
+  <li><a href="../java/index-actors.html" class="page">Actors</a></li>
+  <li><a href="../java/index-network.html" class="page">Networking</a>
+  <ul>
+    <li><a href="../java/common/cluster.html" class="page">Cluster Specification</a></li>
+    <li><a href="../java/cluster-usage.html" class="page">Cluster Usage</a></li>
+    <li><a href="../java/cluster-singleton.html" class="page">Cluster Singleton</a></li>
+    <li><a href="../java/distributed-pub-sub.html" class="page">Distributed Publish Subscribe in Cluster</a></li>
+    <li><a href="../java/cluster-client.html" class="page">Cluster Client</a></li>
+    <li><a href="../java/cluster-sharding.html" class="page">Cluster Sharding</a></li>
+    <li><a href="../java/cluster-metrics.html" class="page">Cluster Metrics Extension</a></li>
+    <li><a href="../java/distributed-data.html" class="page">Distributed Data</a></li>
+    <li><a href="../java/remoting.html" class="page">Remoting</a></li>
+    <li><a href="../java/remoting-artery.html" class="page">Remoting (codename Artery)</a></li>
+    <li><a href="../java/serialization.html" class="page">Serialization</a></li>
+    <li><a href="../java/io.html" class="page">I/O</a></li>
+    <li><a href="../java/io-tcp.html#using-tcp" class="active page">Using TCP</a>
+    <ul>
+      <li><a href="../java/io-tcp.html#connecting" class="header">Connecting</a></li>
+      <li><a href="../java/io-tcp.html#accepting-connections" class="header">Accepting connections</a></li>
+      <li><a href="../java/io-tcp.html#closing-connections" class="header">Closing connections</a></li>
+      <li><a href="../java/io-tcp.html#writing-to-a-connection" class="header">Writing to a connection</a></li>
+      <li><a href="../java/io-tcp.html#throttling-reads-and-writes" class="header">Throttling Reads and Writes</a></li>
+      <li><a href="../java/io-tcp.html#ack-based-write-back-pressure" class="header">ACK-Based Write Back-Pressure</a></li>
+      <li><a href="../java/io-tcp.html#nack-based-write-back-pressure-with-suspending" class="header">NACK-Based Write Back-Pressure with Suspending</a></li>
+      <li><a href="../java/io-tcp.html#read-back-pressure-with-pull-mode" class="header">Read Back-Pressure with Pull Mode</a></li>
+    </ul></li>
+    <li><a href="../java/io-udp.html" class="page">Using UDP</a></li>
+    <li><a href="../java/camel.html" class="page">Camel</a></li>
+  </ul></li>
+  <li><a href="../java/stream/index.html" class="page">Streams</a></li>
+  <li><a href="../java/index-futures.html" class="page">Futures and Agents</a></li>
+  <li><a href="../java/index-utilities.html" class="page">Utilities</a></li>
+  <li><a href="../java/common/other-modules.html" class="page">Other Akka modules</a></li>
+  <li><a href="../java/howto.html" class="page">HowTo: Common Patterns</a></li>
+  <li><a href="../java/scala-compat.html" class="page">Java 8 and Scala Compatibility</a></li>
+  <li><a href="../java/project/index.html" class="page">Project Information</a></li>
+  <li><a href="../java/additional/index.html" class="page">Additional Information</a></li>
+</ul>
+</nav>
+</div>
+</header>
+
+<aside class="show-for-large">
+<header class="nav-header fixed-sidebar-header">
+<div class="nav-header-title">
+<h1><a href="../java/index.html">Akka Documentation</a></h1>
+</div>
+<div class="nav-header-version">
+Version 2.5.3
+</div>
+<div class="nav-header-groups">
+<select class="supergroup" name="Languages"><option class="group" value="group-scala">Scala</option><option class="group" value="group-java">Java</option></select>
+</div>
+<div class="nav-header-search">
+<input id="search" type="search" class="search" placeholder="Search"/>
+</div>
+</header>
+<nav class="site-nav fixed-sidebar-contents">
+<div class="nav-toc">
+<ul>
+  <li><a href="../java/security/index.html" class="page">Security Announcements</a></li>
+  <li><a href="../java/guide/index.html" class="page">Getting Started Guide</a></li>
+  <li><a href="../java/general/index.html" class="page">General Concepts</a></li>
+  <li><a href="../java/index-actors.html" class="page">Actors</a></li>
+  <li><a href="../java/index-network.html" class="page">Networking</a>
+  <ul>
+    <li><a href="../java/common/cluster.html" class="page">Cluster Specification</a></li>
+    <li><a href="../java/cluster-usage.html" class="page">Cluster Usage</a></li>
+    <li><a href="../java/cluster-singleton.html" class="page">Cluster Singleton</a></li>
+    <li><a href="../java/distributed-pub-sub.html" class="page">Distributed Publish Subscribe in Cluster</a></li>
+    <li><a href="../java/cluster-client.html" class="page">Cluster Client</a></li>
+    <li><a href="../java/cluster-sharding.html" class="page">Cluster Sharding</a></li>
+    <li><a href="../java/cluster-metrics.html" class="page">Cluster Metrics Extension</a></li>
+    <li><a href="../java/distributed-data.html" class="page">Distributed Data</a></li>
+    <li><a href="../java/remoting.html" class="page">Remoting</a></li>
+    <li><a href="../java/remoting-artery.html" class="page">Remoting (codename Artery)</a></li>
+    <li><a href="../java/serialization.html" class="page">Serialization</a></li>
+    <li><a href="../java/io.html" class="page">I/O</a></li>
+    <li><a href="../java/io-tcp.html#using-tcp" class="active page">Using TCP</a>
+    <ul>
+      <li><a href="../java/io-tcp.html#connecting" class="header">Connecting</a></li>
+      <li><a href="../java/io-tcp.html#accepting-connections" class="header">Accepting connections</a></li>
+      <li><a href="../java/io-tcp.html#closing-connections" class="header">Closing connections</a></li>
+      <li><a href="../java/io-tcp.html#writing-to-a-connection" class="header">Writing to a connection</a></li>
+      <li><a href="../java/io-tcp.html#throttling-reads-and-writes" class="header">Throttling Reads and Writes</a></li>
+      <li><a href="../java/io-tcp.html#ack-based-write-back-pressure" class="header">ACK-Based Write Back-Pressure</a></li>
+      <li><a href="../java/io-tcp.html#nack-based-write-back-pressure-with-suspending" class="header">NACK-Based Write Back-Pressure with Suspending</a></li>
+      <li><a href="../java/io-tcp.html#read-back-pressure-with-pull-mode" class="header">Read Back-Pressure with Pull Mode</a></li>
+    </ul></li>
+    <li><a href="../java/io-udp.html" class="page">Using UDP</a></li>
+    <li><a href="../java/camel.html" class="page">Camel</a></li>
+  </ul></li>
+  <li><a href="../java/stream/index.html" class="page">Streams</a></li>
+  <li><a href="../java/index-futures.html" class="page">Futures and Agents</a></li>
+  <li><a href="../java/index-utilities.html" class="page">Utilities</a></li>
+  <li><a href="../java/common/other-modules.html" class="page">Other Akka modules</a></li>
+  <li><a href="../java/howto.html" class="page">HowTo: Common Patterns</a></li>
+  <li><a href="../java/scala-compat.html" class="page">Java 8 and Scala Compatibility</a></li>
+  <li><a href="../java/project/index.html" class="page">Project Information</a></li>
+  <li><a href="../java/additional/index.html" class="page">Additional Information</a></li>
+</ul>
+</div>
+</nav>
+<footer class="nav-footer fixed-sidebar-footer">
+<a href="https://akka.io"><img class="logo" src="../images/akka-logo-reverse.svg"></a>
+
+</footer>
+</aside>
+
+<main class="fixed-shift-for-large expanded row">
+<section class="site-content small-12 column">
+
+<article class="page-content row">
+<div class="small-12 large-9 column" id="docs">
+<h1><a href="#using-tcp" name="using-tcp" class="anchor"><span class="anchor-link"></span></a>Using TCP</h1>
+<p>The code snippets through-out this section assume the following imports:</p>
+<pre class="prettyprint"><code class="language-java">import java.net.InetSocketAddress;
+import akka.actor.ActorRef;
+import akka.actor.ActorSystem;
+import akka.actor.Props;
+import akka.actor.AbstractActor;
+import akka.io.Tcp;
+import akka.io.Tcp.Bound;
+import akka.io.Tcp.CommandFailed;
+import akka.io.Tcp.Connected;
+import akka.io.Tcp.ConnectionClosed;
+import akka.io.Tcp.Received;
+import akka.io.TcpMessage;
+import akka.util.ByteString;</code></pre>
+<p>All of the Akka I/O APIs are accessed through manager objects. When using an I/O API, the first step is to acquire a reference to the appropriate manager. The code below shows how to acquire a reference to the <code>Tcp</code> manager.</p>
+<pre class="prettyprint"><code class="language-java">final ActorRef tcpManager = Tcp.get(getContext().getSystem()).manager();</code></pre>
+<p>The manager is an actor that handles the underlying low level I/O resources (selectors, channels) and instantiates workers for specific tasks, such as listening to incoming connections.</p>
+<h2><a href="#connecting" name="connecting" class="anchor"><span class="anchor-link"></span></a>Connecting</h2>
+<pre class="prettyprint"><code class="language-java">public class Client extends AbstractActor {
+  
+  final InetSocketAddress remote;
+  final ActorRef listener;
+  
+  public static Props props(InetSocketAddress remote, ActorRef listener) {
+      return Props.create(Client.class, remote, listener);
+  }
+
+  public Client(InetSocketAddress remote, ActorRef listener) {
+    this.remote = remote;
+    this.listener = listener;
+    
+    final ActorRef tcp = Tcp.get(getContext().getSystem()).manager();
+    tcp.tell(TcpMessage.connect(remote), getSelf());
+  }
+
+  @Override
+  public Receive createReceive() {
+    return receiveBuilder()
+      .match(CommandFailed.class, msg -&gt; {
+        listener.tell(&quot;failed&quot;, getSelf());
+        getContext().stop(getSelf());
+        
+      })
+      .match(Connected.class, msg -&gt; {
+        listener.tell(msg, getSelf());
+        getSender().tell(TcpMessage.register(getSelf()), getSelf());
+        getContext().become(connected(getSender()));
+      })
+      .build();
+  }
+
+  private Receive connected(final ActorRef connection) {
+    return receiveBuilder()
+      .match(ByteString.class, msg -&gt; {
+          connection.tell(TcpMessage.write((ByteString) msg), getSelf());
+      })
+      .match(CommandFailed.class, msg -&gt; {
+        // OS kernel socket buffer was full
+      })
+      .match(Received.class, msg -&gt; {
+        listener.tell(msg.data(), getSelf());
+      })
+      .matchEquals(&quot;close&quot;, msg -&gt; {
+        connection.tell(TcpMessage.close(), getSelf());
+      })
+      .match(ConnectionClosed.class, msg -&gt; {
+        getContext().stop(getSelf());
+      })
+      .build();
+  }
+  
+}</code></pre>
+<p>The first step of connecting to a remote address is sending a <code>Connect</code> message to the TCP manager; in addition to the simplest form shown above there is also the possibility to specify a local <code>InetSocketAddress</code> to bind to and a list of socket options to apply.</p><div class="callout note "><div class="callout-title">Note</div>
+<p>The SO_NODELAY (TCP_NODELAY on Windows) socket option defaults to true in Akka, independently of the OS default settings. This setting disables Nagle&rsquo;s algorithm, considerably improving latency for most applications. This setting could be overridden by passing <code>SO.TcpNoDelay(false)</code> in the list of socket options of the <code>Connect</code> message.</p></div>
+<p>The TCP manager will then reply either with a <code>CommandFailed</code> or it will spawn an internal actor representing the new connection. This new actor will then send a <code>Connected</code> message to the original sender of the <code>Connect</code> message.</p>
+<p>In order to activate the new connection a <code>Register</code> message must be sent to the connection actor, informing that one about who shall receive data from the socket. Before this step is done the connection cannot be used, and there is an internal timeout after which the connection actor will shut itself down if no <code>Register</code> message is received.</p>
+<p>The connection actor watches the registered handler and closes the connection when that one terminates, thereby cleaning up all internal resources associated with that connection.</p>
+<p>The actor in the example above uses <code>become</code> to switch from unconnected to connected operation, demonstrating the commands and events which are observed in that state. For a discussion on <code>CommandFailed</code> see <a href="#throttling-reads-and-writes">Throttling Reads and Writes</a> below. <code>ConnectionClosed</code> is a trait, which marks the different connection close events. The last line handles all connection close events in the same way. It is possible to listen for more fine-grained connection close events, see <a href="#closing-connections">Closing Connections</a> below.</p>
+<h2><a href="#accepting-connections" name="accepting-connections" class="anchor"><span class="anchor-link"></span></a>Accepting connections</h2>
+<pre class="prettyprint"><code class="language-java">public class Server extends AbstractActor {
+  
+  final ActorRef manager;
+  
+  public Server(ActorRef manager) {
+    this.manager = manager;
+  }
+  
+  public static Props props(ActorRef manager) {
+    return Props.create(Server.class, manager);
+  }
+
+  @Override
+  public void preStart() throws Exception {
+    final ActorRef tcp = Tcp.get(getContext().getSystem()).manager();
+    tcp.tell(TcpMessage.bind(getSelf(),
+        new InetSocketAddress(&quot;localhost&quot;, 0), 100), getSelf());
+  }
+
+  @Override
+  public Receive createReceive() {
+    return receiveBuilder()
+      .match(Bound.class, msg -&gt; {
+        manager.tell(msg, getSelf());
+
+      })
+      .match(CommandFailed.class, msg -&gt; {
+        getContext().stop(getSelf());
+      
+      })
+      .match(Connected.class, conn -&gt; {
+        manager.tell(conn, getSelf());
+        final ActorRef handler = getContext().actorOf(
+            Props.create(SimplisticHandler.class));
+        getSender().tell(TcpMessage.register(handler), getSelf());
+      })
+      .build();
+  }
+  
+}</code></pre>
+<p>To create a TCP server and listen for inbound connections, a <code>Bind</code> command has to be sent to the TCP manager. This will instruct the TCP manager to listen for TCP connections on a particular <code>InetSocketAddress</code>; the port may be specified as <code>0</code> in order to bind to a random port.</p>
+<p>The actor sending the <code>Bind</code> message will receive a <code>Bound</code> message signaling that the server is ready to accept incoming connections; this message also contains the <code>InetSocketAddress</code> to which the socket was actually bound (i.e. resolved IP address and correct port number). </p>
+<p>From this point forward the process of handling connections is the same as for outgoing connections. The example demonstrates that handling the reads from a certain connection can be delegated to another actor by naming it as the handler when sending the <code>Register</code> message. Writes can be sent from any actor in the system to the connection actor (i.e. the actor which sent the <code>Connected</code> message). The simplistic handler is defined as:</p>
+<pre class="prettyprint"><code class="language-java">public class SimplisticHandler extends AbstractActor {
+  @Override
+  public Receive createReceive() {
+    return receiveBuilder()
+      .match(Received.class, msg -&gt; {
+        final ByteString data = msg.data();
+        System.out.println(data);
+        getSender().tell(TcpMessage.write(data), getSelf());
+      })
+      .match(ConnectionClosed.class, msg -&gt; {
+        getContext().stop(getSelf());
+      })
+      .build();
+  }
+}</code></pre>
+<p>For a more complete sample which also takes into account the possibility of failures when sending please see <a href="#throttling-reads-and-writes">Throttling Reads and Writes</a> below.</p>
+<p>The only difference to outgoing connections is that the internal actor managing the listen port—the sender of the <code>Bound</code> message—watches the actor which was named as the recipient for <code>Connected</code> messages in the <code>Bind</code> message. When that actor terminates the listen port will be closed and all resources associated with it will be released; existing connections will not be terminated at this point.</p>
+<h2><a href="#closing-connections" name="closing-connections" class="anchor"><span class="anchor-link"></span></a>Closing connections</h2>
+<p>A connection can be closed by sending one of the commands <code>Close</code>, <code>ConfirmedClose</code> or <code>Abort</code> to the connection actor.</p>
+<p><code>Close</code> will close the connection by sending a <code>FIN</code> message, but without waiting for confirmation from the remote endpoint. Pending writes will be flushed. If the close is successful, the listener will be notified with <code>Closed</code>.</p>
+<p><code>ConfirmedClose</code> will close the sending direction of the connection by sending a <code>FIN</code> message, but data will continue to be received until the remote endpoint closes the connection, too. Pending writes will be flushed. If the close is successful, the listener will be notified with <code>ConfirmedClosed</code>.</p>
+<p><code>Abort</code> will immediately terminate the connection by sending a <code>RST</code> message to the remote endpoint. Pending writes will be not flushed. If the close is successful, the listener will be notified with <code>Aborted</code>.</p>
+<p><code>PeerClosed</code> will be sent to the listener if the connection has been closed by the remote endpoint. Per default, the connection will then automatically be closed from this endpoint as well. To support half-closed connections set the <code>keepOpenOnPeerClosed</code> member of the <code>Register</code> message to <code>true</code> in which case the connection stays open until it receives one of the above close commands.</p>
+<p><code>ErrorClosed</code> will be sent to the listener whenever an error happened that forced the connection to be closed.</p>
+<p>All close notifications are sub-types of <code>ConnectionClosed</code> so listeners who do not need fine-grained close events may handle all close events in the same way.</p>
+<h2><a href="#writing-to-a-connection" name="writing-to-a-connection" class="anchor"><span class="anchor-link"></span></a>Writing to a connection</h2>
+<p>Once a connection has been established data can be sent to it from any actor in the form of a <code>Tcp.WriteCommand</code>. <code>Tcp.WriteCommand</code> is an abstract class with three concrete implementations:</p>
+<dl>
+  <dt>Tcp.Write
+  </dt>
+  <dd>The simplest <code>WriteCommand</code> implementation which wraps a <code>ByteString</code> instance and an &ldquo;ack&rdquo; event. A <code>ByteString</code> (as explained in <a href="io.html#bytestring">this section</a>) models one or more chunks of immutable in-memory data with a maximum (total) size of 2 GB (2^31 bytes).</dd>
+  <dt>Tcp.WriteFile
+  </dt>
+  <dd>If you want to send &ldquo;raw&rdquo; data from a file you can do so efficiently with the <code>Tcp.WriteFile</code> command. This allows you do designate a (contiguous) chunk of on-disk bytes for sending across the connection without the need to first load them into the JVM memory. As such <code>Tcp.WriteFile</code> can &ldquo;hold&rdquo; more than 2GB of data and an &ldquo;ack&rdquo; event if required.</dd>
+  <dt>Tcp.CompoundWrite
+  </dt>
+  <dd>Sometimes you might want to group (or interleave) several <code>Tcp.Write</code> and/or <code>Tcp.WriteFile</code> commands into one atomic write command which gets written to the connection in one go. The <code>Tcp.CompoundWrite</code> allows you to do just that and offers three benefits:</dd>
+</dl>
+<ol>
+  <li>As explained in the following section the TCP connection actor can only handle one single write command at a time. By combining several writes into one <code>CompoundWrite</code> you can have them be sent across the connection with minimum overhead and without the need to spoon feed them to the connection actor via an <em>ACK-based</em> message protocol.</li>
+  <li>Because a <code>WriteCommand</code> is atomic you can be sure that no other actor can &ldquo;inject&rdquo; other writes into your series of writes if you combine them into one single <code>CompoundWrite</code>. In scenarios where several actors write to the same connection this can be an important feature which can be somewhat hard to achieve otherwise.</li>
+  <li>The &ldquo;sub writes&rdquo; of a <code>CompoundWrite</code> are regular <code>Write</code> or <code>WriteFile</code> commands that themselves can request &ldquo;ack&rdquo; events. These ACKs are sent out as soon as the respective &ldquo;sub write&rdquo; has been completed. This allows you to attach more than one ACK to a <code>Write</code> or <code>WriteFile</code> (by combining it with an empty write that itself requests an ACK) or to have the connection actor acknowledge the progress of transmitting the <code>CompoundWrite</code> by sending out intermediate ACKs at arbitrary points.</li>
+</ol>
+<h2><a href="#throttling-reads-and-writes" name="throttling-reads-and-writes" class="anchor"><span class="anchor-link"></span></a>Throttling Reads and Writes</h2>
+<p>The basic model of the TCP connection actor is that it has no internal buffering (i.e. it can only process one write at a time, meaning it can buffer one write until it has been passed on to the O/S kernel in full). Congestion needs to be handled at the user level, for both writes and reads.</p>
+<p>For back-pressuring writes there are three modes of operation</p>
+<ul>
+  <li><em>ACK-based:</em> every <code>Write</code> command carries an arbitrary object, and if this object is not <code>Tcp.NoAck</code> then it will be returned to the sender of the <code>Write</code> upon successfully writing all contained data to the socket. If no other write is initiated before having received this acknowledgement then no failures can happen due to buffer overrun.</li>
+  <li><em>NACK-based:</em> every write which arrives while a previous write is not yet completed will be replied to with a <code>CommandFailed</code> message containing the failed write. Just relying on this mechanism requires the implemented protocol to tolerate skipping writes (e.g. if each write is a valid message on its own and it is not required that all are delivered). This mode is enabled by setting the <code>useResumeWriting</code> flag to <code>false</code> within the <code>Register</code> message during connection activation.</li>
+  <li><em>NACK-based with write suspending:</em> this mode is very similar to the NACK-based one, but once a single write has failed no further writes will succeed until a <code>ResumeWriting</code> message is received. This message will be answered with a <code>WritingResumed</code> message once the last accepted write has completed. If the actor driving the connection implements buffering and resends the NACK’ed messages after having awaited the <code>WritingResumed</code> signal then every message is delivered exactly once to the network socket.</li>
+</ul>
+<p>These write models (with the exception of the second which is rather specialised) are demonstrated in complete examples below. The full and contiguous source is available <a href="http://github.com/akka/akka/tree/v2.5.3/akka-docs/rst/java/code/jdocs/io/japi">on GitHub</a>.</p>
+<p>For back-pressuring reads there are two modes of operation</p>
+<ul>
+  <li><em>Push-reading:</em> in this mode the connection actor sends the registered reader actor incoming data as soon as available as <code>Received</code> events. Whenever the reader actor wants to signal back-pressure to the remote TCP endpoint it can send a <code>SuspendReading</code> message to the connection actor to indicate that it wants to suspend the reception of new data. No <code>Received</code> events will arrive until a corresponding <code>ResumeReading</code> is sent indicating that the receiver actor is ready again.</li>
+  <li><em>Pull-reading:</em> after sending a <code>Received</code> event the connection actor automatically suspends accepting data from the socket until the reader actor signals with a <code>ResumeReading</code> message that it is ready to process more input data. Hence new data is &ldquo;pulled&rdquo; from the connection by sending <code>ResumeReading</code> messages.</li>
+</ul><div class="callout note "><div class="callout-title">Note</div>
+<p>It should be obvious that all these flow control schemes only work between one writer/reader and one connection actor; as soon as multiple actors send write commands to a single connection no consistent result can be achieved.</p></div>
+<h2><a href="#ack-based-write-back-pressure" name="ack-based-write-back-pressure" class="anchor"><span class="anchor-link"></span></a>ACK-Based Write Back-Pressure</h2>
+<p>For proper function of the following example it is important to configure the connection to remain half-open when the remote side closed its writing end: this allows the example <code>EchoHandler</code> to write all outstanding data back to the client before fully closing the connection. This is enabled using a flag upon connection activation (observe the <code>Register</code> message):</p>
+<pre class="prettyprint"><code class="language-java">connection.tell(TcpMessage.register(handler,
+    true, // &lt;-- keepOpenOnPeerClosed flag
+    true), getSelf());</code></pre>
+<p>With this preparation let us dive into the handler itself:</p>
+<pre class="prettyprint"><code class="language-java">public class SimpleEchoHandler extends AbstractActor {
+  
+  final LoggingAdapter log = Logging
+      .getLogger(getContext().getSystem(), getSelf());
+
+  final ActorRef connection;
+  final InetSocketAddress remote;
+
+  public static final long maxStored = 100000000;
+  public static final long highWatermark = maxStored * 5 / 10;
+  public static final long lowWatermark = maxStored * 2 / 10;
+
+  public SimpleEchoHandler(ActorRef connection, InetSocketAddress remote) {
+    this.connection = connection;
+    this.remote = remote;
+
+    // sign death pact: this actor stops when the connection is closed
+    getContext().watch(connection);
+  }
+
+  @Override
+  public Receive createReceive() {
+    return receiveBuilder()
+      .match(Received.class, msg -&gt; {
+        final ByteString data = msg.data();
+        buffer(data);
+        connection.tell(TcpMessage.write(data, ACK), getSelf());
+        // now switch behavior to “waiting for acknowledgement”
+        getContext().become(buffering(), false);
+  
+      })
+      .match(ConnectionClosed.class, msg -&gt; {
+        getContext().stop(getSelf());
+      })
+      .build();
+  }
+
+  private final Receive buffering() {
+    return receiveBuilder()
+      .match(Received.class, msg -&gt; {
+        buffer(msg.data());
+        
+      })
+      .match(Event.class, msg -&gt; msg == ACK, msg -&gt; {
+        acknowledge();
+
+      })
+      .match(ConnectionClosed.class, msg -&gt; {
+        if (msg.isPeerClosed()) {
+          closing = true;
+        } else {
+          // could also be ErrorClosed, in which case we just give up
+          getContext().stop(getSelf());
+        }
+      })
+      .build();
+  }
+
+  public void postStop() {
+    log.info(&quot;transferred {} bytes from/to [{}]&quot;, transferred, remote);
+  }
+
+  private long transferred;
+  private long stored = 0;
+  private Queue&lt;ByteString&gt; storage = new LinkedList&lt;ByteString&gt;();
+
+  private boolean suspended = false;
+  private boolean closing = false;
+  
+  private final Event ACK = new Event() {};
+
+  protected void buffer(ByteString data) {
+    storage.add(data);
+    stored += data.size();
+
+    if (stored &gt; maxStored) {
+      log.warning(&quot;drop connection to [{}] (buffer overrun)&quot;, remote);
+      getContext().stop(getSelf());
+
+    } else if (stored &gt; highWatermark) {
+      log.debug(&quot;suspending reading&quot;);
+      connection.tell(TcpMessage.suspendReading(), getSelf());
+      suspended = true;
+    }
+  }
+
+  protected void acknowledge() {
+    final ByteString acked = storage.remove();
+    stored -= acked.size();
+    transferred += acked.size();
+
+    if (suspended &amp;&amp; stored &lt; lowWatermark) {
+      log.debug(&quot;resuming reading&quot;);
+      connection.tell(TcpMessage.resumeReading(), getSelf());
+      suspended = false;
+    }
+    
+    if (storage.isEmpty()) {
+      if (closing) {
+        getContext().stop(getSelf());
+      } else {
+        getContext().unbecome();
+      }
+    } else {
+      connection.tell(TcpMessage.write(storage.peek(), ACK), getSelf());
+    }
+  }
+}</code></pre>
+<p>The principle is simple: when having written a chunk always wait for the <code>Ack</code> to come back before sending the next chunk. While waiting we switch behavior such that new incoming data are buffered. The helper functions used are a bit lengthy but not complicated:</p>
+<pre class="prettyprint"><code class="language-java">protected void buffer(ByteString data) {
+  storage.add(data);
+  stored += data.size();
+
+  if (stored &gt; maxStored) {
+    log.warning(&quot;drop connection to [{}] (buffer overrun)&quot;, remote);
+    getContext().stop(getSelf());
+
+  } else if (stored &gt; highWatermark) {
+    log.debug(&quot;suspending reading&quot;);
+    connection.tell(TcpMessage.suspendReading(), getSelf());
+    suspended = true;
+  }
+}
+
+protected void acknowledge() {
+  final ByteString acked = storage.remove();
+  stored -= acked.size();
+  transferred += acked.size();
+
+  if (suspended &amp;&amp; stored &lt; lowWatermark) {
+    log.debug(&quot;resuming reading&quot;);
+    connection.tell(TcpMessage.resumeReading(), getSelf());
+    suspended = false;
+  }
+  
+  if (storage.isEmpty()) {
+    if (closing) {
+      getContext().stop(getSelf());
+    } else {
+      getContext().unbecome();
+    }
+  } else {
+    connection.tell(TcpMessage.write(storage.peek(), ACK), getSelf());
+  }
+}</code></pre>
+<p>The most interesting part is probably the last: an <code>Ack</code> removes the oldest data chunk from the buffer, and if that was the last chunk then we either close the connection (if the peer closed its half already) or return to the idle behavior; otherwise we just send the next buffered chunk and stay waiting for the next <code>Ack</code>.</p>
+<p>Back-pressure can be propagated also across the reading side back to the writer on the other end of the connection by sending the <code>SuspendReading</code> command to the connection actor. This will lead to no data being read from the socket anymore (although this does happen after a delay because it takes some time until the connection actor processes this command, hence appropriate head-room in the buffer should be present), which in turn will lead to the O/S kernel buffer filling up on our end, then the TCP window mechanism will stop the remote side from writing, filling up its write buffer, until finally the writer on the other side cannot push any data into the socket anymore. This is how end-to-end back-pressure is realized across a TCP connection.</p>
+<h2><a href="#nack-based-write-back-pressure-with-suspending" name="nack-based-write-back-pressure-with-suspending" class="anchor"><span class="anchor-link"></span></a>NACK-Based Write Back-Pressure with Suspending</h2>
+<pre class="prettyprint"><code class="language-java">public class EchoHandler extends AbstractActor {
+
+  final LoggingAdapter log = Logging
+      .getLogger(getContext().getSystem(), getSelf());
+
+  final ActorRef connection;
+  final InetSocketAddress remote;
+
+  public static final long MAX_STORED = 100000000;
+  public static final long HIGH_WATERMARK = MAX_STORED * 5 / 10;
+  public static final long LOW_WATERMARK = MAX_STORED * 2 / 10;
+  
+  private long transferred;
+  private int storageOffset = 0;
+  private long stored = 0;
+  private Queue&lt;ByteString&gt; storage = new LinkedList&lt;ByteString&gt;();
+
+  private boolean suspended = false;
+  
+  private static class Ack implements Event {
+    public final int ack;
+    public Ack(int ack) {
+      this.ack = ack;
+    }
+  }
+
+  public EchoHandler(ActorRef connection, InetSocketAddress remote) {
+    this.connection = connection;
+    this.remote = remote;
+    
+    writing = writing();
+
+    // sign death pact: this actor stops when the connection is closed
+    getContext().watch(connection);
+
+    // start out in optimistic write-through mode
+    getContext().become(writing);
+  }
+  
+  @Override
+    public Receive createReceive() {
+      return writing;
+    }
+
+  private final Receive writing;
+  
+  private Receive writing() { 
+    return receiveBuilder()
+      .match(Received.class, msg -&gt; {
+        final ByteString data = msg.data();
+        connection.tell(TcpMessage.write(data, new Ack(currentOffset())), getSelf());
+        buffer(data);
+
+      })
+      .match(Integer.class,  msg -&gt; {
+        acknowledge(msg);
+      })
+      .match(CommandFailed.class, msg -&gt; {
+        final Write w = (Write) msg.cmd();
+        connection.tell(TcpMessage.resumeWriting(), getSelf());
+        getContext().become(buffering((Ack) w.ack()));
+      })
+      .match(ConnectionClosed.class, msg -&gt; {
+        if (msg.isPeerClosed()) {
+          if (storage.isEmpty()) {
+            getContext().stop(getSelf());
+          } else {
+            getContext().become(closing());
+          }
+        }
+      })
+      .build();
+  }
+
+  
+  final static class BufferingState {
+    int toAck = 10;
+    boolean peerClosed = false;
+  }
+  
+  protected Receive buffering(final Ack nack) {
+    final BufferingState state = new BufferingState();
+    
+    return receiveBuilder()
+      .match(Received.class, msg -&gt; {
+        buffer(msg.data());
+
+      })
+      .match(WritingResumed.class, msg -&gt; {
+        writeFirst();
+
+      })
+      .match(ConnectionClosed.class, msg -&gt; {
+        if (msg.isPeerClosed())
+          state.peerClosed = true;
+        else
+          getContext().stop(getSelf());
+
+      })
+      .match(Integer.class, ack -&gt; {
+        acknowledge(ack);
+
+        if (ack &gt;= nack.ack) {
+          // otherwise it was the ack of the last successful write
+
+          if (storage.isEmpty()) {
+            if (state.peerClosed)
+              getContext().stop(getSelf());
+            else
+              getContext().become(writing);
+
+          } else {
+            if (state.toAck &gt; 0) {
+              // stay in ACK-based mode for a short while
+              writeFirst();
+              --state.toAck;
+            } else {
+              // then return to NACK-based again
+              writeAll();
+              if (state.peerClosed)
+                getContext().become(closing());
+              else
+                getContext().become(writing);
+            }
+          }
+        }
+      })
+      .build();
+  }
+
+  protected Receive closing() {
+    return receiveBuilder()
+      .match(CommandFailed.class, msg -&gt; {
+        // the command can only have been a Write
+        connection.tell(TcpMessage.resumeWriting(), getSelf());
+        getContext().become(closeResend(), false);
+      })
+      .match(Integer.class, msg -&gt; {  
+        acknowledge(msg);
+        if (storage.isEmpty())
+          getContext().stop(getSelf());
+      })
+      .build();
+  }
+
+  protected Receive closeResend() {
+    return receiveBuilder()
+      .match(WritingResumed.class, msg -&gt; {
+        writeAll();
+        getContext().unbecome();
+      })
+      .match(Integer.class, msg -&gt; {
+        acknowledge(msg);
+      })
+      .build();
+  }
+
+
+  @Override
+  public void postStop() {
+    log.info(&quot;transferred {} bytes from/to [{}]&quot;, transferred, remote);
+  }
+
+  protected void buffer(ByteString data) {
+    storage.add(data);
+    stored += data.size();
+
+    if (stored &gt; MAX_STORED) {
+      log.warning(&quot;drop connection to [{}] (buffer overrun)&quot;, remote);
+      getContext().stop(getSelf());
+
+    } else if (stored &gt; HIGH_WATERMARK) {
+      log.debug(&quot;suspending reading at {}&quot;, currentOffset());
+      connection.tell(TcpMessage.suspendReading(), getSelf());
+      suspended = true;
+    }
+  }
+
+  protected void acknowledge(int ack) {
+    assert ack == storageOffset;
+    assert !storage.isEmpty();
+
+    final ByteString acked = storage.remove();
+    stored -= acked.size();
+    transferred += acked.size();
+    storageOffset += 1;
+
+    if (suspended &amp;&amp; stored &lt; LOW_WATERMARK) {
+      log.debug(&quot;resuming reading&quot;);
+      connection.tell(TcpMessage.resumeReading(), getSelf());
+      suspended = false;
+    }
+  }
+
+  protected int currentOffset() {
+    return storageOffset + storage.size();
+  }
+
+  protected void writeAll() {
+    int i = 0;
+    for (ByteString data : storage) {
+      connection.tell(TcpMessage.write(data, new Ack(storageOffset + i++)), getSelf());
+    }
+  }
+
+  protected void writeFirst() {
+    connection.tell(TcpMessage.write(storage.peek(), new Ack(storageOffset)), getSelf());
+  }
+
+}</code></pre>
+<p>The principle here is to keep writing until a <code>CommandFailed</code> is received, using acknowledgements only to prune the resend buffer. When a such a failure was received, transition into a different state for handling and handle resending of all queued data:</p>
+<pre class="prettyprint"><code class="language-java"><br/>final static class BufferingState {
+  int toAck = 10;
+  boolean peerClosed = false;
+}
+
+protected Receive buffering(final Ack nack) {
+  final BufferingState state = new BufferingState();
+  
+  return receiveBuilder()
+    .match(Received.class, msg -&gt; {
+      buffer(msg.data());
+
+    })
+    .match(WritingResumed.class, msg -&gt; {
+      writeFirst();
+
+    })
+    .match(ConnectionClosed.class, msg -&gt; {
+      if (msg.isPeerClosed())
+        state.peerClosed = true;
+      else
+        getContext().stop(getSelf());
+
+    })
+    .match(Integer.class, ack -&gt; {
+      acknowledge(ack);
+
+      if (ack &gt;= nack.ack) {
+        // otherwise it was the ack of the last successful write
+
+        if (storage.isEmpty()) {
+          if (state.peerClosed)
+            getContext().stop(getSelf());
+          else
+            getContext().become(writing);
+
+        } else {
+          if (state.toAck &gt; 0) {
+            // stay in ACK-based mode for a short while
+            writeFirst();
+            --state.toAck;
+          } else {
+            // then return to NACK-based again
+            writeAll();
+            if (state.peerClosed)
+              getContext().become(closing());
+            else
+              getContext().become(writing);
+          }
+        }
+      }
+    })
+    .build();
+}</code></pre>
+<p>It should be noted that all writes which are currently buffered have also been sent to the connection actor upon entering this state, which means that the <code>ResumeWriting</code> message is enqueued after those writes, leading to the reception of all outstanding <code>CommandFailed</code> messages (which are ignored in this state) before receiving the <code>WritingResumed</code> signal. That latter message is sent by the connection actor only once the internally queued write has been fully completed, meaning that a subsequent write will not fail. This is exploited by the <code>EchoHandler</code> to switch to an ACK-based approach for the first ten writes after a failure before resuming the optimistic write-through behavior.</p>
+<pre class="prettyprint"><code class="language-java">protected Receive closing() {
+  return receiveBuilder()
+    .match(CommandFailed.class, msg -&gt; {
+      // the command can only have been a Write
+      connection.tell(TcpMessage.resumeWriting(), getSelf());
+      getContext().become(closeResend(), false);
+    })
+    .match(Integer.class, msg -&gt; {  
+      acknowledge(msg);
+      if (storage.isEmpty())
+        getContext().stop(getSelf());
+    })
+    .build();
+}
+
+protected Receive closeResend() {
+  return receiveBuilder()
+    .match(WritingResumed.class, msg -&gt; {
+      writeAll();
+      getContext().unbecome();
+    })
+    .match(Integer.class, msg -&gt; {
+      acknowledge(msg);
+    })
+    .build();
+}</code></pre>
+<p>Closing the connection while still sending all data is a bit more involved than in the ACK-based approach: the idea is to always send all outstanding messages and acknowledge all successful writes, and if a failure happens then switch behavior to await the <code>WritingResumed</code> event and start over.</p>
+<p>The helper functions are very similar to the ACK-based case:</p>
+<pre class="prettyprint"><code class="language-java">protected void buffer(ByteString data) {
+  storage.add(data);
+  stored += data.size();
+
+  if (stored &gt; MAX_STORED) {
+    log.warning(&quot;drop connection to [{}] (buffer overrun)&quot;, remote);
+    getContext().stop(getSelf());
+
+  } else if (stored &gt; HIGH_WATERMARK) {
+    log.debug(&quot;suspending reading at {}&quot;, currentOffset());
+    connection.tell(TcpMessage.suspendReading(), getSelf());
+    suspended = true;
+  }
+}
+
+protected void acknowledge(int ack) {
+  assert ack == storageOffset;
+  assert !storage.isEmpty();
+
+  final ByteString acked = storage.remove();
+  stored -= acked.size();
+  transferred += acked.size();
+  storageOffset += 1;
+
+  if (suspended &amp;&amp; stored &lt; LOW_WATERMARK) {
+    log.debug(&quot;resuming reading&quot;);
+    connection.tell(TcpMessage.resumeReading(), getSelf());
+    suspended = false;
+  }
+}</code></pre>
+<h2><a href="#read-back-pressure-with-pull-mode" name="read-back-pressure-with-pull-mode" class="anchor"><span class="anchor-link"></span></a>Read Back-Pressure with Pull Mode</h2>
+<p>When using push based reading, data coming from the socket is sent to the actor as soon as it is available. In the case of the previous Echo server example this meant that we needed to maintain a buffer of incoming data to keep it around since the rate of writing might be slower than the rate of the arrival of new data.</p>
+<p>With the Pull mode this buffer can be completely eliminated as the following snippet demonstrates:</p>
+<pre class="prettyprint"><code class="language-java">@Override
+public void preStart() throws Exception {
+    connection.tell(TcpMessage.resumeReading(), getSelf());
+}
+
+@Override
+public Receive createReceive() {
+    return receiveBuilder()
+        .match(Tcp.Received.class, message -&gt; {
+            ByteString data = message.data();
+            connection.tell(TcpMessage.write(data, new Ack()), getSelf());
+        })
+        .match(Ack.class, message -&gt; {
+            connection.tell(TcpMessage.resumeReading(), getSelf());
+        })
+        .build();
+}</code></pre>
+<p>The idea here is that reading is not resumed until the previous write has been completely acknowledged by the connection actor. Every pull mode connection actor starts from suspended state. To start the flow of data we send a <code>ResumeReading</code> in the <code>preStart</code> method to tell the connection actor that we are ready to receive the first chunk of data. Since we only resume reading when the previous data chunk has been completely written there is no need for maintaining a buffer.</p>
+<p>To enable pull reading on an outbound connection the <code>pullMode</code> parameter of the <code>Connect</code> should be set to <code>true</code>:</p>
+<pre class="prettyprint"><code class="language-java">final List&lt;Inet.SocketOption&gt; options = new ArrayList&lt;Inet.SocketOption&gt;();
+tcp.tell(
+   TcpMessage.connect(new InetSocketAddress(&quot;localhost&quot;, 3000), null, options, null, true),
+  getSelf()
+);</code></pre>
+<h3><a href="#pull-mode-reading-for-inbound-connections" name="pull-mode-reading-for-inbound-connections" class="anchor"><span class="anchor-link"></span></a>Pull Mode Reading for Inbound Connections</h3>
+<p>The previous section demonstrated how to enable pull reading mode for outbound connections but it is possible to create a listener actor with this mode of reading by setting the <code>pullMode</code> parameter of the <code>Bind</code> command to <code>true</code>:</p>
+<pre class="prettyprint"><code class="language-java">tcp = Tcp.get(getContext().getSystem()).manager();
+final List&lt;Inet.SocketOption&gt; options = new ArrayList&lt;Inet.SocketOption&gt;();
+tcp.tell(
+   TcpMessage.bind(getSelf(), new InetSocketAddress(&quot;localhost&quot;, 0), 100, options, true),
+  getSelf()
+);</code></pre>
+<p>One of the effects of this setting is that all connections accepted by this listener actor will use pull mode reading.</p>
+<p>Another effect of this setting is that in addition of setting all inbound connections to pull mode, accepting connections becomes pull based, too. This means that after handling one (or more) <code>Connected</code> events the listener actor has to be resumed by sending it a <code>ResumeAccepting</code> message.</p>
+<p>Listener actors with pull mode start suspended so to start accepting connections a <code>ResumeAccepting</code> command has to be sent to the listener actor after binding was successful:</p>
+<pre class="prettyprint"><code class="language-java">public Receive createReceive() {
+    return receiveBuilder()
+        .match(Tcp.Bound.class, x -&gt; {
+          listener = getSender();
+          // Accept connections one by one
+          listener.tell(TcpMessage.resumeAccepting(1), getSelf());
+        })
+        .match(Tcp.Connected.class, x -&gt; {
+          ActorRef handler = getContext().actorOf(Props.create(PullEcho.class, getSender()));
+            getSender().tell(TcpMessage.register(handler), getSelf());
+          // Resume accepting connections
+          listener.tell(TcpMessage.resumeAccepting(1), getSelf());
+        })
+        .build();
+}</code></pre>
+<p>As shown in the example after handling an incoming connection we need to resume accepting again. The <code>ResumeAccepting</code> message accepts a <code>batchSize</code> parameter that specifies how many new connections are accepted before a next <code>ResumeAccepting</code> message is needed to resume handling of new connections.</p>
+</div>
+</article>
+
+<div class="row">
+<div class="small-12 large-9 column">
+<section class="nav-prev-next row">
+<div class="nav-prev small-6 column">
+<a href="../java/io.html"><i class="icon-prev"></i> <span class="link-prev">I/O</span></a>
+</div>
+<div class="nav-next small-6 column clearfix">
+<a class="float-right" href="../java/io-udp.html">Using UDP <i class="icon-next"></i></a>
+</div>
+</section>
+</div>
+</div>
+
+<div class="source-github row">
+The source code for this page can be found <a href="https://github.com/akka/akka/tree/master/akka-docs/src/main/paradox/java/io-tcp.md">here</a>.
+</div>
+
+
+<footer class="page-footer row clearfix">
+<img class="akka-icon float-left show-for-medium" src="../images/akka-icon.svg">
+<section class="copyright">
+<div>&copy; 2011-2017 <a href="https://www.lightbend.com">Lightbend</a></div>
+<div>Akka is Open Source and available under the Apache 2 License.</div>
+</section>
+</footer>
+
+</section>
+</main>
+
+<script type="text/javascript" src="../js/scrollsneak.js"></script>
+<script type="text/javascript">jQuery(document).foundation();</script>
+<script type="text/javascript" src="../js/groups.js"></script>
+<script type="text/javascript" src="../js/page.js"></script>
+<script type="text/javascript" src="../js/magellan.js"></script>
+
+<style type="text/css">@import "../lib/prettify/prettify.css";</style>
+<script type="text/javascript" src="../lib/prettify/prettify.js"></script>
+<script type="text/javascript" src="../lib/prettify/lang-scala.js"></script>
+<script type="text/javascript">jQuery(function(){window.prettyPrint && prettyPrint()});</script>
+
+<!-- Algolia docs search -->
+<script type="text/javascript" src="https://cdn.jsdelivr.net/docsearch.js/2/docsearch.min.js"></script>
+<style>.algolia-autocomplete { display: block !important }</style>
+<script type="text/javascript">
+var lang = "scala";
+var path = window.location.pathname;
+if (path.includes("/java/") || path.includes("java.html")) {
+lang = "java";
+}
+
+docsearch({
+apiKey: '543bad5ad786495d9ccd445ed34ed082',
+indexName: 'akka_io',
+inputSelector: '#search',
+algoliaOptions: {
+hitsPerPage: 5,
+facetFilters: ["language:" + lang]
+}
+});
+
+docsearch({
+apiKey: '543bad5ad786495d9ccd445ed34ed082',
+indexName: 'akka_io',
+inputSelector: '#overlay-search',
+algoliaOptions: {
+hitsPerPage: 5,
+facetFilters: ["language:" + lang]
+}
+});
+
+// set up "/" as global shortcut for focusing on search
+jQuery(document).keypress(function (event) {
+if (event.keyCode == 47) {
+jQuery("#search").focus();
+return false; // swallow key event, otherwise the / char would be input into the search box
+}
+});
+</script>
+
+
+</body>
+</html>

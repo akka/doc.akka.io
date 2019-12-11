@@ -1,0 +1,295 @@
+
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Dispatchers (Scala) &mdash; Akka Documentation</title>
+    <link rel="stylesheet" href="../_static/akka.css" type="text/css" />
+<link rel="stylesheet" href="https://doc.akka.io/docs/akka/1.1.3/_static/docs.css" type="text/css"/>
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/print.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '1.1.3',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+<script type="text/javascript" src="https://doc.akka.io/docs/akka/1.1.3/_static/warnOldDocs.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="../_static/theme_extras.js"></script>
+    <link rel="top" title="Akka Documentation" href="../index.html" />
+    <link rel="up" title="Scala API" href="index.html" />
+    <link rel="next" title="Routing (Scala)" href="routing.html" />
+    <link rel="prev" title="Fault Tolerance Through Supervisor Hierarchies (Scala)" href="fault-tolerance.html" /> 
+  </head>
+  <body>
+      <div class="header"><a href="../index.html"><img class="leftlogo" src="../_static/logo.png" alt="Logo"/></a><h1 class="heading"><a href="../index.html"><span>Akka Documentation</span></a></h1>
+       <h2 class="heading"><a href="../index.html"><span>Version 1.1.3</span></a></h2>
+       <h2 class="rightheading"><span><a href="https://akka.io/docs/akka/1.1.3/Akka.pdf">PDF</a></span></h2>
+      </div>
+      <div class="topnav">
+      
+        <p>
+        «&#160;&#160;<a href="fault-tolerance.html">Fault Tolerance Through Supervisor Hierarchies (Scala)</a>
+        &#160;&#160;::&#160;&#160;
+        <a class="uplink" href="../index.html">Contents</a>
+        &#160;&#160;::&#160;&#160;
+        <a href="routing.html">Routing (Scala)</a>&#160;&#160;»
+        </p>
+
+      </div>
+      <div class="content">
+        
+        
+  <div class="section" id="dispatchers-scala">
+<h1>Dispatchers (Scala)<a class="headerlink" href="#dispatchers-scala" title="Permalink to this headline">¶</a></h1>
+<div class="sidebar">
+<p class="first sidebar-title">Contents</p>
+<div class="contents local last topic" id="contents">
+<ul class="simple">
+<li><a class="reference internal" href="#default-dispatcher" id="id1">Default dispatcher</a></li>
+<li><a class="reference internal" href="#setting-the-dispatcher" id="id2">Setting the dispatcher</a></li>
+<li><a class="reference internal" href="#types-of-dispatchers" id="id3">Types of dispatchers</a><ul>
+<li><a class="reference internal" href="#thread-based" id="id4">Thread-based</a></li>
+<li><a class="reference internal" href="#event-based" id="id5">Event-based</a></li>
+<li><a class="reference internal" href="#priority-event-based" id="id6">Priority event-based</a></li>
+<li><a class="reference internal" href="#work-stealing-event-based" id="id7">Work-stealing event-based</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#making-the-actor-mailbox-bounded" id="id8">Making the Actor mailbox bounded</a><ul>
+<li><a class="reference internal" href="#global-configuration" id="id9">Global configuration</a></li>
+<li><a class="reference internal" href="#per-instance-based-configuration" id="id10">Per-instance based configuration</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<p>Module stability: <strong>SOLID</strong></p>
+<p>The Dispatcher is an important piece that allows you to configure the right semantics and parameters for optimal performance, throughput and scalability. Different Actors have different needs.</p>
+<p>Akka supports dispatchers for both event-driven lightweight threads, allowing creation of millions of threads on a single workstation, and thread-based Actors, where each dispatcher is bound to a dedicated OS thread.</p>
+<p>The event-based Actors currently consume ~600 bytes per Actor which means that you can create more than 6.5 million Actors on 4 G RAM.</p>
+<div class="section" id="default-dispatcher">
+<h2><a class="toc-backref" href="#id1">Default dispatcher</a><a class="headerlink" href="#default-dispatcher" title="Permalink to this headline">¶</a></h2>
+<p>For most scenarios the default settings are the best. Here we have one single event-based dispatcher for all Actors created. The dispatcher used is this one:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="nc">Dispatchers</span><span class="o">.</span><span class="n">globalExecutorBasedEventDrivenDispatcher</span>
+</pre></div>
+</div>
+<p>But if you feel that you are starting to contend on the single dispatcher (the &#8216;Executor&#8217; and its queue) or want to group a specific set of Actors for a dedicated dispatcher for better flexibility and configurability then you can override the defaults and define your own dispatcher. See below for details on which ones are available and how they can be configured.</p>
+</div>
+<div class="section" id="setting-the-dispatcher">
+<h2><a class="toc-backref" href="#id2">Setting the dispatcher</a><a class="headerlink" href="#setting-the-dispatcher" title="Permalink to this headline">¶</a></h2>
+<p>Normally you set the dispatcher from within the Actor itself. The dispatcher is defined by the &#8216;dispatcher: MessageDispatcher&#8217; member field in &#8216;ActorRef&#8217;.</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">class</span> <span class="nc">MyActor</span> <span class="k">extends</span> <span class="nc">Actor</span> <span class="o">{</span>
+  <span class="n">self</span><span class="o">.</span><span class="n">dispatcher</span> <span class="k">=</span> <span class="o">...</span> <span class="c1">// set the dispatcher</span>
+   <span class="o">...</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<p>You can also set the dispatcher for an Actor <strong>before</strong> it has been started:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="n">actorRef</span><span class="o">.</span><span class="n">dispatcher</span> <span class="k">=</span> <span class="n">dispatcher</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="types-of-dispatchers">
+<h2><a class="toc-backref" href="#id3">Types of dispatchers</a><a class="headerlink" href="#types-of-dispatchers" title="Permalink to this headline">¶</a></h2>
+<p>There are six different types of message dispatchers:</p>
+<ul class="simple">
+<li>Thread-based</li>
+<li>Event-based</li>
+<li>Priority event-based</li>
+<li>Work-stealing</li>
+</ul>
+<p>Factory methods for all of these, including global versions of some of them, are in the &#8216;akka.dispatch.Dispatchers&#8217; object.</p>
+<p>Let&#8217;s now walk through the different dispatchers in more detail.</p>
+<div class="section" id="thread-based">
+<h3><a class="toc-backref" href="#id4">Thread-based</a><a class="headerlink" href="#thread-based" title="Permalink to this headline">¶</a></h3>
+<p>The &#8216;ThreadBasedDispatcher&#8217; binds a dedicated OS thread to each specific Actor. The messages are posted to a &#8216;LinkedBlockingQueue&#8217; which feeds the messages to the dispatcher one by one. A &#8216;ThreadBasedDispatcher&#8217; cannot be shared between actors. This dispatcher has worse performance and scalability than the event-based dispatcher but works great for creating &#8220;daemon&#8221; Actors that consumes a low frequency of messages and are allowed to go off and do their own thing for a longer period of time. Another advantage with this dispatcher is that Actors do not block threads for each other.</p>
+<p>It would normally by used from within the actor like this:</p>
+<div class="highlight-java"><div class="highlight"><pre><span class="kd">class</span> <span class="nc">MyActor</span> <span class="kd">extends</span> <span class="n">Actor</span> <span class="o">{</span>
+  <span class="kd">public</span> <span class="nf">MyActor</span><span class="o">()</span> <span class="o">{</span>
+    <span class="n">self</span><span class="o">.</span><span class="na">dispatcher</span> <span class="o">=</span> <span class="n">Dispatchers</span><span class="o">.</span><span class="na">newThreadBasedDispatcher</span><span class="o">(</span><span class="n">self</span><span class="o">)</span>
+  <span class="o">}</span>
+  <span class="o">...</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="event-based">
+<h3><a class="toc-backref" href="#id5">Event-based</a><a class="headerlink" href="#event-based" title="Permalink to this headline">¶</a></h3>
+<p>The &#8216;ExecutorBasedEventDrivenDispatcher&#8217; binds a set of Actors to a thread pool backed up by a &#8216;BlockingQueue&#8217;. This dispatcher is highly configurable and supports a fluent configuration API to configure the &#8216;BlockingQueue&#8217; (type of queue, max items etc.) as well as the thread pool.</p>
+<p>The event-driven dispatchers <strong>must be shared</strong> between multiple Actors. One best practice is to let each top-level Actor, e.g. the Actors you define in the declarative supervisor config, to get their own dispatcher but reuse the dispatcher for each new Actor that the top-level Actor creates. But you can also share dispatcher between multiple top-level Actors. This is very use-case specific and needs to be tried out on a case by case basis. The important thing is that Akka tries to provide you with the freedom you need to design and implement your system in the most efficient way in regards to performance, throughput and latency.</p>
+<p>It comes with many different predefined BlockingQueue configurations:
+* Bounded LinkedBlockingQueue
+* Unbounded LinkedBlockingQueue
+* Bounded ArrayBlockingQueue
+* Unbounded ArrayBlockingQueue
+* SynchronousQueue</p>
+<p>You can also set the rejection policy that should be used, e.g. what should be done if the dispatcher (e.g. the Actor) can&#8217;t keep up and the mailbox is growing up to the limit defined. You can choose between four different rejection policies:</p>
+<ul class="simple">
+<li>java.util.concurrent.ThreadPoolExecutor.CallerRuns - will run the message processing in the caller&#8217;s thread as a way to slow him down and balance producer/consumer</li>
+<li>java.util.concurrent.ThreadPoolExecutor.AbortPolicy - rejected messages by throwing a &#8216;RejectedExecutionException&#8217;</li>
+<li>java.util.concurrent.ThreadPoolExecutor.DiscardPolicy - discards the message (throws it away)</li>
+<li>java.util.concurrent.ThreadPoolExecutor.DiscardOldestPolicy - discards the oldest message in the mailbox (throws it away)</li>
+</ul>
+<p>You cane read more about these policies <a class="reference external" href="http://java.sun.com/javase/6/docs/api/index.html?java/util/concurrent/RejectedExecutionHandler.html">here</a>.</p>
+<p>Here is an example:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">import</span> <span class="nn">akka.actor.Actor</span>
+<span class="k">import</span> <span class="nn">akka.dispatch.Dispatchers</span>
+<span class="k">import</span> <span class="nn">java.util.concurrent.ThreadPoolExecutor.CallerRunsPolicy</span>
+
+<span class="k">class</span> <span class="nc">MyActor</span> <span class="k">extends</span> <span class="nc">Actor</span> <span class="o">{</span>
+  <span class="n">self</span><span class="o">.</span><span class="n">dispatcher</span> <span class="k">=</span> <span class="nc">Dispatchers</span><span class="o">.</span><span class="n">newExecutorBasedEventDrivenDispatcher</span><span class="o">(</span><span class="n">name</span><span class="o">)</span>
+    <span class="o">.</span><span class="n">withNewThreadPoolWithLinkedBlockingQueueWithCapacity</span><span class="o">(</span><span class="mi">100</span><span class="o">)</span>
+    <span class="o">.</span><span class="n">setCorePoolSize</span><span class="o">(</span><span class="mi">16</span><span class="o">)</span>
+    <span class="o">.</span><span class="n">setMaxPoolSize</span><span class="o">(</span><span class="mi">128</span><span class="o">)</span>
+    <span class="o">.</span><span class="n">setKeepAliveTimeInMillis</span><span class="o">(</span><span class="mi">60000</span><span class="o">)</span>
+    <span class="o">.</span><span class="n">setRejectionPolicy</span><span class="o">(</span><span class="k">new</span> <span class="nc">CallerRunsPolicy</span><span class="o">)</span>
+    <span class="o">.</span><span class="n">build</span>
+   <span class="o">...</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<p>This &#8216;ExecutorBasedEventDrivenDispatcher&#8217; allows you to define the &#8216;throughput&#8217; it should have. This defines the number of messages for a specific Actor the dispatcher should process in one single sweep.
+Setting this to a higher number will increase throughput but lower fairness, and vice versa. If you don&#8217;t specify it explicitly then it uses the default value defined in the &#8216;akka.conf&#8217; configuration file:</p>
+<div class="highlight-ruby"><div class="highlight"><pre><span class="n">actor</span> <span class="p">{</span>
+  <span class="n">throughput</span> <span class="o">=</span> <span class="mi">5</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>If you don&#8217;t define a the &#8216;throughput&#8217; option in the configuration file then the default value of &#8216;5&#8217; will be used.</p>
+<p>Browse the <a class="reference external" href="scaladoc">ScalaDoc</a> or look at the code for all the options available.</p>
+</div>
+<div class="section" id="priority-event-based">
+<h3><a class="toc-backref" href="#id6">Priority event-based</a><a class="headerlink" href="#priority-event-based" title="Permalink to this headline">¶</a></h3>
+<p>Sometimes it&#8217;s useful to be able to specify priority order of messages, that is done by using PriorityExecutorBasedEventDrivenDispatcher and supply
+a java.util.Comparator[MessageInvocation] or use a akka.dispatch.PriorityGenerator (recommended):</p>
+<p>Creating a PriorityExecutorBasedEventDrivenDispatcher using PriorityGenerator:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">import</span> <span class="nn">akka.dispatch._</span>
+<span class="k">import</span> <span class="nn">akka.actor._</span>
+
+<span class="k">val</span> <span class="n">gen</span> <span class="k">=</span> <span class="nc">PriorityGenerator</span> <span class="o">{</span> <span class="c1">// Create a new PriorityGenerator, lower prio means more important</span>
+    <span class="k">case</span> <span class="-Symbol">&#39;highpriority</span> <span class="k">=&gt;</span> <span class="mi">0</span>   <span class="c1">// &#39;highpriority messages should be treated first if possible</span>
+    <span class="k">case</span> <span class="-Symbol">&#39;lowpriority</span>  <span class="k">=&gt;</span> <span class="mi">100</span> <span class="c1">// &#39;lowpriority messages should be treated last if possible</span>
+    <span class="k">case</span> <span class="n">otherwise</span>     <span class="k">=&gt;</span> <span class="mi">50</span>    <span class="c1">// We default to 50</span>
+ <span class="o">}</span>
+
+ <span class="k">val</span> <span class="n">a</span> <span class="k">=</span> <span class="nc">Actor</span><span class="o">.</span><span class="n">actorOf</span><span class="o">(</span> <span class="c1">// We create a new Actor that just prints out what it processes</span>
+       <span class="k">new</span> <span class="nc">Actor</span> <span class="o">{</span>
+       <span class="k">def</span> <span class="n">receive</span> <span class="k">=</span> <span class="o">{</span>
+         <span class="k">case</span> <span class="n">x</span> <span class="k">=&gt;</span> <span class="n">println</span><span class="o">(</span><span class="n">x</span><span class="o">)</span>
+       <span class="o">}</span>
+  <span class="o">})</span>
+
+  <span class="c1">// We create a new Priority dispatcher and seed it with the priority generator</span>
+  <span class="n">a</span><span class="o">.</span><span class="n">dispatcher</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">PriorityExecutorBasedEventDrivenDispatcher</span><span class="o">(</span><span class="s">&quot;foo&quot;</span><span class="o">,</span> <span class="n">gen</span><span class="o">)</span>
+  <span class="n">a</span><span class="o">.</span><span class="n">start</span> <span class="c1">// Start the Actor</span>
+
+  <span class="n">a</span><span class="o">.</span><span class="n">dispatcher</span><span class="o">.</span><span class="n">suspend</span><span class="o">(</span><span class="n">a</span><span class="o">)</span> <span class="c1">// Suspending the actor so it doesn&#39;t start to treat the messages before we have enqueued all of them :-)</span>
+
+   <span class="n">a</span> <span class="o">!</span> <span class="-Symbol">&#39;lowpriority</span>
+   <span class="n">a</span> <span class="o">!</span> <span class="-Symbol">&#39;lowpriority</span>
+   <span class="n">a</span> <span class="o">!</span> <span class="-Symbol">&#39;highpriority</span>
+   <span class="n">a</span> <span class="o">!</span> <span class="-Symbol">&#39;pigdog</span>
+   <span class="n">a</span> <span class="o">!</span> <span class="-Symbol">&#39;pigdog2</span>
+   <span class="n">a</span> <span class="o">!</span> <span class="-Symbol">&#39;pigdog3</span>
+   <span class="n">a</span> <span class="o">!</span> <span class="-Symbol">&#39;highpriority</span>
+
+   <span class="n">a</span><span class="o">.</span><span class="n">dispatcher</span><span class="o">.</span><span class="n">resume</span><span class="o">(</span><span class="n">a</span><span class="o">)</span> <span class="c1">// Resuming the actor so it will start treating its messages</span>
+</pre></div>
+</div>
+<p>Prints:</p>
+<p>&#8216;highpriority
+&#8216;highpriority
+&#8216;pigdog
+&#8216;pigdog2
+&#8216;pigdog3
+&#8216;lowpriority
+&#8216;lowpriority</p>
+</div>
+<div class="section" id="work-stealing-event-based">
+<h3><a class="toc-backref" href="#id7">Work-stealing event-based</a><a class="headerlink" href="#work-stealing-event-based" title="Permalink to this headline">¶</a></h3>
+<p>The &#8216;ExecutorBasedEventDrivenWorkStealingDispatcher&#8217; is a variation of the &#8216;ExecutorBasedEventDrivenDispatcher&#8217; in which Actors of the same type can be set up to share this dispatcher and during execution time the different actors will steal messages from other actors if they have less messages to process. This can be a great way to improve throughput at the cost of a little higher latency.</p>
+<p>Normally the way you use it is to create an Actor companion object to hold the dispatcher and then set in in the Actor explicitly.</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">object</span> <span class="nc">MyActor</span> <span class="o">{</span>
+  <span class="k">val</span> <span class="n">dispatcher</span> <span class="k">=</span> <span class="nc">Dispatchers</span><span class="o">.</span><span class="n">newExecutorBasedEventDrivenWorkStealingDispatcher</span><span class="o">(</span><span class="n">name</span><span class="o">).</span><span class="n">build</span>
+<span class="o">}</span>
+
+<span class="k">class</span> <span class="nc">MyActor</span> <span class="k">extends</span> <span class="nc">Actor</span> <span class="o">{</span>
+  <span class="n">self</span><span class="o">.</span><span class="n">dispatcher</span> <span class="k">=</span> <span class="nc">MyActor</span><span class="o">.</span><span class="n">dispatcher</span>
+  <span class="o">...</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<p>Here is an article with some more information: <a class="reference external" href="http://janvanbesien.blogspot.com/2010/03/load-balancing-actors-with-work.html">Load Balancing Actors with Work Stealing Techniques</a>
+Here is another article discussing this particular dispatcher: <a class="reference external" href="http://vasilrem.com/blog/software-development/flexible-load-balancing-with-akka-in-scala/">Flexible load balancing with Akka in Scala</a></p>
+</div>
+</div>
+<div class="section" id="making-the-actor-mailbox-bounded">
+<h2><a class="toc-backref" href="#id8">Making the Actor mailbox bounded</a><a class="headerlink" href="#making-the-actor-mailbox-bounded" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="global-configuration">
+<h3><a class="toc-backref" href="#id9">Global configuration</a><a class="headerlink" href="#global-configuration" title="Permalink to this headline">¶</a></h3>
+<p>You can make the Actor mailbox bounded by a capacity in two ways. Either you define it in the configuration file under &#8216;default-dispatcher&#8217;. This will set it globally.</p>
+<div class="highlight-ruby"><div class="highlight"><pre><span class="n">actor</span> <span class="p">{</span>
+  <span class="n">default</span><span class="o">-</span><span class="n">dispatcher</span> <span class="p">{</span>
+    <span class="n">mailbox</span><span class="o">-</span><span class="n">capacity</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>            <span class="c1"># If negative (or zero) then an unbounded mailbox is used (default)</span>
+                                     <span class="c1"># If positive then a bounded mailbox is used and the capacity is set to the number specified</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="per-instance-based-configuration">
+<h3><a class="toc-backref" href="#id10">Per-instance based configuration</a><a class="headerlink" href="#per-instance-based-configuration" title="Permalink to this headline">¶</a></h3>
+<p>You can also do it on a specific dispatcher instance.</p>
+<p>For the &#8216;ExecutorBasedEventDrivenDispatcher&#8217; and the &#8216;ExecutorBasedWorkStealingDispatcher&#8217; you can do it through their constructor</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">class</span> <span class="nc">MyActor</span> <span class="k">extends</span> <span class="nc">Actor</span> <span class="o">{</span>
+  <span class="k">val</span> <span class="n">mailboxCapacity</span> <span class="k">=</span> <span class="nc">BoundedMailbox</span><span class="o">(</span><span class="n">capacity</span> <span class="k">=</span> <span class="mi">100</span><span class="o">)</span>
+  <span class="n">self</span><span class="o">.</span><span class="n">dispatcher</span> <span class="k">=</span> <span class="nc">Dispatchers</span><span class="o">.</span><span class="n">newExecutorBasedEventDrivenDispatcher</span><span class="o">(</span><span class="n">name</span><span class="o">,</span> <span class="n">throughput</span><span class="o">,</span> <span class="n">mailboxCapacity</span><span class="o">).</span><span class="n">build</span>
+   <span class="o">...</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<p>For the &#8216;ThreadBasedDispatcher&#8217;, it is non-shareable between actors, and associates a dedicated Thread with the actor.
+Making it bounded (by specifying a capacity) is optional, but if you do, you need to provide a pushTimeout (default is 10 seconds). When trying to send a message to the Actor it will throw a MessageQueueAppendFailedException(&#8220;BlockingMessageTransferQueue transfer timed out&#8221;) if the message cannot be added to the mailbox within the time specified by the pushTimeout.</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">class</span> <span class="nc">MyActor</span> <span class="k">extends</span> <span class="nc">Actor</span> <span class="o">{</span>
+  <span class="k">import</span> <span class="nn">akka.util.duration._</span>
+  <span class="n">self</span><span class="o">.</span><span class="n">dispatcher</span> <span class="k">=</span> <span class="nc">Dispatchers</span><span class="o">.</span><span class="n">newThreadBasedDispatcher</span><span class="o">(</span><span class="n">self</span><span class="o">,</span> <span class="n">mailboxCapacity</span> <span class="k">=</span> <span class="mi">100</span><span class="o">,</span>
+    <span class="n">pushTimeOut</span> <span class="k">=</span> <span class="mi">10</span> <span class="n">seconds</span><span class="o">)</span>
+   <span class="o">...</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+
+
+      </div>
+      <div class="bottomnav">
+      
+        <p>
+        «&#160;&#160;<a href="fault-tolerance.html">Fault Tolerance Through Supervisor Hierarchies (Scala)</a>
+        &#160;&#160;::&#160;&#160;
+        <a class="uplink" href="../index.html">Contents</a>
+        &#160;&#160;::&#160;&#160;
+        <a href="routing.html">Routing (Scala)</a>&#160;&#160;»
+        </p>
+
+      </div>
+
+    <div class="footer">
+        &copy; Copyright 2011, Typesafe Inc.
+      Last updated on Jun 29, 2011.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,377 @@
+
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Routing (Scala) &mdash; Akka Documentation</title>
+    <link rel="stylesheet" href="../_static/style.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/prettify.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/base.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
+    <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Exo:300,400,600,700" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '1.3.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+<script type="text/javascript" src="https://doc.akka.io/docs/akka/1.3.1/_static/warnOldDocs.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="../_static/toc.js"></script>
+    <script type="text/javascript" src="../_static/prettify.js"></script>
+    <script type="text/javascript" src="../_static/highlightCode.js"></script>
+    <script type="text/javascript" src="../_static/effects.core.js"></script>
+    <script type="text/javascript" src="../_static/effects.highlight.js"></script>
+    <script type="text/javascript" src="../_static/scrollTo.js"></script>
+    <script type="text/javascript" src="../_static/contentsFix.js"></script>
+    <link rel="shortcut icon" href="../_static/favicon.ico"/>
+    <link rel="top" title="Akka Documentation" href="../index.html" />
+    <link rel="up" title="Scala API" href="index.html" />
+    <link rel="next" title="FSM" href="fsm.html" />
+    <link rel="prev" title="Dispatchers (Scala)" href="dispatchers.html" /> 
+  </head>
+  <body>
+  <div class="navbar">
+    <div class="navbar-inner">
+      <div class="container">
+        <div class="navbar-logo">
+          <a href="https://akka.io"><img src="../_static/logo-small.png" /></a>
+        </div>    
+        <ul class="nav">
+          <li><a href="https://akka.io/docs">Documentation</a></li>
+          <li><a href="https://akka.io/downloads">Download</a></li>
+          <li><a href="http://groups.google.com/group/akka-user">Mailing List</a></li>
+          <li><a href="http://github.com/akka/akka">Code</a></li>           
+          <li><a href="http://typesafe.com/products/typesafe-subscription">Commercial Support</a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="main">
+    <div class="container">
+      <div class="page-title">Routing (Scala)</div><div class="pdf-link"><a href="https://doc.akka.io/docs/akka/1.3.1/Akka.pdf"><img src="../_static/pdf-icon.png" style="height: 40px;" /></a></div></div>
+    <div class="main-container">
+      <div class="container">
+        <div class="row">
+          <div class="span12">
+            <ul class="breadcrumb">           
+              <li>
+                 <span class="divider">|</span> <a href="fsm.html">FSM</a> <span class="divider">»</span>
+              </li>
+              <li>
+                <a href="../index.html">Contents</a>
+              </li>
+              <li>
+                <span class="divider">«</span> <a href="dispatchers.html">Dispatchers (Scala)</a> <span class="divider">|</span>
+              </li>
+              <li>
+                Version 1.3.1
+              </li>
+            </ul>         
+          </div>
+        </div>
+        <div class="row">
+          <div class="span9">
+            
+  <div class="section" id="routing-scala">
+<h1>Routing (Scala)</h1>
+<p>Akka-core includes some building blocks to build more complex message flow handlers, they are listed and explained below:</p>
+<div class="section" id="dispatcher">
+<h2>Dispatcher</h2>
+<p>A Dispatcher is an actor that routes incoming messages to outbound actors.</p>
+<p>To use it you can either create a Dispatcher through the <tt class="docutils literal"><span class="pre">dispatcherActor()</span></tt> factory method</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">import</span> <span class="nn">akka.actor.Actor._</span>
+<span class="k">import</span> <span class="nn">akka.actor.Actor</span>
+<span class="k">import</span> <span class="nn">akka.routing.Routing._</span>
+
+<span class="c1">//Our message types</span>
+<span class="k">case</span> <span class="k">object</span> <span class="nc">Ping</span>
+<span class="k">case</span> <span class="k">object</span> <span class="nc">Pong</span>
+
+<span class="c1">//Two actors, one named Pinger and one named Ponger</span>
+<span class="c1">//The actor(pf) method creates an anonymous actor and starts it</span>
+<span class="k">val</span> <span class="n">pinger</span> <span class="k">=</span> <span class="n">actorOf</span><span class="o">(</span><span class="k">new</span> <span class="nc">Actor</span> <span class="o">{</span> <span class="k">def</span> <span class="n">receive</span> <span class="k">=</span> <span class="o">{</span> <span class="k">case</span> <span class="n">x</span> <span class="k">=&gt;</span> <span class="n">println</span><span class="o">(</span><span class="s">&quot;Pinger: &quot;</span> <span class="o">+</span> <span class="n">x</span><span class="o">)</span> <span class="o">}</span> <span class="o">}).</span><span class="n">start</span><span class="o">()</span>
+<span class="k">val</span> <span class="n">ponger</span> <span class="k">=</span> <span class="n">actorOf</span><span class="o">(</span><span class="k">new</span> <span class="nc">Actor</span> <span class="o">{</span> <span class="k">def</span> <span class="n">receive</span> <span class="k">=</span> <span class="o">{</span> <span class="k">case</span> <span class="n">x</span> <span class="k">=&gt;</span> <span class="n">println</span><span class="o">(</span><span class="s">&quot;Ponger: &quot;</span> <span class="o">+</span> <span class="n">x</span><span class="o">)</span> <span class="o">}</span> <span class="o">}).</span><span class="n">start</span><span class="o">()</span>
+
+<span class="c1">//A dispatcher that dispatches Ping messages to the pinger</span>
+<span class="c1">//and Pong messages to the ponger</span>
+<span class="k">val</span> <span class="n">d</span> <span class="k">=</span> <span class="n">dispatcherActor</span> <span class="o">{</span>
+  <span class="k">case</span> <span class="nc">Ping</span> <span class="k">=&gt;</span> <span class="n">pinger</span>
+  <span class="k">case</span> <span class="nc">Pong</span> <span class="k">=&gt;</span> <span class="n">ponger</span>
+<span class="o">}</span>
+
+<span class="n">d</span> <span class="o">!</span> <span class="nc">Ping</span> <span class="c1">//Prints &quot;Pinger: Ping&quot;</span>
+<span class="n">d</span> <span class="o">!</span> <span class="nc">Pong</span> <span class="c1">//Prints &quot;Ponger: Pong&quot;</span>
+</pre></div>
+</div>
+<p>Or by mixing in akka.patterns.Dispatcher:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">import</span> <span class="nn">akka.actor.Actor</span>
+<span class="k">import</span> <span class="nn">akka.actor.Actor._</span>
+<span class="k">import</span> <span class="nn">akka.routing.Dispatcher</span>
+
+<span class="c1">//Our message types</span>
+<span class="k">case</span> <span class="k">object</span> <span class="nc">Ping</span>
+<span class="k">case</span> <span class="k">object</span> <span class="nc">Pong</span>
+
+<span class="k">class</span> <span class="nc">MyDispatcher</span> <span class="k">extends</span> <span class="nc">Actor</span> <span class="k">with</span> <span class="nc">Dispatcher</span> <span class="o">{</span>
+  <span class="c1">//Our pinger and ponger actors</span>
+  <span class="k">val</span> <span class="n">pinger</span> <span class="k">=</span> <span class="n">actorOf</span><span class="o">(</span><span class="k">new</span> <span class="nc">Actor</span> <span class="o">{</span> <span class="k">def</span> <span class="n">receive</span> <span class="k">=</span> <span class="o">{</span> <span class="k">case</span> <span class="n">x</span> <span class="k">=&gt;</span> <span class="n">println</span><span class="o">(</span><span class="s">&quot;Pinger: &quot;</span> <span class="o">+</span> <span class="n">x</span><span class="o">)</span> <span class="o">}</span> <span class="o">}).</span><span class="n">start</span><span class="o">()</span>
+  <span class="k">val</span> <span class="n">ponger</span> <span class="k">=</span> <span class="n">actorOf</span><span class="o">(</span><span class="k">new</span> <span class="nc">Actor</span> <span class="o">{</span> <span class="k">def</span> <span class="n">receive</span> <span class="k">=</span> <span class="o">{</span> <span class="k">case</span> <span class="n">x</span> <span class="k">=&gt;</span> <span class="n">println</span><span class="o">(</span><span class="s">&quot;Ponger: &quot;</span> <span class="o">+</span> <span class="n">x</span><span class="o">)</span> <span class="o">}</span> <span class="o">}).</span><span class="n">start</span><span class="o">()</span>
+  <span class="c1">//When we get a ping, we dispatch to the pinger</span>
+  <span class="c1">//When we get a pong, we dispatch to the ponger</span>
+  <span class="k">def</span> <span class="n">routes</span> <span class="k">=</span> <span class="o">{</span>
+    <span class="k">case</span> <span class="nc">Ping</span> <span class="k">=&gt;</span> <span class="n">pinger</span>
+    <span class="k">case</span> <span class="nc">Pong</span> <span class="k">=&gt;</span> <span class="n">ponger</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+
+<span class="c1">//Create an instance of our dispatcher, and start it</span>
+<span class="k">val</span> <span class="n">d</span> <span class="k">=</span> <span class="n">actorOf</span><span class="o">[</span><span class="kt">MyDispatcher</span><span class="o">].</span><span class="n">start</span><span class="o">()</span>
+
+<span class="n">d</span> <span class="o">!</span> <span class="nc">Ping</span> <span class="c1">//Prints &quot;Pinger: Ping&quot;</span>
+<span class="n">d</span> <span class="o">!</span> <span class="nc">Pong</span> <span class="c1">//Prints &quot;Ponger: Pong&quot;</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="loadbalancer">
+<h2>LoadBalancer</h2>
+<p>A LoadBalancer is an actor that forwards messages it receives to a boundless sequence of destination actors.</p>
+<p>Example using the <tt class="docutils literal"><span class="pre">loadBalancerActor()</span></tt> factory method:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">import</span> <span class="nn">akka.actor.Actor._</span>
+<span class="k">import</span> <span class="nn">akka.actor.Actor</span>
+<span class="k">import</span> <span class="nn">akka.routing.Routing._</span>
+<span class="k">import</span> <span class="nn">akka.routing.CyclicIterator</span>
+
+<span class="c1">//Our message types</span>
+<span class="k">case</span> <span class="k">object</span> <span class="nc">Ping</span>
+<span class="k">case</span> <span class="k">object</span> <span class="nc">Pong</span>
+
+<span class="c1">//Two actors, one named Pinger and one named Ponger</span>
+<span class="c1">//The actor(pf) method creates an anonymous actor and starts it</span>
+
+<span class="k">val</span> <span class="n">pinger</span> <span class="k">=</span> <span class="n">actorOf</span><span class="o">(</span><span class="k">new</span> <span class="nc">Actor</span> <span class="o">{</span> <span class="k">def</span> <span class="n">receive</span> <span class="k">=</span> <span class="o">{</span> <span class="k">case</span> <span class="n">x</span> <span class="k">=&gt;</span> <span class="n">println</span><span class="o">(</span><span class="s">&quot;Pinger: &quot;</span> <span class="o">+</span> <span class="n">x</span><span class="o">)</span> <span class="o">}</span> <span class="o">}).</span><span class="n">start</span><span class="o">()</span>
+<span class="k">val</span> <span class="n">ponger</span> <span class="k">=</span> <span class="n">actorOf</span><span class="o">(</span><span class="k">new</span> <span class="nc">Actor</span> <span class="o">{</span> <span class="k">def</span> <span class="n">receive</span> <span class="k">=</span> <span class="o">{</span> <span class="k">case</span> <span class="n">x</span> <span class="k">=&gt;</span> <span class="n">println</span><span class="o">(</span><span class="s">&quot;Ponger: &quot;</span> <span class="o">+</span> <span class="n">x</span><span class="o">)</span> <span class="o">}</span> <span class="o">}).</span><span class="n">start</span><span class="o">()</span>
+
+<span class="c1">//A load balancer that given a sequence of actors dispatches them accordingly</span>
+<span class="c1">//a CyclicIterator works in a round-robin-fashion</span>
+
+<span class="k">val</span> <span class="n">d</span> <span class="k">=</span> <span class="n">loadBalancerActor</span><span class="o">(</span> <span class="k">new</span> <span class="nc">CyclicIterator</span><span class="o">(</span> <span class="nc">List</span><span class="o">(</span><span class="n">pinger</span><span class="o">,</span><span class="n">ponger</span><span class="o">)</span> <span class="o">)</span> <span class="o">)</span>
+
+<span class="n">d</span> <span class="o">!</span> <span class="nc">Pong</span> <span class="c1">//Prints &quot;Pinger: Pong&quot;</span>
+<span class="n">d</span> <span class="o">!</span> <span class="nc">Pong</span> <span class="c1">//Prints &quot;Ponger: Pong&quot;</span>
+<span class="n">d</span> <span class="o">!</span> <span class="nc">Ping</span> <span class="c1">//Prints &quot;Pinger: Ping&quot;</span>
+<span class="n">d</span> <span class="o">!</span> <span class="nc">Ping</span> <span class="c1">//Prints &quot;Ponger: Ping&quot;</span>
+</pre></div>
+</div>
+<p>Or by mixing in akka.routing.LoadBalancer</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">import</span> <span class="nn">akka.actor._</span>
+<span class="k">import</span> <span class="nn">akka.actor.Actor._</span>
+<span class="k">import</span> <span class="nn">akka.routing.</span><span class="o">{</span> <span class="nc">LoadBalancer</span><span class="o">,</span> <span class="nc">CyclicIterator</span> <span class="o">}</span>
+
+<span class="c1">//Our message types</span>
+<span class="k">case</span> <span class="k">object</span> <span class="nc">Ping</span>
+<span class="k">case</span> <span class="k">object</span> <span class="nc">Pong</span>
+
+<span class="c1">//A load balancer that balances between a pinger and a ponger</span>
+<span class="k">class</span> <span class="nc">MyLoadBalancer</span> <span class="k">extends</span> <span class="nc">Actor</span> <span class="k">with</span> <span class="nc">LoadBalancer</span> <span class="o">{</span>
+  <span class="k">val</span> <span class="n">pinger</span> <span class="k">=</span> <span class="n">actorOf</span><span class="o">(</span><span class="k">new</span> <span class="nc">Actor</span> <span class="o">{</span> <span class="k">def</span> <span class="n">receive</span> <span class="k">=</span> <span class="o">{</span> <span class="k">case</span> <span class="n">x</span> <span class="k">=&gt;</span> <span class="n">println</span><span class="o">(</span><span class="s">&quot;Pinger: &quot;</span> <span class="o">+</span> <span class="n">x</span><span class="o">)</span> <span class="o">}</span> <span class="o">}).</span><span class="n">start</span><span class="o">()</span>
+  <span class="k">val</span> <span class="n">ponger</span> <span class="k">=</span> <span class="n">actorOf</span><span class="o">(</span><span class="k">new</span> <span class="nc">Actor</span> <span class="o">{</span> <span class="k">def</span> <span class="n">receive</span> <span class="k">=</span> <span class="o">{</span> <span class="k">case</span> <span class="n">x</span> <span class="k">=&gt;</span> <span class="n">println</span><span class="o">(</span><span class="s">&quot;Ponger: &quot;</span> <span class="o">+</span> <span class="n">x</span><span class="o">)</span> <span class="o">}</span> <span class="o">}).</span><span class="n">start</span><span class="o">()</span>
+
+  <span class="k">val</span> <span class="n">seq</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">CyclicIterator</span><span class="o">[</span><span class="kt">ActorRef</span><span class="o">](</span><span class="nc">List</span><span class="o">(</span><span class="n">pinger</span><span class="o">,</span><span class="n">ponger</span><span class="o">))</span>
+<span class="o">}</span>
+
+<span class="c1">//Create an instance of our loadbalancer, and start it</span>
+<span class="k">val</span> <span class="n">d</span> <span class="k">=</span> <span class="n">actorOf</span><span class="o">[</span><span class="kt">MyLoadBalancer</span><span class="o">].</span><span class="n">start</span><span class="o">()</span>
+
+<span class="n">d</span> <span class="o">!</span> <span class="nc">Pong</span> <span class="c1">//Prints &quot;Pinger: Pong&quot;</span>
+<span class="n">d</span> <span class="o">!</span> <span class="nc">Pong</span> <span class="c1">//Prints &quot;Ponger: Pong&quot;</span>
+<span class="n">d</span> <span class="o">!</span> <span class="nc">Ping</span> <span class="c1">//Prints &quot;Pinger: Ping&quot;</span>
+<span class="n">d</span> <span class="o">!</span> <span class="nc">Ping</span> <span class="c1">//Prints &quot;Ponger: Ping&quot;</span>
+</pre></div>
+</div>
+<p>Also, instead of using the CyclicIterator, you can create your own message distribution algorithms, there’s already <a class="reference external" href="&#64;http://github.com/akka/akka/blob/master/akka-core/src/main/scala/routing/Iterators.scala#L31">one</a> that dispatches depending on target mailbox size, effectively dispatching to the one that’s got fewest messages to process right now.</p>
+<p>Example <a class="reference external" href="http://pastie.org/984889">http://pastie.org/984889</a></p>
+<p>You can also send a &#8216;Routing.Broadcast(msg)&#8217; message to the router to have it be broadcasted out to all the actors it represents.</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="n">router</span> <span class="o">!</span> <span class="nc">Routing</span><span class="o">.</span><span class="nc">Broadcast</span><span class="o">(</span><span class="nc">PoisonPill</span><span class="o">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="actor-pool">
+<h2>Actor Pool</h2>
+<p>An actor pool is similar to the load balancer is that it routes incoming messages to other actors. It has different semantics however when it comes to how those actors are managed and selected for dispatch. Therein lies the difference. The pool manages, from start to shutdown, the lifecycle of all delegated actors. The number of actors in a pool can be fixed or grow and shrink over time. Also, messages can be routed to more than one actor in the pool if so desired. This is a useful little feature for accounting for expected failure - especially with remoting - where you can invoke the same request of multiple actors and just take the first, best response.</p>
+<p>The actor pool is built around three concepts: capacity, filtering and selection.</p>
+<div class="section" id="selection">
+<h3>Selection</h3>
+<p>All pools require a <em>Selector</em> to be mixed-in. This trait controls how and how many actors in the pool will receive the incoming message. Define <em>selectionCount</em> to some positive number greater than one to route to multiple actors. Currently two are provided:</p>
+<ul class="simple">
+<li><a class="reference external" href="https://github.com/akka/akka/blob/master/akka-actor/src/main/scala/akka/routing/Pool.scala#L133">SmallestMailboxSelector</a> - Using the exact same logic as the iterator of the same name, the pooled actor with the fewest number of pending messages will be chosen.</li>
+<li><a class="reference external" href="https://github.com/akka/akka/blob/master/akka-actor/src/main/scala/akka/routing/Pool.scala#L158">RoundRobinSelector</a> - Performs a very simple index-based selection, wrapping around the end of the list, very much like the CyclicIterator does.</li>
+</ul>
+<div class="section" id="partial-fills">
+<h4>Partial Fills</h4>
+<p>When selecting more than one pooled actor, its possible that in order to fulfill the requested amount, the selection set must contain duplicates. By setting <em>partialFill</em> to <strong>true</strong>, you instruct the selector to return only unique actors from the pool.</p>
+</div>
+</div>
+<div class="section" id="capacity">
+<h3>Capacity</h3>
+<p>As you&#8217;d expect, capacity traits determine how the pool is funded with actors. There are two types of strategies that can be employed:</p>
+<ul class="simple">
+<li><a class="reference external" href="https://github.com/akka/akka/blob/master/akka-actor/src/main/scala/akka/routing/Pool.scala#L268">FixedCapacityStrategy</a> - When you mix this into your actor pool, you define a pool size and when the pool is started, it will have that number of actors within to which messages will be delegated.</li>
+<li><a class="reference external" href="https://github.com/akka/akka/blob/master/akka-actor/src/main/scala/akka/routing/Pool.scala#L269">BoundedCapacityStrategy</a> - When you mix this into your actor pool, you define upper and lower bounds, and when the pool is started, it will have the minimum number of actors in place to handle messages. You must also mix-in a Capacitor and a Filter when using this strategy (see below).</li>
+</ul>
+<p>The <em>BoundedCapacityStrategy</em> requires additional logic to function. Specifically it requires a <em>Capacitor</em> and a <em>Filter</em>. Capacitors are used to determine the pressure that the pool is under and provide a (usually) raw reading of this information. Currently we provide for the use of either mailbox backlog or active futures count as a means of evaluating pool pressure. Each expresses itself as a simple number - a reading of the number of actors either with mailbox sizes over a certain threshold or blocking a thread waiting on a future to complete or expire.</p>
+</div>
+<div class="section" id="filtering">
+<h3>Filtering</h3>
+<p>A <em>Filter</em> is a trait that modifies the raw pressure reading returned from a Capacitor such that it drives the adjustment of the pool capacity to a desired end. More simply, if we just used the pressure reading alone, we might only ever increase the size of the pool (to respond to overload) or we might only have a single mechanism for reducing the pool size when/if it became necessary. This behavior is fully under your control through the use of <em>Filters</em>. Let&#8217;s take a look at some code to see how this works:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">trait</span> <span class="nc">BoundedCapacitor</span>
+<span class="o">{</span>
+      <span class="k">def</span> <span class="n">lowerBound</span><span class="k">:</span><span class="kt">Int</span>
+      <span class="k">def</span> <span class="n">upperBound</span><span class="k">:</span><span class="kt">Int</span>
+
+      <span class="k">def</span> <span class="n">capacity</span><span class="o">(</span><span class="n">delegates</span><span class="k">:</span><span class="kt">Seq</span><span class="o">[</span><span class="kt">ActorRef</span><span class="o">])</span><span class="k">:</span><span class="kt">Int</span> <span class="o">=</span>
+      <span class="o">{</span>
+              <span class="k">val</span> <span class="n">current</span> <span class="k">=</span> <span class="n">delegates</span> <span class="n">length</span>
+              <span class="k">var</span> <span class="n">delta</span> <span class="k">=</span> <span class="nc">_eval</span><span class="o">(</span><span class="n">delegates</span><span class="o">)</span>
+              <span class="k">val</span> <span class="n">proposed</span> <span class="k">=</span> <span class="n">current</span> <span class="o">+</span> <span class="n">delta</span>
+
+              <span class="k">if</span> <span class="o">(</span><span class="n">proposed</span> <span class="o">&lt;</span> <span class="n">lowerBound</span><span class="o">)</span> <span class="n">delta</span> <span class="o">+=</span> <span class="o">(</span><span class="n">lowerBound</span> <span class="o">-</span> <span class="n">proposed</span><span class="o">)</span>
+              <span class="k">else</span> <span class="k">if</span> <span class="o">(</span><span class="n">proposed</span> <span class="o">&gt;</span> <span class="n">upperBound</span><span class="o">)</span> <span class="n">delta</span> <span class="o">-=</span> <span class="o">(</span><span class="n">proposed</span> <span class="o">-</span> <span class="n">upperBound</span><span class="o">)</span>
+
+              <span class="n">delta</span>
+      <span class="o">}</span>
+
+      <span class="k">protected</span> <span class="k">def</span> <span class="nc">_eval</span><span class="o">(</span><span class="n">delegates</span><span class="k">:</span><span class="kt">Seq</span><span class="o">[</span><span class="kt">ActorRef</span><span class="o">])</span><span class="k">:</span><span class="kt">Int</span>
+<span class="o">}</span>
+
+<span class="k">trait</span> <span class="nc">CapacityStrategy</span>
+<span class="o">{</span>
+      <span class="k">import</span> <span class="nn">ActorPool._</span>
+
+      <span class="k">def</span> <span class="n">pressure</span><span class="o">(</span><span class="n">delegates</span><span class="k">:</span><span class="kt">Seq</span><span class="o">[</span><span class="kt">ActorRef</span><span class="o">])</span><span class="k">:</span><span class="kt">Int</span>
+      <span class="k">def</span> <span class="n">filter</span><span class="o">(</span><span class="n">pressure</span><span class="k">:</span><span class="kt">Int</span><span class="o">,</span> <span class="n">capacity</span><span class="k">:</span><span class="kt">Int</span><span class="o">)</span><span class="k">:</span><span class="kt">Int</span>
+
+      <span class="k">protected</span> <span class="k">def</span> <span class="nc">_eval</span><span class="o">(</span><span class="n">delegates</span><span class="k">:</span><span class="kt">Seq</span><span class="o">[</span><span class="kt">ActorRef</span><span class="o">])</span><span class="k">:</span><span class="kt">Int</span> <span class="o">=</span> <span class="n">filter</span><span class="o">(</span><span class="n">pressure</span><span class="o">(</span><span class="n">delegates</span><span class="o">),</span> <span class="n">delegates</span><span class="o">.</span><span class="n">size</span><span class="o">)</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<p>Here we see how the filter function will have the chance to modify the pressure reading to influence the capacity change. You are free to implement filter() however you like. We provide a <a class="reference external" href="https://github.com/akka/akka/blob/master/akka-actor/src/main/scala/akka/routing/Pool.scala#L279">Filter</a> trait that evaluates both a rampup and a backoff subfilter to determine how to use the pressure reading to alter the pool capacity. There are several subfilters available to use, though again you may create whatever makes the most sense for you pool:</p>
+<ul class="simple">
+<li><a class="reference external" href="https://github.com/akka/akka/blob/master/akka-actor/src/main/scala/akka/routing/Pool.scala#L308">BasicRampup</a> - When pressure exceeds current capacity, increase the number of actors in the pool by some factor (<em>rampupRate</em>) of the current pool size.</li>
+<li><a class="reference external" href="https://github.com/akka/akka/blob/master/akka-actor/src/main/scala/akka/routing/Pool.scala#L322">BasicBackoff</a> - When the pressure ratio falls under some predefined amount (<em>backoffThreshold</em>), decrease the number of actors in the pool by some factor of the current pool size.</li>
+<li><a class="reference external" href="https://github.com/akka/akka/blob/master/akka-actor/src/main/scala/akka/routing/Pool.scala#L341">RunningMeanBackoff</a> - This filter tracks the average pressure-to-capacity over the lifetime of the pool (or since the last time the filter was reset) and will begin to reduce capacity once this mean falls below some predefined amount. The number of actors that will be stopped is determined by some factor of the difference between the current capacity and pressure. The idea behind this filter is to reduce the likelihood of &#8220;thrashing&#8221; (removing then immediately creating...) pool actors by delaying the backoff until some quiescent stage of the pool. Put another way, use this subfilter to allow quick rampup to handle load and more subtle backoff as that decreases over time.</li>
+</ul>
+</div>
+<div class="section" id="examples">
+<h3>Examples</h3>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">class</span> <span class="nc">TestPool</span> <span class="k">extends</span> <span class="nc">Actor</span> <span class="k">with</span> <span class="nc">DefaultActorPool</span>
+                               <span class="k">with</span> <span class="nc">BoundedCapacityStrategy</span>
+                               <span class="k">with</span> <span class="nc">ActiveFuturesPressureCapacitor</span>
+                               <span class="k">with</span> <span class="nc">SmallestMailboxSelector</span>
+                               <span class="k">with</span> <span class="nc">BasicNoBackoffFilter</span>
+<span class="o">{</span>
+   <span class="k">def</span> <span class="n">receive</span> <span class="k">=</span> <span class="nc">_route</span>
+   <span class="k">def</span> <span class="n">lowerBound</span> <span class="k">=</span> <span class="mi">2</span>
+   <span class="k">def</span> <span class="n">upperBound</span> <span class="k">=</span> <span class="mi">4</span>
+   <span class="k">def</span> <span class="n">rampupRate</span> <span class="k">=</span> <span class="mf">0.1</span>
+   <span class="k">def</span> <span class="n">partialFill</span> <span class="k">=</span> <span class="kc">true</span>
+   <span class="k">def</span> <span class="n">selectionCount</span> <span class="k">=</span> <span class="mi">1</span>
+   <span class="k">def</span> <span class="n">instance</span> <span class="k">=</span> <span class="n">actorOf</span><span class="o">(</span><span class="k">new</span> <span class="nc">Actor</span> <span class="o">{</span><span class="k">def</span> <span class="n">receive</span> <span class="k">=</span> <span class="o">{</span><span class="k">case</span> <span class="n">n</span><span class="k">:</span><span class="kt">Int</span> <span class="o">=&gt;</span>
+                                                   <span class="nc">Thread</span><span class="o">.</span><span class="n">sleep</span><span class="o">(</span><span class="n">n</span><span class="o">)</span>
+                                                   <span class="n">counter</span><span class="o">.</span><span class="n">incrementAndGet</span>
+                                                   <span class="n">latch</span><span class="o">.</span><span class="n">countDown</span><span class="o">()}})</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">class</span> <span class="nc">TestPool</span> <span class="k">extends</span> <span class="nc">Actor</span> <span class="k">with</span> <span class="nc">DefaultActorPool</span>
+                               <span class="k">with</span> <span class="nc">BoundedCapacityStrategy</span>
+                               <span class="k">with</span> <span class="nc">MailboxPressureCapacitor</span>
+                               <span class="k">with</span> <span class="nc">SmallestMailboxSelector</span>
+                               <span class="k">with</span> <span class="nc">Filter</span>
+                                 <span class="k">with</span> <span class="nc">RunningMeanBackoff</span>
+                                 <span class="k">with</span> <span class="nc">BasicRampup</span>
+<span class="o">{</span>
+  <span class="k">def</span> <span class="n">receive</span> <span class="k">=</span> <span class="nc">_route</span>
+  <span class="k">def</span> <span class="n">lowerBound</span> <span class="k">=</span> <span class="mi">1</span>
+  <span class="k">def</span> <span class="n">upperBound</span> <span class="k">=</span> <span class="mi">5</span>
+  <span class="k">def</span> <span class="n">pressureThreshold</span> <span class="k">=</span> <span class="mi">1</span>
+  <span class="k">def</span> <span class="n">partialFill</span> <span class="k">=</span> <span class="kc">true</span>
+  <span class="k">def</span> <span class="n">selectionCount</span> <span class="k">=</span> <span class="mi">1</span>
+  <span class="k">def</span> <span class="n">rampupRate</span> <span class="k">=</span> <span class="mf">0.1</span>
+  <span class="k">def</span> <span class="n">backoffRate</span> <span class="k">=</span> <span class="mf">0.50</span>
+  <span class="k">def</span> <span class="n">backoffThreshold</span> <span class="k">=</span> <span class="mf">0.50</span>
+  <span class="k">def</span> <span class="n">instance</span> <span class="k">=</span> <span class="n">actorOf</span><span class="o">(</span><span class="k">new</span> <span class="nc">Actor</span> <span class="o">{</span><span class="k">def</span> <span class="n">receive</span> <span class="k">=</span> <span class="o">{</span><span class="k">case</span> <span class="n">n</span><span class="k">:</span><span class="kt">Int</span> <span class="o">=&gt;</span>
+                                                  <span class="nc">Thread</span><span class="o">.</span><span class="n">sleep</span><span class="o">(</span><span class="n">n</span><span class="o">)</span>
+                                                  <span class="n">latch</span><span class="o">.</span><span class="n">countDown</span><span class="o">()}})</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<p>Taken from the unit test <a class="reference external" href="https://github.com/akka/akka/blob/master/akka-actor/src/test/scala/akka/routing/RoutingSpec.scala">spec</a>.</p>
+</div>
+</div>
+</div>
+
+
+          </div>
+          <div class="span3"><p class="contents-title">Contents</p>
+              <div id="scroller-anchor">
+                <div id="scroller">
+                  <div id="toc"></div>
+                </div>
+              </div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="footer">
+  <div class="container">
+    <ul>
+      <li><h5>Akka</h5></li>
+      <li><a href="https://akka.io/docs">Documentation</a></li>
+      <li><a href="https://akka.io/downloads">Downloads</a></li>
+      <li><a href="https://akka.io/news">News</a></li>
+      <li><a href="http://letitcrash.com">Blog</a></li>
+    </ul>
+    <ul>
+      <li><h5>Contribute</h5></li>
+      <li><a href="http://github.com/akka/akka">Source Code</a></li>
+      <li><a href="http://groups.google.com/group/akka-user">Mailing List</a></li>      
+      <li><a href="http://www.assembla.com/spaces/akka/tickets">Report a Bug</a></li>      
+    </ul>
+    <ul>
+      <li><h5>Company</h5></li>
+      <li><a href="http://typesafe.com/products/typesafe-subscription">Commercial Support</a></li>
+      <li><a href="https://akka.io/team">Team</a></li>
+      <li><a href="mailto:info@typesafe.com">Contact</a></li>
+    </ul>
+    <ul>
+      <li><img src="../_static/watermark.png" align="center"/></li>
+    </ul>
+  </div>
+  <div class="container copyright">
+    <p style="float: left;">
+      © 2012 <a href="http://typesafe.com/">Typesafe Inc.</a> <span class="license">Akka is Open Source and available under the Apache 2 License.</span>
+    </p>
+    <p style="float: right; font-size: 12px;">
+      Last updated: Mar 08, 2012
+    </p>          
+  </div>
+</div>
+<script type="text/javascript">
+  $('#toc').toc();
+</script>
+  
+
+  </body>
+</html>

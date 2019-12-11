@@ -1,0 +1,450 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" /><meta name="description" content="Akka is a toolkit for building highly concurrent, distributed, and resilient message-driven applications for Java and Scala."/><link rel="canonical" href="https://doc.akka.io/docs/akka/2.2/scala/io.html"/>
+    
+    <title>I/O &mdash; Akka Documentation</title>
+    
+    <link rel="stylesheet" href="../_static/style.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/prettify.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/base.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
+    <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Exo:300,400,600,700" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '2.2.5',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+<script type="text/javascript" src="https://doc.akka.io/docs/akka/2.2.5/_static/warnOldDocs.js"></script>
+<script type="text/javascript" src="https://doc.akka.io/docs/akka/2.2.5/_static/warnOldDocs.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="../_static/toc.js"></script>
+    <script type="text/javascript" src="../_static/prettify.js"></script>
+    <script type="text/javascript" src="../_static/highlightCode.js"></script>
+    <script type="text/javascript" src="../_static/effects.core.js"></script>
+    <script type="text/javascript" src="../_static/effects.highlight.js"></script>
+    <script type="text/javascript" src="../_static/scrollTo.js"></script>
+    <script type="text/javascript" src="../_static/contentsFix.js"></script>
+    <script type="text/javascript" src="../_static/ga.js"></script>
+    <link rel="shortcut icon" href="../_static/favicon.ico"/>
+    <link rel="top" title="Akka Documentation" href="../index.html" />
+    <link rel="up" title="Networking" href="index-network.html" />
+    <link rel="next" title="Old IO" href="io-old.html" />
+    <link rel="prev" title="Serialization" href="serialization.html" />
+    <!--Google Analytics-->
+    <script type="text/javascript">
+      var _gaq = _gaq || [];
+      _gaq.push(['_setAccount', 'UA-21117439-1']);
+      _gaq.push(['_setDomainName', 'akka.io']);
+      _gaq.push(['_trackPageview']);
+      (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+      })()
+    </script>
+
+  </head>
+  <body>
+  <div class="navbar">
+    <div class="navbar-inner">
+      <div class="container">
+        <div class="navbar-logo">
+          <a href="https://akka.io"><img src="../_static/logo-small.png" /></a>
+        </div>    
+        <ul class="nav">
+          <li><a href="https://akka.io/docs">Documentation</a></li>
+          <li><a href="https://akka.io/faq">FAQ</a></li>
+          <li><a href="http://typesafe.com/stack/downloads/akka">Download</a></li>
+          <li><a href="http://groups.google.com/group/akka-user">Mailing List</a></li>
+          <li><a href="http://github.com/akka/akka">Code</a></li>           
+          <li><a href="http://typesafe.com/products/typesafe-subscription">Commercial Support</a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="main">
+    <div class="container">
+      <div class="page-title">I/O</div>
+      <div class="pdf-link"><a href="../AkkaScala.pdf" title="Akka Scala Documentation"><img src="../_static/pdf-scala-icon.png" style="height: 40px;" /></a></div>
+      <div class="pdf-link"><a href="../AkkaJava.pdf" title="Akka Java Documentation"><img src="../_static/pdf-java-icon.png" style="height: 40px;" /></a></div>
+    </div>
+    <div class="main-container">
+      <div class="container">
+        <div class="row">
+          <div class="span12">
+            <ul class="breadcrumb">           
+              <li>
+                 <span class="divider">|</span> <a href="io-old.html">Old IO</a> <span class="divider">»</span>
+              </li>
+              <li>
+                <a href="../index.html">Contents</a>
+              </li>
+              <li>
+                <span class="divider">«</span> <a href="serialization.html">Serialization</a> <span class="divider">|</span>
+              </li>
+              <li>
+                Version 2.2.5
+              </li>
+            </ul>
+          </div>
+        </div>
+        <div class="row">
+          <div class="span9">
+            <div id="cse">Loading</div>
+          </div><div class="span9">
+            
+  <div class="section" id="i-o">
+<span id="io-scala"></span><h1>I/O</h1>
+<div class="section" id="introduction">
+<h2>Introduction</h2>
+<p>The <tt class="docutils literal"><span class="pre">akka.io</span></tt> package has been developed in collaboration between the Akka
+and <a class="reference external" href="http://spray.io">spray.io</a> teams. Its design combines experiences from the
+<tt class="docutils literal"><span class="pre">spray-io</span></tt> module with improvements that were jointly developed for
+more general consumption as an actor-based service.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">The IO implementation is marked as <strong>“experimental”</strong> as of its introduction
+in Akka 2.2.0. We will continue to improve this API based on our users’
+feedback, which implies that while we try to keep incompatible changes to a
+minimum the binary compatibility guarantee for maintenance releases does not
+apply to the contents of the <cite>akka.io</cite> package.</p>
+</div>
+<p>The guiding design goal for this I/O implementation was to reach extreme
+scalability, make no compromises in providing an API correctly matching the
+underlying transport mechanism and to be fully event-driven, non-blocking and
+asynchronous.  The API is meant to be a solid foundation for the implementation
+of network protocols and building higher abstractions; it is not meant to be a
+full-service high-level NIO wrapper for end users.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The old I/O implementation has been deprecated and its documentation has been moved: <a class="reference internal" href="io-old.html#io-scala-old"><em>Old IO</em></a></p>
+</div>
+</div>
+<div class="section" id="terminology-concepts">
+<h2>Terminology, Concepts</h2>
+<p>The I/O API is completely actor based, meaning that all operations are implemented with message passing instead of
+direct method calls. Every I/O driver (TCP, UDP) has a special actor, called a <em>manager</em> that serves
+as an entry point for the API. I/O is broken into several drivers. The manager for a particular driver
+is accessible through the <tt class="docutils literal"><span class="pre">IO</span></tt> entry point. For example the following code
+looks up the TCP manager and returns its <tt class="docutils literal"><span class="pre">ActorRef</span></tt>:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">import</span> <span class="nn">akka.io.</span><span class="o">{</span> <span class="nc">IO</span><span class="o">,</span> <span class="nc">Tcp</span> <span class="o">}</span>
+<span class="k">import</span> <span class="nn">context.system</span> <span class="c1">// implicitly used by IO(Tcp)</span>
+
+<span class="k">val</span> <span class="n">manager</span> <span class="k">=</span> <span class="nc">IO</span><span class="o">(</span><span class="nc">Tcp</span><span class="o">)</span>
+</pre></div>
+</div>
+<p>The manager receives I/O command messages and instantiates worker actors in response. The worker actors present
+themselves to the API user in the reply to the command that was sent. For example after a <tt class="docutils literal"><span class="pre">Connect</span></tt> command sent to
+the TCP manager the manager creates an actor representing the TCP connection. All operations related to the given TCP
+connections can be invoked by sending messages to the connection actor which announces itself by sending a <tt class="docutils literal"><span class="pre">Connected</span></tt>
+message.</p>
+<div class="section" id="deathwatch-and-resource-management">
+<h3>DeathWatch and Resource Management</h3>
+<p>I/O worker actors receive commands and also send out events. They usually need a user-side counterpart actor listening
+for these events (such events could be inbound connections, incoming bytes or acknowledgements for writes). These worker
+actors <em>watch</em> their listener counterparts. If the listener stops then the worker will automatically release any
+resources that it holds. This design makes the API more robust against resource leaks.</p>
+<p>Thanks to the completely actor based approach of the I/O API the opposite direction works as well: a user actor
+responsible for handling a connection can watch the connection actor to be notified if it unexpectedly terminates.</p>
+</div>
+<div class="section" id="write-models-ack-nack">
+<h3>Write models (Ack, Nack)</h3>
+<p>I/O devices have a maximum throughput which limits the frequency and size of writes. When an
+application tries to push more data than a device can handle, the driver has to buffer bytes until the device
+is able to write them. With buffering it is possible to handle short bursts of intensive writes --- but no buffer is infinite.
+&quot;Flow control&quot; is needed to avoid overwhelming device buffers.</p>
+<p>Akka supports two types of flow control:</p>
+<ul class="simple">
+<li><em>Ack-based</em>, where the driver notifies the writer when writes have succeeded.</li>
+<li><em>Nack-based</em>, where the driver notifies the writer when writes have failed.</li>
+</ul>
+<p>Each of these models is available in both the TCP and the UDP implementations of Akka I/O.</p>
+<p>Individual writes can be acknowledged by providing an ack object in the write message (<tt class="docutils literal"><span class="pre">Write</span></tt> in the case of TCP and
+<tt class="docutils literal"><span class="pre">Send</span></tt> for UDP). When the write is complete the worker will send the ack object to the writing actor. This can be
+used to implement <em>ack-based</em> flow control; sending new data only when old data has been acknowledged.</p>
+<p>If a write (or any other command) fails, the driver notifies the actor that sent the command with a special message
+(<tt class="docutils literal"><span class="pre">CommandFailed</span></tt> in the case of UDP and TCP). This message will also notify the writer of a failed write, serving as a
+nack for that write. Please note, that in a nack-based flow-control setting the writer has to be prepared for the fact
+that the failed write might not be the most recent write it sent. For example, the failure notification for a write
+<tt class="docutils literal"><span class="pre">W1</span></tt> might arrive after additional write commands <tt class="docutils literal"><span class="pre">W2</span></tt> and <tt class="docutils literal"><span class="pre">W3</span></tt> have been sent. If the writer wants to resend any
+nacked messages it may need to keep a buffer of pending messages.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">An acknowledged write does not mean acknowledged delivery or storage; receiving an ack for a write simply signals that
+the I/O driver has successfully processed the write. The Ack/Nack protocol described here is a means of flow control
+not error handling. In other words, data may still be lost, even if every write is acknowledged.</p>
+</div>
+</div>
+<div class="section" id="bytestring">
+<span id="scala-bytestring"></span><h3>ByteString</h3>
+<p>To maintain isolation, actors should communicate with immutable objects only. <tt class="docutils literal"><span class="pre">ByteString</span></tt> is an
+immutable container for bytes. It is used by Akka's I/O system as an efficient, immutable alternative
+the traditional byte containers used for I/O on the JVM, such as <tt class="docutils literal"><span class="pre">Array[Byte]</span></tt> and <tt class="docutils literal"><span class="pre">ByteBuffer</span></tt>.</p>
+<p><tt class="docutils literal"><span class="pre">ByteString</span></tt> is a <a class="reference external" href="http://en.wikipedia.org/wiki/Rope_(computer_science)">rope-like</a> data structure that is immutable
+and provides fast concatenation and slicing operations (perfect for I/O). When two <tt class="docutils literal"><span class="pre">ByteString</span></tt>s are concatenated
+together they are both stored within the resulting <tt class="docutils literal"><span class="pre">ByteString</span></tt> instead of copying both to a new <tt class="docutils literal"><span class="pre">Array</span></tt>. Operations
+such as <tt class="docutils literal"><span class="pre">drop</span></tt> and <tt class="docutils literal"><span class="pre">take</span></tt> return <tt class="docutils literal"><span class="pre">ByteString</span></tt>s that still reference the original <tt class="docutils literal"><span class="pre">Array</span></tt>, but just change the
+offset and length that is visible. Great care has also been taken to make sure that the internal <tt class="docutils literal"><span class="pre">Array</span></tt> cannot be
+modified. Whenever a potentially unsafe <tt class="docutils literal"><span class="pre">Array</span></tt> is used to create a new <tt class="docutils literal"><span class="pre">ByteString</span></tt> a defensive copy is created. If
+you require a <tt class="docutils literal"><span class="pre">ByteString</span></tt> that only blocks as much memory as necessary for it's content, use the <tt class="docutils literal"><span class="pre">compact</span></tt> method to
+get a <tt class="docutils literal"><span class="pre">CompactByteString</span></tt> instance. If the <tt class="docutils literal"><span class="pre">ByteString</span></tt> represented only a slice of the original array, this will
+result in copying all bytes in that slice.</p>
+<p><tt class="docutils literal"><span class="pre">ByteString</span></tt> inherits all methods from <tt class="docutils literal"><span class="pre">IndexedSeq</span></tt>, and it also has some new ones. For more information, look up the <tt class="docutils literal"><span class="pre">akka.util.ByteString</span></tt> class and it's companion object in the ScalaDoc.</p>
+<p><tt class="docutils literal"><span class="pre">ByteString</span></tt> also comes with its own optimized builder and iterator classes <tt class="docutils literal"><span class="pre">ByteStringBuilder</span></tt> and
+<tt class="docutils literal"><span class="pre">ByteIterator</span></tt> which provide extra features in addition to those of normal builders and iterators.</p>
+<div class="section" id="compatibility-with-java-io">
+<h4>Compatibility with java.io</h4>
+<p>A <tt class="docutils literal"><span class="pre">ByteStringBuilder</span></tt> can be wrapped in a <tt class="docutils literal"><span class="pre">java.io.OutputStream</span></tt> via the <tt class="docutils literal"><span class="pre">asOutputStream</span></tt> method. Likewise, <tt class="docutils literal"><span class="pre">ByteIterator</span></tt> can be wrapped in a <tt class="docutils literal"><span class="pre">java.io.InputStream</span></tt> via <tt class="docutils literal"><span class="pre">asInputStream</span></tt>. Using these, <tt class="docutils literal"><span class="pre">akka.io</span></tt> applications can integrate legacy code based on <tt class="docutils literal"><span class="pre">java.io</span></tt> streams.</p>
+</div>
+</div>
+</div>
+<div class="section" id="architecture-in-depth">
+<h2>Architecture in-depth</h2>
+<p>For further details on the design and internal architecture see <a class="reference internal" href="../dev/io-layer.html#io-layer"><em>I/O Layer Design</em></a>.</p>
+</div>
+<div class="section" id="link-to-the-old-io-documentation">
+<h2>Link to the old IO documentation</h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="io-old.html">Old IO</a></li>
+</ul>
+</div>
+</div>
+</div>
+
+
+          </div>
+          <div class="span3"><p class="contents-title">Contents</p>
+              <div id="scroller-anchor">
+                <div id="scroller">
+                  <div id="toc"></div>
+                </div>
+              </div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="footer">
+  <div class="container">
+    <ul>
+      <li><h5>Akka</h5></li>
+      <li><a href="https://akka.io/docs">Documentation</a></li>
+      <li><a href="https://akka.io/faq">FAQ</a></li>
+      <li><a href="http://typesafe.com/stack/downloads/akka">Downloads</a></li>
+      <li><a href="https://akka.io/news">News</a></li>
+      <li><a href="http://letitcrash.com">Blog</a></li>
+    </ul>
+    <ul>
+      <li><h5>Contribute</h5></li>
+      <li><a href="https://akka.io/community">Community Projects</a></li>
+      <li><a href="http://github.com/akka/akka">Source Code</a></li>
+      <li><a href="http://groups.google.com/group/akka-user">Mailing List</a></li>      
+      <li><a href="https://doc.akka.io/docs/akka/current/project/issue-tracking.html">Report a Bug</a></li>      
+    </ul>
+    <ul>
+      <li><h5>Company</h5></li>
+      <li><a href="http://typesafe.com/products/typesafe-subscription">Commercial Support</a></li>
+      <li><a href="https://akka.io/team">Team</a></li>
+      <li><a href="mailto:info@typesafe.com">Contact</a></li>
+    </ul>
+    <ul>
+      <li><img src="../_static/watermark.png" align="center"/></li>
+    </ul>
+  </div>
+  <div class="container copyright">
+    <p style="float: left;">
+      © 2013 <a href="http://typesafe.com/">Typesafe Inc.</a> <span class="license">Akka is Open Source and available under the Apache 2 License.</span>
+    </p>
+    <p style="float: right; font-size: 12px;">
+      Last updated: Feb 19, 2015
+    </p>          
+  </div>
+</div>
+<script src="http://www.google.com/jsapi" type="text/javascript"></script>
+<script type="text/javascript">
+    google.load('search', '1', {language : 'en', style : google.loader.themes.MINIMALIST});
+    google.setOnLoadCallback(function() {
+    var customSearchOptions = {};  var customSearchControl = new google.search.CustomSearchControl(
+    '003065520604945464838:izzukx8-qba', customSearchOptions);
+    customSearchControl.setResultSetSize(google.search.Search.FILTERED_CSE_RESULTSET);
+    customSearchControl.draw('cse');
+    var path = window.location.pathname.split('/').slice(0,4);
+    if(window.location.hostname && path.length >= 4) {
+    var site = "site:" + window.location.hostname + path.join('/').toString();
+    customSearchControl.setSearchStartingCallback(this, function(c, s, q) { s.setQueryAddition(site); });
+    }
+    }, true);
+</script>
+<style type="text/css">
+    .gsc-control-cse {
+    font-family: Arial, sans-serif;
+    border-color: rgb(242, 242, 235);
+    background-color: rgb(242, 242, 235);
+    }
+    .gsc-control-cse .gsc-table-result {
+      font-family: Arial, sans-serif;
+      display: block;
+    }
+    input.gsc-input {
+    border-color: #BBBBBB;
+    }
+    input.gsc-search-button {
+    border-color: rgb(34, 57, 64);
+    background-color: rgb(68, 114, 129);
+    color: #FFFFFF;
+    }
+    .gsc-tabHeader.gsc-tabhInactive {
+    border-color: #777777;
+    background-color: #777777;
+    }
+    .gsc-tabHeader.gsc-tabhActive {
+    border-color: #333333;
+    background-color: #333333;
+    }
+    .gsc-tabsArea {
+    border-color: #333333;
+    }
+    .gsc-webResult.gsc-result,
+    .gsc-results .gsc-imageResult {
+      border-color: #666666;
+      background-color: #FFFFFF;
+      padding: 0.5em 0.5em;
+    }
+    .gsc-webResult.gsc-result:hover,
+    .gsc-imageResult:hover {
+      border-color: #AAAAAA;
+      background-color: #FFFFFF;
+      padding: 0.5em 0.5em;
+    }
+    .gsc-webResult.gsc-result.gsc-promotion:hover {
+    border-color: #AAAAAA;
+    background-color: #FFFFFF;
+    }
+    .gs-webResult.gs-result a.gs-title:link,
+    .gs-webResult.gs-result a.gs-title:link b,
+    .gs-imageResult a.gs-title:link,
+    .gs-imageResult a.gs-title:link b {
+    color: #444444;
+    }
+    .gs-webResult.gs-result a.gs-title:visited,
+    .gs-webResult.gs-result a.gs-title:visited b,
+    .gs-imageResult a.gs-title:visited,
+    .gs-imageResult a.gs-title:visited b {
+    color: #444444;
+    }
+    .gs-webResult.gs-result a.gs-title:hover,
+    .gs-webResult.gs-result a.gs-title:hover b,
+    .gs-imageResult a.gs-title:hover,
+    .gs-imageResult a.gs-title:hover b {
+    color: #444444;
+    }
+    .gs-webResult.gs-result a.gs-title:active,
+    .gs-webResult.gs-result a.gs-title:active b,
+    .gs-imageResult a.gs-title:active,
+    .gs-imageResult a.gs-title:active b {
+    color: #777777;
+    }
+    .gsc-cursor-page {
+    color: #444444;
+    }
+    a.gsc-trailing-more-results:link {
+    color: #444444;
+    }
+    .gs-webResult .gs-snippet,
+    .gs-imageResult .gs-snippet,
+    .gs-fileFormatType {
+    color: #333333;
+    }
+    .gs-webResult div.gs-visibleUrl,
+    .gs-imageResult div.gs-visibleUrl {
+    color: #000000;
+    }
+    .gs-webResult div.gs-visibleUrl-short {
+    color: #000000;
+    }
+    .gs-webResult div.gs-visibleUrl-short {
+    display: none;
+    }
+    .gs-webResult div.gs-visibleUrl-long {
+    display: block;
+    }
+    .gs-promotion div.gs-visibleUrl-short {
+    display: none;
+    }
+    .gs-promotion div.gs-visibleUrl-long {
+    display: block;
+    }
+    .gsc-cursor-box {
+    border-color: #FFFFFF;
+    }
+    .gsc-results .gsc-cursor-box .gsc-cursor-page {
+    border-color: #777777;
+    background-color: #FFFFFF;
+    color: #444444;
+    }
+    .gsc-results .gsc-cursor-box .gsc-cursor-current-page {
+    border-color: #333333;
+    background-color: #333333;
+    color: #444444;
+    }
+    .gsc-webResult.gsc-result.gsc-promotion {
+    border-color: #CCCCCC;
+    background-color: #E6E6E6;
+    }
+    .gsc-completion-title {
+    color: #444444;
+    }
+    .gsc-completion-snippet {
+    color: #333333;
+    }
+    .gs-promotion a.gs-title:link,
+    .gs-promotion a.gs-title:link *,
+    .gs-promotion .gs-snippet a:link {
+    color: #0000CC;
+    }
+    .gs-promotion a.gs-title:visited,
+    .gs-promotion a.gs-title:visited *,
+    .gs-promotion .gs-snippet a:visited {
+    color: #0000CC;
+    }
+    .gs-promotion a.gs-title:hover,
+    .gs-promotion a.gs-title:hover *,
+    .gs-promotion .gs-snippet a:hover {
+    color: #444444;
+    }
+    .gs-promotion a.gs-title:active,
+    .gs-promotion a.gs-title:active *,
+    .gs-promotion .gs-snippet a:active {
+    color: #00CC00;
+    }
+    .gs-promotion .gs-snippet,
+    .gs-promotion .gs-title .gs-promotion-title-right,
+    .gs-promotion .gs-title .gs-promotion-title-right *  {
+    color: #333333;
+    }
+    .gs-promotion .gs-visibleUrl,
+    .gs-promotion .gs-visibleUrl-short {
+    color: #00CC00;
+    }
+</style>
+<script type="text/javascript">
+  $('#toc').toc();
+</script>
+  
+
+  </body>
+</html>

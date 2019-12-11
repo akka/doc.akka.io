@@ -1,0 +1,297 @@
+
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Serialization (Java) &mdash; Akka Documentation</title>
+    <link rel="stylesheet" href="../_static/style.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/prettify.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/base.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
+    <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Exo:300,400,600,700" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '1.3.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+<script type="text/javascript" src="https://doc.akka.io/docs/akka/1.3.1/_static/warnOldDocs.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="../_static/toc.js"></script>
+    <script type="text/javascript" src="../_static/prettify.js"></script>
+    <script type="text/javascript" src="../_static/highlightCode.js"></script>
+    <script type="text/javascript" src="../_static/effects.core.js"></script>
+    <script type="text/javascript" src="../_static/effects.highlight.js"></script>
+    <script type="text/javascript" src="../_static/scrollTo.js"></script>
+    <script type="text/javascript" src="../_static/contentsFix.js"></script>
+    <link rel="shortcut icon" href="../_static/favicon.ico"/>
+    <link rel="top" title="Akka Documentation" href="../index.html" />
+    <link rel="up" title="Java API" href="index.html" />
+    <link rel="next" title="Fault Tolerance Through Supervisor Hierarchies (Java)" href="fault-tolerance.html" />
+    <link rel="prev" title="Remote Actors (Java)" href="remote-actors.html" /> 
+  </head>
+  <body>
+  <div class="navbar">
+    <div class="navbar-inner">
+      <div class="container">
+        <div class="navbar-logo">
+          <a href="https://akka.io"><img src="../_static/logo-small.png" /></a>
+        </div>    
+        <ul class="nav">
+          <li><a href="https://akka.io/docs">Documentation</a></li>
+          <li><a href="https://akka.io/downloads">Download</a></li>
+          <li><a href="http://groups.google.com/group/akka-user">Mailing List</a></li>
+          <li><a href="http://github.com/akka/akka">Code</a></li>           
+          <li><a href="http://typesafe.com/products/typesafe-subscription">Commercial Support</a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="main">
+    <div class="container">
+      <div class="page-title">Serialization (Java)</div><div class="pdf-link"><a href="https://doc.akka.io/docs/akka/1.3.1/Akka.pdf"><img src="../_static/pdf-icon.png" style="height: 40px;" /></a></div></div>
+    <div class="main-container">
+      <div class="container">
+        <div class="row">
+          <div class="span12">
+            <ul class="breadcrumb">           
+              <li>
+                 <span class="divider">|</span> <a href="fault-tolerance.html">Fault Tolerance Through Supervisor Hierarchies (Java)</a> <span class="divider">»</span>
+              </li>
+              <li>
+                <a href="../index.html">Contents</a>
+              </li>
+              <li>
+                <span class="divider">«</span> <a href="remote-actors.html">Remote Actors (Java)</a> <span class="divider">|</span>
+              </li>
+              <li>
+                Version 1.3.1
+              </li>
+            </ul>         
+          </div>
+        </div>
+        <div class="row">
+          <div class="span9">
+            
+  <div class="section" id="serialization-java">
+<span id="id1"></span><h1>Serialization (Java)</h1>
+<p>Akka serialization module has been documented extensively under the <a class="reference internal" href="../scala/serialization.html#serialization-scala"><em>Serialization (Scala)</em></a> section. In this section we will point out the different APIs that are available in Akka for Java based serialization of ActorRefs. The Scala APIs of ActorSerialization has implicit Format objects that set up the type class based serialization. In the Java API, the Format objects need to be specified explicitly.</p>
+<div class="section" id="serialization-of-a-stateless-actor">
+<h2>Serialization of a Stateless Actor</h2>
+<p>Step 1: Define the Actor</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">import</span> <span class="nn">akka.actor.UntypedActor</span><span class="o">;</span>
+
+<span class="n">public</span> <span class="k">class</span> <span class="nc">SerializationTestActor</span> <span class="k">extends</span> <span class="nc">UntypedActor</span> <span class="o">{</span>
+    <span class="n">public</span> <span class="n">void</span> <span class="n">onReceive</span><span class="o">(</span><span class="nc">Object</span> <span class="n">msg</span><span class="o">)</span> <span class="o">{</span>
+        <span class="n">getContext</span><span class="o">().</span><span class="n">replySafe</span><span class="o">(</span><span class="s">&quot;got it!&quot;</span><span class="o">);</span>
+    <span class="o">}</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<p>Step 2: Define the typeclass instance for the actor</p>
+<p>Note how the generated Java classes are accessed using the $class based naming convention of the Scala compiler.</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">import</span> <span class="nn">akka.serialization.StatelessActorFormat</span><span class="o">;</span>
+
+<span class="k">class</span> <span class="nc">SerializationTestActorFormat</span> <span class="n">implements</span> <span class="nc">StatelessActorFormat</span><span class="o">&lt;</span><span class="nc">SerializationTestActor</span><span class="o">&gt;</span>  <span class="o">{</span>
+    <span class="nd">@Override</span>
+    <span class="n">public</span> <span class="nc">SerializationTestActor</span> <span class="n">fromBinary</span><span class="o">(</span><span class="n">byte</span><span class="o">[]</span> <span class="n">bytes</span><span class="o">,</span> <span class="nc">SerializationTestActor</span> <span class="n">act</span><span class="o">)</span> <span class="o">{</span>
+        <span class="k">return</span> <span class="o">(</span><span class="nc">SerializationTestActor</span><span class="o">)</span> <span class="nc">StatelessActorFormat$class</span><span class="o">.</span><span class="n">fromBinary</span><span class="o">(</span><span class="k">this</span><span class="o">,</span> <span class="n">bytes</span><span class="o">,</span> <span class="n">act</span><span class="o">);</span>
+    <span class="o">}</span>
+
+    <span class="nd">@Override</span>
+    <span class="n">public</span> <span class="n">byte</span><span class="o">[]</span> <span class="n">toBinary</span><span class="o">(</span><span class="nc">SerializationTestActor</span> <span class="n">ac</span><span class="o">)</span> <span class="o">{</span>
+        <span class="k">return</span> <span class="nc">StatelessActorFormat$class</span><span class="o">.</span><span class="n">toBinary</span><span class="o">(</span><span class="k">this</span><span class="o">,</span> <span class="n">ac</span><span class="o">);</span>
+    <span class="o">}</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<p>Step 3: Serialize and de-serialize</p>
+<p>The following JUnit snippet first creates an actor using the default constructor. The actor is, as we saw above a stateless one. Then it is serialized and de-serialized to get back the original actor. Being stateless, the de-serialized version behaves in the same way on a message as the original actor.</p>
+<div class="highlight-java"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">akka.actor.ActorRef</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">akka.actor.ActorTimeoutException</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">akka.actor.Actors</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">akka.actor.UntypedActor</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">akka.serialization.Format</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">akka.serialization.StatelessActorFormat</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">static</span> <span class="n">akka</span><span class="o">.</span><span class="na">serialization</span><span class="o">.</span><span class="na">ActorSerialization</span><span class="o">.*;</span>
+
+<span class="nd">@Test</span> <span class="kd">public</span> <span class="kt">void</span> <span class="n">mustBeAbleToSerializeAfterCreateActorRefFromClass</span><span class="o">()</span> <span class="o">{</span>
+    <span class="n">ActorRef</span> <span class="n">ref</span> <span class="o">=</span> <span class="n">Actors</span><span class="o">.</span><span class="na">actorOf</span><span class="o">(</span><span class="n">SerializationTestActor</span><span class="o">.</span><span class="na">class</span><span class="o">);</span>
+    <span class="n">assertNotNull</span><span class="o">(</span><span class="n">ref</span><span class="o">);</span>
+    <span class="n">ref</span><span class="o">.</span><span class="na">start</span><span class="o">();</span>
+    <span class="k">try</span> <span class="o">{</span>
+        <span class="n">Object</span> <span class="n">result</span> <span class="o">=</span> <span class="n">ref</span><span class="o">.</span><span class="na">sendRequestReply</span><span class="o">(</span><span class="s">&quot;Hello&quot;</span><span class="o">);</span>
+        <span class="n">assertEquals</span><span class="o">(</span><span class="s">&quot;got it!&quot;</span><span class="o">,</span> <span class="n">result</span><span class="o">);</span>
+    <span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="n">ActorTimeoutException</span> <span class="n">ex</span><span class="o">)</span> <span class="o">{</span>
+        <span class="n">fail</span><span class="o">(</span><span class="s">&quot;actor should not time out&quot;</span><span class="o">);</span>
+    <span class="o">}</span>
+
+    <span class="n">Format</span><span class="o">&lt;</span><span class="n">SerializationTestActor</span><span class="o">&gt;</span> <span class="n">f</span> <span class="o">=</span> <span class="k">new</span> <span class="n">SerializationTestActorFormat</span><span class="o">();</span>
+    <span class="kt">byte</span><span class="o">[]</span> <span class="n">bytes</span> <span class="o">=</span> <span class="n">toBinaryJ</span><span class="o">(</span><span class="n">ref</span><span class="o">,</span> <span class="n">f</span><span class="o">,</span> <span class="kc">false</span><span class="o">);</span>
+    <span class="n">ActorRef</span> <span class="n">r</span> <span class="o">=</span> <span class="n">fromBinaryJ</span><span class="o">(</span><span class="n">bytes</span><span class="o">,</span> <span class="n">f</span><span class="o">);</span>
+    <span class="n">assertNotNull</span><span class="o">(</span><span class="n">r</span><span class="o">);</span>
+    <span class="n">r</span><span class="o">.</span><span class="na">start</span><span class="o">();</span>
+    <span class="k">try</span> <span class="o">{</span>
+        <span class="n">Object</span> <span class="n">result</span> <span class="o">=</span> <span class="n">r</span><span class="o">.</span><span class="na">sendRequestReply</span><span class="o">(</span><span class="s">&quot;Hello&quot;</span><span class="o">);</span>
+        <span class="n">assertEquals</span><span class="o">(</span><span class="s">&quot;got it!&quot;</span><span class="o">,</span> <span class="n">result</span><span class="o">);</span>
+    <span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="n">ActorTimeoutException</span> <span class="n">ex</span><span class="o">)</span> <span class="o">{</span>
+        <span class="n">fail</span><span class="o">(</span><span class="s">&quot;actor should not time out&quot;</span><span class="o">);</span>
+    <span class="o">}</span>
+    <span class="n">ref</span><span class="o">.</span><span class="na">stop</span><span class="o">();</span>
+    <span class="n">r</span><span class="o">.</span><span class="na">stop</span><span class="o">();</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="serialization-of-a-stateful-actor">
+<h2>Serialization of a Stateful Actor</h2>
+<p>Let&#8217;s now have a look at how to serialize an actor that carries a state with it. Here the expectation is that the serialization of the actor will also persist the state information. And after de-serialization we will get back the state with which it was serialized.</p>
+<p>Step 1: Define the Actor</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">import</span> <span class="nn">akka.actor.UntypedActor</span><span class="o">;</span>
+
+<span class="n">public</span> <span class="k">class</span> <span class="nc">MyUntypedActor</span> <span class="k">extends</span> <span class="nc">UntypedActor</span> <span class="o">{</span>
+  <span class="n">int</span> <span class="n">count</span> <span class="k">=</span> <span class="mi">0</span><span class="o">;</span>
+
+  <span class="n">public</span> <span class="n">void</span> <span class="n">onReceive</span><span class="o">(</span><span class="nc">Object</span> <span class="n">msg</span><span class="o">)</span> <span class="o">{</span>
+    <span class="k">if</span> <span class="o">(</span><span class="n">msg</span><span class="o">.</span><span class="n">equals</span><span class="o">(</span><span class="s">&quot;hello&quot;</span><span class="o">))</span> <span class="o">{</span>
+      <span class="n">count</span> <span class="k">=</span> <span class="n">count</span> <span class="o">+</span> <span class="mi">1</span><span class="o">;</span>
+      <span class="n">getContext</span><span class="o">().</span><span class="n">replyUnsafe</span><span class="o">(</span><span class="s">&quot;world &quot;</span> <span class="o">+</span> <span class="n">count</span><span class="o">);</span>
+    <span class="o">}</span> <span class="k">else</span> <span class="k">if</span> <span class="o">(</span><span class="n">msg</span> <span class="n">instanceof</span> <span class="nc">String</span><span class="o">)</span> <span class="o">{</span>
+      <span class="n">count</span> <span class="k">=</span> <span class="n">count</span> <span class="o">+</span> <span class="mi">1</span><span class="o">;</span>
+      <span class="n">getContext</span><span class="o">().</span><span class="n">replyUnsafe</span><span class="o">(</span><span class="s">&quot;hello &quot;</span> <span class="o">+</span> <span class="n">msg</span> <span class="o">+</span> <span class="s">&quot; &quot;</span> <span class="o">+</span> <span class="n">count</span><span class="o">);</span>
+    <span class="o">}</span> <span class="k">else</span> <span class="o">{</span>
+      <span class="k">throw</span> <span class="k">new</span> <span class="nc">IllegalArgumentException</span><span class="o">(</span><span class="s">&quot;invalid message type&quot;</span><span class="o">);</span>
+    <span class="o">}</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<p>Note the actor has a state in the form of an Integer. And every message that the actor receives, it replies with an addition to the integer member.</p>
+<p>Step 2: Define the instance of the typeclass</p>
+<div class="highlight-java"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">akka.actor.UntypedActor</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">akka.serialization.Format</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">akka.serialization.SerializerFactory</span><span class="o">;</span>
+
+<span class="kd">class</span> <span class="nc">MyUntypedActorFormat</span> <span class="kd">implements</span> <span class="n">Format</span><span class="o">&lt;</span><span class="n">MyUntypedActor</span><span class="o">&gt;</span> <span class="o">{</span>
+  <span class="nd">@Override</span>
+  <span class="kd">public</span> <span class="n">MyUntypedActor</span> <span class="nf">fromBinary</span><span class="o">(</span><span class="kt">byte</span><span class="o">[]</span> <span class="n">bytes</span><span class="o">,</span> <span class="n">MyUntypedActor</span> <span class="n">act</span><span class="o">)</span> <span class="o">{</span>
+    <span class="n">ProtobufProtocol</span><span class="o">.</span><span class="na">Counter</span> <span class="n">p</span> <span class="o">=</span>
+      <span class="o">(</span><span class="n">ProtobufProtocol</span><span class="o">.</span><span class="na">Counter</span><span class="o">)</span> <span class="k">new</span> <span class="n">SerializerFactory</span><span class="o">().</span><span class="na">getProtobuf</span><span class="o">().</span><span class="na">fromBinary</span><span class="o">(</span><span class="n">bytes</span><span class="o">,</span> <span class="n">ProtobufProtocol</span><span class="o">.</span><span class="na">Counter</span><span class="o">.</span><span class="na">class</span><span class="o">);</span>
+    <span class="n">act</span><span class="o">.</span><span class="na">count</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="na">getCount</span><span class="o">();</span>
+    <span class="k">return</span> <span class="n">act</span><span class="o">;</span>
+  <span class="o">}</span>
+
+  <span class="nd">@Override</span>
+  <span class="kd">public</span> <span class="kt">byte</span><span class="o">[]</span> <span class="nf">toBinary</span><span class="o">(</span><span class="n">MyUntypedActor</span> <span class="n">ac</span><span class="o">)</span> <span class="o">{</span>
+    <span class="k">return</span> <span class="n">ProtobufProtocol</span><span class="o">.</span><span class="na">Counter</span><span class="o">.</span><span class="na">newBuilder</span><span class="o">().</span><span class="na">setCount</span><span class="o">(</span><span class="n">ac</span><span class="o">.</span><span class="na">count</span><span class="o">()).</span><span class="na">build</span><span class="o">().</span><span class="na">toByteArray</span><span class="o">();</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<p>Note the usage of Protocol Buffers to serialize the state of the actor. ProtobufProtocol.Counter is something
+you need to define yourself</p>
+<p>Step 3: Serialize and de-serialize</p>
+<div class="highlight-java"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">akka.actor.ActorRef</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">akka.actor.ActorTimeoutException</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">akka.actor.Actors</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">static</span> <span class="n">akka</span><span class="o">.</span><span class="na">serialization</span><span class="o">.</span><span class="na">ActorSerialization</span><span class="o">.*;</span>
+
+<span class="nd">@Test</span> <span class="kd">public</span> <span class="kt">void</span> <span class="n">mustBeAbleToSerializeAStatefulActor</span><span class="o">()</span> <span class="o">{</span>
+    <span class="n">ActorRef</span> <span class="n">ref</span> <span class="o">=</span> <span class="n">Actors</span><span class="o">.</span><span class="na">actorOf</span><span class="o">(</span><span class="n">MyUntypedActor</span><span class="o">.</span><span class="na">class</span><span class="o">);</span>
+    <span class="n">assertNotNull</span><span class="o">(</span><span class="n">ref</span><span class="o">);</span>
+    <span class="n">ref</span><span class="o">.</span><span class="na">start</span><span class="o">();</span>
+    <span class="k">try</span> <span class="o">{</span>
+        <span class="n">Object</span> <span class="n">result</span> <span class="o">=</span> <span class="n">ref</span><span class="o">.</span><span class="na">sendRequestReply</span><span class="o">(</span><span class="s">&quot;hello&quot;</span><span class="o">);</span>
+        <span class="n">assertEquals</span><span class="o">(</span><span class="s">&quot;world 1&quot;</span><span class="o">,</span> <span class="n">result</span><span class="o">);</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">ref</span><span class="o">.</span><span class="na">sendRequestReply</span><span class="o">(</span><span class="s">&quot;hello&quot;</span><span class="o">);</span>
+      <span class="n">assertEquals</span><span class="o">(</span><span class="s">&quot;world 2&quot;</span><span class="o">,</span> <span class="n">result</span><span class="o">);</span>
+    <span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="n">ActorTimeoutException</span> <span class="n">ex</span><span class="o">)</span> <span class="o">{</span>
+        <span class="n">fail</span><span class="o">(</span><span class="s">&quot;actor should not time out&quot;</span><span class="o">);</span>
+    <span class="o">}</span>
+
+    <span class="n">Format</span><span class="o">&lt;</span><span class="n">MyUntypedActor</span><span class="o">&gt;</span> <span class="n">f</span> <span class="o">=</span> <span class="k">new</span> <span class="n">MyUntypedActorFormat</span><span class="o">();</span>
+    <span class="kt">byte</span><span class="o">[]</span> <span class="n">bytes</span> <span class="o">=</span> <span class="n">toBinaryJ</span><span class="o">(</span><span class="n">ref</span><span class="o">,</span> <span class="n">f</span><span class="o">,</span> <span class="kc">false</span><span class="o">);</span>
+    <span class="n">ActorRef</span> <span class="n">r</span> <span class="o">=</span> <span class="n">fromBinaryJ</span><span class="o">(</span><span class="n">bytes</span><span class="o">,</span> <span class="n">f</span><span class="o">);</span>
+    <span class="n">assertNotNull</span><span class="o">(</span><span class="n">r</span><span class="o">);</span>
+    <span class="n">r</span><span class="o">.</span><span class="na">start</span><span class="o">();</span>
+    <span class="k">try</span> <span class="o">{</span>
+        <span class="n">Object</span> <span class="n">result</span> <span class="o">=</span> <span class="n">r</span><span class="o">.</span><span class="na">sendRequestReply</span><span class="o">(</span><span class="s">&quot;hello&quot;</span><span class="o">);</span>
+        <span class="n">assertEquals</span><span class="o">(</span><span class="s">&quot;world 3&quot;</span><span class="o">,</span> <span class="n">result</span><span class="o">);</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">r</span><span class="o">.</span><span class="na">sendRequestReply</span><span class="o">(</span><span class="s">&quot;hello&quot;</span><span class="o">);</span>
+        <span class="n">assertEquals</span><span class="o">(</span><span class="s">&quot;world 4&quot;</span><span class="o">,</span> <span class="n">result</span><span class="o">);</span>
+    <span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="n">ActorTimeoutException</span> <span class="n">ex</span><span class="o">)</span> <span class="o">{</span>
+        <span class="n">fail</span><span class="o">(</span><span class="s">&quot;actor should not time out&quot;</span><span class="o">);</span>
+    <span class="o">}</span>
+    <span class="n">ref</span><span class="o">.</span><span class="na">stop</span><span class="o">();</span>
+    <span class="n">r</span><span class="o">.</span><span class="na">stop</span><span class="o">();</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<p>Note how the de-serialized version starts with the state value with which it was earlier serialized.</p>
+</div>
+</div>
+
+
+          </div>
+          <div class="span3"><p class="contents-title">Contents</p>
+              <div id="scroller-anchor">
+                <div id="scroller">
+                  <div id="toc"></div>
+                </div>
+              </div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="footer">
+  <div class="container">
+    <ul>
+      <li><h5>Akka</h5></li>
+      <li><a href="https://akka.io/docs">Documentation</a></li>
+      <li><a href="https://akka.io/downloads">Downloads</a></li>
+      <li><a href="https://akka.io/news">News</a></li>
+      <li><a href="http://letitcrash.com">Blog</a></li>
+    </ul>
+    <ul>
+      <li><h5>Contribute</h5></li>
+      <li><a href="http://github.com/akka/akka">Source Code</a></li>
+      <li><a href="http://groups.google.com/group/akka-user">Mailing List</a></li>      
+      <li><a href="http://www.assembla.com/spaces/akka/tickets">Report a Bug</a></li>      
+    </ul>
+    <ul>
+      <li><h5>Company</h5></li>
+      <li><a href="http://typesafe.com/products/typesafe-subscription">Commercial Support</a></li>
+      <li><a href="https://akka.io/team">Team</a></li>
+      <li><a href="mailto:info@typesafe.com">Contact</a></li>
+    </ul>
+    <ul>
+      <li><img src="../_static/watermark.png" align="center"/></li>
+    </ul>
+  </div>
+  <div class="container copyright">
+    <p style="float: left;">
+      © 2012 <a href="http://typesafe.com/">Typesafe Inc.</a> <span class="license">Akka is Open Source and available under the Apache 2 License.</span>
+    </p>
+    <p style="float: right; font-size: 12px;">
+      Last updated: Mar 08, 2012
+    </p>          
+  </div>
+</div>
+<script type="text/javascript">
+  $('#toc').toc();
+</script>
+  
+
+  </body>
+</html>

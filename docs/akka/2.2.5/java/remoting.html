@@ -1,0 +1,1574 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" /><meta name="description" content="Akka is a toolkit for building highly concurrent, distributed, and resilient message-driven applications for Java and Scala."/><link rel="canonical" href="https://doc.akka.io/docs/akka/2.2/java/remoting.html"/>
+    
+    <title>Remoting &mdash; Akka Documentation</title>
+    
+    <link rel="stylesheet" href="../_static/style.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/prettify.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/base.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
+    <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Exo:300,400,600,700" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '2.2.5',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+<script type="text/javascript" src="https://doc.akka.io/docs/akka/2.2.5/_static/warnOldDocs.js"></script>
+<script type="text/javascript" src="https://doc.akka.io/docs/akka/2.2.5/_static/warnOldDocs.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="../_static/toc.js"></script>
+    <script type="text/javascript" src="../_static/prettify.js"></script>
+    <script type="text/javascript" src="../_static/highlightCode.js"></script>
+    <script type="text/javascript" src="../_static/effects.core.js"></script>
+    <script type="text/javascript" src="../_static/effects.highlight.js"></script>
+    <script type="text/javascript" src="../_static/scrollTo.js"></script>
+    <script type="text/javascript" src="../_static/contentsFix.js"></script>
+    <script type="text/javascript" src="../_static/ga.js"></script>
+    <link rel="shortcut icon" href="../_static/favicon.ico"/>
+    <link rel="top" title="Akka Documentation" href="../index.html" />
+    <link rel="up" title="Networking" href="index-network.html" />
+    <link rel="next" title="Serialization" href="serialization.html" />
+    <link rel="prev" title="Cluster Usage" href="cluster-usage.html" />
+    <!--Google Analytics-->
+    <script type="text/javascript">
+      var _gaq = _gaq || [];
+      _gaq.push(['_setAccount', 'UA-21117439-1']);
+      _gaq.push(['_setDomainName', 'akka.io']);
+      _gaq.push(['_trackPageview']);
+      (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+      })()
+    </script>
+
+  </head>
+  <body>
+  <div class="navbar">
+    <div class="navbar-inner">
+      <div class="container">
+        <div class="navbar-logo">
+          <a href="https://akka.io"><img src="../_static/logo-small.png" /></a>
+        </div>    
+        <ul class="nav">
+          <li><a href="https://akka.io/docs">Documentation</a></li>
+          <li><a href="https://akka.io/faq">FAQ</a></li>
+          <li><a href="http://typesafe.com/stack/downloads/akka">Download</a></li>
+          <li><a href="http://groups.google.com/group/akka-user">Mailing List</a></li>
+          <li><a href="http://github.com/akka/akka">Code</a></li>           
+          <li><a href="http://typesafe.com/products/typesafe-subscription">Commercial Support</a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="main">
+    <div class="container">
+      <div class="page-title">Remoting</div>
+      <div class="pdf-link"><a href="../AkkaScala.pdf" title="Akka Scala Documentation"><img src="../_static/pdf-scala-icon.png" style="height: 40px;" /></a></div>
+      <div class="pdf-link"><a href="../AkkaJava.pdf" title="Akka Java Documentation"><img src="../_static/pdf-java-icon.png" style="height: 40px;" /></a></div>
+    </div>
+    <div class="main-container">
+      <div class="container">
+        <div class="row">
+          <div class="span12">
+            <ul class="breadcrumb">           
+              <li>
+                 <span class="divider">|</span> <a href="serialization.html">Serialization</a> <span class="divider">»</span>
+              </li>
+              <li>
+                <a href="../index.html">Contents</a>
+              </li>
+              <li>
+                <span class="divider">«</span> <a href="cluster-usage.html">Cluster Usage</a> <span class="divider">|</span>
+              </li>
+              <li>
+                Version 2.2.5
+              </li>
+            </ul>
+          </div>
+        </div>
+        <div class="row">
+          <div class="span9">
+            <div id="cse">Loading</div>
+          </div><div class="span9">
+            
+  <div class="section" id="remoting">
+<span id="remoting-java"></span><h1>Remoting</h1>
+<p>For an introduction of remoting capabilities of Akka please see <a class="reference internal" href="../general/remoting.html#remoting"><em>Location Transparency</em></a>.</p>
+<div class="section" id="preparing-your-actorsystem-for-remoting">
+<h2>Preparing your ActorSystem for Remoting</h2>
+<p>The Akka remoting is a separate jar file. Make sure that you have the following dependency in your project:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="o">&lt;</span><span class="n">dependency</span><span class="o">&gt;</span>
+  <span class="o">&lt;</span><span class="n">groupId</span><span class="o">&gt;</span><span class="n">com</span><span class="o">.</span><span class="n">typesafe</span><span class="o">.</span><span class="n">akka</span><span class="o">&lt;/</span><span class="n">groupId</span><span class="o">&gt;</span>
+  <span class="o">&lt;</span><span class="n">artifactId</span><span class="o">&gt;</span><span class="n">akka</span><span class="o">-</span><span class="n">remote_2</span><span class="o">.</span><span class="mi">10</span><span class="o">&lt;/</span><span class="n">artifactId</span><span class="o">&gt;</span>
+  <span class="o">&lt;</span><span class="n">version</span><span class="o">&gt;</span><span class="mf">2.2</span><span class="o">.</span><span class="mi">5</span><span class="o">&lt;/</span><span class="n">version</span><span class="o">&gt;</span>
+<span class="o">&lt;/</span><span class="n">dependency</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+<p>To enable remote capabilities in your Akka project you should, at a minimum, add the following changes
+to your <tt class="docutils literal"><span class="pre">application.conf</span></tt> file:</p>
+<div class="highlight-scala"><div class="highlight"><pre>akka {
+  actor {
+    provider = &quot;akka.remote.RemoteActorRefProvider&quot;
+  }
+  remote {
+    enabled-transports = [&quot;akka.remote.netty.tcp&quot;]
+    netty.tcp {
+      hostname = &quot;127.0.0.1&quot;
+      port = 2552
+    }
+ }
+}
+</pre></div>
+</div>
+<p>As you can see in the example above there are four things you need to add to get started:</p>
+<ul class="simple">
+<li>Change provider from <tt class="docutils literal"><span class="pre">akka.actor.LocalActorRefProvider</span></tt> to <tt class="docutils literal"><span class="pre">akka.remote.RemoteActorRefProvider</span></tt></li>
+<li>Add host name - the machine you want to run the actor system on; this host
+name is exactly what is passed to remote systems in order to identify this
+system and consequently used for connecting back to this system if need be,
+hence set it to a reachable IP address or resolvable name in case you want to
+communicate across the network.</li>
+<li>Add port number - the port the actor system should listen on, set to 0 to have it chosen automatically</li>
+</ul>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The port number needs to be unique for each actor system on the same machine even if the actor
+systems have different names. This is because each actor system has its own network subsystem
+listening for connections and handling messages as not to interfere with other actor systems.</p>
+</div>
+<p>The example above only illustrates the bare minimum of properties you have to add to enable remoting.
+All settings are described in <a class="reference internal" href="#remote-configuration-java"><em>Remote Configuration</em></a>.</p>
+</div>
+<div class="section" id="looking-up-remote-actors">
+<h2>Looking up Remote Actors</h2>
+<p><tt class="docutils literal"><span class="pre">actorSelection(path)</span></tt> will obtain an <tt class="docutils literal"><span class="pre">ActorSelection</span></tt> to an Actor on a remote node:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="nc">ActorSelection</span> <span class="n">selection</span> <span class="k">=</span>
+  <span class="n">context</span><span class="o">.</span><span class="n">actorSelection</span><span class="o">(</span><span class="s">&quot;akka.tcp://app@10.0.0.1:2552/user/serviceA/worker&quot;</span><span class="o">);</span>
+</pre></div>
+</div>
+<p>As you can see from the example above the following pattern is used to find an actor on a remote node:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="n">akka</span><span class="o">.&lt;</span><span class="n">protocol</span><span class="o">&gt;://&lt;</span><span class="n">actorsystemname</span><span class="o">&gt;@&lt;</span><span class="n">hostname</span><span class="o">&gt;:&lt;</span><span class="n">port</span><span class="o">&gt;/&lt;</span><span class="n">actor</span> <span class="n">path</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+<p>Once you obtained a selection to the actor you can interact with it they same way you would with a local actor, e.g.:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="n">selection</span><span class="o">.</span><span class="n">tell</span><span class="o">(</span><span class="s">&quot;Pretty awesome feature&quot;</span><span class="o">,</span> <span class="n">getSelf</span><span class="o">());</span>
+</pre></div>
+</div>
+<p>To acquire an <tt class="xref py py-class docutils literal"><span class="pre">ActorRef</span></tt> for an <tt class="xref py py-class docutils literal"><span class="pre">ActorSelection</span></tt> you need to
+send a message to the selection and use the <tt class="docutils literal"><span class="pre">getSender</span></tt> reference of the reply from
+the actor. There is a built-in <tt class="docutils literal"><span class="pre">Identify</span></tt> message that all Actors will understand
+and automatically reply to with a <tt class="docutils literal"><span class="pre">ActorIdentity</span></tt> message containing the
+<tt class="xref py py-class docutils literal"><span class="pre">ActorRef</span></tt>. This can also be done with the <tt class="docutils literal"><span class="pre">resolveOne</span></tt> method of
+the <tt class="xref py py-class docutils literal"><span class="pre">ActorSelection</span></tt>, which returns a <tt class="docutils literal"><span class="pre">Future</span></tt> of the matching
+<tt class="xref py py-class docutils literal"><span class="pre">ActorRef</span></tt>.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">For more details on how actor addresses and paths are formed and used, please refer to <a class="reference internal" href="../general/addressing.html#addressing"><em>Actor References, Paths and Addresses</em></a>.</p>
+</div>
+</div>
+<div class="section" id="creating-actors-remotely">
+<h2>Creating Actors Remotely</h2>
+<p>If you want to use the creation functionality in Akka remoting you have to further amend the
+<tt class="docutils literal"><span class="pre">application.conf</span></tt> file in the following way (only showing deployment section):</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="n">akka</span> <span class="o">{</span>
+  <span class="n">actor</span> <span class="o">{</span>
+    <span class="n">deployment</span> <span class="o">{</span>
+      <span class="o">/</span><span class="n">sampleActor</span> <span class="o">{</span>
+        <span class="n">remote</span> <span class="k">=</span> <span class="s">&quot;akka.tcp://sampleActorSystem@127.0.0.1:2553&quot;</span>
+      <span class="o">}</span>
+    <span class="o">}</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<p>The configuration above instructs Akka to react when an actor with path <tt class="docutils literal"><span class="pre">/sampleActor</span></tt> is created, i.e.
+using <tt class="docutils literal"><span class="pre">system.actorOf(new</span> <span class="pre">Props(...),</span> <span class="pre">&quot;sampleActor&quot;)</span></tt>. This specific actor will not be directly instantiated,
+but instead the remote daemon of the remote system will be asked to create the actor,
+which in this sample corresponds to <tt class="docutils literal"><span class="pre">sampleActorSystem&#64;127.0.0.1:2553</span></tt>.</p>
+<p>Once you have configured the properties above you would do the following in code:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="nc">ActorRef</span> <span class="n">actor</span> <span class="k">=</span> <span class="n">system</span><span class="o">.</span><span class="n">actorOf</span><span class="o">(</span><span class="nc">Props</span><span class="o">.</span><span class="n">create</span><span class="o">(</span><span class="nc">SampleActor</span><span class="o">.</span><span class="n">class</span><span class="o">),</span> <span class="s">&quot;sampleActor&quot;</span><span class="o">);</span>
+<span class="n">actor</span><span class="o">.</span><span class="n">tell</span><span class="o">(</span><span class="s">&quot;Pretty slick&quot;</span><span class="o">,</span> <span class="nc">ActorRef</span><span class="o">.</span><span class="n">noSender</span><span class="o">());</span>
+</pre></div>
+</div>
+<p>The actor class <tt class="docutils literal"><span class="pre">SampleActor</span></tt> has to be available to the runtimes using it, i.e. the classloader of the
+actor systems has to have a JAR containing the class.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p>In order to ensure serializability of <tt class="docutils literal"><span class="pre">Props</span></tt> when passing constructor
+arguments to the actor being created, do not make the factory a non-static
+inner class: this will inherently capture a reference to its enclosing
+object, which in most cases is not serializable. It is best to make a static
+inner class which implements <tt class="xref py py-class docutils literal"><span class="pre">Creator</span></tt>.</p>
+<p class="last">Serializability of all Props can be tested by setting the configuration item
+<tt class="docutils literal"><span class="pre">akka.actor.serialize-creators=on</span></tt>. Only Props whose <tt class="docutils literal"><span class="pre">deploy</span></tt> has
+<tt class="docutils literal"><span class="pre">LocalScope</span></tt> are exempt from this check.</p>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">You can use asterisks as wildcard matches for the actor path sections, so you could specify:
+<tt class="docutils literal"><span class="pre">/*/sampleActor</span></tt> and that would match all <tt class="docutils literal"><span class="pre">sampleActor</span></tt> on that level in the hierarchy.
+You can also use wildcard in the last position to match all actors at a certain level:
+<tt class="docutils literal"><span class="pre">/someParent/*</span></tt>. Non-wildcard matches always have higher priority to match than wildcards, so:
+<tt class="docutils literal"><span class="pre">/foo/bar</span></tt> is considered <strong>more specific</strong> than <tt class="docutils literal"><span class="pre">/foo/*</span></tt> and only the highest priority match is used.
+Please note that it <strong>cannot</strong> be used to partially match section, like this: <tt class="docutils literal"><span class="pre">/foo*/bar</span></tt>, <tt class="docutils literal"><span class="pre">/f*o/bar</span></tt> etc.</p>
+</div>
+<div class="section" id="programmatic-remote-deployment">
+<h3>Programmatic Remote Deployment</h3>
+<p>To allow dynamically deployed systems, it is also possible to include
+deployment configuration in the <tt class="xref py py-class docutils literal"><span class="pre">Props</span></tt> which are used to create an
+actor: this information is the equivalent of a deployment section from the
+configuration file, and if both are given, the external configuration takes
+precedence.</p>
+<p>With these imports:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">import</span> <span class="nn">akka.actor.ActorRef</span><span class="o">;</span>
+<span class="k">import</span> <span class="nn">akka.actor.Address</span><span class="o">;</span>
+<span class="k">import</span> <span class="nn">akka.actor.AddressFromURIString</span><span class="o">;</span>
+<span class="k">import</span> <span class="nn">akka.actor.Deploy</span><span class="o">;</span>
+<span class="k">import</span> <span class="nn">akka.actor.Props</span><span class="o">;</span>
+<span class="k">import</span> <span class="nn">akka.actor.ActorSystem</span><span class="o">;</span>
+<span class="k">import</span> <span class="nn">akka.remote.RemoteScope</span><span class="o">;</span>
+</pre></div>
+</div>
+<p>and a remote address like this:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="nc">Address</span> <span class="n">addr</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">Address</span><span class="o">(</span><span class="s">&quot;akka.tcp&quot;</span><span class="o">,</span> <span class="s">&quot;sys&quot;</span><span class="o">,</span> <span class="s">&quot;host&quot;</span><span class="o">,</span> <span class="mi">1234</span><span class="o">);</span>
+<span class="n">addr</span> <span class="k">=</span> <span class="nc">AddressFromURIString</span><span class="o">.</span><span class="n">parse</span><span class="o">(</span><span class="s">&quot;akka.tcp://sys@host:1234&quot;</span><span class="o">);</span> <span class="c1">// the same</span>
+</pre></div>
+</div>
+<p>you can advise the system to create a child on that remote node like so:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="nc">ActorRef</span> <span class="n">ref</span> <span class="k">=</span> <span class="n">system</span><span class="o">.</span><span class="n">actorOf</span><span class="o">(</span><span class="nc">Props</span><span class="o">.</span><span class="n">create</span><span class="o">(</span><span class="nc">SampleActor</span><span class="o">.</span><span class="n">class</span><span class="o">).</span><span class="n">withDeploy</span><span class="o">(</span>
+  <span class="k">new</span> <span class="nc">Deploy</span><span class="o">(</span><span class="k">new</span> <span class="nc">RemoteScope</span><span class="o">(</span><span class="n">addr</span><span class="o">))));</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="watching-remote-actors">
+<h2>Watching Remote Actors</h2>
+<p>Watching a remote actor is not different than watching a local actor, as described in
+<a class="reference internal" href="untyped-actors.html#deathwatch-java"><em>Lifecycle Monitoring aka DeathWatch</em></a>.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last"><em>Caveat:</em> Watching an <tt class="docutils literal"><span class="pre">ActorRef</span></tt> acquired with <tt class="docutils literal"><span class="pre">actorFor</span></tt> does not trigger
+<tt class="docutils literal"><span class="pre">Terminated</span></tt> for lost connections. <tt class="docutils literal"><span class="pre">actorFor</span></tt> is deprecated in favor of
+<tt class="docutils literal"><span class="pre">actorSelection</span></tt>. Acquire the <tt class="docutils literal"><span class="pre">ActorRef</span></tt> to watch with <tt class="docutils literal"><span class="pre">Identify</span></tt> and
+<tt class="docutils literal"><span class="pre">ActorIdentity</span></tt> as described in <a class="reference internal" href="untyped-actors.html#actorselection-java"><em>Identifying Actors via Actor Selection</em></a>.</p>
+</div>
+<div class="section" id="failure-detector">
+<h3>Failure Detector</h3>
+<p>Under the hood remote death watch uses heartbeat messages and a failure detector to generate <tt class="docutils literal"><span class="pre">Terminated</span></tt>
+message from network failures and JVM crashes, in addition to graceful termination of watched
+actor.</p>
+<p>The heartbeat arrival times is interpreted by an implementation of
+<a class="reference external" href="http://ddg.jaist.ac.jp/pub/HDY+04.pdf">The Phi Accrual Failure Detector</a>.</p>
+<p>The suspicion level of failure is given by a value called <em>phi</em>.
+The basic idea of the phi failure detector is to express the value of <em>phi</em> on a scale that
+is dynamically adjusted to reflect current network conditions.</p>
+<p>The value of <em>phi</em> is calculated as:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="n">phi</span> <span class="k">=</span> <span class="o">-</span><span class="n">log10</span><span class="o">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">F</span><span class="o">(</span><span class="n">timeSinceLastHeartbeat</span><span class="o">))</span>
+</pre></div>
+</div>
+<p>where F is the cumulative distribution function of a normal distribution with mean
+and standard deviation estimated from historical heartbeat inter-arrival times.</p>
+<p>In the <a class="reference internal" href="#remote-configuration-java"><em>Remote Configuration</em></a> you can adjust the <tt class="docutils literal"><span class="pre">akka.remote.watch-failure-detector.threshold</span></tt>
+to define when a <em>phi</em> value is considered to be a failure.</p>
+<p>A low <tt class="docutils literal"><span class="pre">threshold</span></tt> is prone to generate many false positives but ensures
+a quick detection in the event of a real crash. Conversely, a high <tt class="docutils literal"><span class="pre">threshold</span></tt>
+generates fewer mistakes but needs more time to detect actual crashes. The
+default <tt class="docutils literal"><span class="pre">threshold</span></tt> is 10 and is appropriate for most situations. However in
+cloud environments, such as Amazon EC2, the value could be increased to 12 in
+order to account for network issues that sometimes occur on such platforms.</p>
+<p>The following chart illustrates how <em>phi</em> increase with increasing time since the
+previous heartbeat.</p>
+<img alt="../_images/phi1.png" src="../_images/phi1.png" />
+<p>Phi is calculated from the mean and standard deviation of historical
+inter arrival times. The previous chart is an example for standard deviation
+of 200 ms. If the heartbeats arrive with less deviation the curve becomes steeper,
+i.e. it is possible to determine failure more quickly. The curve looks like this for
+a standard deviation of 100 ms.</p>
+<img alt="../_images/phi2.png" src="../_images/phi2.png" />
+<p>To be able to survive sudden abnormalities, such as garbage collection pauses and
+transient network failures the failure detector is configured with a margin,
+<tt class="docutils literal"><span class="pre">akka.remote.watch-failure-detector.acceptable-heartbeat-pause</span></tt>. You may want to
+adjust the <a class="reference internal" href="#remote-configuration-java"><em>Remote Configuration</em></a> of this depending on you environment.
+This is how the curve looks like for <tt class="docutils literal"><span class="pre">acceptable-heartbeat-pause</span></tt> configured to
+3 seconds.</p>
+<img alt="../_images/phi3.png" src="../_images/phi3.png" />
+</div>
+</div>
+<div class="section" id="serialization">
+<h2>Serialization</h2>
+<p>When using remoting for actors you must ensure that the <tt class="docutils literal"><span class="pre">props</span></tt> and <tt class="docutils literal"><span class="pre">messages</span></tt> used for
+those actors are serializable. Failing to do so will cause the system to behave in an unintended way.</p>
+<p>For more information please see <a class="reference internal" href="serialization.html#serialization-java"><em>Serialization</em></a></p>
+</div>
+<div class="section" id="routers-with-remote-destinations">
+<h2>Routers with Remote Destinations</h2>
+<p>It is absolutely feasible to combine remoting with <a class="reference internal" href="routing.html#routing-java"><em>Routing</em></a>.
+This is also done via configuration:</p>
+<div class="highlight-scala"><div class="highlight"><pre>akka {
+  actor {
+    deployment {
+      /serviceA/aggregation {
+        router = &quot;round-robin&quot;
+        nr-of-instances = 10
+        target {
+          nodes = [&quot;akka.tcp://app@10.0.0.2:2552&quot;, &quot;akka://app@10.0.0.3:2552&quot;]
+        }
+      }
+    }
+  }
+}
+</pre></div>
+</div>
+<p>This configuration setting will clone the actor “aggregation” 10 times and deploy it evenly distributed across
+the two given target nodes.</p>
+</div>
+<div class="section" id="description-of-the-remoting-sample">
+<h2>Description of the Remoting Sample</h2>
+<p>There is a more extensive remote example that comes with the Akka distribution.
+Please have a look here for more information: <a class="reference external" href="http://github.com/akka/akka/tree/v2.2.5/akka-samples/akka-sample-remote">Remote Sample</a>
+This sample demonstrates both, remote deployment and look-up of remote actors.
+First, let us have a look at the common setup for both scenarios (this is
+<tt class="docutils literal"><span class="pre">common.conf</span></tt>):</p>
+<div class="highlight-scala"><div class="highlight"><pre>akka {
+
+  actor {
+    provider = &quot;akka.remote.RemoteActorRefProvider&quot;
+  }
+
+  remote {
+    netty.tcp {
+      hostname = &quot;127.0.0.1&quot;
+    }
+  }
+
+  # Uncomment the following four lines to employ the &#39;secure cookie handshake&#39;
+  # This requires the client to have the known secure-cookie and properly
+  # transmit it to the server upon connection. Because both the client and server
+  # programs use this common.conf file, they will both have the cookie
+  #remote {
+  #  secure-cookie = &quot;0009090D040C030E03070D0509020F050B080400&quot;
+  #  require-cookie = on
+  #}
+}
+</pre></div>
+</div>
+<p>This enables the remoting by installing the <tt class="xref py py-class docutils literal"><span class="pre">RemoteActorRefProvider</span></tt> and
+chooses the default remote transport. All other options will be set
+specifically for each show case.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Be sure to replace the default IP 127.0.0.1 with the real address the system
+is reachable by if you deploy onto multiple machines!</p>
+</div>
+<div class="section" id="remote-lookup">
+<span id="remote-lookup-sample-java"></span><h3>Remote Lookup</h3>
+<p>In order to look up a remote actor, that one must be created first. For this
+purpose, we configure an actor system to listen on port 2552 (this is a snippet
+from <tt class="docutils literal"><span class="pre">application.conf</span></tt>):</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="n">calculator</span> <span class="o">{</span>
+  <span class="n">include</span> <span class="s">&quot;common&quot;</span>
+
+  <span class="n">akka</span> <span class="o">{</span>
+    <span class="k">#</span> <span class="nc">LISTEN</span> <span class="n">on</span> <span class="n">tcp</span> <span class="n">port</span> <span class="mi">2552</span>
+    <span class="n">remote</span><span class="o">.</span><span class="n">netty</span><span class="o">.</span><span class="n">tcp</span><span class="o">.</span><span class="n">port</span> <span class="k">=</span> <span class="mi">2552</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<p>Then the actor must be created. For all code which follows, assume these imports:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">import</span> <span class="nn">akka.actor.ActorRef</span><span class="o">;</span>
+<span class="k">import</span> <span class="nn">akka.actor.ActorSystem</span><span class="o">;</span>
+<span class="k">import</span> <span class="nn">akka.actor.Props</span><span class="o">;</span>
+<span class="k">import</span> <span class="nn">akka.actor.UntypedActor</span><span class="o">;</span>
+<span class="k">import</span> <span class="nn">akka.kernel.Bootable</span><span class="o">;</span>
+<span class="k">import</span> <span class="nn">com.typesafe.config.ConfigFactory</span><span class="o">;</span>
+</pre></div>
+</div>
+<p>The actor doing the work will be this one:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="n">public</span> <span class="k">class</span> <span class="nc">JSimpleCalculatorActor</span> <span class="k">extends</span> <span class="nc">UntypedActor</span> <span class="o">{</span>
+  <span class="nd">@Override</span>
+  <span class="n">public</span> <span class="n">void</span> <span class="n">onReceive</span><span class="o">(</span><span class="nc">Object</span> <span class="n">message</span><span class="o">)</span> <span class="o">{</span>
+
+    <span class="k">if</span> <span class="o">(</span><span class="n">message</span> <span class="n">instanceof</span> <span class="nc">Op</span><span class="o">.</span><span class="nc">Add</span><span class="o">)</span> <span class="o">{</span>
+      <span class="nc">Op</span><span class="o">.</span><span class="nc">Add</span> <span class="n">add</span> <span class="k">=</span> <span class="o">(</span><span class="nc">Op</span><span class="o">.</span><span class="nc">Add</span><span class="o">)</span> <span class="n">message</span><span class="o">;</span>
+      <span class="nc">System</span><span class="o">.</span><span class="n">out</span><span class="o">.</span><span class="n">println</span><span class="o">(</span><span class="s">&quot;Calculating &quot;</span> <span class="o">+</span> <span class="n">add</span><span class="o">.</span><span class="n">getN1</span><span class="o">()</span> <span class="o">+</span> <span class="s">&quot; + &quot;</span> <span class="o">+</span> <span class="n">add</span><span class="o">.</span><span class="n">getN2</span><span class="o">());</span>
+      <span class="n">getSender</span><span class="o">().</span><span class="n">tell</span><span class="o">(</span><span class="k">new</span> <span class="nc">Op</span><span class="o">.</span><span class="nc">AddResult</span><span class="o">(</span>
+          <span class="n">add</span><span class="o">.</span><span class="n">getN1</span><span class="o">(),</span> <span class="n">add</span><span class="o">.</span><span class="n">getN2</span><span class="o">(),</span> <span class="n">add</span><span class="o">.</span><span class="n">getN1</span><span class="o">()</span> <span class="o">+</span> <span class="n">add</span><span class="o">.</span><span class="n">getN2</span><span class="o">()),</span>
+          <span class="n">getSelf</span><span class="o">());</span>
+
+    <span class="o">}</span> <span class="k">else</span> <span class="k">if</span> <span class="o">(</span><span class="n">message</span> <span class="n">instanceof</span> <span class="nc">Op</span><span class="o">.</span><span class="nc">Subtract</span><span class="o">)</span> <span class="o">{</span>
+      <span class="nc">Op</span><span class="o">.</span><span class="nc">Subtract</span> <span class="n">subtract</span> <span class="k">=</span> <span class="o">(</span><span class="nc">Op</span><span class="o">.</span><span class="nc">Subtract</span><span class="o">)</span> <span class="n">message</span><span class="o">;</span>
+      <span class="nc">System</span><span class="o">.</span><span class="n">out</span><span class="o">.</span><span class="n">println</span><span class="o">(</span><span class="s">&quot;Calculating &quot;</span> <span class="o">+</span> <span class="n">subtract</span><span class="o">.</span><span class="n">getN1</span><span class="o">()</span> <span class="o">+</span> <span class="s">&quot; - &quot;</span> <span class="o">+</span> 
+        <span class="n">subtract</span><span class="o">.</span><span class="n">getN2</span><span class="o">());</span>
+      <span class="n">getSender</span><span class="o">().</span><span class="n">tell</span><span class="o">(</span><span class="k">new</span> <span class="nc">Op</span><span class="o">.</span><span class="nc">SubtractResult</span><span class="o">(</span>
+          <span class="n">subtract</span><span class="o">.</span><span class="n">getN1</span><span class="o">(),</span> <span class="n">subtract</span><span class="o">.</span><span class="n">getN2</span><span class="o">(),</span> <span class="n">subtract</span><span class="o">.</span><span class="n">getN1</span><span class="o">()</span> <span class="o">-</span> <span class="n">subtract</span><span class="o">.</span><span class="n">getN2</span><span class="o">()),</span>
+          <span class="n">getSelf</span><span class="o">());</span>
+
+    <span class="o">}</span> <span class="k">else</span> <span class="o">{</span>
+      <span class="n">unhandled</span><span class="o">(</span><span class="n">message</span><span class="o">);</span>
+    <span class="o">}</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+<span class="c1">// #actor</span>
+</pre></div>
+</div>
+<p>and we start it within an actor system using the above configuration</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="n">public</span> <span class="k">class</span> <span class="nc">JCalculatorApplication</span> <span class="n">implements</span> <span class="nc">Bootable</span> <span class="o">{</span>
+  <span class="k">private</span> <span class="nc">ActorSystem</span> <span class="n">system</span><span class="o">;</span>
+
+  <span class="n">public</span> <span class="nc">JCalculatorApplication</span><span class="o">()</span> <span class="o">{</span>
+    <span class="n">system</span> <span class="k">=</span> <span class="nc">ActorSystem</span><span class="o">.</span><span class="n">create</span><span class="o">(</span><span class="s">&quot;CalculatorApplication&quot;</span><span class="o">,</span> <span class="nc">ConfigFactory</span><span class="o">.</span><span class="n">load</span><span class="o">()</span>
+        <span class="o">.</span><span class="n">getConfig</span><span class="o">(</span><span class="s">&quot;calculator&quot;</span><span class="o">));</span>
+    <span class="nc">ActorRef</span> <span class="n">actor</span> <span class="k">=</span> <span class="n">system</span><span class="o">.</span><span class="n">actorOf</span><span class="o">(</span><span class="nc">Props</span><span class="o">.</span><span class="n">create</span><span class="o">(</span><span class="nc">JSimpleCalculatorActor</span><span class="o">.</span><span class="n">class</span><span class="o">),</span>
+        <span class="s">&quot;simpleCalculator&quot;</span><span class="o">);</span>
+  <span class="o">}</span>
+
+  <span class="nd">@Override</span>
+  <span class="n">public</span> <span class="n">void</span> <span class="n">startup</span><span class="o">()</span> <span class="o">{</span>
+  <span class="o">}</span>
+
+  <span class="nd">@Override</span>
+  <span class="n">public</span> <span class="n">void</span> <span class="n">shutdown</span><span class="o">()</span> <span class="o">{</span>
+    <span class="n">system</span><span class="o">.</span><span class="n">shutdown</span><span class="o">();</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+<span class="c1">// #setup</span>
+</pre></div>
+</div>
+<p>With the service actor up and running, we may look it up from another actor
+system, which will be configured to use port 2553 (this is a snippet from
+<tt class="docutils literal"><span class="pre">application.conf</span></tt>).</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="n">remotelookup</span> <span class="o">{</span>
+  <span class="n">include</span> <span class="s">&quot;common&quot;</span>
+
+  <span class="n">akka</span> <span class="o">{</span>
+    <span class="n">remote</span><span class="o">.</span><span class="n">netty</span><span class="o">.</span><span class="n">tcp</span><span class="o">.</span><span class="n">port</span> <span class="k">=</span> <span class="mi">2553</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<p>The actor which will query the calculator is a quite simple one for demonstration purposes</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="n">public</span> <span class="k">class</span> <span class="nc">JLookupActor</span> <span class="k">extends</span> <span class="nc">UntypedActor</span> <span class="o">{</span>
+
+  <span class="k">private</span> <span class="k">final</span> <span class="nc">String</span> <span class="n">path</span><span class="o">;</span>
+  <span class="k">private</span> <span class="nc">ActorRef</span> <span class="n">remoteActor</span> <span class="k">=</span> <span class="kc">null</span><span class="o">;</span>
+
+  <span class="n">public</span> <span class="nc">JLookupActor</span><span class="o">(</span><span class="nc">String</span> <span class="n">path</span><span class="o">)</span> <span class="o">{</span>
+    <span class="k">this</span><span class="o">.</span><span class="n">path</span> <span class="k">=</span> <span class="n">path</span><span class="o">;</span>
+    <span class="n">sendIdentifyRequest</span><span class="o">();</span>
+  <span class="o">}</span>
+
+  <span class="k">private</span> <span class="n">void</span> <span class="n">sendIdentifyRequest</span><span class="o">()</span> <span class="o">{</span>
+    <span class="n">getContext</span><span class="o">().</span><span class="n">actorSelection</span><span class="o">(</span><span class="n">path</span><span class="o">).</span><span class="n">tell</span><span class="o">(</span><span class="k">new</span> <span class="nc">Identify</span><span class="o">(</span><span class="n">path</span><span class="o">),</span> <span class="n">getSelf</span><span class="o">());</span>
+  <span class="o">}</span>
+
+  <span class="nd">@Override</span>
+  <span class="n">public</span> <span class="n">void</span> <span class="n">onReceive</span><span class="o">(</span><span class="nc">Object</span> <span class="n">message</span><span class="o">)</span> <span class="n">throws</span> <span class="nc">Exception</span> <span class="o">{</span>
+
+    <span class="k">if</span> <span class="o">(</span><span class="n">message</span> <span class="n">instanceof</span> <span class="nc">ActorIdentity</span><span class="o">)</span> <span class="o">{</span>
+      <span class="n">remoteActor</span> <span class="k">=</span> <span class="o">((</span><span class="nc">ActorIdentity</span><span class="o">)</span> <span class="n">message</span><span class="o">).</span><span class="n">getRef</span><span class="o">();</span>
+
+    <span class="o">}</span> <span class="k">else</span> <span class="k">if</span> <span class="o">(</span><span class="n">message</span><span class="o">.</span><span class="n">equals</span><span class="o">(</span><span class="nc">ReceiveTimeout</span><span class="o">.</span><span class="n">getInstance</span><span class="o">()))</span> <span class="o">{</span>
+      <span class="n">sendIdentifyRequest</span><span class="o">();</span>
+
+    <span class="o">}</span> <span class="k">else</span> <span class="k">if</span> <span class="o">(</span><span class="n">remoteActor</span> <span class="o">==</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
+      <span class="nc">System</span><span class="o">.</span><span class="n">out</span><span class="o">.</span><span class="n">println</span><span class="o">(</span><span class="s">&quot;Not ready yet&quot;</span><span class="o">);</span>
+
+    <span class="o">}</span> <span class="k">else</span> <span class="k">if</span> <span class="o">(</span><span class="n">message</span> <span class="n">instanceof</span> <span class="nc">Op</span><span class="o">.</span><span class="nc">MathOp</span><span class="o">)</span> <span class="o">{</span>
+      <span class="c1">// send message to server actor</span>
+      <span class="n">remoteActor</span><span class="o">.</span><span class="n">tell</span><span class="o">(</span><span class="n">message</span><span class="o">,</span> <span class="n">getSelf</span><span class="o">());</span>
+
+    <span class="o">}</span> <span class="k">else</span> <span class="k">if</span> <span class="o">(</span><span class="n">message</span> <span class="n">instanceof</span> <span class="nc">Op</span><span class="o">.</span><span class="nc">AddResult</span><span class="o">)</span> <span class="o">{</span>
+      <span class="nc">Op</span><span class="o">.</span><span class="nc">AddResult</span> <span class="n">result</span> <span class="k">=</span> <span class="o">(</span><span class="nc">Op</span><span class="o">.</span><span class="nc">AddResult</span><span class="o">)</span> <span class="n">message</span><span class="o">;</span>
+      <span class="nc">System</span><span class="o">.</span><span class="n">out</span><span class="o">.</span><span class="n">printf</span><span class="o">(</span><span class="s">&quot;Add result: %d + %d = %d\n&quot;</span><span class="o">,</span> <span class="n">result</span><span class="o">.</span><span class="n">getN1</span><span class="o">(),</span> 
+        <span class="n">result</span><span class="o">.</span><span class="n">getN2</span><span class="o">(),</span> <span class="n">result</span><span class="o">.</span><span class="n">getResult</span><span class="o">());</span>
+
+    <span class="o">}</span> <span class="k">else</span> <span class="k">if</span> <span class="o">(</span><span class="n">message</span> <span class="n">instanceof</span> <span class="nc">Op</span><span class="o">.</span><span class="nc">SubtractResult</span><span class="o">)</span> <span class="o">{</span>
+      <span class="nc">Op</span><span class="o">.</span><span class="nc">SubtractResult</span> <span class="n">result</span> <span class="k">=</span> <span class="o">(</span><span class="nc">Op</span><span class="o">.</span><span class="nc">SubtractResult</span><span class="o">)</span> <span class="n">message</span><span class="o">;</span>
+      <span class="nc">System</span><span class="o">.</span><span class="n">out</span><span class="o">.</span><span class="n">printf</span><span class="o">(</span><span class="s">&quot;Sub result: %d - %d = %d\n&quot;</span><span class="o">,</span> <span class="n">result</span><span class="o">.</span><span class="n">getN1</span><span class="o">(),</span> 
+        <span class="n">result</span><span class="o">.</span><span class="n">getN2</span><span class="o">(),</span> <span class="n">result</span><span class="o">.</span><span class="n">getResult</span><span class="o">());</span>
+
+    <span class="o">}</span> <span class="k">else</span> <span class="o">{</span>
+      <span class="n">unhandled</span><span class="o">(</span><span class="n">message</span><span class="o">);</span>
+    <span class="o">}</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<p>and it is created from an actor system using the aforementioned client’s config.</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="n">public</span> <span class="k">class</span> <span class="nc">JLookupApplication</span> <span class="n">implements</span> <span class="nc">Bootable</span> <span class="o">{</span>
+  <span class="k">private</span> <span class="nc">ActorSystem</span> <span class="n">system</span><span class="o">;</span>
+  <span class="k">private</span> <span class="nc">ActorRef</span> <span class="n">actor</span><span class="o">;</span>
+
+  <span class="n">public</span> <span class="nc">JLookupApplication</span><span class="o">()</span> <span class="o">{</span>
+    <span class="n">system</span> <span class="k">=</span> <span class="nc">ActorSystem</span><span class="o">.</span><span class="n">create</span><span class="o">(</span><span class="s">&quot;LookupApplication&quot;</span><span class="o">,</span> <span class="nc">ConfigFactory</span><span class="o">.</span><span class="n">load</span><span class="o">().</span><span class="n">getConfig</span><span class="o">(</span>
+      <span class="s">&quot;remotelookup&quot;</span><span class="o">));</span>
+    <span class="k">final</span> <span class="nc">String</span> <span class="n">path</span> <span class="k">=</span> 
+      <span class="s">&quot;akka.tcp://CalculatorApplication@127.0.0.1:2552/user/simpleCalculator&quot;</span><span class="o">;</span>
+    <span class="n">actor</span> <span class="k">=</span> <span class="n">system</span><span class="o">.</span><span class="n">actorOf</span><span class="o">(</span><span class="nc">Props</span><span class="o">.</span><span class="n">create</span><span class="o">(</span><span class="nc">JLookupActor</span><span class="o">.</span><span class="n">class</span><span class="o">,</span> <span class="n">path</span><span class="o">),</span> <span class="s">&quot;lookupActor&quot;</span><span class="o">);</span>
+  <span class="o">}</span>
+
+  <span class="n">public</span> <span class="n">void</span> <span class="n">doSomething</span><span class="o">(</span><span class="nc">Op</span><span class="o">.</span><span class="nc">MathOp</span> <span class="n">mathOp</span><span class="o">)</span> <span class="o">{</span>
+    <span class="n">actor</span><span class="o">.</span><span class="n">tell</span><span class="o">(</span><span class="n">mathOp</span><span class="o">,</span> <span class="kc">null</span><span class="o">);</span>
+  <span class="o">}</span>
+
+  <span class="nd">@Override</span>
+  <span class="n">public</span> <span class="n">void</span> <span class="n">startup</span><span class="o">()</span> <span class="o">{</span>
+  <span class="o">}</span>
+
+  <span class="nd">@Override</span>
+  <span class="n">public</span> <span class="n">void</span> <span class="n">shutdown</span><span class="o">()</span> <span class="o">{</span>
+    <span class="n">system</span><span class="o">.</span><span class="n">shutdown</span><span class="o">();</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+<span class="c1">// #setup</span>
+</pre></div>
+</div>
+<p>Requests which come in via <tt class="docutils literal"><span class="pre">doSomething</span></tt> will be sent to the client actor,
+which will use the actor reference that was identified earlier. Observe how the actor
+system name using in <tt class="docutils literal"><span class="pre">actorSelection</span></tt> matches the remote system’s name, as do IP
+and port number. Top-level actors are always created below the <tt class="docutils literal"><span class="pre">&quot;/user&quot;</span></tt>
+guardian, which supervises them.</p>
+</div>
+<div class="section" id="remote-deployment">
+<h3>Remote Deployment</h3>
+<p>Creating remote actors instead of looking them up is not visible in the source
+code, only in the configuration file. This section is used in this scenario
+(this is a snippet from <tt class="docutils literal"><span class="pre">application.conf</span></tt>):</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="n">remotecreation</span> <span class="o">{</span>
+  <span class="n">include</span> <span class="s">&quot;common&quot;</span>
+
+  <span class="n">akka</span> <span class="o">{</span>
+    <span class="n">actor</span> <span class="o">{</span>
+      <span class="n">deployment</span> <span class="o">{</span>
+        <span class="o">/</span><span class="n">advancedCalculator</span> <span class="o">{</span>
+          <span class="n">remote</span> <span class="k">=</span> <span class="s">&quot;akka.tcp://CalculatorApplication@127.0.0.1:2552&quot;</span>
+        <span class="o">}</span>
+      <span class="o">}</span>
+    <span class="o">}</span>
+
+    <span class="n">remote</span><span class="o">.</span><span class="n">netty</span><span class="o">.</span><span class="n">tcp</span><span class="o">.</span><span class="n">port</span> <span class="k">=</span> <span class="mi">2554</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<p>For all code which follows, assume these imports:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">import</span> <span class="nn">akka.actor.ActorRef</span><span class="o">;</span>
+<span class="k">import</span> <span class="nn">akka.actor.ActorSystem</span><span class="o">;</span>
+<span class="k">import</span> <span class="nn">akka.actor.Props</span><span class="o">;</span>
+<span class="k">import</span> <span class="nn">akka.actor.UntypedActor</span><span class="o">;</span>
+<span class="k">import</span> <span class="nn">akka.kernel.Bootable</span><span class="o">;</span>
+<span class="k">import</span> <span class="nn">com.typesafe.config.ConfigFactory</span><span class="o">;</span>
+</pre></div>
+</div>
+<p>The server actor can multiply or divide numbers:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="n">public</span> <span class="k">class</span> <span class="nc">JAdvancedCalculatorActor</span> <span class="k">extends</span> <span class="nc">UntypedActor</span> <span class="o">{</span>
+  <span class="nd">@Override</span>
+  <span class="n">public</span> <span class="n">void</span> <span class="n">onReceive</span><span class="o">(</span><span class="nc">Object</span> <span class="n">message</span><span class="o">)</span> <span class="n">throws</span> <span class="nc">Exception</span> <span class="o">{</span>
+
+    <span class="k">if</span> <span class="o">(</span><span class="n">message</span> <span class="n">instanceof</span> <span class="nc">Op</span><span class="o">.</span><span class="nc">Multiply</span><span class="o">)</span> <span class="o">{</span>
+      <span class="nc">Op</span><span class="o">.</span><span class="nc">Multiply</span> <span class="n">multiply</span> <span class="k">=</span> <span class="o">(</span><span class="nc">Op</span><span class="o">.</span><span class="nc">Multiply</span><span class="o">)</span> <span class="n">message</span><span class="o">;</span>
+      <span class="nc">System</span><span class="o">.</span><span class="n">out</span><span class="o">.</span><span class="n">println</span><span class="o">(</span><span class="s">&quot;Calculating &quot;</span> <span class="o">+</span> <span class="n">multiply</span><span class="o">.</span><span class="n">getN1</span><span class="o">()</span> <span class="o">+</span> <span class="s">&quot; * &quot;</span>
+          <span class="o">+</span> <span class="n">multiply</span><span class="o">.</span><span class="n">getN2</span><span class="o">());</span>
+      <span class="n">getSender</span><span class="o">().</span><span class="n">tell</span><span class="o">(</span>
+          <span class="k">new</span> <span class="nc">Op</span><span class="o">.</span><span class="nc">MultiplicationResult</span><span class="o">(</span><span class="n">multiply</span><span class="o">.</span><span class="n">getN1</span><span class="o">(),</span> <span class="n">multiply</span><span class="o">.</span><span class="n">getN2</span><span class="o">(),</span>
+              <span class="n">multiply</span><span class="o">.</span><span class="n">getN1</span><span class="o">()</span> <span class="o">*</span> <span class="n">multiply</span><span class="o">.</span><span class="n">getN2</span><span class="o">()),</span> <span class="n">getSelf</span><span class="o">());</span>
+
+    <span class="o">}</span> <span class="k">else</span> <span class="k">if</span> <span class="o">(</span><span class="n">message</span> <span class="n">instanceof</span> <span class="nc">Op</span><span class="o">.</span><span class="nc">Divide</span><span class="o">)</span> <span class="o">{</span>
+      <span class="nc">Op</span><span class="o">.</span><span class="nc">Divide</span> <span class="n">divide</span> <span class="k">=</span> <span class="o">(</span><span class="nc">Op</span><span class="o">.</span><span class="nc">Divide</span><span class="o">)</span> <span class="n">message</span><span class="o">;</span>
+      <span class="nc">System</span><span class="o">.</span><span class="n">out</span><span class="o">.</span><span class="n">println</span><span class="o">(</span><span class="s">&quot;Calculating &quot;</span> <span class="o">+</span> <span class="n">divide</span><span class="o">.</span><span class="n">getN1</span><span class="o">()</span> <span class="o">+</span> <span class="s">&quot; / &quot;</span>
+          <span class="o">+</span> <span class="n">divide</span><span class="o">.</span><span class="n">getN2</span><span class="o">());</span>
+      <span class="n">getSender</span><span class="o">().</span><span class="n">tell</span><span class="o">(</span>
+          <span class="k">new</span> <span class="nc">Op</span><span class="o">.</span><span class="nc">DivisionResult</span><span class="o">(</span><span class="n">divide</span><span class="o">.</span><span class="n">getN1</span><span class="o">(),</span> <span class="n">divide</span><span class="o">.</span><span class="n">getN2</span><span class="o">(),</span> <span class="n">divide</span><span class="o">.</span><span class="n">getN1</span><span class="o">()</span>
+              <span class="o">/</span> <span class="n">divide</span><span class="o">.</span><span class="n">getN2</span><span class="o">()),</span> <span class="n">getSelf</span><span class="o">());</span>
+
+    <span class="o">}</span> <span class="k">else</span> <span class="o">{</span>
+      <span class="n">unhandled</span><span class="o">(</span><span class="n">message</span><span class="o">);</span>
+    <span class="o">}</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+<span class="c1">// #actor</span>
+</pre></div>
+</div>
+<p>The client actor looks like in the previous example</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="n">public</span> <span class="k">class</span> <span class="nc">JCreationActor</span> <span class="k">extends</span> <span class="nc">UntypedActor</span> <span class="o">{</span>
+
+  <span class="k">private</span> <span class="k">final</span> <span class="nc">ActorRef</span> <span class="n">remoteActor</span><span class="o">;</span>
+
+  <span class="n">public</span> <span class="nc">JCreationActor</span><span class="o">(</span><span class="nc">ActorRef</span> <span class="n">remoteActor</span><span class="o">)</span> <span class="o">{</span>
+    <span class="k">this</span><span class="o">.</span><span class="n">remoteActor</span> <span class="k">=</span> <span class="n">remoteActor</span><span class="o">;</span>
+  <span class="o">}</span>
+
+  <span class="nd">@Override</span>
+  <span class="n">public</span> <span class="n">void</span> <span class="n">onReceive</span><span class="o">(</span><span class="nc">Object</span> <span class="n">message</span><span class="o">)</span> <span class="n">throws</span> <span class="nc">Exception</span> <span class="o">{</span>
+
+    <span class="k">if</span> <span class="o">(</span><span class="n">message</span> <span class="n">instanceof</span> <span class="nc">Op</span><span class="o">.</span><span class="nc">MathOp</span><span class="o">)</span> <span class="o">{</span>
+      <span class="c1">// send message to server actor</span>
+      <span class="n">remoteActor</span><span class="o">.</span><span class="n">tell</span><span class="o">(</span><span class="n">message</span><span class="o">,</span> <span class="n">getSelf</span><span class="o">());</span>
+
+    <span class="o">}</span> <span class="k">else</span> <span class="k">if</span> <span class="o">(</span><span class="n">message</span> <span class="n">instanceof</span> <span class="nc">Op</span><span class="o">.</span><span class="nc">MultiplicationResult</span><span class="o">)</span> <span class="o">{</span>
+      <span class="nc">Op</span><span class="o">.</span><span class="nc">MultiplicationResult</span> <span class="n">result</span> <span class="k">=</span> <span class="o">(</span><span class="nc">Op</span><span class="o">.</span><span class="nc">MultiplicationResult</span><span class="o">)</span> <span class="n">message</span><span class="o">;</span>
+      <span class="nc">System</span><span class="o">.</span><span class="n">out</span><span class="o">.</span><span class="n">printf</span><span class="o">(</span><span class="s">&quot;Mul result: %d * %d = %d\n&quot;</span><span class="o">,</span>
+          <span class="n">result</span><span class="o">.</span><span class="n">getN1</span><span class="o">(),</span> <span class="n">result</span><span class="o">.</span><span class="n">getN2</span><span class="o">(),</span> <span class="n">result</span><span class="o">.</span><span class="n">getResult</span><span class="o">());</span>
+
+    <span class="o">}</span> <span class="k">else</span> <span class="k">if</span> <span class="o">(</span><span class="n">message</span> <span class="n">instanceof</span> <span class="nc">Op</span><span class="o">.</span><span class="nc">DivisionResult</span><span class="o">)</span> <span class="o">{</span>
+      <span class="nc">Op</span><span class="o">.</span><span class="nc">DivisionResult</span> <span class="n">result</span> <span class="k">=</span> <span class="o">(</span><span class="nc">Op</span><span class="o">.</span><span class="nc">DivisionResult</span><span class="o">)</span> <span class="n">message</span><span class="o">;</span>
+      <span class="nc">System</span><span class="o">.</span><span class="n">out</span><span class="o">.</span><span class="n">printf</span><span class="o">(</span><span class="s">&quot;Div result: %.0f / %d = %.2f\n&quot;</span><span class="o">,</span>
+          <span class="n">result</span><span class="o">.</span><span class="n">getN1</span><span class="o">(),</span> <span class="n">result</span><span class="o">.</span><span class="n">getN2</span><span class="o">(),</span> <span class="n">result</span><span class="o">.</span><span class="n">getResult</span><span class="o">());</span>
+
+    <span class="o">}</span> <span class="k">else</span> <span class="o">{</span>
+      <span class="n">unhandled</span><span class="o">(</span><span class="n">message</span><span class="o">);</span>
+    <span class="o">}</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<p>but the setup uses only <tt class="docutils literal"><span class="pre">actorOf</span></tt>:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="n">public</span> <span class="k">class</span> <span class="nc">JCreationApplication</span> <span class="n">implements</span> <span class="nc">Bootable</span> <span class="o">{</span>
+  <span class="k">private</span> <span class="nc">ActorSystem</span> <span class="n">system</span><span class="o">;</span>
+  <span class="k">private</span> <span class="nc">ActorRef</span> <span class="n">actor</span><span class="o">;</span>
+
+  <span class="n">public</span> <span class="nc">JCreationApplication</span><span class="o">()</span> <span class="o">{</span>
+    <span class="n">system</span> <span class="k">=</span> <span class="nc">ActorSystem</span><span class="o">.</span><span class="n">create</span><span class="o">(</span><span class="s">&quot;CreationApplication&quot;</span><span class="o">,</span> <span class="nc">ConfigFactory</span><span class="o">.</span><span class="n">load</span><span class="o">()</span>
+        <span class="o">.</span><span class="n">getConfig</span><span class="o">(</span><span class="s">&quot;remotecreation&quot;</span><span class="o">));</span>
+    <span class="k">final</span> <span class="nc">ActorRef</span> <span class="n">remoteActor</span> <span class="k">=</span> <span class="n">system</span><span class="o">.</span><span class="n">actorOf</span><span class="o">(</span><span class="nc">Props</span><span class="o">.</span><span class="n">create</span><span class="o">(</span>
+      <span class="nc">JAdvancedCalculatorActor</span><span class="o">.</span><span class="n">class</span><span class="o">),</span> <span class="s">&quot;advancedCalculator&quot;</span><span class="o">);</span>
+    <span class="n">actor</span> <span class="k">=</span> <span class="n">system</span><span class="o">.</span><span class="n">actorOf</span><span class="o">(</span><span class="nc">Props</span><span class="o">.</span><span class="n">create</span><span class="o">(</span><span class="nc">JCreationActor</span><span class="o">.</span><span class="n">class</span><span class="o">,</span> <span class="n">remoteActor</span><span class="o">),</span> 
+      <span class="s">&quot;creationActor&quot;</span><span class="o">);</span>
+
+  <span class="o">}</span>
+
+  <span class="n">public</span> <span class="n">void</span> <span class="n">doSomething</span><span class="o">(</span><span class="nc">Op</span><span class="o">.</span><span class="nc">MathOp</span> <span class="n">mathOp</span><span class="o">)</span> <span class="o">{</span>
+    <span class="n">actor</span><span class="o">.</span><span class="n">tell</span><span class="o">(</span><span class="n">mathOp</span><span class="o">,</span> <span class="kc">null</span><span class="o">);</span>
+  <span class="o">}</span>
+
+  <span class="nd">@Override</span>
+  <span class="n">public</span> <span class="n">void</span> <span class="n">startup</span><span class="o">()</span> <span class="o">{</span>
+  <span class="o">}</span>
+
+  <span class="nd">@Override</span>
+  <span class="n">public</span> <span class="n">void</span> <span class="n">shutdown</span><span class="o">()</span> <span class="o">{</span>
+    <span class="n">system</span><span class="o">.</span><span class="n">shutdown</span><span class="o">();</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<p>Observe how the name of the server actor matches the deployment given in the
+configuration file, which will transparently delegate the actor creation to the
+remote node.</p>
+</div>
+<div class="section" id="pluggable-transport-support">
+<h3>Pluggable transport support</h3>
+<p>Akka can be configured to use various transports to communicate with remote systems. The core
+component of this feature is the <tt class="xref py py-meth docutils literal"><span class="pre">akka.remote.Transport</span></tt> SPI. Transport implementations must extend this trait.
+Transports can be loaded by setting the <tt class="docutils literal"><span class="pre">akka.remote.enabled-transports</span></tt> configuration key to point to one or
+more configuration sections containing driver descriptions.</p>
+<p>An example of setting up the default Netty based SSL driver as default:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="n">akka</span> <span class="o">{</span>
+  <span class="n">remote</span> <span class="o">{</span>
+    <span class="n">enabled</span><span class="o">-</span><span class="n">transports</span> <span class="k">=</span> <span class="o">[</span><span class="kt">akka.remote.netty.ssl</span><span class="o">]</span>
+
+    <span class="n">netty</span><span class="o">.</span><span class="n">ssl</span><span class="o">.</span><span class="n">security</span> <span class="o">{</span>
+      <span class="n">key</span><span class="o">-</span><span class="n">store</span> <span class="k">=</span> <span class="s">&quot;mykeystore&quot;</span>
+      <span class="n">trust</span><span class="o">-</span><span class="n">store</span> <span class="k">=</span> <span class="s">&quot;mytruststore&quot;</span>
+      <span class="n">key</span><span class="o">-</span><span class="n">store</span><span class="o">-</span><span class="n">password</span> <span class="k">=</span> <span class="s">&quot;changeme&quot;</span>
+      <span class="n">key</span><span class="o">-</span><span class="n">password</span> <span class="k">=</span> <span class="s">&quot;changeme&quot;</span>
+      <span class="n">trust</span><span class="o">-</span><span class="n">store</span><span class="o">-</span><span class="n">password</span> <span class="k">=</span> <span class="s">&quot;changeme&quot;</span>
+      <span class="n">protocol</span> <span class="k">=</span> <span class="s">&quot;TLSv1&quot;</span>
+      <span class="n">random</span><span class="o">-</span><span class="n">number</span><span class="o">-</span><span class="n">generator</span> <span class="k">=</span> <span class="s">&quot;AES128CounterSecureRNG&quot;</span>
+      <span class="n">enabled</span><span class="o">-</span><span class="n">algorithms</span> <span class="k">=</span> <span class="o">[</span><span class="kt">TLS_RSA_WITH_AES_128_CBC_SHA</span><span class="o">]</span>
+    <span class="o">}</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<p>An example of setting up a custom transport implementation:</p>
+<div class="highlight-scala"><div class="highlight"><pre>akka {
+  remote {
+    applied-transports = [&quot;akka.remote.mytransport&quot;]
+
+    mytransport {
+      # The transport-class configuration entry is required, and
+      # it must contain the fully qualified name of the transport
+      # implementation
+      transport-class = &quot;my.package.MyTransport&quot;
+
+      # It is possible to decorate Transports with additional services.
+      # Adapters should be registered in the &quot;adapters&quot; sections to
+      # be able to apply them to transports
+      applied-adapters = []
+
+      # Driver specific configuration options has to be in the same
+      # section:
+      some-config = foo
+      another-config = bar
+    }
+</pre></div>
+</div>
+</div>
+<div class="section" id="remote-events">
+<h3>Remote Events</h3>
+<p>It is possible to listen to events that occur in Akka Remote, and to subscribe/unsubscribe to these events
+you simply register as listener to the below described types in on the <tt class="docutils literal"><span class="pre">ActorSystem.eventStream</span></tt>.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">To subscribe to any remote event, subscribe to
+<tt class="xref py py-meth docutils literal"><span class="pre">RemotingLifecycleEvent</span></tt>.  To subscribe to events related only to the
+lifecycle of associations, subscribe to
+<tt class="xref py py-meth docutils literal"><span class="pre">akka.remote.AssociationEvent</span></tt>.</p>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The use of term &quot;Association&quot; instead of &quot;Connection&quot; reflects that the
+remoting subsystem may use connectionless transports, but an association
+similar to transport layer connections is maintained between endpoints by
+the Akka protocol.</p>
+</div>
+<p>By default an event listener is registered which logs all of the events
+described below. This default was chosen to help setting up a system, but it is
+quite common to switch this logging off once that phase of the project is
+finished.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">In order to switch off the logging, set
+<tt class="docutils literal"><span class="pre">akka.remote.log-remote-lifecycle-events&nbsp;=&nbsp;off</span></tt> in your
+<tt class="docutils literal"><span class="pre">application.conf</span></tt>.</p>
+</div>
+<p>To be notified when an association is over (&quot;disconnected&quot;) listen to <tt class="docutils literal"><span class="pre">DisassociatedEvent</span></tt> which
+holds the direction of the association (inbound or outbound) and the addresses of the involved parties.</p>
+<p>To be notified  when an association is successfully established (&quot;connected&quot;) listen to <tt class="docutils literal"><span class="pre">AssociatedEvent</span></tt> which
+holds the direction of the association (inbound or outbound) and the addresses of the involved parties.</p>
+<p>To intercept errors directly related to associations, listen to <tt class="docutils literal"><span class="pre">AssociationErrorEvent</span></tt> which
+holds the direction of the association (inbound or outbound), the addresses of the involved parties and the
+<tt class="docutils literal"><span class="pre">Throwable</span></tt> cause.</p>
+<p>To be notified  when the remoting subsystem is ready to accept associations, listen to <tt class="docutils literal"><span class="pre">RemotingListenEvent</span></tt> which
+contains the addresses the remoting listens on.</p>
+<p>To be notified  when the remoting subsystem has been shut down, listen to <tt class="docutils literal"><span class="pre">RemotingShutdownEvent</span></tt>.</p>
+<p>To intercept generic remoting related errors, listen to <tt class="docutils literal"><span class="pre">RemotingErrorEvent</span></tt> which holds the <tt class="docutils literal"><span class="pre">Throwable</span></tt> cause.</p>
+</div>
+</div>
+<div class="section" id="remote-security">
+<h2>Remote Security</h2>
+<p>Akka provides a couple of ways to enhance security between remote nodes (client/server):</p>
+<ul class="simple">
+<li>Untrusted Mode</li>
+<li>Security Cookie Handshake</li>
+</ul>
+<div class="section" id="untrusted-mode">
+<h3>Untrusted Mode</h3>
+<p>As soon as an actor system can connect to another remotely, it may in principle
+send any possible message to any actor contained within that remote system. One
+example may be sending a <tt class="xref py py-class docutils literal"><span class="pre">PoisonPill</span></tt> to the system guardian, shutting
+that system down. This is not always desired, and it can be disabled with the
+following setting:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="n">akka</span><span class="o">.</span><span class="n">remote</span><span class="o">.</span><span class="n">untrusted</span><span class="o">-</span><span class="n">mode</span> <span class="k">=</span> <span class="n">on</span>
+</pre></div>
+</div>
+<p>This disallows sending of system messages (actor life-cycle commands,
+DeathWatch, etc.) and any message extending <tt class="xref py py-class docutils literal"><span class="pre">PossiblyHarmful</span></tt> to the
+system on which this flag is set. Should a client send them nonetheless they
+are dropped and logged (at DEBUG level in order to reduce the possibilities for
+a denial of service attack). <tt class="xref py py-class docutils literal"><span class="pre">PossiblyHarmful</span></tt> covers the predefined
+messages like <tt class="xref py py-class docutils literal"><span class="pre">PoisonPill</span></tt> and <tt class="xref py py-class docutils literal"><span class="pre">Kill</span></tt>, but it can also be added
+as a marker trait to user-defined messages.</p>
+<p>In summary, the following operations are ignored by a system configured in
+untrusted mode when incoming via the remoting layer:</p>
+<ul class="simple">
+<li>remote deployment (which also means no remote supervision)</li>
+<li>remote DeathWatch</li>
+<li><tt class="docutils literal"><span class="pre">system.stop()</span></tt>, <tt class="xref py py-class docutils literal"><span class="pre">PoisonPill</span></tt>, <tt class="xref py py-class docutils literal"><span class="pre">Kill</span></tt></li>
+<li>sending any message which extends from the <tt class="xref py py-class docutils literal"><span class="pre">PossiblyHarmful</span></tt> marker
+interface, which includes <tt class="xref py py-class docutils literal"><span class="pre">Terminated</span></tt></li>
+</ul>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Enabling the untrusted mode does not remove the capability of the client to
+freely choose the target of its message sends, which means that messages not
+prohibited by the above rules can be sent to any actor in the remote system.
+It is good practice for a client-facing system to only contain a well-defined
+set of entry point actors, which then forward requests (possibly after
+performing validation) to another actor system containing the actual worker
+actors. If messaging between these two server-side systems is done using
+local <tt class="xref py py-class docutils literal"><span class="pre">ActorRef</span></tt> (they can be exchanged safely between actor systems
+within the same JVM), you can restrict the messages on this interface by
+marking them <tt class="xref py py-class docutils literal"><span class="pre">PossiblyHarmful</span></tt> so that a client cannot forge them.</p>
+</div>
+</div>
+<div class="section" id="secure-cookie-handshake">
+<h3>Secure Cookie Handshake</h3>
+<p>Akka remoting also allows you to specify a secure cookie that will be exchanged and ensured to be identical
+in the connection handshake between the client and the server. If they are not identical then the client
+will be refused to connect to the server.</p>
+<p>The secure cookie can be any kind of string. But the recommended approach is to generate a cryptographically
+secure cookie using this script <tt class="docutils literal"><span class="pre">$AKKA_HOME/scripts/generate_config_with_secure_cookie.sh</span></tt> or from code
+using the <tt class="docutils literal"><span class="pre">akka.util.Crypt.generateSecureCookie()</span></tt> utility method.</p>
+<p>You have to ensure that both the connecting client and the server have the same secure cookie as well
+as the <tt class="docutils literal"><span class="pre">require-cookie</span></tt> option turned on.</p>
+<p>Here is an example config:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="n">akka</span><span class="o">.</span><span class="n">remote</span> <span class="o">{</span>
+  <span class="n">secure</span><span class="o">-</span><span class="n">cookie</span> <span class="k">=</span> <span class="s">&quot;090A030E0F0A05010900000A0C0E0C0B03050D05&quot;</span>
+  <span class="n">require</span><span class="o">-</span><span class="n">cookie</span> <span class="k">=</span> <span class="n">on</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="ssl">
+<h3>SSL</h3>
+<p>SSL can be used as the remote transport by adding <tt class="docutils literal"><span class="pre">akka.remote.netty.ssl</span></tt>
+to the <tt class="docutils literal"><span class="pre">enabled-transport</span></tt> configuration section. See a description of the settings
+in the <a class="reference internal" href="#remote-configuration-java"><em>Remote Configuration</em></a> section.</p>
+<p>The SSL support is implemented with Java Secure Socket Extension, please consult the offical
+<a class="reference external" href="http://docs.oracle.com/javase/7/docs/technotes/guides/security/jsse/JSSERefGuide.html">Java Secure Socket Extension documentation</a>
+and related resources for troubleshooting.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">When using SHA1PRNG on Linux it's recommended specify <tt class="docutils literal"><span class="pre">-Djava.security.egd=file:/dev/./urandom</span></tt> as argument
+to the JVM to prevent blocking. It is NOT as secure because it reuses the seed.
+Use '/dev/./urandom', not '/dev/urandom' as that doesn't work according to
+<a class="reference external" href="http://bugs.sun.com/view_bug.do?bug_id=6202721">Bug ID: 6202721</a>.</p>
+</div>
+</div>
+</div>
+<div class="section" id="remote-configuration">
+<span id="remote-configuration-java"></span><h2>Remote Configuration</h2>
+<p>There are lots of configuration properties that are related to remoting in Akka. We refer to the following
+reference file for more information:</p>
+<div class="highlight-none"><div class="highlight"><pre>#####################################
+# Akka Remote Reference Config File #
+#####################################
+
+# This is the reference config file that contains all the default settings.
+# Make your edits/overrides in your application.conf.
+
+# comments about akka.actor settings left out where they are already in akka-
+# actor.jar, because otherwise they would be repeated in config rendering.
+
+akka {
+
+  actor {
+
+    serializers {
+      akka-containers = &quot;akka.remote.serialization.MessageContainerSerializer&quot;
+      proto = &quot;akka.remote.serialization.ProtobufSerializer&quot;
+      daemon-create = &quot;akka.remote.serialization.DaemonMsgCreateSerializer&quot;
+    }
+
+
+    serialization-bindings {
+      # Since com.google.protobuf.Message does not extend Serializable but
+      # GeneratedMessage does, need to use the more specific one here in order
+      # to avoid ambiguity
+      &quot;akka.actor.SelectionPath&quot; = akka-containers
+      &quot;com.google.protobuf.GeneratedMessage&quot; = proto
+      &quot;akka.remote.DaemonMsgCreate&quot; = daemon-create
+    }
+
+    deployment {
+
+      default {
+
+        # if this is set to a valid remote address, the named actor will be
+        # deployed at that node e.g. &quot;akka://sys@host:port&quot;
+        remote = &quot;&quot;
+
+        target {
+
+          # A list of hostnames and ports for instantiating the children of a
+          # router
+          #   The format should be on &quot;akka://sys@host:port&quot;, where:
+          #    - sys is the remote actor system name
+          #    - hostname can be either hostname or IP address the remote actor
+          #      should connect to
+          #    - port should be the port for the remote server on the other node
+          # The number of actor instances to be spawned is still taken from the
+          # nr-of-instances setting as for local routers; the instances will be
+          # distributed round-robin among the given nodes.
+          nodes = []
+
+        }
+      }
+    }
+  }
+
+  remote {
+
+    ### General settings
+
+    # Timeout after which the startup of the remoting subsystem is considered
+    # to be failed. Increase this value if your transport drivers (see the
+    # enabled-transports section) need longer time to be loaded.
+    startup-timeout = 10 s
+
+    # Timout after which the graceful shutdown of the remoting subsystem is
+    # considered to be failed. After the timeout the remoting system is
+    # forcefully shut down. Increase this value if your transport drivers
+    # (see the enabled-transports section) need longer time to stop properly.
+    shutdown-timeout = 10 s
+
+    # Before shutting down the drivers, the remoting subsystem attempts to flush
+    # all pending writes. This setting controls the maximum time the remoting is
+    # willing to wait before moving on to shut down the drivers.
+    flush-wait-on-shutdown = 2 s
+
+    # Reuse inbound connections for outbound messages
+    use-passive-connections = on
+
+    # Controls the backoff interval after a refused write is reattempted.
+    # (Transports may refuse writes if their internal buffer is full)
+    backoff-interval = 0.01 s
+
+    # Acknowledgment timeout of management commands sent to the transport stack.
+    command-ack-timeout = 30 s
+
+    # If set to a nonempty string remoting will use the given dispatcher for
+    # its internal actors otherwise the default dispatcher is used. Please note
+    # that since remoting can load arbitrary 3rd party drivers (see
+    # &quot;enabled-transport&quot; and &quot;adapters&quot; entries) it is not guaranteed that
+    # every module will respect this setting.
+    use-dispatcher = &quot;&quot;
+
+    ### Security settings
+
+    # Enable untrusted mode for full security of server managed actors, prevents
+    # system messages to be send by clients, e.g. messages like &#39;Create&#39;,
+    # &#39;Suspend&#39;, &#39;Resume&#39;, &#39;Terminate&#39;, &#39;Supervise&#39;, &#39;Link&#39; etc.
+    untrusted-mode = off
+
+    # Should the remote server require that its peers share the same
+    # secure-cookie (defined in the &#39;remote&#39; section)? Secure cookies are passed
+    # between during the initial handshake. Connections are refused if the initial
+    # message contains a mismatching cookie or the cookie is missing.
+    require-cookie = off
+
+    # Generate your own with the script availbale in
+    # &#39;$AKKA_HOME/scripts/generate_config_with_secure_cookie.sh&#39; or using
+    # &#39;akka.util.Crypt.generateSecureCookie&#39;
+    secure-cookie = &quot;&quot;
+
+    ### Logging
+
+    # If this is &quot;on&quot;, Akka will log all inbound messages at DEBUG level,
+    # if off then they are not logged
+    log-received-messages = off
+
+    # If this is &quot;on&quot;, Akka will log all outbound messages at DEBUG level,
+    # if off then they are not logged
+    log-sent-messages = off
+
+    # Sets the log granularity level at which Akka logs remoting events. This setting
+    # can take the values OFF, ERROR, WARNING, INFO, DEBUG, or ON. For compatibility
+    # reasons the setting &quot;on&quot; will default to &quot;debug&quot; level. Please note that the effective
+    # logging level is still determined by the global logging level of the actor system:
+    # for example debug level remoting events will be only logged if the system
+    # is running with debug level logging.
+    # Failures to deserialize received messages also fall under this flag.
+    log-remote-lifecycle-events = on
+
+    # Logging of message types with payload size in bytes larger than
+    # this value. Maximum detected size per message type is logged once,
+    # with an increase threshold of 10%.
+    # By default this feature is turned off. Activate it by setting the property to
+    # a value in bytes, such as 1000b. Note that for all messages larger than this
+    # limit there will be extra performance and scalability cost.
+    log-frame-size-exceeding = off
+
+    ### Failure detection and recovery
+
+    # Settings for the Phi accrual failure detector (http://ddg.jaist.ac.jp/pub/HDY+04.pdf
+    # [Hayashibara et al]) used by the remoting subsystem to detect failed
+    # connections.
+    transport-failure-detector {
+
+      # FQCN of the failure detector implementation.
+      # It must implement akka.remote.FailureDetector and have
+      # a public constructor with a com.typesafe.config.Config and
+      # akka.actor.EventStream parameter.
+      implementation-class = &quot;akka.remote.PhiAccrualFailureDetector&quot;
+
+      # How often keep-alive heartbeat messages should be sent to each connection.
+      heartbeat-interval = 1 s
+
+      # Defines the failure detector threshold.
+      # A low threshold is prone to generate many wrong suspicions but ensures
+      # a quick detection in the event of a real crash. Conversely, a high
+      # threshold generates fewer mistakes but needs more time to detect
+      # actual crashes.
+      threshold = 7.0
+
+      # Number of the samples of inter-heartbeat arrival times to adaptively
+      # calculate the failure timeout for connections.
+      max-sample-size = 100
+
+      # Minimum standard deviation to use for the normal distribution in
+      # AccrualFailureDetector. Too low standard deviation might result in
+      # too much sensitivity for sudden, but normal, deviations in heartbeat
+      # inter arrival times.
+      min-std-deviation = 100 ms
+
+      # Number of potentially lost/delayed heartbeats that will be
+      # accepted before considering it to be an anomaly.
+      # This margin is important to be able to survive sudden, occasional,
+      # pauses in heartbeat arrivals, due to for example garbage collect or
+      # network drop.
+      acceptable-heartbeat-pause = 3 s
+    }
+
+    # Settings for the Phi accrual failure detector (http://ddg.jaist.ac.jp/pub/HDY+04.pdf
+    # [Hayashibara et al]) used for remote death watch.
+    watch-failure-detector {
+
+      # FQCN of the failure detector implementation.
+      # It must implement akka.remote.FailureDetector and have
+      # a public constructor with a com.typesafe.config.Config and
+      # akka.actor.EventStream parameter.
+      implementation-class = &quot;akka.remote.PhiAccrualFailureDetector&quot;
+
+      # How often keep-alive heartbeat messages should be sent to each connection.
+      heartbeat-interval = 1 s
+
+      # Defines the failure detector threshold.
+      # A low threshold is prone to generate many wrong suspicions but ensures
+      # a quick detection in the event of a real crash. Conversely, a high
+      # threshold generates fewer mistakes but needs more time to detect
+      # actual crashes.
+      threshold = 10.0
+
+      # Number of the samples of inter-heartbeat arrival times to adaptively
+      # calculate the failure timeout for connections.
+      max-sample-size = 200
+
+      # Minimum standard deviation to use for the normal distribution in
+      # AccrualFailureDetector. Too low standard deviation might result in
+      # too much sensitivity for sudden, but normal, deviations in heartbeat
+      # inter arrival times.
+      min-std-deviation = 100 ms
+
+      # Number of potentially lost/delayed heartbeats that will be
+      # accepted before considering it to be an anomaly.
+      # This margin is important to be able to survive sudden, occasional,
+      # pauses in heartbeat arrivals, due to for example garbage collect or
+      # network drop.
+      acceptable-heartbeat-pause = 4 s
+
+
+      # How often to check for nodes marked as unreachable by the failure
+      # detector
+      unreachable-nodes-reaper-interval = 1s
+
+      # After the heartbeat request has been sent the first failure detection
+      # will start after this period, even though no heartbeat mesage has
+      # been received.
+      expected-response-after = 3 s
+
+    }
+
+    # After failed to establish an outbound connection, the remoting will mark the
+    # address as failed. This configuration option controls how much time should
+    # be elapsed before reattempting a new connection. While the address is
+    # gated, all messages sent to the address are delivered to dead-letters.
+    # If this setting is 0, the remoting will always immediately reattempt
+    # to establish a failed outbound connection and will buffer writes until
+    # it succeeds.
+    retry-gate-closed-for = 0 s
+
+    # If the retry gate function is disabled (see retry-gate-closed-for) the
+    # remoting subsystem will always attempt to reestablish failed outbound
+    # connections. The settings below together control the maximum number of
+    # reattempts in a given time window. The number of reattempts during
+    # a window of &quot;retry-window&quot; will be maximum &quot;maximum-retries-in-window&quot;.
+    retry-window = 60 s
+    maximum-retries-in-window = 3
+
+    # The length of time to gate an address whose name lookup has failed
+    # or has explicitly signalled that it will not accept connections
+    # (remote system is shutting down or the requesting system is quarantined).
+    # No connection attempts will be made to an address while it remains
+    # gated. Any messages sent to a gated address will be directed to dead
+    # letters instead. Name lookups are costly, and the time to recovery
+    # is typically large, therefore this setting should be a value in the
+    # order of seconds or minutes.
+    gate-invalid-addresses-for = 60 s
+
+    # This settings controls how long a system will be quarantined after
+    # catastrophic communication failures that result in the loss of system
+    # messages. Quarantining prevents communication with the remote system
+    # of a given UID. This function can be disabled by setting the value
+    # to &quot;off&quot;.
+    quarantine-systems-for = 60s
+
+    # This setting defines the maximum number of unacknowledged system messages
+    # allowed for a remote system. If this limit is reached the remote system is
+    # declared to be dead and its UID marked as tainted.
+    system-message-buffer-size = 1000
+
+    # This setting defines the maximum idle time after an individual
+    # acknowledgement for system messages is sent. System message delivery
+    # is guaranteed by explicit acknowledgement messages. These acks are
+    # piggybacked on ordinary traffic messages. If no traffic is detected
+    # during the time period configured here, the remoting will send out
+    # an individual ack.
+    system-message-ack-piggyback-timeout = 1 s
+
+    # This setting defines the time after messages that have not been
+    # explicitly acknowledged or negatively acknowledged are resent.
+    # Messages that were negatively acknowledged are always immediately
+    # resent.
+    resend-interval = 1 s
+
+    ### Transports and adapters
+
+    # List of the transport drivers that will be loaded by the remoting.
+    # A list of fully qualified config paths must be provided where
+    # the given configuration path contains a transport-class key
+    # pointing to an implementation class of the Transport interface.
+    # If multiple transports are provided, the address of the first
+    # one will be used as a default address.
+    enabled-transports = [&quot;akka.remote.netty.tcp&quot;]
+
+    # Transport drivers can be augmented with adapters by adding their
+    # name to the applied-adapters setting in the configuration of a
+    # transport. The available adapters should be configured in this
+    # section by providing a name, and the fully qualified name of
+    # their corresponding implementation. The class given here
+    # must implement akka.akka.remote.transport.TransportAdapterProvider
+    # and have public constructor without parameters.
+    adapters {
+      gremlin = &quot;akka.remote.transport.FailureInjectorProvider&quot;
+      trttl = &quot;akka.remote.transport.ThrottlerProvider&quot;
+    }
+
+    ### Default configuration for the Netty based transport drivers
+
+    netty.tcp {
+      # The class given here must implement the akka.remote.transport.Transport
+      # interface and offer a public constructor which takes two arguments:
+      #  1) akka.actor.ExtendedActorSystem
+      #  2) com.typesafe.config.Config
+      transport-class = &quot;akka.remote.transport.netty.NettyTransport&quot;
+
+      # Transport drivers can be augmented with adapters by adding their
+      # name to the applied-adapters list. The last adapter in the
+      # list is the adapter immediately above the driver, while
+      # the first one is the top of the stack below the standard
+      # Akka protocol
+      applied-adapters = []
+
+      transport-protocol = tcp
+
+      # The default remote server port clients should connect to.
+      # Default is 2552 (AKKA), use 0 if you want a random available port
+      # This port needs to be unique for each actor system on the same machine.
+      port = 2552
+
+      # The hostname or ip to bind the remoting to,
+      # InetAddress.getLocalHost.getHostAddress is used if empty
+      hostname = &quot;&quot;
+
+      # Enables SSL support on this transport
+      enable-ssl = false
+
+      # Sets the connectTimeoutMillis of all outbound connections,
+      # i.e. how long a connect may take until it is timed out
+      connection-timeout = 15 s
+
+      # If set to &quot;&lt;id.of.dispatcher&gt;&quot; then the specified dispatcher
+      # will be used to accept inbound connections, and perform IO. If &quot;&quot; then
+      # dedicated threads will be used.
+      # Please note that the Netty driver only uses this configuration and does
+      # not read the &quot;akka.remote.use-dispatcher&quot; entry. Instead it has to be
+      # configured manually to point to the same dispatcher if needed.
+      use-dispatcher-for-io = &quot;&quot;
+
+      # Sets the high water mark for the in and outbound sockets,
+      # set to 0b for platform default
+      write-buffer-high-water-mark = 0b
+
+      # Sets the low water mark for the in and outbound sockets,
+      # set to 0b for platform default
+      write-buffer-low-water-mark = 0b
+
+      # Sets the send buffer size of the Sockets,
+      # set to 0b for platform default
+      send-buffer-size = 256000b
+
+      # Sets the receive buffer size of the Sockets,
+      # set to 0b for platform default
+      receive-buffer-size = 256000b
+
+      # Maximum message size the transport will accept, but at least
+      # 32000 bytes.
+      # Please note that UDP does not support arbitrary large datagrams,
+      # so this setting has to be chosen carefully when using UDP.
+      # Both send-buffer-size and receive-buffer-size settings has to
+      # be adjusted to be able to buffer messages of maximum size.
+      maximum-frame-size = 128000b
+
+      # Sets the size of the connection backlog
+      backlog = 4096
+
+      # Enables the TCP_NODELAY flag, i.e. disables Nagle’s algorithm
+      tcp-nodelay = on
+
+      # Enables TCP Keepalive, subject to the O/S kernel’s configuration
+      tcp-keepalive = on
+
+      # Enables SO_REUSEADDR, which determines when an ActorSystem can open
+      # the specified listen port (the meaning differs between *nix and Windows)
+      # Valid values are &quot;on&quot;, &quot;off&quot; and &quot;off-for-windows&quot;
+      # due to the following Windows bug: http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=4476378
+      # &quot;off-for-windows&quot; of course means that it&#39;s &quot;on&quot; for all other platforms
+      tcp-reuse-addr = off-for-windows
+
+      # Used to configure the number of I/O worker threads on server sockets
+      server-socket-worker-pool {
+        # Min number of threads to cap factor-based number to
+        pool-size-min = 2
+
+        # The pool size factor is used to determine thread pool size
+        # using the following formula: ceil(available processors * factor).
+        # Resulting size is then bounded by the pool-size-min and
+        # pool-size-max values.
+        pool-size-factor = 1.0
+
+        # Max number of threads to cap factor-based number to
+        pool-size-max = 2
+      }
+
+      # Used to configure the number of I/O worker threads on client sockets
+      client-socket-worker-pool {
+        # Min number of threads to cap factor-based number to
+        pool-size-min = 2
+
+        # The pool size factor is used to determine thread pool size
+        # using the following formula: ceil(available processors * factor).
+        # Resulting size is then bounded by the pool-size-min and
+        # pool-size-max values.
+        pool-size-factor = 1.0
+
+        # Max number of threads to cap factor-based number to
+        pool-size-max = 2
+      }
+
+
+    }
+
+    netty.udp = ${akka.remote.netty.tcp}
+    netty.udp {
+      transport-protocol = udp
+    }
+
+    netty.ssl = ${akka.remote.netty.tcp}
+    netty.ssl = {
+      # Enable SSL/TLS encryption.
+      # This must be enabled on both the client and server to work.
+      enable-ssl = true
+
+      security {
+        # This is the Java Key Store used by the server connection
+        key-store = &quot;keystore&quot;
+
+        # This password is used for decrypting the key store
+        key-store-password = &quot;changeme&quot;
+
+        # This password is used for decrypting the key
+        key-password = &quot;changeme&quot;
+
+        # This is the Java Key Store used by the client connection
+        trust-store = &quot;truststore&quot;
+
+        # This password is used for decrypting the trust store
+        trust-store-password = &quot;changeme&quot;
+
+        # Protocol to use for SSL encryption, choose from:
+        # Java 6 &amp; 7:
+        #   &#39;SSLv3&#39;, &#39;TLSv1&#39;
+        # Java 7:
+        #   &#39;TLSv1.1&#39;, &#39;TLSv1.2&#39;
+        protocol = &quot;TLSv1&quot;
+
+        # Example: [&quot;TLS_RSA_WITH_AES_128_CBC_SHA&quot;, &quot;TLS_RSA_WITH_AES_256_CBC_SHA&quot;]
+        # You need to install the JCE Unlimited Strength Jurisdiction Policy
+        # Files to use AES 256.
+        # More info here:
+        # http://docs.oracle.com/javase/7/docs/technotes/guides/security/SunProviders.html#SunJCEProvider
+        enabled-algorithms = [&quot;TLS_RSA_WITH_AES_128_CBC_SHA&quot;]
+
+        # There are three options, in increasing order of security:
+        # &quot;&quot; or SecureRandom =&gt; (default)
+        # &quot;SHA1PRNG&quot; =&gt; Can be slow because of blocking issues on Linux
+        # &quot;AES128CounterSecureRNG&quot; =&gt; fastest startup and based on AES encryption
+        # algorithm
+        # &quot;AES256CounterSecureRNG&quot;
+        # The following use one of 3 possible seed sources, depending on
+        # availability: /dev/random, random.org and SecureRandom (provided by Java)
+        # &quot;AES128CounterInetRNG&quot;
+        # &quot;AES256CounterInetRNG&quot; (Install JCE Unlimited Strength Jurisdiction
+        # Policy Files first)
+        # Setting a value here may require you to supply the appropriate cipher
+        # suite (see enabled-algorithms section above)
+        random-number-generator = &quot;&quot;
+      }
+    }
+
+    ### Default configuration for the failure injector transport adapter
+
+    gremlin {
+      # Enable debug logging of the failure injector transport adapter
+      debug = off
+    }
+
+  }
+
+}
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p>Setting properties like the listening IP and port number programmatically is
+best done by using something like the following:</p>
+<div class="last highlight-scala"><div class="highlight"><pre><span class="nc">ConfigFactory</span><span class="o">.</span><span class="n">parseString</span><span class="o">(</span><span class="s">&quot;akka.remote.netty.tcp.hostname=\&quot;1.2.3.4\&quot;&quot;</span><span class="o">)</span>
+    <span class="o">.</span><span class="n">withFallback</span><span class="o">(</span><span class="nc">ConfigFactory</span><span class="o">.</span><span class="n">load</span><span class="o">());</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+
+
+          </div>
+          <div class="span3"><p class="contents-title">Contents</p>
+              <div id="scroller-anchor">
+                <div id="scroller">
+                  <div id="toc"></div>
+                </div>
+              </div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="footer">
+  <div class="container">
+    <ul>
+      <li><h5>Akka</h5></li>
+      <li><a href="https://akka.io/docs">Documentation</a></li>
+      <li><a href="https://akka.io/faq">FAQ</a></li>
+      <li><a href="http://typesafe.com/stack/downloads/akka">Downloads</a></li>
+      <li><a href="https://akka.io/news">News</a></li>
+      <li><a href="http://letitcrash.com">Blog</a></li>
+    </ul>
+    <ul>
+      <li><h5>Contribute</h5></li>
+      <li><a href="https://akka.io/community">Community Projects</a></li>
+      <li><a href="http://github.com/akka/akka">Source Code</a></li>
+      <li><a href="http://groups.google.com/group/akka-user">Mailing List</a></li>      
+      <li><a href="https://doc.akka.io/docs/akka/current/project/issue-tracking.html">Report a Bug</a></li>      
+    </ul>
+    <ul>
+      <li><h5>Company</h5></li>
+      <li><a href="http://typesafe.com/products/typesafe-subscription">Commercial Support</a></li>
+      <li><a href="https://akka.io/team">Team</a></li>
+      <li><a href="mailto:info@typesafe.com">Contact</a></li>
+    </ul>
+    <ul>
+      <li><img src="../_static/watermark.png" align="center"/></li>
+    </ul>
+  </div>
+  <div class="container copyright">
+    <p style="float: left;">
+      © 2013 <a href="http://typesafe.com/">Typesafe Inc.</a> <span class="license">Akka is Open Source and available under the Apache 2 License.</span>
+    </p>
+    <p style="float: right; font-size: 12px;">
+      Last updated: Feb 19, 2015
+    </p>          
+  </div>
+</div>
+<script src="http://www.google.com/jsapi" type="text/javascript"></script>
+<script type="text/javascript">
+    google.load('search', '1', {language : 'en', style : google.loader.themes.MINIMALIST});
+    google.setOnLoadCallback(function() {
+    var customSearchOptions = {};  var customSearchControl = new google.search.CustomSearchControl(
+    '003065520604945464838:izzukx8-qba', customSearchOptions);
+    customSearchControl.setResultSetSize(google.search.Search.FILTERED_CSE_RESULTSET);
+    customSearchControl.draw('cse');
+    var path = window.location.pathname.split('/').slice(0,4);
+    if(window.location.hostname && path.length >= 4) {
+    var site = "site:" + window.location.hostname + path.join('/').toString();
+    customSearchControl.setSearchStartingCallback(this, function(c, s, q) { s.setQueryAddition(site); });
+    }
+    }, true);
+</script>
+<style type="text/css">
+    .gsc-control-cse {
+    font-family: Arial, sans-serif;
+    border-color: rgb(242, 242, 235);
+    background-color: rgb(242, 242, 235);
+    }
+    .gsc-control-cse .gsc-table-result {
+      font-family: Arial, sans-serif;
+      display: block;
+    }
+    input.gsc-input {
+    border-color: #BBBBBB;
+    }
+    input.gsc-search-button {
+    border-color: rgb(34, 57, 64);
+    background-color: rgb(68, 114, 129);
+    color: #FFFFFF;
+    }
+    .gsc-tabHeader.gsc-tabhInactive {
+    border-color: #777777;
+    background-color: #777777;
+    }
+    .gsc-tabHeader.gsc-tabhActive {
+    border-color: #333333;
+    background-color: #333333;
+    }
+    .gsc-tabsArea {
+    border-color: #333333;
+    }
+    .gsc-webResult.gsc-result,
+    .gsc-results .gsc-imageResult {
+      border-color: #666666;
+      background-color: #FFFFFF;
+      padding: 0.5em 0.5em;
+    }
+    .gsc-webResult.gsc-result:hover,
+    .gsc-imageResult:hover {
+      border-color: #AAAAAA;
+      background-color: #FFFFFF;
+      padding: 0.5em 0.5em;
+    }
+    .gsc-webResult.gsc-result.gsc-promotion:hover {
+    border-color: #AAAAAA;
+    background-color: #FFFFFF;
+    }
+    .gs-webResult.gs-result a.gs-title:link,
+    .gs-webResult.gs-result a.gs-title:link b,
+    .gs-imageResult a.gs-title:link,
+    .gs-imageResult a.gs-title:link b {
+    color: #444444;
+    }
+    .gs-webResult.gs-result a.gs-title:visited,
+    .gs-webResult.gs-result a.gs-title:visited b,
+    .gs-imageResult a.gs-title:visited,
+    .gs-imageResult a.gs-title:visited b {
+    color: #444444;
+    }
+    .gs-webResult.gs-result a.gs-title:hover,
+    .gs-webResult.gs-result a.gs-title:hover b,
+    .gs-imageResult a.gs-title:hover,
+    .gs-imageResult a.gs-title:hover b {
+    color: #444444;
+    }
+    .gs-webResult.gs-result a.gs-title:active,
+    .gs-webResult.gs-result a.gs-title:active b,
+    .gs-imageResult a.gs-title:active,
+    .gs-imageResult a.gs-title:active b {
+    color: #777777;
+    }
+    .gsc-cursor-page {
+    color: #444444;
+    }
+    a.gsc-trailing-more-results:link {
+    color: #444444;
+    }
+    .gs-webResult .gs-snippet,
+    .gs-imageResult .gs-snippet,
+    .gs-fileFormatType {
+    color: #333333;
+    }
+    .gs-webResult div.gs-visibleUrl,
+    .gs-imageResult div.gs-visibleUrl {
+    color: #000000;
+    }
+    .gs-webResult div.gs-visibleUrl-short {
+    color: #000000;
+    }
+    .gs-webResult div.gs-visibleUrl-short {
+    display: none;
+    }
+    .gs-webResult div.gs-visibleUrl-long {
+    display: block;
+    }
+    .gs-promotion div.gs-visibleUrl-short {
+    display: none;
+    }
+    .gs-promotion div.gs-visibleUrl-long {
+    display: block;
+    }
+    .gsc-cursor-box {
+    border-color: #FFFFFF;
+    }
+    .gsc-results .gsc-cursor-box .gsc-cursor-page {
+    border-color: #777777;
+    background-color: #FFFFFF;
+    color: #444444;
+    }
+    .gsc-results .gsc-cursor-box .gsc-cursor-current-page {
+    border-color: #333333;
+    background-color: #333333;
+    color: #444444;
+    }
+    .gsc-webResult.gsc-result.gsc-promotion {
+    border-color: #CCCCCC;
+    background-color: #E6E6E6;
+    }
+    .gsc-completion-title {
+    color: #444444;
+    }
+    .gsc-completion-snippet {
+    color: #333333;
+    }
+    .gs-promotion a.gs-title:link,
+    .gs-promotion a.gs-title:link *,
+    .gs-promotion .gs-snippet a:link {
+    color: #0000CC;
+    }
+    .gs-promotion a.gs-title:visited,
+    .gs-promotion a.gs-title:visited *,
+    .gs-promotion .gs-snippet a:visited {
+    color: #0000CC;
+    }
+    .gs-promotion a.gs-title:hover,
+    .gs-promotion a.gs-title:hover *,
+    .gs-promotion .gs-snippet a:hover {
+    color: #444444;
+    }
+    .gs-promotion a.gs-title:active,
+    .gs-promotion a.gs-title:active *,
+    .gs-promotion .gs-snippet a:active {
+    color: #00CC00;
+    }
+    .gs-promotion .gs-snippet,
+    .gs-promotion .gs-title .gs-promotion-title-right,
+    .gs-promotion .gs-title .gs-promotion-title-right *  {
+    color: #333333;
+    }
+    .gs-promotion .gs-visibleUrl,
+    .gs-promotion .gs-visibleUrl-short {
+    color: #00CC00;
+    }
+</style>
+<script type="text/javascript">
+  $('#toc').toc();
+</script>
+  
+
+  </body>
+</html>

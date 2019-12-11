@@ -1,0 +1,554 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" /><meta name="description" content="Akka is a toolkit for building highly concurrent, distributed, and resilient message-driven applications for Java and Scala."/><link rel="canonical" href="https://doc.akka.io/docs/akka/2.3/project/migration-guide-eventsourced-2.3.x.html"/>
+    
+    <title>Migration Guide Eventsourced to Akka Persistence 2.3.x &mdash; Akka Documentation</title>
+    
+    <link rel="stylesheet" href="../_static/style.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/prettify.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/base.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
+    <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,600,700" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '2.3.16',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="../_static/toc.js"></script>
+    <script type="text/javascript" src="../_static/prettify.js"></script>
+    <script type="text/javascript" src="../_static/highlightCode.js"></script>
+    <script type="text/javascript" src="../_static/effects.core.js"></script>
+    <script type="text/javascript" src="../_static/effects.highlight.js"></script>
+    <script type="text/javascript" src="../_static/scrollTo.js"></script>
+    <script type="text/javascript" src="../_static/contentsFix.js"></script>
+    <script type="text/javascript" src="../_static/ga.js"></script>
+    <link rel="shortcut icon" href="../_static/favicon.ico"/>
+    <link rel="top" title="Akka Documentation" href="../index.html" />
+    <link rel="up" title="Migration Guides" href="migration-guides.html" />
+    <link rel="next" title="Issue Tracking" href="issue-tracking.html" />
+    <link rel="prev" title="Migration Guide Akka Persistence (experimental) 2.3.3 to 2.3.4 (and 2.4.x)" href="migration-guide-persistence-experimental-2.3.x-2.4.x.html" />
+    <!--Google Analytics-->
+    <script type="text/javascript">
+      var _gaq = _gaq || [];
+      _gaq.push(['_setAccount', 'UA-21117439-1']);
+      _gaq.push(['_setDomainName', 'akka.io']);
+      _gaq.push(['_trackPageview']);
+      (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+      })()
+    </script>
+    <!--Google Analytics & Marketo-->
+    <script type="text/javascript">
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+      (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+      m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+      ga('create', 'UA-23127719-1', 'typesafe.com', {'allowLinker': true, 'name': 'tsTracker'});
+      ga('tsTracker.require', 'linker');
+      ga('tsTracker.linker:autoLink', ['typesafe.com','playframework.com','scala-lang.org','scaladays.org','spray.io','akka.io','scala-sbt.org','scala-ide.org']);
+      ga('tsTracker.send', 'pageview');
+      
+      (function() {
+          var didInit = false;
+          function initMunchkin() {
+          if(didInit === false) {
+            didInit = true;
+            Munchkin.init('558-NCX-702');
+          }
+          }
+          var s = document.createElement('script');
+          s.type = 'text/javascript';
+          s.async = true;
+          s.src = '//munchkin.marketo.net/munchkin.js';
+          s.onreadystatechange = function() {
+          if (this.readyState == 'complete' || this.readyState == 'loaded') {
+            initMunchkin();
+          }
+          };
+          s.onload = initMunchkin;
+          document.getElementsByTagName('head')[0].appendChild(s);
+        })();
+    </script>
+
+  </head>
+  <body role="document">
+  <div class="navbar">
+    <div class="navbar-inner">
+      <div class="container">
+        <div class="navbar-logo">
+          <a href="https://akka.io"><img class="svg-logo" src="../_static/akka_full_color.svg" /></a>
+        </div>    
+        <ul class="nav">
+          <li><a href="https://akka.io/docs">Documentation</a></li>
+          <li><a href="https://akka.io/faq">FAQ</a></li>
+          <li><a href="https://akka.io/downloads">Download</a></li>
+          <li><a href="http://groups.google.com/group/akka-user">Mailing List</a></li>
+          <li><a href="http://github.com/akka/akka">Code</a></li>           
+          <li><a href="http://www.typesafe.com/how/subscription">Commercial Support</a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="main">
+    <div class="container">
+      <div class="page-title">Migration Guide Eventsourced to Akka Persistence 2.3.x</div>
+      <div class="pdf-link"><a href="../AkkaScala.pdf" title="Akka Scala Documentation"><img src="../_static/pdf-scala-icon.png" style="height: 40px;" /></a></div>
+      <div class="pdf-link"><a href="../AkkaJava.pdf" title="Akka Java Documentation"><img src="../_static/pdf-java-icon.png" style="height: 40px;" /></a></div>
+    </div>
+    <div class="main-container">
+      <div class="container">
+        <div class="row">
+          <div class="span12">
+            <ul class="breadcrumb">           
+              <li>
+                 <span class="divider">|</span> <a href="issue-tracking.html">Issue Tracking</a> <span class="divider">»</span>
+              </li>
+              <li>
+                <a href="../index.html">Contents</a>
+              </li>
+              <li>
+                <span class="divider">«</span> <a href="migration-guide-persistence-experimental-2.3.x-2.4.x.html">Migration Guide Akka Persistence (experimental) 2.3.3 to 2.3.4 (and 2.4.x)</a> <span class="divider">|</span>
+              </li>
+              <li>
+                Version 2.3.16
+              </li>
+            </ul>
+          </div>
+        </div>
+        <div class="row">
+          <div class="span9">
+            <div id="cse">Loading</div>
+          </div><div class="span9">
+            
+  <div class="section" id="migration-guide-eventsourced-to-akka-persistence-2-3-x">
+<span id="migration-eventsourced-2-3"></span><h1>Migration Guide Eventsourced to Akka Persistence 2.3.x</h1>
+<div class="section" id="general-notes">
+<h2>General notes</h2>
+<p><a class="reference external" href="https://github.com/eligosource/eventsourced">Eventsourced</a> and Akka <a class="reference internal" href="../scala/persistence.html#persistence-scala"><span class="std std-ref">Persistence</span></a> share many high-level concepts but strongly differ on design,
+implementation and usage level. This migration guide is more a higher-level comparison of Eventsourced and Akka
+Persistence rather than a sequence of low-level instructions how to transform Eventsourced application code into
+Akka Persistence application code. This should provide a good starting point for a migration effort. Development
+teams should consult the user documentation of both projects for further details.</p>
+<p>Scope of this migration guide is code migration, not journal migration. Journals written by Eventsourced can neither
+be used directly Akka Persistence nor migrated to Akka Persistence compatible journals. Journal migration tools may
+be provided in the future but do not exist at the moment.</p>
+</div>
+<div class="section" id="extensions">
+<h2>Extensions</h2>
+<p>Eventsourced and Akka Persistence are both <a class="reference internal" href="../scala/extending-akka.html#extending-akka-scala"><span class="std std-ref">Akka Extensions</span></a>.</p>
+<p><strong>Eventsourced:</strong> <code class="docutils literal"><span class="pre">EventsourcingExtension</span></code></p>
+<ul class="simple">
+<li>Must be explicitly created with an actor system and an application-defined journal actor as arguments.
+(see <a class="reference external" href="https://github.com/eligosource/eventsourced#step-1-eventsourcingextension-initialization">example usage</a>).</li>
+<li><a class="reference external" href="https://github.com/eligosource/eventsourced#processor">Processors</a> and
+<a class="reference external" href="https://github.com/eligosource/eventsourced#channel">Channels</a>
+must be created with the factory methods <code class="docutils literal"><span class="pre">processorOf</span></code> and <code class="docutils literal"><span class="pre">channelOf</span></code> defined on <code class="docutils literal"><span class="pre">EventsourcingExtension</span></code>.</li>
+<li>Is a central registry of created processors and channels.</li>
+</ul>
+<p><strong>Akka Persistence:</strong> <code class="docutils literal"><span class="pre">Persistence</span></code> extension</p>
+<ul class="simple">
+<li>Must <strong>not</strong> be explicitly created by an application. A <code class="docutils literal"><span class="pre">Persistence</span></code> extension is implicitly created upon first
+<cite>PersistentActor`</cite> creation. Journal actors are automatically created from a journal plugin configuration (see
+<a class="reference internal" href="../scala/persistence.html#journal-plugin-api"><span class="std std-ref">Journal plugin API</span></a>).</li>
+<li><code class="docutils literal"><span class="pre">PersistentActor</span></code>  can be created like any other actor with <code class="docutils literal"><span class="pre">actorOf</span></code> without using the
+<code class="docutils literal"><span class="pre">Persistence</span></code> extension.</li>
+<li>Is <strong>not</strong> a central registry of persistent actors.</li>
+</ul>
+</div>
+<div class="section" id="processors-persistentactor">
+<h2>Processors / PersistentActor</h2>
+<p><strong>Eventsourced:</strong> <code class="docutils literal"><span class="pre">Eventsourced</span></code></p>
+<ul class="simple">
+<li>Stackable trait that adds journaling (write-ahead-logging) to actors (see processor
+<a class="reference external" href="https://github.com/eligosource/eventsourced#step-2-event-sourced-actor-definition">definition</a> and
+<a class="reference external" href="https://github.com/eligosource/eventsourced#step-3-event-sourced-actor-creation-and-recovery">creation</a>).
+Name <code class="docutils literal"><span class="pre">Eventsourced</span></code> caused some confusion in the past as many examples used <code class="docutils literal"><span class="pre">Eventsourced</span></code> processors
+for <em>command sourcing</em>. See also
+<a class="reference external" href="https://github.com/eligosource/eventsourced/wiki/FAQ#wiki-event-sourcing-comparison">this FAQ entry</a> for
+clarification.</li>
+<li>Must be explicitly <a class="reference external" href="https://github.com/eligosource/eventsourced#recovery">recovered</a> using recovery methods
+on  <code class="docutils literal"><span class="pre">EventsourcingExtension</span></code>. Applications are responsible for avoiding an interference of replayed messages
+and new messages i.e. applications have to explicitly wait for recovery to complete. Recovery on processor
+re-start is not supported out-of-the box.</li>
+<li>Journaling-preserving <a class="reference external" href="https://github.com/eligosource/eventsourced#behavior-changes">behavior changes</a> are
+only possible with special-purpose methods <code class="docutils literal"><span class="pre">become</span></code> and <code class="docutils literal"><span class="pre">unbecome</span></code>, in addition to non-journaling-preserving
+behavior changes with default methods <code class="docutils literal"><span class="pre">context.become</span></code> and <code class="docutils literal"><span class="pre">context.unbecome</span></code>.</li>
+<li>Writes messages of type <code class="docutils literal"><span class="pre">Message</span></code> to the journal (see processor
+<a class="reference external" href="https://github.com/eligosource/eventsourced#step-4-event-sourced-actor-usage">usage</a>).
+<a class="reference external" href="https://github.com/eligosource/eventsourced#sender-references">Sender references</a>
+are not stored in the journal i.e. the sender reference of a replayed message is always <code class="docutils literal"><span class="pre">system.deadLetters</span></code>.</li>
+<li>Supports <a class="reference external" href="https://github.com/eligosource/eventsourced#snapshots">snapshots</a>.</li>
+<li>Identifiers are of type <code class="docutils literal"><span class="pre">Int</span></code> and must be application-defined.</li>
+<li>Does not support batch-writes of messages to the journal.</li>
+<li>Does not support stashing of messages.</li>
+</ul>
+<p><strong>Akka Persistence:</strong> <code class="docutils literal"><span class="pre">PersistentActor</span></code></p>
+<ul class="simple">
+<li>Trait that adds journaling to actors (see <a class="reference internal" href="../scala/persistence.html#event-sourcing"><span class="std std-ref">Event sourcing</span></a>) and used by applications for
+<em>event sourcing</em> or <em>command sourcing</em>. Corresponds to <code class="docutils literal"><span class="pre">Eventsourced</span></code> processors in Eventsourced but is not a stackable trait.</li>
+<li>Automatically recovers on start and re-start, by default. <a class="reference internal" href="../scala/persistence.html#recovery"><span class="std std-ref">Recovery</span></a> can be customized or turned off by
+overriding actor life cycle hooks <code class="docutils literal"><span class="pre">preStart</span></code> and <code class="docutils literal"><span class="pre">preRestart</span></code>. <code class="docutils literal"><span class="pre">Processor</span></code> takes care that new messages
+never interfere with replayed messages. New messages are internally buffered until recovery completes.</li>
+<li>No special-purpose behavior change methods. Default behavior change methods <code class="docutils literal"><span class="pre">context.become</span></code> and
+<code class="docutils literal"><span class="pre">context.unbecome</span></code> can be used and are journaling-preserving.</li>
+<li>Sender references are written to the journal. Sender references of type <code class="docutils literal"><span class="pre">PromiseActorRef</span></code> are
+not journaled, they are <code class="docutils literal"><span class="pre">system.deadLetters</span></code> on replay.</li>
+<li>Supports <a class="reference internal" href="../scala/persistence.html#snapshots"><span class="std std-ref">Snapshots</span></a>.</li>
+<li><a class="reference internal" href="../scala/persistence.html#persistence-identifiers"><span class="std std-ref">Identifiers</span></a> are of type <code class="docutils literal"><span class="pre">String</span></code>, have a default value and can be overridden by applications.</li>
+<li>Supports <a class="reference internal" href="../scala/persistence.html#batch-writes"><span class="std std-ref">Batch writes</span></a>.</li>
+<li>Supports stashing of messages.</li>
+</ul>
+</div>
+<div class="section" id="id1">
+<h2>Channels</h2>
+<p><strong>Eventsourced:</strong> <code class="docutils literal"><span class="pre">DefaultChannel</span></code></p>
+<ul class="simple">
+<li>Prevents redundant delivery of messages to a destination (see
+<a class="reference external" href="https://github.com/eligosource/eventsourced#step-5-channel-usage">usage example</a> and
+<a class="reference external" href="https://github.com/eligosource/eventsourced#defaultchannel">default channel</a>).</li>
+<li>Is associated with a single destination actor reference. A new incarnation of the destination is not automatically
+resolved by the channel. In this case a new channel must be created.</li>
+<li>Must be explicitly activated using methods <code class="docutils literal"><span class="pre">deliver</span></code> or <code class="docutils literal"><span class="pre">recover</span></code> defined on <code class="docutils literal"><span class="pre">EventsourcingExtension</span></code>.</li>
+<li>Must be activated <strong>after</strong> all processors have been activated. Depending on the
+<a class="reference external" href="https://github.com/eligosource/eventsourced#recovery">recovery</a> method, this is either done automatically or must
+be followed by the application (see <a class="reference external" href="https://github.com/eligosource/eventsourced#non-blocking-recovery">non-blocking recovery</a>).
+This is necessary for a network of processors and channels to recover consistently.</li>
+<li>Does not redeliver messages on missing or negative delivery confirmation.</li>
+<li>Cannot be used standalone.</li>
+</ul>
+<p><strong>Eventsourced:</strong> <code class="docutils literal"><span class="pre">ReliableChannel</span></code></p>
+<ul class="simple">
+<li>Provides <code class="docutils literal"><span class="pre">DefaultChannel</span></code> functionality plus persistence and recovery from sender JVM crashes (see <a class="reference external" href="https://github.com/eligosource/eventsourced#reliablechannel">ReliableChannel</a>). Also provides message redelivery in case of missing
+or negative delivery confirmations.</li>
+<li>Delivers next message to a destination only if previous message has been successfully delivered (flow control is
+done by destination).</li>
+<li>Stops itself when the maximum number of redelivery attempts has been reached.</li>
+<li>Cannot reply on persistence.</li>
+<li>Can be used standalone.</li>
+</ul>
+<p><strong>Akka Persistence:</strong> <code class="docutils literal"><span class="pre">AtLeastOnceDelivery</span></code></p>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">AtLeastOnceDelivery</span></code> trait is mixed in to a <code class="docutils literal"><span class="pre">PersistentActor</span></code></li>
+<li>Does not prevent redundant delivery of messages to a destination</li>
+<li>Is not associated with a single destination. A destination can be specified with each <code class="docutils literal"><span class="pre">deliver</span></code> request and is
+referred to by an actor path. A destination path is resolved to the current destination incarnation during delivery
+(via <code class="docutils literal"><span class="pre">actorSelection</span></code>).</li>
+<li>Redelivers messages on missing delivery confirmation. In contrast to Eventsourced, Akka
+Persistence doesn't distinguish between missing and negative confirmations. It only has a notion of missing
+confirmations using timeouts (which are closely related to negative confirmations as both trigger message
+redelivery).</li>
+</ul>
+</div>
+<div class="section" id="views">
+<h2>Views</h2>
+<p><strong>Eventsourced:</strong></p>
+<ul class="simple">
+<li>No direct support for views. Only way to maintain a view is to use a channel and a processor as destination.</li>
+</ul>
+<p><strong>Akka Persistence:</strong> <code class="docutils literal"><span class="pre">View</span></code></p>
+<ul class="simple">
+<li>Receives the message stream written by a <code class="docutils literal"><span class="pre">PersistentActor</span></code> by reading it directly from the
+journal (see <a class="reference internal" href="../scala/persistence.html#persistent-views"><span class="std std-ref">Persistent Views</span></a>). Alternative to using channels. Useful in situations where actors shall receive a
+persistent message stream in correct order without duplicates.</li>
+<li>Supports <a class="reference internal" href="../scala/persistence.html#snapshots"><span class="std std-ref">Snapshots</span></a>.</li>
+</ul>
+</div>
+<div class="section" id="serializers">
+<h2>Serializers</h2>
+<p><strong>Eventsourced:</strong></p>
+<ul class="simple">
+<li>Uses a protobuf serializer for serializing <code class="docutils literal"><span class="pre">Message</span></code> objects.</li>
+<li>Delegates to a configurable Akka serializer for serializing <code class="docutils literal"><span class="pre">Message</span></code> payloads.</li>
+<li>Delegates to a configurable, proprietary (stream) serializer for serializing snapshots.</li>
+<li>See <a class="reference external" href="https://github.com/eligosource/eventsourced#serialization">Serialization</a>.</li>
+</ul>
+<p><strong>Akka Persistence:</strong></p>
+<ul class="simple">
+<li>Uses a protobuf serializer for serializing <code class="docutils literal"><span class="pre">Persistent</span></code> objects.</li>
+<li>Delegates to a configurable Akka serializer for serializing <code class="docutils literal"><span class="pre">Persistent</span></code> payloads.</li>
+<li>Delegates to a configurable Akka serializer for serializing snapshots.</li>
+<li>See <a class="reference internal" href="../scala/persistence.html#custom-serialization"><span class="std std-ref">Custom serialization</span></a>.</li>
+</ul>
+</div>
+<div class="section" id="sequence-numbers">
+<h2>Sequence numbers</h2>
+<p><strong>Eventsourced:</strong></p>
+<ul class="simple">
+<li>Generated on a per-journal basis.</li>
+</ul>
+<p><strong>Akka Persistence:</strong></p>
+<ul class="simple">
+<li>Generated on a per persistent actor basis.</li>
+</ul>
+</div>
+<div class="section" id="storage-plugins">
+<h2>Storage plugins</h2>
+<p><strong>Eventsourced:</strong></p>
+<ul class="simple">
+<li>Plugin API:
+<a class="reference external" href="http://eligosource.github.io/eventsourced/api/snapshot/#org.eligosource.eventsourced.journal.common.support.SynchronousWriteReplaySupport">SynchronousWriteReplaySupport</a> and
+<a class="reference external" href="http://eligosource.github.io/eventsourced/api/snapshot/#org.eligosource.eventsourced.journal.common.support.AsynchronousWriteReplaySupport">AsynchronousWriteReplaySupport</a></li>
+<li>No separation between journal and snapshot storage plugins.</li>
+<li>All plugins pre-packaged with project (see <a class="reference external" href="https://github.com/eligosource/eventsourced#journals">journals</a> and
+<a class="reference external" href="https://github.com/eligosource/eventsourced#configuration">snapshot configuration</a>)</li>
+</ul>
+<p><strong>Akka Persistence:</strong></p>
+<ul class="simple">
+<li>Plugin API: <code class="docutils literal"><span class="pre">SyncWriteJournal</span></code>, <code class="docutils literal"><span class="pre">AsyncWriteJournal</span></code>, <code class="docutils literal"><span class="pre">AsyncRecovery</span></code>, <code class="docutils literal"><span class="pre">SnapshotStore</span></code>
+(see <a class="reference internal" href="../scala/persistence.html#storage-plugins"><span class="std std-ref">Storage plugins</span></a>).</li>
+<li>Clear separation between journal and snapshot storage plugins.</li>
+<li>Limited number of <a class="reference internal" href="../scala/persistence.html#pre-packaged-plugins"><span class="std std-ref">Pre-packaged plugins</span></a> (LevelDB journal and local snapshot store).</li>
+<li>Impressive list of <a class="reference external" href="https://akka.io/community/">community plugins</a>.</li>
+</ul>
+</div>
+</div>
+
+
+          </div>
+          <div class="span3"><p class="contents-title">Contents</p>
+              <div id="scroller-anchor">
+                <div id="scroller">
+                  <div id="toc"></div>
+                </div>
+              </div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="footer">
+  <div class="container">
+    <ul>
+      <li><h5>Akka</h5></li>
+      <li><a href="https://akka.io/docs">Documentation</a></li>
+      <li><a href="https://akka.io/faq">FAQ</a></li>
+      <li><a href="https://akka.io/downloads">Downloads</a></li>
+      <li><a href="https://akka.io/news">News</a></li>
+      <li><a href="http://letitcrash.com">Blog</a></li>
+    </ul>
+    <ul>
+      <li><h5>Contribute</h5></li>
+      <li><a href="https://akka.io/community">Community Projects</a></li>
+      <li><a href="http://github.com/akka/akka">Source Code</a></li>
+      <li><a href="http://groups.google.com/group/akka-user">Mailing List</a></li>      
+      <li><a href="https://doc.akka.io/docs/akka/current/project/issue-tracking.html">Report a Bug</a></li>      
+    </ul>
+    <ul>
+      <li><h5>Company</h5></li>
+      <li><a href="http://www.typesafe.com/how/subscription">Commercial Support</a></li>
+      <li><a href="https://akka.io/team">Team</a></li>
+      <li><a href="mailto:info@typesafe.com">Contact</a></li>
+    </ul>
+    <ul>
+      <li><img src="../_static/akka_icon_reverse.svg" align="center"/></li>
+    </ul>
+  </div>
+  <div class="container copyright">
+    <p style="float: left;">
+      © 2014 <a href="http://www.typesafe.com/">Typesafe Inc.</a> <span class="license">Akka is Open Source and available under the Apache 2 License.</span>
+    </p>
+    <p style="float: right; font-size: 12px;">
+      Last updated: Oct 28, 2016
+    </p>          
+  </div>
+</div>
+<script src="http://www.google.com/jsapi" type="text/javascript"></script>
+<script type="text/javascript">
+    google.load('search', '1', {language : 'en', style : google.loader.themes.MINIMALIST});
+    google.setOnLoadCallback(function() {
+    var customSearchOptions = {};  var customSearchControl = new google.search.CustomSearchControl(
+    '003065520604945464838:izzukx8-qba', customSearchOptions);
+    customSearchControl.setResultSetSize(google.search.Search.FILTERED_CSE_RESULTSET);
+    customSearchControl.draw('cse');
+    var path = window.location.pathname.split('/').slice(0,4);
+    if(window.location.hostname && path.length >= 4) {
+    var site = "site:" + window.location.hostname + path.join('/').toString();
+    customSearchControl.setSearchStartingCallback(this, function(c, s, q) { s.setQueryAddition(site); });
+    }
+    }, true);
+</script>
+<style type="text/css">
+    .gsc-control-cse {
+    font-family: Arial, sans-serif;
+    border-color: rgb(242, 242, 235);
+    background-color: rgb(242, 242, 235);
+    }
+    .gsc-control-cse .gsc-table-result {
+      font-family: Arial, sans-serif;
+      display: block;
+    }
+    input.gsc-input {
+    border-color: #BBBBBB;
+    }
+    input.gsc-search-button {
+    border-color: rgb(34, 57, 64);
+    background-color: rgb(68, 114, 129);
+    color: #FFFFFF;
+    }
+    .gsc-tabHeader.gsc-tabhInactive {
+    border-color: #777777;
+    background-color: #777777;
+    }
+    .gsc-tabHeader.gsc-tabhActive {
+    border-color: #333333;
+    background-color: #333333;
+    }
+    .gsc-tabsArea {
+    border-color: #333333;
+    }
+    .gsc-webResult.gsc-result,
+    .gsc-results .gsc-imageResult {
+      border-color: #666666;
+      background-color: #FFFFFF;
+      padding: 0.5em 0.5em;
+    }
+    .gsc-webResult.gsc-result:hover,
+    .gsc-imageResult:hover {
+      border-color: #AAAAAA;
+      background-color: #FFFFFF;
+      padding: 0.5em 0.5em;
+    }
+    .gsc-webResult.gsc-result.gsc-promotion:hover {
+    border-color: #AAAAAA;
+    background-color: #FFFFFF;
+    }
+    .gs-webResult.gs-result a.gs-title:link,
+    .gs-webResult.gs-result a.gs-title:link b,
+    .gs-imageResult a.gs-title:link,
+    .gs-imageResult a.gs-title:link b {
+    color: #444444;
+    }
+    .gs-webResult.gs-result a.gs-title:visited,
+    .gs-webResult.gs-result a.gs-title:visited b,
+    .gs-imageResult a.gs-title:visited,
+    .gs-imageResult a.gs-title:visited b {
+    color: #444444;
+    }
+    .gs-webResult.gs-result a.gs-title:hover,
+    .gs-webResult.gs-result a.gs-title:hover b,
+    .gs-imageResult a.gs-title:hover,
+    .gs-imageResult a.gs-title:hover b {
+    color: #444444;
+    }
+    .gs-webResult.gs-result a.gs-title:active,
+    .gs-webResult.gs-result a.gs-title:active b,
+    .gs-imageResult a.gs-title:active,
+    .gs-imageResult a.gs-title:active b {
+    color: #777777;
+    }
+    .gsc-cursor-page {
+    color: #444444;
+    }
+    a.gsc-trailing-more-results:link {
+    color: #444444;
+    }
+    .gs-webResult .gs-snippet,
+    .gs-imageResult .gs-snippet,
+    .gs-fileFormatType {
+    color: #333333;
+    }
+    .gs-webResult div.gs-visibleUrl,
+    .gs-imageResult div.gs-visibleUrl {
+    color: #000000;
+    }
+    .gs-webResult div.gs-visibleUrl-short {
+    color: #000000;
+    }
+    .gs-webResult div.gs-visibleUrl-short {
+    display: none;
+    }
+    .gs-webResult div.gs-visibleUrl-long {
+    display: block;
+    }
+    .gs-promotion div.gs-visibleUrl-short {
+    display: none;
+    }
+    .gs-promotion div.gs-visibleUrl-long {
+    display: block;
+    }
+    .gsc-cursor-box {
+    border-color: #FFFFFF;
+    }
+    .gsc-results .gsc-cursor-box .gsc-cursor-page {
+    border-color: #777777;
+    background-color: #FFFFFF;
+    color: #444444;
+    }
+    .gsc-results .gsc-cursor-box .gsc-cursor-current-page {
+    border-color: #333333;
+    background-color: #333333;
+    color: #444444;
+    }
+    .gsc-webResult.gsc-result.gsc-promotion {
+    border-color: #CCCCCC;
+    background-color: #E6E6E6;
+    }
+    .gsc-completion-title {
+    color: #444444;
+    }
+    .gsc-completion-snippet {
+    color: #333333;
+    }
+    .gs-promotion a.gs-title:link,
+    .gs-promotion a.gs-title:link *,
+    .gs-promotion .gs-snippet a:link {
+    color: #0000CC;
+    }
+    .gs-promotion a.gs-title:visited,
+    .gs-promotion a.gs-title:visited *,
+    .gs-promotion .gs-snippet a:visited {
+    color: #0000CC;
+    }
+    .gs-promotion a.gs-title:hover,
+    .gs-promotion a.gs-title:hover *,
+    .gs-promotion .gs-snippet a:hover {
+    color: #444444;
+    }
+    .gs-promotion a.gs-title:active,
+    .gs-promotion a.gs-title:active *,
+    .gs-promotion .gs-snippet a:active {
+    color: #00CC00;
+    }
+    .gs-promotion .gs-snippet,
+    .gs-promotion .gs-title .gs-promotion-title-right,
+    .gs-promotion .gs-title .gs-promotion-title-right *  {
+    color: #333333;
+    }
+    .gs-promotion .gs-visibleUrl,
+    .gs-promotion .gs-visibleUrl-short {
+    color: #00CC00;
+    }
+</style>
+<script type="text/javascript">
+  var $toc = $('#toc');
+  $toc.toc();
+
+  // change hash when TOC link clicked:
+  $toc.find("a").click(function() { window.location.hash = $(this).attr('href'); });
+
+  // show clickable section sign when section header hovered:
+  $('.section h2,.section h3,.section h4,.section h5').each(function(i, el) {
+      var $el = $(el);
+      $el.prepend($("<a class='section-marker' href='#" + $el.attr("id") + "'>&sect;</a>"))
+  });
+</script>
+  
+
+  </body>
+</html>

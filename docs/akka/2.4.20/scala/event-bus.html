@@ -1,0 +1,618 @@
+
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Event Bus &mdash; Akka Documentation</title>
+    
+    <link rel="stylesheet" href="../_static/style.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/prettify.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/base.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
+    <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,600,700" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '2.4.20',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="../_static/toc.js"></script>
+    <script type="text/javascript" src="../_static/prettify.js"></script>
+    <script type="text/javascript" src="../_static/highlightCode.js"></script>
+    <script type="text/javascript" src="../_static/effects.core.js"></script>
+    <script type="text/javascript" src="../_static/effects.highlight.js"></script>
+    <script type="text/javascript" src="../_static/scrollTo.js"></script>
+    <script type="text/javascript" src="../_static/contentsFix.js"></script>
+    <script type="text/javascript" src="../_static/ga.js"></script>
+    <script type="text/javascript" src="../_static/warnOldDocs.js"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/docsearch.js/1/docsearch.min.js"></script>
+    <link rel="shortcut icon" href="../_static/favicon.ico"/>
+    <link rel="top" title="Akka Documentation" href="../index.html" />
+    <link rel="up" title="Utilities" href="index-utilities.html" />
+    <link rel="next" title="Logging" href="logging.html" />
+    <link rel="prev" title="Utilities" href="index-utilities.html" />
+    <!-- Hint to search engines that the "canonical" page is under "current", which will boost it appearing in search results -->
+    <link rel="canonical" href="https://doc.akka.io/docs/akka/2.4/scala/event-bus.html" />
+
+    <!--Google Analytics-->
+    <script type="text/javascript">
+      var _gaq = _gaq || [];
+      _gaq.push(['_setAccount', 'UA-21117439-1']);
+      _gaq.push(['_setDomainName', 'akka.io']);
+      _gaq.push(['_trackPageview']);
+      (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+      })()
+    </script>
+    <!--Google Analytics & Marketo-->
+    <script type="text/javascript">
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+      (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+      m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+      ga('create', 'UA-23127719-1', 'lightbend.com', {'allowLinker': true, 'name': 'tsTracker'});
+      ga('tsTracker.require', 'linker');
+      ga('tsTracker.linker:autoLink', ['lightbend.com','playframework.com','scala-lang.org','scaladays.org','spray.io','akka.io','scala-sbt.org','scala-ide.org']);
+      ga('tsTracker.send', 'pageview');
+
+      (function() {
+          var didInit = false;
+          function initMunchkin() {
+          if(didInit === false) {
+            didInit = true;
+            Munchkin.init('558-NCX-702');
+          }
+          }
+          var s = document.createElement('script');
+          s.type = 'text/javascript';
+          s.async = true;
+          s.src = '//munchkin.marketo.net/munchkin.js';
+          s.onreadystatechange = function() {
+          if (this.readyState == 'complete' || this.readyState == 'loaded') {
+            initMunchkin();
+          }
+          };
+          s.onload = initMunchkin;
+          document.getElementsByTagName('head')[0].appendChild(s);
+        })();
+    </script>
+
+
+  </head>
+  <body>
+  <div class="navbar">
+    <div class="navbar-inner">
+      <div class="container">
+        <div class="navbar-logo">
+          <a href="https://akka.io"><img class="svg-logo" src="../_static/akka_full_color.svg" /></a>
+        </div>
+        <ul class="nav">
+          <li><a href="https://akka.io/docs">Documentation</a></li>
+          <li><a href="https://doc.akka.io/docs/akka/current/additional/faq.html">FAQ</a></li>
+          <li><a href="https://akka.io/downloads">Download</a></li>
+          <li><a href="http://groups.google.com/group/akka-user">Mailing List</a></li>
+          <li><a href="http://github.com/akka/akka">Code</a></li>
+          <li><a href="http://www.lightbend.com/how/subscription">Commercial Support</a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="main">
+    <div class="container">
+      <div class="page-title">Event Bus - Version 2.4.20</div>
+      <div class="pdf-link"><a href="../AkkaScala.pdf" title="Akka Scala Documentation"><img src="../_static/pdf-scala-icon.png" style="height: 40px;" /></a></div>
+      <div class="pdf-link"><a href="../AkkaJava.pdf" title="Akka Java Documentation"><img src="../_static/pdf-java-icon.png" style="height: 40px;" /></a></div>
+    </div>
+    <div class="main-container">
+      <div class="container">
+        <div class="row">
+          <div class="span12">
+            <div class="breadcrumb">
+              <div style="position: relative">
+                <input type="search" id="search" class="form-control" style="position: relative" placeholder="Search in the doc" />
+              </div>
+              <div>
+                <div>
+                  <span class="divider">«</span> <a href="index-utilities.html">Utilities</a> <span class="divider">|</span>
+                </div>
+                <div>
+                  <a href="../java.html">Java Contents</a> <span class="divider">|</span> <a href="../scala.html">Scala Contents</a>
+                </div>
+                <div>
+                  <span class="divider">|</span> <a href="logging.html">Logging</a> <span class="divider">»</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="row">
+          <div class="span9">
+          </div><div class="span9">
+            
+  <div class="section" id="event-bus">
+<span id="event-bus-scala"></span><h1>Event Bus</h1>
+<p>Originally conceived as a way to send messages to groups of actors, the
+<tt class="xref py py-class docutils literal"><span class="pre">EventBus</span></tt> has been generalized into a set of composable traits
+implementing a simple interface:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="cm">/**</span>
+<span class="cm"> * Attempts to register the subscriber to the specified Classifier</span>
+<span class="cm"> * @return true if successful and false if not (because it was already</span>
+<span class="cm"> *   subscribed to that Classifier, or otherwise)</span>
+<span class="cm"> */</span>
+<span class="k">def</span> <span class="n">subscribe</span><span class="o">(</span><span class="n">subscriber</span><span class="k">:</span> <span class="kt">Subscriber</span><span class="o">,</span> <span class="n">to</span><span class="k">:</span> <span class="kt">Classifier</span><span class="o">)</span><span class="k">:</span> <span class="kt">Boolean</span>
+
+<span class="cm">/**</span>
+<span class="cm"> * Attempts to deregister the subscriber from the specified Classifier</span>
+<span class="cm"> * @return true if successful and false if not (because it wasn&#39;t subscribed</span>
+<span class="cm"> *   to that Classifier, or otherwise)</span>
+<span class="cm"> */</span>
+<span class="k">def</span> <span class="n">unsubscribe</span><span class="o">(</span><span class="n">subscriber</span><span class="k">:</span> <span class="kt">Subscriber</span><span class="o">,</span> <span class="n">from</span><span class="k">:</span> <span class="kt">Classifier</span><span class="o">)</span><span class="k">:</span> <span class="kt">Boolean</span>
+
+<span class="cm">/**</span>
+<span class="cm"> * Attempts to deregister the subscriber from all Classifiers it may be subscribed to</span>
+<span class="cm"> */</span>
+<span class="k">def</span> <span class="n">unsubscribe</span><span class="o">(</span><span class="n">subscriber</span><span class="k">:</span> <span class="kt">Subscriber</span><span class="o">)</span><span class="k">:</span> <span class="kt">Unit</span>
+
+<span class="cm">/**</span>
+<span class="cm"> * Publishes the specified Event to this bus</span>
+<span class="cm"> */</span>
+<span class="k">def</span> <span class="n">publish</span><span class="o">(</span><span class="n">event</span><span class="k">:</span> <span class="kt">Event</span><span class="o">)</span><span class="k">:</span> <span class="kt">Unit</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Please note that the EventBus does not preserve the sender of the
+published messages. If you need a reference to the original sender
+you have to provide it inside the message.</p>
+</div>
+<p>This mechanism is used in different places within Akka, e.g. the <a class="reference internal" href="#event-stream">Event Stream</a>.
+Implementations can make use of the specific building blocks presented below.</p>
+<p>An event bus must define the following three abstract types:</p>
+<ul class="simple">
+<li><tt class="xref py py-class docutils literal"><span class="pre">Event</span></tt> is the type of all events published on that bus</li>
+<li><tt class="xref py py-class docutils literal"><span class="pre">Subscriber</span></tt> is the type of subscribers allowed to register on that
+event bus</li>
+<li><tt class="xref py py-class docutils literal"><span class="pre">Classifier</span></tt> defines the classifier to be used in selecting
+subscribers for dispatching events</li>
+</ul>
+<p>The traits below are still generic in these types, but they need to be defined
+for any concrete implementation.</p>
+<div class="section" id="classifiers">
+<h2>Classifiers</h2>
+<p>The classifiers presented here are part of the Akka distribution, but rolling
+your own in case you do not find a perfect match is not difficult, check the
+implementation of the existing ones on <a class="reference external" href="http://github.com/akka/akka/tree/v2.4.20/akka-actor/src/main/scala/akka/event/EventBus.scala">github</a></p>
+<div class="section" id="lookup-classification">
+<h3>Lookup Classification</h3>
+<p>The simplest classification is just to extract an arbitrary classifier from
+each event and maintaining a set of subscribers for each possible classifier.
+This can be compared to tuning in on a radio station. The trait
+<tt class="xref py py-class docutils literal"><span class="pre">LookupClassification</span></tt> is still generic in that it abstracts over how to
+compare subscribers and how exactly to classify.</p>
+<p>The necessary methods to be implemented are illustrated with the following example:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">import</span> <span class="nn">akka.event.EventBus</span>
+<span class="k">import</span> <span class="nn">akka.event.LookupClassification</span>
+
+<span class="k">final</span> <span class="k">case</span> <span class="k">class</span> <span class="nc">MsgEnvelope</span><span class="o">(</span><span class="n">topic</span><span class="k">:</span> <span class="kt">String</span><span class="o">,</span> <span class="n">payload</span><span class="k">:</span> <span class="kt">Any</span><span class="o">)</span>
+
+<span class="cm">/**</span>
+<span class="cm"> * Publishes the payload of the MsgEnvelope when the topic of the</span>
+<span class="cm"> * MsgEnvelope equals the String specified when subscribing.</span>
+<span class="cm"> */</span>
+<span class="k">class</span> <span class="nc">LookupBusImpl</span> <span class="k">extends</span> <span class="nc">EventBus</span> <span class="k">with</span> <span class="nc">LookupClassification</span> <span class="o">{</span>
+  <span class="k">type</span> <span class="kt">Event</span> <span class="o">=</span> <span class="nc">MsgEnvelope</span>
+  <span class="k">type</span> <span class="kt">Classifier</span> <span class="o">=</span> <span class="nc">String</span>
+  <span class="k">type</span> <span class="kt">Subscriber</span> <span class="o">=</span> <span class="nc">ActorRef</span>
+
+  <span class="c1">// is used for extracting the classifier from the incoming events  </span>
+  <span class="k">override</span> <span class="k">protected</span> <span class="k">def</span> <span class="n">classify</span><span class="o">(</span><span class="n">event</span><span class="k">:</span> <span class="kt">Event</span><span class="o">)</span><span class="k">:</span> <span class="kt">Classifier</span> <span class="o">=</span> <span class="n">event</span><span class="o">.</span><span class="n">topic</span>
+
+  <span class="c1">// will be invoked for each event for all subscribers which registered themselves</span>
+  <span class="c1">// for the event’s classifier</span>
+  <span class="k">override</span> <span class="k">protected</span> <span class="k">def</span> <span class="n">publish</span><span class="o">(</span><span class="n">event</span><span class="k">:</span> <span class="kt">Event</span><span class="o">,</span> <span class="n">subscriber</span><span class="k">:</span> <span class="kt">Subscriber</span><span class="o">)</span><span class="k">:</span> <span class="kt">Unit</span> <span class="o">=</span> <span class="o">{</span>
+    <span class="n">subscriber</span> <span class="o">!</span> <span class="n">event</span><span class="o">.</span><span class="n">payload</span>
+  <span class="o">}</span>
+
+  <span class="c1">// must define a full order over the subscribers, expressed as expected from</span>
+  <span class="c1">// `java.lang.Comparable.compare`</span>
+  <span class="k">override</span> <span class="k">protected</span> <span class="k">def</span> <span class="n">compareSubscribers</span><span class="o">(</span><span class="n">a</span><span class="k">:</span> <span class="kt">Subscriber</span><span class="o">,</span> <span class="n">b</span><span class="k">:</span> <span class="kt">Subscriber</span><span class="o">)</span><span class="k">:</span> <span class="kt">Int</span> <span class="o">=</span>
+    <span class="n">a</span><span class="o">.</span><span class="n">compareTo</span><span class="o">(</span><span class="n">b</span><span class="o">)</span>
+
+  <span class="c1">// determines the initial size of the index data structure</span>
+  <span class="c1">// used internally (i.e. the expected number of different classifiers)</span>
+  <span class="k">override</span> <span class="k">protected</span> <span class="k">def</span> <span class="n">mapSize</span><span class="k">:</span> <span class="kt">Int</span> <span class="o">=</span> <span class="mi">128</span>
+
+<span class="o">}</span>
+</pre></div>
+</div>
+<p>A test for this implementation may look like this:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">val</span> <span class="n">lookupBus</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">LookupBusImpl</span>
+<span class="n">lookupBus</span><span class="o">.</span><span class="n">subscribe</span><span class="o">(</span><span class="n">testActor</span><span class="o">,</span> <span class="s">&quot;greetings&quot;</span><span class="o">)</span>
+<span class="n">lookupBus</span><span class="o">.</span><span class="n">publish</span><span class="o">(</span><span class="nc">MsgEnvelope</span><span class="o">(</span><span class="s">&quot;time&quot;</span><span class="o">,</span> <span class="nc">System</span><span class="o">.</span><span class="n">currentTimeMillis</span><span class="o">()))</span>
+<span class="n">lookupBus</span><span class="o">.</span><span class="n">publish</span><span class="o">(</span><span class="nc">MsgEnvelope</span><span class="o">(</span><span class="s">&quot;greetings&quot;</span><span class="o">,</span> <span class="s">&quot;hello&quot;</span><span class="o">))</span>
+<span class="n">expectMsg</span><span class="o">(</span><span class="s">&quot;hello&quot;</span><span class="o">)</span>
+</pre></div>
+</div>
+<p>This classifier is efficient in case no subscribers exist for a particular event.</p>
+</div>
+<div class="section" id="subchannel-classification">
+<h3>Subchannel Classification</h3>
+<p>If classifiers form a hierarchy and it is desired that subscription be possible
+not only at the leaf nodes, this classification may be just the right one. It
+can be compared to tuning in on (possibly multiple) radio channels by genre.
+This classification has been developed for the case where the classifier is
+just the JVM class of the event and subscribers may be interested in
+subscribing to all subclasses of a certain class, but it may be used with any
+classifier hierarchy.</p>
+<p>The necessary methods to be implemented are illustrated with the following example:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">import</span> <span class="nn">akka.util.Subclassification</span>
+
+<span class="k">class</span> <span class="nc">StartsWithSubclassification</span> <span class="k">extends</span> <span class="nc">Subclassification</span><span class="o">[</span><span class="kt">String</span><span class="o">]</span> <span class="o">{</span>
+  <span class="k">override</span> <span class="k">def</span> <span class="n">isEqual</span><span class="o">(</span><span class="n">x</span><span class="k">:</span> <span class="kt">String</span><span class="o">,</span> <span class="n">y</span><span class="k">:</span> <span class="kt">String</span><span class="o">)</span><span class="k">:</span> <span class="kt">Boolean</span> <span class="o">=</span>
+    <span class="n">x</span> <span class="o">==</span> <span class="n">y</span>
+
+  <span class="k">override</span> <span class="k">def</span> <span class="n">isSubclass</span><span class="o">(</span><span class="n">x</span><span class="k">:</span> <span class="kt">String</span><span class="o">,</span> <span class="n">y</span><span class="k">:</span> <span class="kt">String</span><span class="o">)</span><span class="k">:</span> <span class="kt">Boolean</span> <span class="o">=</span>
+    <span class="n">x</span><span class="o">.</span><span class="n">startsWith</span><span class="o">(</span><span class="n">y</span><span class="o">)</span>
+<span class="o">}</span>
+
+<span class="k">import</span> <span class="nn">akka.event.SubchannelClassification</span>
+
+<span class="cm">/**</span>
+<span class="cm"> * Publishes the payload of the MsgEnvelope when the topic of the</span>
+<span class="cm"> * MsgEnvelope starts with the String specified when subscribing.</span>
+<span class="cm"> */</span>
+<span class="k">class</span> <span class="nc">SubchannelBusImpl</span> <span class="k">extends</span> <span class="nc">EventBus</span> <span class="k">with</span> <span class="nc">SubchannelClassification</span> <span class="o">{</span>
+  <span class="k">type</span> <span class="kt">Event</span> <span class="o">=</span> <span class="nc">MsgEnvelope</span>
+  <span class="k">type</span> <span class="kt">Classifier</span> <span class="o">=</span> <span class="nc">String</span>
+  <span class="k">type</span> <span class="kt">Subscriber</span> <span class="o">=</span> <span class="nc">ActorRef</span>
+
+  <span class="c1">// Subclassification is an object providing `isEqual` and `isSubclass`</span>
+  <span class="c1">// to be consumed by the other methods of this classifier</span>
+  <span class="k">override</span> <span class="k">protected</span> <span class="k">val</span> <span class="n">subclassification</span><span class="k">:</span> <span class="kt">Subclassification</span><span class="o">[</span><span class="kt">Classifier</span><span class="o">]</span> <span class="k">=</span>
+    <span class="k">new</span> <span class="nc">StartsWithSubclassification</span>
+
+  <span class="c1">// is used for extracting the classifier from the incoming events  </span>
+  <span class="k">override</span> <span class="k">protected</span> <span class="k">def</span> <span class="n">classify</span><span class="o">(</span><span class="n">event</span><span class="k">:</span> <span class="kt">Event</span><span class="o">)</span><span class="k">:</span> <span class="kt">Classifier</span> <span class="o">=</span> <span class="n">event</span><span class="o">.</span><span class="n">topic</span>
+
+  <span class="c1">// will be invoked for each event for all subscribers which registered</span>
+  <span class="c1">// themselves for the event’s classifier</span>
+  <span class="k">override</span> <span class="k">protected</span> <span class="k">def</span> <span class="n">publish</span><span class="o">(</span><span class="n">event</span><span class="k">:</span> <span class="kt">Event</span><span class="o">,</span> <span class="n">subscriber</span><span class="k">:</span> <span class="kt">Subscriber</span><span class="o">)</span><span class="k">:</span> <span class="kt">Unit</span> <span class="o">=</span> <span class="o">{</span>
+    <span class="n">subscriber</span> <span class="o">!</span> <span class="n">event</span><span class="o">.</span><span class="n">payload</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<p>A test for this implementation may look like this:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">val</span> <span class="n">subchannelBus</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">SubchannelBusImpl</span>
+<span class="n">subchannelBus</span><span class="o">.</span><span class="n">subscribe</span><span class="o">(</span><span class="n">testActor</span><span class="o">,</span> <span class="s">&quot;abc&quot;</span><span class="o">)</span>
+<span class="n">subchannelBus</span><span class="o">.</span><span class="n">publish</span><span class="o">(</span><span class="nc">MsgEnvelope</span><span class="o">(</span><span class="s">&quot;xyzabc&quot;</span><span class="o">,</span> <span class="s">&quot;x&quot;</span><span class="o">))</span>
+<span class="n">subchannelBus</span><span class="o">.</span><span class="n">publish</span><span class="o">(</span><span class="nc">MsgEnvelope</span><span class="o">(</span><span class="s">&quot;bcdef&quot;</span><span class="o">,</span> <span class="s">&quot;b&quot;</span><span class="o">))</span>
+<span class="n">subchannelBus</span><span class="o">.</span><span class="n">publish</span><span class="o">(</span><span class="nc">MsgEnvelope</span><span class="o">(</span><span class="s">&quot;abc&quot;</span><span class="o">,</span> <span class="s">&quot;c&quot;</span><span class="o">))</span>
+<span class="n">expectMsg</span><span class="o">(</span><span class="s">&quot;c&quot;</span><span class="o">)</span>
+<span class="n">subchannelBus</span><span class="o">.</span><span class="n">publish</span><span class="o">(</span><span class="nc">MsgEnvelope</span><span class="o">(</span><span class="s">&quot;abcdef&quot;</span><span class="o">,</span> <span class="s">&quot;d&quot;</span><span class="o">))</span>
+<span class="n">expectMsg</span><span class="o">(</span><span class="s">&quot;d&quot;</span><span class="o">)</span>
+</pre></div>
+</div>
+<p>This classifier is also efficient in case no subscribers are found for an
+event, but it uses conventional locking to synchronize an internal classifier
+cache, hence it is not well-suited to use cases in which subscriptions change
+with very high frequency (keep in mind that “opening” a classifier by sending
+the first message will also have to re-check all previous subscriptions).</p>
+</div>
+<div class="section" id="scanning-classification">
+<h3>Scanning Classification</h3>
+<p>The previous classifier was built for multi-classifier subscriptions which are
+strictly hierarchical, this classifier is useful if there are overlapping
+classifiers which cover various parts of the event space without forming a
+hierarchy. It can be compared to tuning in on (possibly multiple) radio
+stations by geographical reachability (for old-school radio-wave transmission).</p>
+<p>The necessary methods to be implemented are illustrated with the following example:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">import</span> <span class="nn">akka.event.ScanningClassification</span>
+
+<span class="cm">/**</span>
+<span class="cm"> * Publishes String messages with length less than or equal to the length</span>
+<span class="cm"> * specified when subscribing.</span>
+<span class="cm"> */</span>
+<span class="k">class</span> <span class="nc">ScanningBusImpl</span> <span class="k">extends</span> <span class="nc">EventBus</span> <span class="k">with</span> <span class="nc">ScanningClassification</span> <span class="o">{</span>
+  <span class="k">type</span> <span class="kt">Event</span> <span class="o">=</span> <span class="nc">String</span>
+  <span class="k">type</span> <span class="kt">Classifier</span> <span class="o">=</span> <span class="nc">Int</span>
+  <span class="k">type</span> <span class="kt">Subscriber</span> <span class="o">=</span> <span class="nc">ActorRef</span>
+
+  <span class="c1">// is needed for determining matching classifiers and storing them in an</span>
+  <span class="c1">// ordered collection</span>
+  <span class="k">override</span> <span class="k">protected</span> <span class="k">def</span> <span class="n">compareClassifiers</span><span class="o">(</span><span class="n">a</span><span class="k">:</span> <span class="kt">Classifier</span><span class="o">,</span> <span class="n">b</span><span class="k">:</span> <span class="kt">Classifier</span><span class="o">)</span><span class="k">:</span> <span class="kt">Int</span> <span class="o">=</span>
+    <span class="k">if</span> <span class="o">(</span><span class="n">a</span> <span class="o">&lt;</span> <span class="n">b</span><span class="o">)</span> <span class="o">-</span><span class="mi">1</span> <span class="k">else</span> <span class="k">if</span> <span class="o">(</span><span class="n">a</span> <span class="o">==</span> <span class="n">b</span><span class="o">)</span> <span class="mi">0</span> <span class="k">else</span> <span class="mi">1</span>
+
+  <span class="c1">// is needed for storing subscribers in an ordered collection  </span>
+  <span class="k">override</span> <span class="k">protected</span> <span class="k">def</span> <span class="n">compareSubscribers</span><span class="o">(</span><span class="n">a</span><span class="k">:</span> <span class="kt">Subscriber</span><span class="o">,</span> <span class="n">b</span><span class="k">:</span> <span class="kt">Subscriber</span><span class="o">)</span><span class="k">:</span> <span class="kt">Int</span> <span class="o">=</span>
+    <span class="n">a</span><span class="o">.</span><span class="n">compareTo</span><span class="o">(</span><span class="n">b</span><span class="o">)</span>
+
+  <span class="c1">// determines whether a given classifier shall match a given event; it is invoked</span>
+  <span class="c1">// for each subscription for all received events, hence the name of the classifier</span>
+  <span class="k">override</span> <span class="k">protected</span> <span class="k">def</span> <span class="n">matches</span><span class="o">(</span><span class="n">classifier</span><span class="k">:</span> <span class="kt">Classifier</span><span class="o">,</span> <span class="n">event</span><span class="k">:</span> <span class="kt">Event</span><span class="o">)</span><span class="k">:</span> <span class="kt">Boolean</span> <span class="o">=</span>
+    <span class="n">event</span><span class="o">.</span><span class="n">length</span> <span class="o">&lt;=</span> <span class="n">classifier</span>
+
+  <span class="c1">// will be invoked for each event for all subscribers which registered themselves</span>
+  <span class="c1">// for a classifier matching this event</span>
+  <span class="k">override</span> <span class="k">protected</span> <span class="k">def</span> <span class="n">publish</span><span class="o">(</span><span class="n">event</span><span class="k">:</span> <span class="kt">Event</span><span class="o">,</span> <span class="n">subscriber</span><span class="k">:</span> <span class="kt">Subscriber</span><span class="o">)</span><span class="k">:</span> <span class="kt">Unit</span> <span class="o">=</span> <span class="o">{</span>
+    <span class="n">subscriber</span> <span class="o">!</span> <span class="n">event</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<p>A test for this implementation may look like this:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">val</span> <span class="n">scanningBus</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">ScanningBusImpl</span>
+<span class="n">scanningBus</span><span class="o">.</span><span class="n">subscribe</span><span class="o">(</span><span class="n">testActor</span><span class="o">,</span> <span class="mi">3</span><span class="o">)</span>
+<span class="n">scanningBus</span><span class="o">.</span><span class="n">publish</span><span class="o">(</span><span class="s">&quot;xyzabc&quot;</span><span class="o">)</span>
+<span class="n">scanningBus</span><span class="o">.</span><span class="n">publish</span><span class="o">(</span><span class="s">&quot;ab&quot;</span><span class="o">)</span>
+<span class="n">expectMsg</span><span class="o">(</span><span class="s">&quot;ab&quot;</span><span class="o">)</span>
+<span class="n">scanningBus</span><span class="o">.</span><span class="n">publish</span><span class="o">(</span><span class="s">&quot;abc&quot;</span><span class="o">)</span>
+<span class="n">expectMsg</span><span class="o">(</span><span class="s">&quot;abc&quot;</span><span class="o">)</span>
+</pre></div>
+</div>
+<p>This classifier takes always a time which is proportional to the number of
+subscriptions, independent of how many actually match.</p>
+</div>
+<div class="section" id="actor-classification">
+<span id="actor-classification-scala"></span><h3>Actor Classification</h3>
+<p>This classification was originally developed specifically for implementing
+<a class="reference internal" href="actors.html#deathwatch-scala"><em>DeathWatch</em></a>: subscribers as well as classifiers are of
+type <tt class="xref py py-class docutils literal"><span class="pre">ActorRef</span></tt>.</p>
+<p>This classification requires an <tt class="xref py py-class docutils literal"><span class="pre">ActorSystem</span></tt> in order to perform book-keeping
+operations related to the subscribers being Actors, which can terminate without first
+unsubscribing from the EventBus. ManagedActorClassification maintains a system Actor which
+takes care of unsubscribing terminated actors automatically.</p>
+<p>The necessary methods to be implemented are illustrated with the following example:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">import</span> <span class="nn">akka.event.ActorEventBus</span>
+<span class="k">import</span> <span class="nn">akka.event.ManagedActorClassification</span>
+<span class="k">import</span> <span class="nn">akka.event.ActorClassifier</span>
+
+<span class="k">final</span> <span class="k">case</span> <span class="k">class</span> <span class="nc">Notification</span><span class="o">(</span><span class="n">ref</span><span class="k">:</span> <span class="kt">ActorRef</span><span class="o">,</span> <span class="n">id</span><span class="k">:</span> <span class="kt">Int</span><span class="o">)</span>
+
+<span class="k">class</span> <span class="nc">ActorBusImpl</span><span class="o">(</span><span class="k">val</span> <span class="n">system</span><span class="k">:</span> <span class="kt">ActorSystem</span><span class="o">)</span> <span class="k">extends</span> <span class="nc">ActorEventBus</span> <span class="k">with</span> <span class="nc">ActorClassifier</span> <span class="k">with</span> <span class="nc">ManagedActorClassification</span> <span class="o">{</span>
+  <span class="k">type</span> <span class="kt">Event</span> <span class="o">=</span> <span class="nc">Notification</span>
+
+  <span class="c1">// is used for extracting the classifier from the incoming events</span>
+  <span class="k">override</span> <span class="k">protected</span> <span class="k">def</span> <span class="n">classify</span><span class="o">(</span><span class="n">event</span><span class="k">:</span> <span class="kt">Event</span><span class="o">)</span><span class="k">:</span> <span class="kt">ActorRef</span> <span class="o">=</span> <span class="n">event</span><span class="o">.</span><span class="n">ref</span>
+
+  <span class="c1">// determines the initial size of the index data structure</span>
+  <span class="c1">// used internally (i.e. the expected number of different classifiers)</span>
+  <span class="k">override</span> <span class="k">protected</span> <span class="k">def</span> <span class="n">mapSize</span><span class="k">:</span> <span class="kt">Int</span> <span class="o">=</span> <span class="mi">128</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<p>A test for this implementation may look like this:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">val</span> <span class="n">observer1</span> <span class="k">=</span> <span class="nc">TestProbe</span><span class="o">().</span><span class="n">ref</span>
+<span class="k">val</span> <span class="n">observer2</span> <span class="k">=</span> <span class="nc">TestProbe</span><span class="o">().</span><span class="n">ref</span>
+<span class="k">val</span> <span class="n">probe1</span> <span class="k">=</span> <span class="nc">TestProbe</span><span class="o">()</span>
+<span class="k">val</span> <span class="n">probe2</span> <span class="k">=</span> <span class="nc">TestProbe</span><span class="o">()</span>
+<span class="k">val</span> <span class="n">subscriber1</span> <span class="k">=</span> <span class="n">probe1</span><span class="o">.</span><span class="n">ref</span>
+<span class="k">val</span> <span class="n">subscriber2</span> <span class="k">=</span> <span class="n">probe2</span><span class="o">.</span><span class="n">ref</span>
+<span class="k">val</span> <span class="n">actorBus</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">ActorBusImpl</span><span class="o">(</span><span class="n">system</span><span class="o">)</span>
+<span class="n">actorBus</span><span class="o">.</span><span class="n">subscribe</span><span class="o">(</span><span class="n">subscriber1</span><span class="o">,</span> <span class="n">observer1</span><span class="o">)</span>
+<span class="n">actorBus</span><span class="o">.</span><span class="n">subscribe</span><span class="o">(</span><span class="n">subscriber2</span><span class="o">,</span> <span class="n">observer1</span><span class="o">)</span>
+<span class="n">actorBus</span><span class="o">.</span><span class="n">subscribe</span><span class="o">(</span><span class="n">subscriber2</span><span class="o">,</span> <span class="n">observer2</span><span class="o">)</span>
+<span class="n">actorBus</span><span class="o">.</span><span class="n">publish</span><span class="o">(</span><span class="nc">Notification</span><span class="o">(</span><span class="n">observer1</span><span class="o">,</span> <span class="mi">100</span><span class="o">))</span>
+<span class="n">probe1</span><span class="o">.</span><span class="n">expectMsg</span><span class="o">(</span><span class="nc">Notification</span><span class="o">(</span><span class="n">observer1</span><span class="o">,</span> <span class="mi">100</span><span class="o">))</span>
+<span class="n">probe2</span><span class="o">.</span><span class="n">expectMsg</span><span class="o">(</span><span class="nc">Notification</span><span class="o">(</span><span class="n">observer1</span><span class="o">,</span> <span class="mi">100</span><span class="o">))</span>
+<span class="n">actorBus</span><span class="o">.</span><span class="n">publish</span><span class="o">(</span><span class="nc">Notification</span><span class="o">(</span><span class="n">observer2</span><span class="o">,</span> <span class="mi">101</span><span class="o">))</span>
+<span class="n">probe2</span><span class="o">.</span><span class="n">expectMsg</span><span class="o">(</span><span class="nc">Notification</span><span class="o">(</span><span class="n">observer2</span><span class="o">,</span> <span class="mi">101</span><span class="o">))</span>
+<span class="n">probe1</span><span class="o">.</span><span class="n">expectNoMsg</span><span class="o">(</span><span class="mf">500.</span><span class="n">millis</span><span class="o">)</span>
+</pre></div>
+</div>
+<p>This classifier is still is generic in the event type, and it is efficient for
+all use cases.</p>
+</div>
+</div>
+<div class="section" id="event-stream">
+<span id="event-stream-scala"></span><h2>Event Stream</h2>
+<p>The event stream is the main event bus of each actor system: it is used for
+carrying <a class="reference internal" href="logging.html#logging-scala"><em>log messages</em></a> and <a class="reference internal" href="#dead-letters">Dead Letters</a> and may be
+used by the user code for other purposes as well. It uses <a class="reference internal" href="#subchannel-classification">Subchannel
+Classification</a> which enables registering to related sets of channels (as is
+used for <tt class="xref py py-class docutils literal"><span class="pre">RemotingLifecycleEvent</span></tt>). The following example demonstrates
+how a simple subscription works:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">import</span> <span class="nn">akka.actor.</span><span class="o">{</span> <span class="nc">Actor</span><span class="o">,</span> <span class="nc">DeadLetter</span><span class="o">,</span> <span class="nc">Props</span> <span class="o">}</span>
+
+<span class="k">class</span> <span class="nc">Listener</span> <span class="k">extends</span> <span class="nc">Actor</span> <span class="o">{</span>
+  <span class="k">def</span> <span class="n">receive</span> <span class="k">=</span> <span class="o">{</span>
+    <span class="k">case</span> <span class="n">d</span><span class="k">:</span> <span class="kt">DeadLetter</span> <span class="o">=&gt;</span> <span class="n">println</span><span class="o">(</span><span class="n">d</span><span class="o">)</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+
+<span class="k">val</span> <span class="n">listener</span> <span class="k">=</span> <span class="n">system</span><span class="o">.</span><span class="n">actorOf</span><span class="o">(</span><span class="nc">Props</span><span class="o">(</span><span class="n">classOf</span><span class="o">[</span><span class="kt">Listener</span><span class="o">],</span> <span class="k">this</span><span class="o">))</span>
+<span class="n">system</span><span class="o">.</span><span class="n">eventStream</span><span class="o">.</span><span class="n">subscribe</span><span class="o">(</span><span class="n">listener</span><span class="o">,</span> <span class="n">classOf</span><span class="o">[</span><span class="kt">DeadLetter</span><span class="o">])</span>
+</pre></div>
+</div>
+<p>It is also worth pointing out that thanks to the way the subchannel classification
+is implemented in the event stream, it is possible to subscribe to a group of events, by
+subscribing to their common superclass as demonstrated in the following example:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">abstract</span> <span class="k">class</span> <span class="nc">AllKindsOfMusic</span> <span class="o">{</span> <span class="k">def</span> <span class="n">artist</span><span class="k">:</span> <span class="kt">String</span> <span class="o">}</span>
+<span class="k">case</span> <span class="k">class</span> <span class="nc">Jazz</span><span class="o">(</span><span class="n">artist</span><span class="k">:</span> <span class="kt">String</span><span class="o">)</span> <span class="k">extends</span> <span class="nc">AllKindsOfMusic</span>
+<span class="k">case</span> <span class="k">class</span> <span class="nc">Electronic</span><span class="o">(</span><span class="n">artist</span><span class="k">:</span> <span class="kt">String</span><span class="o">)</span> <span class="k">extends</span> <span class="nc">AllKindsOfMusic</span>
+
+<span class="k">class</span> <span class="nc">Listener</span> <span class="k">extends</span> <span class="nc">Actor</span> <span class="o">{</span>
+  <span class="k">def</span> <span class="n">receive</span> <span class="k">=</span> <span class="o">{</span>
+    <span class="k">case</span> <span class="n">m</span><span class="k">:</span> <span class="kt">Jazz</span>       <span class="o">=&gt;</span> <span class="n">println</span><span class="o">(</span><span class="n">s</span><span class="s">&quot;${self.path.name} is listening to: ${m.artist}&quot;</span><span class="o">)</span>
+    <span class="k">case</span> <span class="n">m</span><span class="k">:</span> <span class="kt">Electronic</span> <span class="o">=&gt;</span> <span class="n">println</span><span class="o">(</span><span class="n">s</span><span class="s">&quot;${self.path.name} is listening to: ${m.artist}&quot;</span><span class="o">)</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+
+<span class="k">val</span> <span class="n">jazzListener</span> <span class="k">=</span> <span class="n">system</span><span class="o">.</span><span class="n">actorOf</span><span class="o">(</span><span class="nc">Props</span><span class="o">(</span><span class="n">classOf</span><span class="o">[</span><span class="kt">Listener</span><span class="o">],</span> <span class="k">this</span><span class="o">))</span>
+<span class="k">val</span> <span class="n">musicListener</span> <span class="k">=</span> <span class="n">system</span><span class="o">.</span><span class="n">actorOf</span><span class="o">(</span><span class="nc">Props</span><span class="o">(</span><span class="n">classOf</span><span class="o">[</span><span class="kt">Listener</span><span class="o">],</span> <span class="k">this</span><span class="o">))</span>
+<span class="n">system</span><span class="o">.</span><span class="n">eventStream</span><span class="o">.</span><span class="n">subscribe</span><span class="o">(</span><span class="n">jazzListener</span><span class="o">,</span> <span class="n">classOf</span><span class="o">[</span><span class="kt">Jazz</span><span class="o">])</span>
+<span class="n">system</span><span class="o">.</span><span class="n">eventStream</span><span class="o">.</span><span class="n">subscribe</span><span class="o">(</span><span class="n">musicListener</span><span class="o">,</span> <span class="n">classOf</span><span class="o">[</span><span class="kt">AllKindsOfMusic</span><span class="o">])</span>
+
+<span class="c1">// only musicListener gets this message, since it listens to *all* kinds of music:</span>
+<span class="n">system</span><span class="o">.</span><span class="n">eventStream</span><span class="o">.</span><span class="n">publish</span><span class="o">(</span><span class="nc">Electronic</span><span class="o">(</span><span class="s">&quot;Parov Stelar&quot;</span><span class="o">))</span>
+
+<span class="c1">// jazzListener and musicListener will be notified about Jazz:</span>
+<span class="n">system</span><span class="o">.</span><span class="n">eventStream</span><span class="o">.</span><span class="n">publish</span><span class="o">(</span><span class="nc">Jazz</span><span class="o">(</span><span class="s">&quot;Sonny Rollins&quot;</span><span class="o">))</span>
+</pre></div>
+</div>
+<p>Similarly to <a class="reference internal" href="#actor-classification">Actor Classification</a>, <tt class="xref py py-class docutils literal"><span class="pre">EventStream</span></tt> will automatically remove subscribers when they terminate.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The event stream is a <em>local facility</em>, meaning that it will <em>not</em> distribute events to other nodes in a clustered environment (unless you subscribe a Remote Actor to the stream explicitly).
+If you need to broadcast events in an Akka cluster, <em>without</em> knowing your recipients explicitly (i.e. obtaining their ActorRefs), you may want to look into: <a class="reference internal" href="distributed-pub-sub.html#distributed-pub-sub-scala"><em>Distributed Publish Subscribe in Cluster</em></a>.</p>
+</div>
+<div class="section" id="default-handlers">
+<h3>Default Handlers</h3>
+<p>Upon start-up the actor system creates and subscribes actors to the event
+stream for logging: these are the handlers which are configured for example in
+<tt class="docutils literal"><span class="pre">application.conf</span></tt>:</p>
+<div class="highlight-text"><div class="highlight"><pre>akka {
+  loggers = [&quot;akka.event.Logging$DefaultLogger&quot;]
+}
+</pre></div>
+</div>
+<p>The handlers listed here by fully-qualified class name will be subscribed to
+all log event classes with priority higher than or equal to the configured
+log-level and their subscriptions are kept in sync when changing the log-level
+at runtime:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="n">system</span><span class="o">.</span><span class="n">eventStream</span><span class="o">.</span><span class="n">setLogLevel</span><span class="o">(</span><span class="nc">Logging</span><span class="o">.</span><span class="nc">DebugLevel</span><span class="o">)</span>
+</pre></div>
+</div>
+<p>This means that log events for a level which will not be logged are not
+typically not dispatched at all (unless manual subscriptions to the respective
+event class have been done)</p>
+</div>
+<div class="section" id="dead-letters">
+<h3>Dead Letters</h3>
+<p>As described at <a class="reference internal" href="actors.html#stopping-actors-scala"><em>Stopping actors</em></a>, messages queued when an actor
+terminates or sent after its death are re-routed to the dead letter mailbox,
+which by default will publish the messages wrapped in <tt class="xref py py-class docutils literal"><span class="pre">DeadLetter</span></tt>. This
+wrapper holds the original sender, receiver and message of the envelope which
+was redirected.</p>
+<p>Some internal messages (marked with the <tt class="xref py py-class docutils literal"><span class="pre">DeadLetterSuppression</span></tt> trait) will not end up as
+dead letters like normal messages. These are by design safe and expected to sometimes arrive at a terminated actor
+and since they are nothing to worry about, they are suppressed from the default dead letters logging mechanism.</p>
+<p>However, in case you find yourself in need of debugging these kinds of low level suppressed dead letters,
+it's still possible to subscribe to them explicitly:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">import</span> <span class="nn">akka.actor.SuppressedDeadLetter</span>
+<span class="n">system</span><span class="o">.</span><span class="n">eventStream</span><span class="o">.</span><span class="n">subscribe</span><span class="o">(</span><span class="n">listener</span><span class="o">,</span> <span class="n">classOf</span><span class="o">[</span><span class="kt">SuppressedDeadLetter</span><span class="o">])</span>
+</pre></div>
+</div>
+<p>or all dead letters (including the suppressed ones):</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">import</span> <span class="nn">akka.actor.AllDeadLetters</span>
+<span class="n">system</span><span class="o">.</span><span class="n">eventStream</span><span class="o">.</span><span class="n">subscribe</span><span class="o">(</span><span class="n">listener</span><span class="o">,</span> <span class="n">classOf</span><span class="o">[</span><span class="kt">AllDeadLetters</span><span class="o">])</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="other-uses">
+<h3>Other Uses</h3>
+<p>The event stream is always there and ready to be used, just publish your own
+events (it accepts <tt class="docutils literal"><span class="pre">AnyRef</span></tt>) and subscribe listeners to the corresponding JVM
+classes.</p>
+</div>
+</div>
+</div>
+
+
+          </div>
+          <div class="span3"><p class="contents-title">Contents</p>
+              <div id="scroller-anchor">
+                <div id="scroller">
+                  <div id="toc"></div>
+                </div>
+              </div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="footer">
+  <div class="container">
+    <ul>
+      <li><h5>Akka</h5></li>
+      <li><a href="https://akka.io/docs">Documentation</a></li>
+      <li><a href="https://doc.akka.io/docs/akka/current/additional/faq.html">FAQ</a></li>
+      <li><a href="https://akka.io/downloads">Downloads</a></li>
+      <li><a href="https://akka.io/news">News</a></li>
+      <li><a href="http://letitcrash.com">Blog</a></li>
+    </ul>
+    <ul>
+      <li><h5>Contribute</h5></li>
+      <li><a href="https://akka.io/community">Community Projects</a></li>
+      <li><a href="http://github.com/akka/akka">Source Code</a></li>
+      <li><a href="http://groups.google.com/group/akka-user">Mailing List</a></li>
+      <li><a href="https://doc.akka.io/docs/akka/current/project/issue-tracking.html">Report a Bug</a></li>
+    </ul>
+    <ul>
+      <li><h5>Company</h5></li>
+      <li><a href="http://www.lightbend.com/how/subscription">Commercial Support</a></li>
+      <li><a href="https://akka.io/team">Team</a></li>
+      <li><a href="mailto:info@lightbend.com">Contact</a></li>
+    </ul>
+    <ul>
+      <li><img src="../_static/akka_icon_reverse.svg" align="center"/></li>
+    </ul>
+  </div>
+  <div class="container copyright">
+    <p style="float: left;">
+      © 2015 <a href="http://www.lightbend.com/">Lightbend Inc.</a> <span class="license">Akka is Open Source and available under the Apache 2 License.</span>
+    </p>
+    <p style="float: right; font-size: 12px;">
+      Last updated: Aug 10, 2017
+    </p>
+  </div>
+</div>
+<script type="text/javascript">
+  var $toc = $('#toc');
+  $toc.toc();
+
+  // show clickable section sign when section header hovered:
+  $('.section h2,.section h3,.section h4,.section h5').each(function(i, el) {
+      var $el = $(el);
+      $el.prepend($("<a class='section-marker' href='#" + $el.attr("id") + "'>&sect;</a>"))
+  });
+</script>
+
+<!-- Algolia docs search -->
+<script type="text/javascript">
+  var version = DOCUMENTATION_OPTIONS.VERSION;
+
+  var lang = "scala";
+  var path = window.location.pathname;
+  if (path.includes("/java/") || path.includes("java.html")) lang = "java";
+
+  console.log("Search configured for:", lang, "@", version);
+
+  docsearch({
+    apiKey: '543bad5ad786495d9ccd445ed34ed082',
+    indexName: 'akka_io',
+    inputSelector: '#search',
+    algoliaOptions: {
+      hitsPerPage: 5,
+      facetFilters: '[' + '["language:' + lang + '","language:general"]' + ',"version:' + version + '"]'
+    }
+  });
+
+  // set up "/" as global shortcut for focusing on search
+  $(document).keypress(function (event) {
+    if (event.keyCode == 47) {
+      $("#q").focus();
+      return false; // swallow key event, otherwise the / char would be input into the search box
+    }
+  });
+</script>
+
+  
+
+  </body>
+</html>

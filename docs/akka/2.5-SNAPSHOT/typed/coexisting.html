@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html class="no-js" lang="en">
+
+<head>
+<title>Coexistence &bull; Akka Documentation</title>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta name="description" content="Akka is a toolkit for building highly concurrent, distributed, and resilient message-driven applications for Java and Scala."/>
+<link rel="canonical" href="https://doc.akka.io/docs/akka/current/typed/coexisting.html"/>
+<script type="text/javascript" src="../lib/jquery/jquery.min.js"></script>
+<script type="text/javascript" src="../lib/foundation/dist/js/foundation.min.js"></script>
+<link rel="stylesheet" type="text/css" href="../lib/normalize.css/normalize.css"/>
+<link rel="stylesheet" type="text/css" href="../lib/foundation/dist/css/foundation.min.css"/>
+<link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/docsearch.js/2/docsearch.min.css" />
+<link rel="stylesheet" type="text/css" href="../css/icons.css"/>
+<link rel="stylesheet" type="text/css" href="../css/page.css"/>
+<link rel="shortcut icon" href="../images/favicon.ico" />
+<link rel="apple-touch-icon" sizes="180x180" href="../images/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="../images/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="../images/favicon-16x16.png">
+<link rel="manifest" href="../images/manifest.json">
+<meta name="msapplication-TileImage" content="../images/mstile-150x150.png">
+<meta name="msapplication-TileColor" content="#15a9ce">
+<meta name="theme-color" content="#15a9ce">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<!-- OneTrust Cookies Consent Notice (Production Standard, akka.io, en-GB) start -->
+<script src="https://optanon.blob.core.windows.net/consent/159bb13d-6748-4399-806e-ac28db879785.js" type="text/javascript" charset="UTF-8"></script>
+<script type="text/javascript">
+function OptanonWrapper() { }
+</script>
+<!-- OneTrust Cookies Consent Notice (Production Standard, akka.io, en-GB) end -->
+<!--Google Analytics-->
+<script type="text/plain" class="optanon-category-2">
+var _gaq = _gaq || [];
+_gaq.push(['_setAccount', 'UA-21117439-1']);
+_gaq.push(['_setDomainName', 'akka.io']);
+_gaq.push(['_trackPageview']);
+(function() {
+var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+})()
+</script>
+<script type="text/plain" class="optanon-category-2">
+(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+ga('create', 'UA-23127719-1', 'lightbend.com', {'allowLinker': true, 'name': 'tsTracker'});
+ga('tsTracker.require', 'linker');
+ga('tsTracker.linker:autoLink', ['lightbend.com','playframework.com','scala-lang.org','scaladays.org','spray.io','akka.io','scala-sbt.org','scala-ide.org']);
+ga('tsTracker.send', 'pageview');
+</script>
+<!--Marketo-->
+<script type="text/plain" class="optanon-category-3">
+(function() {
+var didInit = false;
+function initMunchkin() {
+if(didInit === false) {
+didInit = true;
+Munchkin.init('558-NCX-702', { 'asyncOnly': true, 'disableClickDelay': true });
+}
+}
+var s = document.createElement('script');
+s.type = 'text/javascript';
+s.async = true;
+s.src = '//munchkin.marketo.net/munchkin.js';
+s.onreadystatechange = function() {
+if (this.readyState == 'complete' || this.readyState == 'loaded') {
+initMunchkin();
+}
+};
+s.onload = initMunchkin;
+document.getElementsByTagName('head')[0].appendChild(s);
+})();
+</script>
+</head>
+
+<body id="underlay" data-toggler="nav-open">
+
+<header class="site-header hide-for-large">
+<div class="sticky-header clearfix">
+<a href="https://akka.io"><img class="logo" src="../images/akka-logo-reverse.svg"></a>
+
+<button class="menu-icon float-right" type="button" data-toggle="underlay overlay"></button>
+</div>
+<div id="overlay" class="overlay-nav" data-toggler="nav-open">
+<header class="nav-header">
+<div class="nav-header-title">
+<h1><a href="../index.html">Akka Documentation</a></h1>
+</div>
+<div class="nav-header-version">
+Version 2.5-SNAPSHOT
+</div>
+<div class="nav-header-groups">
+<select class="supergroup" name="Language"><option class="group" value="group-scala">Scala</option><option class="group" value="group-java">Java</option></select>
+</div>
+<div id="overlay-search-container" class="nav-header-search">
+<input id="overlay-search" type="search" class="search" placeholder="Search"/>
+</div>
+</header>
+<nav class="nav-toc">
+<ul>
+  <li><a href="../security/index.html" class="page">Security Announcements</a></li>
+  <li><a href="../guide/index.html" class="page">Getting Started Guide</a></li>
+  <li><a href="../general/index.html" class="page">General Concepts</a></li>
+  <li><a href="../index-actors.html" class="page">Actors</a></li>
+  <li><a href="../typed/index.html" class="page">Akka Typed</a>
+  <ul>
+    <li><a href="../typed/actors.html" class="page">Actors</a></li>
+    <li><a href="../typed/coexisting.html#coexistence" class="active page">Coexistence</a>
+    <ul>
+      <li><a href="../typed/coexisting.html#dependency" class="header">Dependency</a></li>
+      <li><a href="../typed/coexisting.html#introduction" class="header">Introduction</a></li>
+      <li><a href="../typed/coexisting.html#untyped-to-typed" class="header">Untyped to typed</a></li>
+      <li><a href="../typed/coexisting.html#typed-to-untyped" class="header">Typed to untyped</a></li>
+    </ul></li>
+    <li><a href="../typed/actor-lifecycle.html" class="page">Actor lifecycle</a></li>
+    <li><a href="../typed/interaction-patterns.html" class="page">Interaction Patterns</a></li>
+    <li><a href="../typed/fault-tolerance.html" class="page">Fault Tolerance</a></li>
+    <li><a href="../typed/actor-discovery.html" class="page">Actor discovery</a></li>
+    <li><a href="../typed/stash.html" class="page">Stash</a></li>
+    <li><a href="../typed/stream.html" class="page">Streams</a></li>
+    <li><a href="../typed/cluster.html" class="page">Cluster</a></li>
+    <li><a href="../typed/distributed-data.html" class="page">Distributed Data</a></li>
+    <li><a href="../typed/cluster-singleton.html" class="page">Cluster Singleton</a></li>
+    <li><a href="../typed/cluster-sharding.html" class="page">Cluster Sharding</a></li>
+    <li><a href="../typed/persistence.html" class="page">Persistence</a></li>
+    <li><a href="../typed/testing.html" class="page">Testing</a></li>
+  </ul></li>
+  <li><a href="../index-cluster.html" class="page">Clustering</a></li>
+  <li><a href="../stream/index.html" class="page">Streams</a></li>
+  <li><a href="../index-network.html" class="page">Networking</a></li>
+  <li><a href="../index-futures.html" class="page">Futures and Agents</a></li>
+  <li><a href="../index-utilities.html" class="page">Utilities</a></li>
+  <li><a href="../common/other-modules.html" class="page">Other Akka modules</a></li>
+  <li><a href="../howto.html" class="page">HowTo: Common Patterns</a></li>
+  <li><a href="../project/index.html" class="page">Project Information</a></li>
+  <li><a href="../additional/index.html" class="page">Additional Information</a></li>
+</ul>
+</nav>
+</div>
+</header>
+
+<aside class="show-for-large">
+<header class="nav-header fixed-sidebar-header">
+<div class="nav-header-title">
+<h1><a href="../index.html">Akka Documentation</a></h1>
+</div>
+<div class="nav-header-version">
+Version 2.5-SNAPSHOT
+</div>
+<div class="nav-header-groups">
+<select class="supergroup" name="Language"><option class="group" value="group-scala">Scala</option><option class="group" value="group-java">Java</option></select>
+</div>
+<div class="nav-header-search">
+<input id="search" type="search" class="search" placeholder="Search"/>
+</div>
+</header>
+<nav class="site-nav fixed-sidebar-contents">
+<div class="nav-toc">
+<ul>
+  <li><a href="../security/index.html" class="page">Security Announcements</a></li>
+  <li><a href="../guide/index.html" class="page">Getting Started Guide</a></li>
+  <li><a href="../general/index.html" class="page">General Concepts</a></li>
+  <li><a href="../index-actors.html" class="page">Actors</a></li>
+  <li><a href="../typed/index.html" class="page">Akka Typed</a>
+  <ul>
+    <li><a href="../typed/actors.html" class="page">Actors</a></li>
+    <li><a href="../typed/coexisting.html#coexistence" class="active page">Coexistence</a>
+    <ul>
+      <li><a href="../typed/coexisting.html#dependency" class="header">Dependency</a></li>
+      <li><a href="../typed/coexisting.html#introduction" class="header">Introduction</a></li>
+      <li><a href="../typed/coexisting.html#untyped-to-typed" class="header">Untyped to typed</a></li>
+      <li><a href="../typed/coexisting.html#typed-to-untyped" class="header">Typed to untyped</a></li>
+    </ul></li>
+    <li><a href="../typed/actor-lifecycle.html" class="page">Actor lifecycle</a></li>
+    <li><a href="../typed/interaction-patterns.html" class="page">Interaction Patterns</a></li>
+    <li><a href="../typed/fault-tolerance.html" class="page">Fault Tolerance</a></li>
+    <li><a href="../typed/actor-discovery.html" class="page">Actor discovery</a></li>
+    <li><a href="../typed/stash.html" class="page">Stash</a></li>
+    <li><a href="../typed/stream.html" class="page">Streams</a></li>
+    <li><a href="../typed/cluster.html" class="page">Cluster</a></li>
+    <li><a href="../typed/distributed-data.html" class="page">Distributed Data</a></li>
+    <li><a href="../typed/cluster-singleton.html" class="page">Cluster Singleton</a></li>
+    <li><a href="../typed/cluster-sharding.html" class="page">Cluster Sharding</a></li>
+    <li><a href="../typed/persistence.html" class="page">Persistence</a></li>
+    <li><a href="../typed/testing.html" class="page">Testing</a></li>
+  </ul></li>
+  <li><a href="../index-cluster.html" class="page">Clustering</a></li>
+  <li><a href="../stream/index.html" class="page">Streams</a></li>
+  <li><a href="../index-network.html" class="page">Networking</a></li>
+  <li><a href="../index-futures.html" class="page">Futures and Agents</a></li>
+  <li><a href="../index-utilities.html" class="page">Utilities</a></li>
+  <li><a href="../common/other-modules.html" class="page">Other Akka modules</a></li>
+  <li><a href="../howto.html" class="page">HowTo: Common Patterns</a></li>
+  <li><a href="../project/index.html" class="page">Project Information</a></li>
+  <li><a href="../additional/index.html" class="page">Additional Information</a></li>
+</ul>
+</div>
+</nav>
+<footer class="nav-footer fixed-sidebar-footer">
+<a href="https://akka.io"><img class="logo" src="../images/akka-logo-reverse.svg"></a>
+
+</footer>
+</aside>
+
+<main class="fixed-shift-for-large expanded row">
+<section class="site-content small-12 column">
+
+<article class="page-content row">
+<div class="small-12 large-9 column" id="docs">
+<h1><a href="#coexistence" name="coexistence" class="anchor"><span class="anchor-link"></span></a>Coexistence</h1>
+<h2><a href="#dependency" name="dependency" class="anchor"><span class="anchor-link"></span></a>Dependency</h2>
+<p>To use Akka Actor Typed, you must add the following dependency in your project:</p><dl class="dependency"><dt>sbt</dt><dd><pre class="prettyprint"><code class="language-scala">libraryDependencies += "com.typesafe.akka" %% "akka-actor-typed" % "2.5-SNAPSHOT"</code></pre></dd><dt>Maven</dt><dd><pre class="prettyprint"><code class="language-xml">&lt;dependency&gt;
+  &lt;groupId&gt;com.typesafe.akka&lt;/groupId&gt;
+  &lt;artifactId&gt;akka-actor-typed_2.12&lt;/artifactId&gt;
+  &lt;version&gt;2.5-SNAPSHOT&lt;/version&gt;
+&lt;/dependency&gt;</code></pre></dd><dt>Gradle</dt><dd><pre class="prettyprint"><code class="language-gradle">dependencies {
+  compile group: 'com.typesafe.akka', name: 'akka-actor-typed_2.12', version: '2.5-SNAPSHOT'
+}</code></pre></dd></dl>
+<h2><a href="#introduction" name="introduction" class="anchor"><span class="anchor-link"></span></a>Introduction</h2>
+<p>We believe Akka Typed will be adopted in existing systems gradually and therefore it&rsquo;s important to be able to use typed and untyped actors together, within the same <code>ActorSystem</code>. Also, we will not be able to integrate with all existing modules in one big bang release and that is another reason for why these two ways of writing actors must be able to coexist.</p>
+<p>There are two different <code>ActorSystem</code>s: <code>akka.actor.ActorSystem</code> and <code>akka.actor.typed.ActorSystem</code>. </p>
+<p>Currently the typed actor system is implemented using an untyped actor system under the hood. This may change in the future.</p>
+<p>Typed and untyped can interact the following ways:</p>
+<ul>
+  <li>untyped actor systems can create typed actors</li>
+  <li>typed actors can send messages to untyped actors, and opposite</li>
+  <li>spawn and supervise typed child from untyped parent, and opposite</li>
+  <li>watch typed from untyped, and opposite</li>
+  <li>untyped actor system can be converted to a typed actor system</li>
+</ul><div class="group-scala">
+<p>In the examples the <code>akka.actor</code> package is aliased to <code>untyped</code>.</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-scala">import akka.{ actor ⇒ untyped }</code></pre></dd>
+</dl></div>
+<p><span class="group-java">The examples use fully qualified class names for the untyped classes to distinguish between typed and untyped classes with the same name.</span></p>
+<h2><a href="#untyped-to-typed" name="untyped-to-typed" class="anchor"><span class="anchor-link"></span></a>Untyped to typed</h2>
+<p>While coexisting your application will likely still have an untyped ActorSystem. This can be converted to a typed ActorSystem so that new code and migrated parts don&rsquo;t rely on the untyped system:</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-scala">val system = akka.actor.ActorSystem(&quot;UntypedToTypedSystem&quot;)
+val typedSystem: ActorSystem[Nothing] = system.toTyped</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-java">akka.actor.ActorSystem untypedActorSystem = akka.actor.ActorSystem.create();
+ActorSystem&lt;Void&gt; typedActorSystem = Adapter.toTyped(untypedActorSystem);</code></pre></dd>
+</dl>
+<p>Then for new typed actors here&rsquo;s how you create, watch and send messages to it from an untyped actor.</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-scala">object Typed {
+  sealed trait Command
+  final case class Ping(replyTo: ActorRef[Pong.type]) extends Command
+  case object Pong
+
+  val behavior: Behavior[Command] =
+    Behaviors.receive { (ctx, msg) ⇒
+      msg match {
+        case Ping(replyTo) ⇒
+          println(s&quot;${ctx.self} got Ping from $replyTo&quot;)
+          // replyTo is an untyped actor that has been converted for coexistence
+          replyTo ! Pong
+          Behaviors.same
+      }
+    }
+}</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-java">public static abstract class Typed {
+  interface Command { }
+
+  public static class Ping implements Command {
+    public final akka.actor.typed.ActorRef&lt;Pong&gt; replyTo;
+
+    public Ping(ActorRef&lt;Pong&gt; replyTo) {
+      this.replyTo = replyTo;
+    }
+  }
+
+  public static class Pong { }
+
+  public static Behavior&lt;Command&gt; behavior() {
+    return Behaviors.receive(Typed.Command.class)
+      .onMessage(Typed.Ping.class, (ctx, msg) -&gt; {
+        msg.replyTo.tell(new Pong());
+        return same();
+      })
+      .build();
+  }
+}</code></pre></dd>
+</dl>
+<p>The top level untyped actor is created in the usual way:</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-scala">val untypedActor = system.actorOf(Untyped.props())</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-java">akka.actor.ActorSystem as = akka.actor.ActorSystem.create();
+akka.actor.ActorRef untyped = as.actorOf(Untyped.props());</code></pre></dd>
+</dl>
+<p>Then it can create a typed actor, watch it, and send a message to it:</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-scala">class Untyped extends untyped.Actor {
+  // context.spawn is an implicit extension method
+  val second: ActorRef[Typed.Command] =
+    context.spawn(Typed.behavior, &quot;second&quot;)
+
+  // context.watch is an implicit extension method
+  context.watch(second)
+
+  // self can be used as the `replyTo` parameter here because
+  // there is an implicit conversion from akka.actor.ActorRef to
+  // akka.actor.typed.ActorRef
+  second ! Typed.Ping(self)
+
+  override def receive = {
+    case Typed.Pong ⇒
+      println(s&quot;$self got Pong from ${sender()}&quot;)
+      // context.stop is an implicit extension method
+      context.stop(second)
+    case untyped.Terminated(ref) ⇒
+      println(s&quot;$self observed termination of $ref&quot;)
+      context.stop(self)
+  }
+}</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-java">public static class Untyped extends AbstractActor {
+  public static akka.actor.Props props() {
+    return akka.actor.Props.create(Untyped.class);
+  }
+
+  private final akka.actor.typed.ActorRef&lt;Typed.Command&gt; second =
+    Adapter.spawn(getContext(), Typed.behavior(), &quot;second&quot;);
+
+  @Override
+  public void preStart() {
+    Adapter.watch(getContext(), second);
+    second.tell(new Typed.Ping(Adapter.toTyped(getSelf())));
+  }
+
+  @Override
+  public Receive createReceive() {
+    return receiveBuilder()
+      .match(Typed.Pong.class, msg -&gt; {
+        Adapter.stop(getContext(), second);
+      })
+      .match(akka.actor.Terminated.class, t -&gt; {
+        getContext().stop(getSelf());
+      })
+      .build();
+  }
+}</code></pre></dd>
+</dl>
+<p><span class="group-scala">There is one <code>import</code> that is needed to make that work.</span> <span class="group-java">We import the Adapter class and call static methods for conversion.</span></p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-scala">// adds support for typed actors to an untyped actor system and context
+import akka.actor.typed.scaladsl.adapter._</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-java">// In java use the static methods on Adapter to convert from typed to untyped
+import akka.actor.typed.javadsl.Adapter;</code></pre></dd>
+</dl>
+<p><span class="group-scala">That adds some implicit extension methods that are added to untyped and typed <code>ActorSystem</code> and <code>ActorContext</code> in both directions.</span> <span class="group-java">To convert between typed and untyped there are adapter methods in <code>akka.actor.typed.javadsl.Adapter</code>.</span> Note the inline comments in the example above.</p>
+<h2><a href="#typed-to-untyped" name="typed-to-untyped" class="anchor"><span class="anchor-link"></span></a>Typed to untyped</h2>
+<p>Let&rsquo;s turn the example upside down and first start the typed actor and then the untyped as a child.</p>
+<p>The following will show how to create, watch and send messages back and forth from a typed actor to this untyped actor:</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-scala">object Untyped {
+  def props(): untyped.Props = untyped.Props(new Untyped)
+}
+class Untyped extends untyped.Actor {
+  override def receive = {
+    case Typed.Ping(replyTo) ⇒
+      replyTo ! Typed.Pong
+  }
+}</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-java">public static class Untyped extends AbstractActor {
+  public static akka.actor.Props props() {
+    return akka.actor.Props.create(Untyped.class);
+  }
+
+  @Override
+  public Receive createReceive() {
+    return receiveBuilder()
+      .match(Typed.Ping.class, msg -&gt; {
+        msg.replyTo.tell(new Typed.Pong());
+      })
+      .build();
+  }
+}</code></pre></dd>
+</dl>
+<p>Creating the actor system and the typed actor:</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-scala">val system = untyped.ActorSystem(&quot;TypedWatchingUntyped&quot;)
+val typed = system.spawn(Typed.behavior, &quot;Typed&quot;)</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-java">ActorSystem as = ActorSystem.create();
+ActorRef&lt;Typed.Command&gt; typed = Adapter.spawn(as, Typed.behavior(), &quot;Typed&quot;);</code></pre></dd>
+</dl>
+<p>Then the typed actor creates the untyped actor, watches it and sends and receives a response:</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-scala">object Typed {
+  final case class Ping(replyTo: akka.actor.typed.ActorRef[Pong.type])
+  sealed trait Command
+  case object Pong extends Command
+
+  val behavior: Behavior[Command] =
+    Behaviors.setup { context ⇒
+      // context.spawn is an implicit extension method
+      val untyped = context.actorOf(Untyped.props(), &quot;second&quot;)
+
+      // context.watch is an implicit extension method
+      context.watch(untyped)
+
+      // illustrating how to pass sender, toUntyped is an implicit extension method
+      untyped.tell(Typed.Ping(context.self), context.self.toUntyped)
+
+      Behaviors.receivePartial[Command] {
+        case (ctx, Pong) ⇒
+          // it&#39;s not possible to get the sender, that must be sent in message
+          // context.stop is an implicit extension method
+          ctx.stop(untyped)
+          Behaviors.same
+      } receiveSignal {
+        case (_, akka.actor.typed.Terminated(_)) ⇒
+          Behaviors.stopped
+      }
+    }
+}</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-java">public static abstract class Typed {
+  public static class Ping {
+    public final akka.actor.typed.ActorRef&lt;Pong&gt; replyTo;
+
+    public Ping(ActorRef&lt;Pong&gt; replyTo) {
+      this.replyTo = replyTo;
+    }
+  }
+
+  interface Command { }
+  public static class Pong implements Command { }
+
+  public static Behavior&lt;Command&gt; behavior() {
+    return akka.actor.typed.javadsl.Behaviors.setup(context -&gt; {
+      akka.actor.ActorRef second = Adapter.actorOf(context, Untyped.props(), &quot;second&quot;);
+
+      Adapter.watch(context, second);
+
+      second.tell(new Typed.Ping(context.getSelf().narrow()),
+        Adapter.toUntyped(context.getSelf()));
+
+      return akka.actor.typed.javadsl.Behaviors.receive(Typed.Command.class)
+        .onMessage(Typed.Pong.class, (ctx, msg) -&gt; {
+          Adapter.stop(ctx, second);
+          return same();
+        })
+        .onSignal(akka.actor.typed.Terminated.class, (ctx, sig) -&gt; stopped())
+        .build();
+    });
+  }
+}</code></pre></dd>
+</dl>
+<p>There is one caveat regarding supervision of untyped child from typed parent. If the child throws an exception we would expect it to be restarted, but supervision in Akka Typed defaults to stopping the child in case it fails. The restarting facilities in Akka Typed will not work with untyped children. However, the workaround is to add another untyped actor that takes care of the supervision, i.e. restarts in case of failure if that is the desired behavior.</p>
+</div>
+</article>
+
+<div class="row">
+<div class="small-12 large-9 column">
+<section class="nav-prev-next row">
+<div class="nav-prev small-6 column">
+<a href="../typed/actors.html"><i class="icon-prev"></i> <span class="link-prev">Actors</span></a>
+</div>
+<div class="nav-next small-6 column clearfix">
+<a class="float-right" href="../typed/actor-lifecycle.html">Actor lifecycle <i class="icon-next"></i></a>
+</div>
+</section>
+</div>
+</div>
+
+<div class="source-github row">
+Found an error in this documentation? The source code for this page can be found <a href="http://github.com/akka/akka/tree/master/akka-docs/src/main/paradox/typed/coexisting.md">here</a>.
+Please feel free to edit and contribute a pull request.
+</div>
+
+
+<footer class="page-footer row clearfix">
+<img class="akka-icon float-left show-for-medium" src="../images/akka-icon.svg">
+<section class="copyright">
+<div>Akka is Open Source and available under the Apache 2 License.</div>
+<p class="legal">
+&copy; 2011-2018 <a href="https://www.lightbend.com" target="_blank">Lightbend, Inc.</a> | 
+<a href="https://www.lightbend.com/legal/licenses" target="_blank">Licenses</a> | 
+<a href="https://www.lightbend.com/legal/terms" target="_blank">Terms</a> | 
+<a href="https://www.lightbend.com/legal/privacy" target="_blank">Privacy Policy</a> | 
+<a href="https://akka.io/cookie/" target="_blank">Cookie Listing</a> | 
+<a class="optanon-toggle-display">Cookie Settings</a>
+</p>
+</section>
+</footer>
+
+</section>
+</main>
+
+<script type="text/javascript" src="../js/scrollsneak.js"></script>
+<script type="text/javascript">jQuery(document).foundation();</script>
+<script type="text/javascript" src="../js/groups.js"></script>
+<script type="text/javascript" src="../js/page.js"></script>
+<script type="text/javascript" src="../js/magellan.js"></script>
+
+<style type="text/css">@import "../lib/prettify/prettify.css";</style>
+<script type="text/javascript" src="../lib/prettify/prettify.js"></script>
+<script type="text/javascript" src="../lib/prettify/lang-scala.js"></script>
+<script type="text/javascript">jQuery(function(){window.prettyPrint && prettyPrint()});</script>
+
+<!-- Algolia docs search -->
+<script type="text/javascript" src="https://cdn.jsdelivr.net/docsearch.js/2/docsearch.min.js"></script>
+<style>.algolia-autocomplete { display: block !important }</style>
+<script type="text/javascript">
+docsearch({
+apiKey: '543bad5ad786495d9ccd445ed34ed082',
+indexName: 'akka_io',
+inputSelector: '#search',
+algoliaOptions: {
+hitsPerPage: 5
+}
+});
+
+docsearch({
+apiKey: '543bad5ad786495d9ccd445ed34ed082',
+indexName: 'akka_io',
+inputSelector: '#overlay-search',
+algoliaOptions: {
+hitsPerPage: 5
+}
+});
+
+// set up "/" as global shortcut for focusing on search
+jQuery(document).keypress(function (event) {
+if (event.keyCode == 47) {
+jQuery("#search").focus();
+return false; // swallow key event, otherwise the / char would be input into the search box
+}
+});
+</script>
+
+<script type="text/javascript" src="../assets/js/warnOldDocs.js"></script>
+
+
+</body>
+</html>

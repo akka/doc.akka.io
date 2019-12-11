@@ -1,0 +1,433 @@
+
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Testing Actor Systems &mdash; Akka Documentation</title>
+    <link rel="stylesheet" href="../_static/akka.css" type="text/css" />
+<link rel="stylesheet" href="https://doc.akka.io/docs/akka/1.1.3/_static/docs.css" type="text/css"/>
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/print.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '1.1.3',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+<script type="text/javascript" src="https://doc.akka.io/docs/akka/1.1.3/_static/warnOldDocs.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="../_static/theme_extras.js"></script>
+    <link rel="top" title="Akka Documentation" href="../index.html" />
+    <link rel="up" title="Scala API" href="index.html" />
+    <link rel="next" title="TestKit Example" href="testkit-example.html" />
+    <link rel="prev" title="HTTP Security" href="security.html" /> 
+  </head>
+  <body>
+      <div class="header"><a href="../index.html"><img class="leftlogo" src="../_static/logo.png" alt="Logo"/></a><h1 class="heading"><a href="../index.html"><span>Akka Documentation</span></a></h1>
+       <h2 class="heading"><a href="../index.html"><span>Version 1.1.3</span></a></h2>
+       <h2 class="rightheading"><span><a href="https://akka.io/docs/akka/1.1.3/Akka.pdf">PDF</a></span></h2>
+      </div>
+      <div class="topnav">
+      
+        <p>
+        «&#160;&#160;<a href="security.html">HTTP Security</a>
+        &#160;&#160;::&#160;&#160;
+        <a class="uplink" href="../index.html">Contents</a>
+        &#160;&#160;::&#160;&#160;
+        <a href="testkit-example.html">TestKit Example</a>&#160;&#160;»
+        </p>
+
+      </div>
+      <div class="content">
+        
+        
+  <div class="section" id="testing-actor-systems">
+<span id="akka-testkit"></span><h1>Testing Actor Systems<a class="headerlink" href="#testing-actor-systems" title="Permalink to this headline">¶</a></h1>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="testkit-example.html">TestKit Example</a></li>
+</ul>
+</div>
+<div class="sidebar">
+<p class="first sidebar-title">Contents</p>
+<div class="contents local last topic" id="contents">
+<ul class="simple">
+<li><a class="reference internal" href="#unit-testing-with-testactorref" id="id1">Unit Testing with <tt class="xref py py-class docutils literal"><span class="pre">TestActorRef</span></tt></a><ul>
+<li><a class="reference internal" href="#obtaining-a-reference-to-an-actor" id="id2">Obtaining a Reference to an <tt class="xref py py-class docutils literal"><span class="pre">Actor</span></tt></a></li>
+<li><a class="reference internal" href="#testing-the-actor-s-behavior" id="id3">Testing the Actor&#8217;s Behavior</a></li>
+<li><a class="reference internal" href="#the-way-in-between" id="id4">The Way In-Between</a></li>
+<li><a class="reference internal" href="#use-cases" id="id5">Use Cases</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#integration-testing-with-testkit" id="id6">Integration Testing with <tt class="xref py py-class docutils literal"><span class="pre">TestKit</span></tt></a></li>
+<li><a class="reference internal" href="#callingthreaddispatcher" id="id7">CallingThreadDispatcher</a><ul>
+<li><a class="reference internal" href="#how-to-use-it" id="id8">How to use it</a></li>
+<li><a class="reference internal" href="#how-it-works" id="id9">How it works</a></li>
+<li><a class="reference internal" href="#limitations" id="id10">Limitations</a></li>
+<li><a class="reference internal" href="#benefits" id="id11">Benefits</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<span class="target" id="module-akka-testkit"></span><p><em>Module author: Roland Kuhn</em></p>
+<p class="versionadded">
+<span class="versionmodified">New in version 1.0.</span></p>
+<p class="versionchanged">
+<span class="versionmodified">Changed in version 1.1: </span>added <tt class="xref py py-class docutils literal"><span class="pre">TestActorRef</span></tt></p>
+<p>As with any piece of software, automated tests are a very important part of the
+development cycle. The actor model presents a different view on how units of
+code are delimited and how they interact, which has an influence on how to
+perform tests.</p>
+<p>Akka comes with a dedicated module <a class="reference internal" href="#module-akka-testkit" title="akka-testkit: Tools for Testing Actor Systems"><tt class="xref py py-mod docutils literal"><span class="pre">akka-testkit</span></tt></a> for supporting tests at
+different levels, which fall into two clearly distinct categories:</p>
+<blockquote>
+<div><ul class="simple">
+<li>Testing isolated pieces of code without involving the actor model, meaning
+without multiple threads; this implies completely deterministic behavior
+concerning the ordering of events and no concurrency concerns and will be
+called <strong>Unit Testing</strong> in the following.</li>
+<li>Testing (multiple) encapsulated actors including multi-threaded scheduling;
+this implies non-deterministic order of events but shielding from
+concurrency concerns by the actor model and will be called <strong>Integration
+Testing</strong> in the following.</li>
+</ul>
+</div></blockquote>
+<p>There are of course variations on the granularity of tests in both categories,
+where unit testing reaches down to white-box tests and integration testing can
+encompass functional tests of complete actor networks. The important
+distinction lies in whether concurrency concerns are part of the test or not.
+The tools offered are described in detail in the following sections.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Be sure to add the module <a class="reference internal" href="#module-akka-testkit" title="akka-testkit: Tools for Testing Actor Systems"><tt class="xref py py-mod docutils literal"><span class="pre">akka-testkit</span></tt></a> to your dependencies.</p>
+</div>
+<div class="section" id="unit-testing-with-testactorref">
+<h2><a class="toc-backref" href="#id1">Unit Testing with <tt class="xref py py-class docutils literal"><span class="pre">TestActorRef</span></tt></a><a class="headerlink" href="#unit-testing-with-testactorref" title="Permalink to this headline">¶</a></h2>
+<p>Testing the business logic inside <tt class="xref py py-class docutils literal"><span class="pre">Actor</span></tt> classes can be divided into
+two parts: first, each atomic operation must work in isolation, then sequences
+of incoming events must be processed correctly, even in the presence of some
+possible variability in the ordering of events. The former is the primary use
+case for single-threaded unit testing, while the latter can only be verified in
+integration tests.</p>
+<p>Normally, the <tt class="xref py py-class docutils literal"><span class="pre">ActorRef</span></tt> shields the underlying <tt class="xref py py-class docutils literal"><span class="pre">Actor</span></tt> instance
+from the outside, the only communications channel is the actor&#8217;s mailbox. This
+restriction is an impediment to unit testing, which led to the inception of the
+<tt class="xref py py-class docutils literal"><span class="pre">TestActorRef</span></tt>. This special type of reference is designed specifically
+for test purposes and allows access to the actor in two ways: either by
+obtaining a reference to the underlying actor instance, or by invoking or
+querying the actor&#8217;s behaviour (<tt class="xref py py-meth docutils literal"><span class="pre">receive</span></tt>). Each one warrants its own
+section below.</p>
+<div class="section" id="obtaining-a-reference-to-an-actor">
+<h3><a class="toc-backref" href="#id2">Obtaining a Reference to an <tt class="xref py py-class docutils literal"><span class="pre">Actor</span></tt></a><a class="headerlink" href="#obtaining-a-reference-to-an-actor" title="Permalink to this headline">¶</a></h3>
+<p>Having access to the actual <tt class="xref py py-class docutils literal"><span class="pre">Actor</span></tt> object allows application of all
+traditional unit testing techniques on the contained methods. Obtaining a
+reference is done like this:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">import</span> <span class="nn">akka.testkit.TestActorRef</span>
+
+<span class="k">val</span> <span class="n">actorRef</span> <span class="k">=</span> <span class="nc">TestActorRef</span><span class="o">[</span><span class="kt">MyActor</span><span class="o">]</span>
+<span class="k">val</span> <span class="n">actor</span> <span class="k">=</span> <span class="n">actorRef</span><span class="o">.</span><span class="n">underlyingActor</span>
+</pre></div>
+</div>
+<p>Since <tt class="xref py py-class docutils literal"><span class="pre">TestActorRef</span></tt> is generic in the actor type it returns the
+underlying actor with its proper static type. From this point on you may bring
+any unit testing tool to bear on your actor as usual.</p>
+</div>
+<div class="section" id="testing-the-actor-s-behavior">
+<h3><a class="toc-backref" href="#id3">Testing the Actor&#8217;s Behavior</a><a class="headerlink" href="#testing-the-actor-s-behavior" title="Permalink to this headline">¶</a></h3>
+<p>When the dispatcher invokes the processing behavior of an actor on a message,
+it actually calls <tt class="xref py py-meth docutils literal"><span class="pre">apply</span></tt> on the current behavior registered for the
+actor. This starts out with the return value of the declared <tt class="xref py py-meth docutils literal"><span class="pre">receive</span></tt>
+method, but it may also be changed using <tt class="xref py py-meth docutils literal"><span class="pre">become</span></tt> and <tt class="xref py py-meth docutils literal"><span class="pre">unbecome</span></tt>,
+both of which have corresponding message equivalents, meaning that the behavior
+may be changed from the outside. All of this contributes to the overall actor
+behavior and it does not lend itself to easy testing on the <tt class="xref py py-class docutils literal"><span class="pre">Actor</span></tt>
+itself. Therefore the <tt class="xref py py-class docutils literal"><span class="pre">TestActorRef</span></tt> offers a different mode of
+operation to complement the <tt class="xref py py-class docutils literal"><span class="pre">Actor</span></tt> testing: it supports all operations
+also valid on normal <tt class="xref py py-class docutils literal"><span class="pre">ActorRef</span></tt>. Messages sent to the actor are
+processed synchronously on the current thread and answers may be sent back as
+usual. This trick is made possible by the <tt class="xref py py-class docutils literal"><span class="pre">CallingThreadDispatcher</span></tt>
+described below; this dispatcher is set implicitly for any actor instantiated
+into a <tt class="xref py py-class docutils literal"><span class="pre">TestActorRef</span></tt>.</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">val</span> <span class="n">actorRef</span> <span class="k">=</span> <span class="nc">TestActorRef</span><span class="o">(</span><span class="k">new</span> <span class="nc">MyActor</span><span class="o">)</span>
+<span class="k">val</span> <span class="n">result</span> <span class="k">=</span> <span class="n">actorRef</span> <span class="o">!!</span> <span class="nc">Say42</span> <span class="c1">// hypothetical message stimulating a &#39;42&#39; answer</span>
+<span class="n">result</span> <span class="n">must</span> <span class="n">be</span> <span class="o">(</span><span class="mi">42</span><span class="o">)</span>
+</pre></div>
+</div>
+<p>As the <tt class="xref py py-class docutils literal"><span class="pre">TestActorRef</span></tt> is a subclass of <tt class="xref py py-class docutils literal"><span class="pre">LocalActorRef</span></tt> with a few
+special extras, also aspects like linking to a supervisor and restarting work
+properly, as long as all actors involved use the
+<tt class="xref py py-class docutils literal"><span class="pre">CallingThreadDispatcher</span></tt>. As soon as you add elements which include
+more sophisticated scheduling you leave the realm of unit testing as you then
+need to think about proper synchronization again (in most cases the problem of
+waiting until the desired effect had a chance to happen).</p>
+<p>One more special aspect which is overridden for single-threaded tests is the
+<tt class="xref py py-meth docutils literal"><span class="pre">receiveTimeout</span></tt>, as including that would entail asynchronous queuing of
+<tt class="xref py py-obj docutils literal"><span class="pre">ReceiveTimeout</span></tt> messages, violating the synchronous contract.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">To summarize: <tt class="xref py py-class docutils literal"><span class="pre">TestActorRef</span></tt> overwrites two fields: it sets the
+dispatcher to <tt class="xref py py-obj docutils literal"><span class="pre">CallingThreadDispatcher.global</span></tt> and it sets the
+<tt class="xref py py-obj docutils literal"><span class="pre">receiveTimeout</span></tt> to zero.</p>
+</div>
+</div>
+<div class="section" id="the-way-in-between">
+<h3><a class="toc-backref" href="#id4">The Way In-Between</a><a class="headerlink" href="#the-way-in-between" title="Permalink to this headline">¶</a></h3>
+<p>If you want to test the actor behavior, including hotswapping, but without
+involving a dispatcher and without having the <tt class="xref py py-class docutils literal"><span class="pre">TestActorRef</span></tt> swallow
+any thrown exceptions, then there is another mode available for you: just use
+the <tt class="xref py py-class docutils literal"><span class="pre">TestActorRef</span></tt> as a partial function, the calls to
+<tt class="xref py py-meth docutils literal"><span class="pre">isDefinedAt</span></tt> and <tt class="xref py py-meth docutils literal"><span class="pre">apply</span></tt> will be forwarded to the underlying
+actor:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">val</span> <span class="n">ref</span> <span class="k">=</span> <span class="nc">TestActorRef</span><span class="o">[</span><span class="kt">MyActor</span><span class="o">]</span>
+<span class="n">ref</span><span class="o">.</span><span class="n">isDefinedAt</span><span class="o">(</span><span class="-Symbol">&#39;unknown</span><span class="o">)</span> <span class="n">must</span> <span class="n">be</span> <span class="o">(</span><span class="kc">false</span><span class="o">)</span>
+<span class="n">intercept</span><span class="o">[</span><span class="kt">IllegalActorStateException</span><span class="o">]</span> <span class="o">{</span> <span class="n">ref</span><span class="o">(</span><span class="nc">RequestReply</span><span class="o">)</span> <span class="o">}</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="use-cases">
+<h3><a class="toc-backref" href="#id5">Use Cases</a><a class="headerlink" href="#use-cases" title="Permalink to this headline">¶</a></h3>
+<p>You may of course mix and match both modi operandi of <tt class="xref py py-class docutils literal"><span class="pre">TestActorRef</span></tt> as
+suits your test needs:</p>
+<blockquote>
+<div><ul class="simple">
+<li>one common use case is setting up the actor into a specific internal state
+before sending the test message</li>
+<li>another is to verify correct internal state transitions after having sent
+the test message</li>
+</ul>
+</div></blockquote>
+<p>Feel free to experiment with the possibilities, and if you find useful
+patterns, don&#8217;t hesitate to let the Akka forums know about them! Who knows,
+common operations might even be worked into nice DSLs.</p>
+</div>
+</div>
+<div class="section" id="integration-testing-with-testkit">
+<h2><a class="toc-backref" href="#id6">Integration Testing with <tt class="xref py py-class docutils literal"><span class="pre">TestKit</span></tt></a><a class="headerlink" href="#integration-testing-with-testkit" title="Permalink to this headline">¶</a></h2>
+<p>When you are reasonably sure that your actor&#8217;s business logic is correct, the
+next step is verifying that it works correctly within its intended environment
+(if the individual actors are simple enough, possibly because they use the
+<a class="reference internal" href="fsm.html#module-FSM" title="FSM: Finite State Machine DSL on top of Actors (Scala)"><tt class="xref py py-mod docutils literal"><span class="pre">FSM</span></tt></a> module, this might also be the first step). The definition of the
+environment depends of course very much on the problem at hand and the level at
+which you intend to test, ranging for functional/integration tests to full
+system tests. The minimal setup consists of the test procedure, which provides
+the desired stimuli, the actor under test, and an actor receiving replies.
+Bigger systems replace the actor under test with a network of actors, apply
+stimuli at varying injection points and arrange results to be sent from
+different emission points, but the basic principle stays the same in that a
+single procedure drives the test.</p>
+<p>The <tt class="xref py py-class docutils literal"><span class="pre">TestKit</span></tt> trait contains a collection of tools which makes this
+common task easy:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">import</span> <span class="nn">akka.testkit.TestKit</span>
+<span class="k">import</span> <span class="nn">org.scalatest.WordSpec</span>
+<span class="k">import</span> <span class="nn">org.scalatest.matchers.MustMatchers</span>
+
+<span class="k">class</span> <span class="nc">MySpec</span> <span class="k">extends</span> <span class="nc">WordSpec</span> <span class="k">with</span> <span class="nc">MustMatchers</span> <span class="k">with</span> <span class="nc">TestKit</span> <span class="o">{</span>
+
+  <span class="s">&quot;An Echo actor&quot;</span> <span class="n">must</span> <span class="o">{</span>
+
+    <span class="s">&quot;send back messages unchanged&quot;</span> <span class="n">in</span> <span class="o">{</span>
+
+      <span class="k">val</span> <span class="n">echo</span> <span class="k">=</span> <span class="nc">Actor</span><span class="o">.</span><span class="n">actorOf</span><span class="o">[</span><span class="kt">EchoActor</span><span class="o">].</span><span class="n">start</span><span class="o">()</span>
+      <span class="n">echo</span> <span class="o">!</span> <span class="s">&quot;hello world&quot;</span>
+      <span class="n">expectMsg</span><span class="o">(</span><span class="s">&quot;hello world&quot;</span><span class="o">)</span>
+
+    <span class="o">}</span>
+
+  <span class="o">}</span>
+
+<span class="o">}</span>
+</pre></div>
+</div>
+<p>The <tt class="xref py py-class docutils literal"><span class="pre">TestKit</span></tt> contains an actor named <tt class="xref py py-obj docutils literal"><span class="pre">testActor</span></tt> which is
+implicitly used as sender reference when dispatching messages from the test
+procedure. This enables replies to be received by this internal actor, whose
+only function is to queue them so that interrogation methods like
+<tt class="xref py py-meth docutils literal"><span class="pre">expectMsg</span></tt> can examine them. The <tt class="xref py py-obj docutils literal"><span class="pre">testActor</span></tt> may also be passed to
+other actors as usual, usually subscribing it as notification listener. There
+is a whole set of examination methods, e.g. receiving all consecutive messages
+matching certain criteria, receiving a whole sequence of fixed messages or
+classes, receiving nothing for some time, etc.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The test actor shuts itself down by default after 5 seconds (configurable)
+of inactivity, relieving you of the duty of explicitly managing it.</p>
+</div>
+<p>Another important part of functional testing concerns timing: certain events
+must not happen immediately (like a timer), others need to happen before a
+deadline. Therefore, all examination methods accept an upper time limit within
+the positive or negative result must be obtained. Lower time limits need to be
+checked external to the examination, which is facilitated by a new construct
+for managing time constraints:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="n">within</span><span class="o">([</span><span class="kt">min</span>, <span class="o">]</span><span class="n">max</span><span class="o">)</span> <span class="o">{</span>
+  <span class="o">...</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<p>The block given to <tt class="xref py py-meth docutils literal"><span class="pre">within</span></tt> must complete after a <a class="reference internal" href="../common/duration.html#duration"><em>Duration</em></a> which
+is between <tt class="xref py py-obj docutils literal"><span class="pre">min</span></tt> and <tt class="xref py py-obj docutils literal"><span class="pre">max</span></tt>, where the former defaults to zero. The
+deadline calculated by adding the <tt class="xref py py-obj docutils literal"><span class="pre">max</span></tt> parameter to the block&#8217;s start
+time is implicitly available within the block to all examination methods, if
+you do not specify it, is is inherited from the innermost enclosing
+<tt class="xref py py-meth docutils literal"><span class="pre">within</span></tt> block. It should be noted that using <tt class="xref py py-meth docutils literal"><span class="pre">expectNoMsg</span></tt> will
+terminate upon reception of a message or at the deadline, whichever occurs
+first; it follows that this examination usually is the last statement in a
+<tt class="xref py py-meth docutils literal"><span class="pre">within</span></tt> block.</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">class</span> <span class="nc">SomeSpec</span> <span class="k">extends</span> <span class="nc">WordSpec</span> <span class="k">with</span> <span class="nc">MustMatchers</span> <span class="k">with</span> <span class="nc">TestKit</span> <span class="o">{</span>
+  <span class="s">&quot;A Worker&quot;</span> <span class="n">must</span> <span class="o">{</span>
+    <span class="s">&quot;send timely replies&quot;</span> <span class="n">in</span> <span class="o">{</span>
+      <span class="k">val</span> <span class="n">worker</span> <span class="k">=</span> <span class="n">actorOf</span><span class="o">(...)</span>
+      <span class="n">within</span> <span class="o">(</span><span class="mi">50</span> <span class="n">millis</span><span class="o">)</span> <span class="o">{</span>
+        <span class="n">worker</span> <span class="o">!</span> <span class="s">&quot;some work&quot;</span>
+        <span class="n">expectMsg</span><span class="o">(</span><span class="s">&quot;some result&quot;</span><span class="o">)</span>
+        <span class="n">expectNoMsg</span>
+      <span class="o">}</span>
+    <span class="o">}</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">All times are measured using <tt class="docutils literal"><span class="pre">System.nanoTime</span></tt>, meaning that they describe
+wall time, not CPU time.</p>
+</div>
+<p>Ray Roestenburg has written a great article on using the TestKit:
+<a class="reference external" href="http://roestenburg.agilesquad.com/2011/02/unit-testing-akka-actors-with-testkit_12.html">http://roestenburg.agilesquad.com/2011/02/unit-testing-akka-actors-with-testkit_12.html</a>.
+His full example is also available <a class="reference internal" href="testkit-example.html#testkit-example"><em>here</em></a>.</p>
+</div>
+<div class="section" id="callingthreaddispatcher">
+<h2><a class="toc-backref" href="#id7">CallingThreadDispatcher</a><a class="headerlink" href="#callingthreaddispatcher" title="Permalink to this headline">¶</a></h2>
+<p>The <tt class="xref py py-class docutils literal"><span class="pre">CallingThreadDispatcher</span></tt> serves good purposes in unit testing, as
+described above, but originally it was conceived in order to allow contiguous
+stack traces to be generated in case of an error. As this special dispatcher
+runs everything which would normally be queued directly on the current thread,
+the full history of a message&#8217;s processing chain is recorded on the call stack,
+so long as all intervening actors run on this dispatcher.</p>
+<div class="section" id="how-to-use-it">
+<h3><a class="toc-backref" href="#id8">How to use it</a><a class="headerlink" href="#how-to-use-it" title="Permalink to this headline">¶</a></h3>
+<p>Just set the dispatcher as you normally would, either from within the actor</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">import</span> <span class="nn">akka.testkit.CallingThreadDispatcher</span>
+
+<span class="k">class</span> <span class="nc">MyActor</span> <span class="k">extends</span> <span class="nc">Actor</span> <span class="o">{</span>
+  <span class="n">self</span><span class="o">.</span><span class="n">dispatcher</span> <span class="k">=</span> <span class="nc">CallingThreadDispatcher</span><span class="o">.</span><span class="n">global</span>
+  <span class="o">...</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<p>or from the client code</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">val</span> <span class="n">ref</span> <span class="k">=</span> <span class="nc">Actor</span><span class="o">.</span><span class="n">actorOf</span><span class="o">[</span><span class="kt">MyActor</span><span class="o">]</span>
+<span class="n">ref</span><span class="o">.</span><span class="n">dispatcher</span> <span class="k">=</span> <span class="nc">CallingThreadDispatcher</span><span class="o">.</span><span class="n">global</span>
+<span class="n">ref</span><span class="o">.</span><span class="n">start</span><span class="o">()</span>
+</pre></div>
+</div>
+<p>As the <tt class="xref py py-class docutils literal"><span class="pre">CallingThreadDispatcher</span></tt> does not have any configurable state,
+you may always use the (lazily) preallocated one as shown in the examples.</p>
+</div>
+<div class="section" id="how-it-works">
+<h3><a class="toc-backref" href="#id9">How it works</a><a class="headerlink" href="#how-it-works" title="Permalink to this headline">¶</a></h3>
+<p>When receiving an invocation, the <tt class="xref py py-class docutils literal"><span class="pre">CallingThreadDispatcher</span></tt> checks
+whether the receiving actor is already active on the current thread. The
+simplest example for this situation is an actor which sends a message to
+itself. In this case, processing cannot continue immediately as that would
+violate the actor model, so the invocation is queued and will be processed when
+the active invocation on that actor finishes its processing; thus, it will be
+processed on the calling thread, but simply after the actor finishes its
+previous work. In the other case, the invocation is simply processed
+immediately on the current thread. Futures scheduled via this dispatcher are
+also executed immediately.</p>
+<p>This scheme makes the <tt class="xref py py-class docutils literal"><span class="pre">CallingThreadDispatcher</span></tt> work like a general
+purpose dispatcher for any actors which never block on external events.</p>
+<p>In the presence of multiple threads it may happen that two invocations of an
+actor running on this dispatcher happen on two different threads at the same
+time. In this case, both will be processed directly on their respective
+threads, where both compete for the actor&#8217;s lock and the loser has to wait.
+Thus, the actor model is left intact, but the price is loss of concurrency due
+to limited scheduling. In a sense this is equivalent to traditional mutex style
+concurrency.</p>
+<p>The other remaining difficulty is correct handling of suspend and resume: when
+an actor is suspended, subsequent invocations will be queued in thread-local
+queues (the same ones used for queuing in the normal case). The call to
+<tt class="xref py py-meth docutils literal"><span class="pre">resume</span></tt>, however, is done by one specific thread, and all other threads
+in the system will probably not be executing this specific actor, which leads
+to the problem that the thread-local queues cannot be emptied by their native
+threads. Hence, the thread calling <tt class="xref py py-meth docutils literal"><span class="pre">resume</span></tt> will collect all currently
+queued invocations from all threads into its own queue and process them.</p>
+</div>
+<div class="section" id="limitations">
+<h3><a class="toc-backref" href="#id10">Limitations</a><a class="headerlink" href="#limitations" title="Permalink to this headline">¶</a></h3>
+<p>If an actor&#8217;s behavior blocks on a something which would normally be affected
+by the calling actor after having sent the message, this will obviously
+dead-lock when using this dispatcher. This is a common scenario in actor tests
+based on <tt class="xref py py-class docutils literal"><span class="pre">CountDownLatch</span></tt> for synchronization:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">val</span> <span class="n">latch</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">CountDownLatch</span><span class="o">(</span><span class="mi">1</span><span class="o">)</span>
+<span class="n">actor</span> <span class="o">!</span> <span class="n">startWorkAfter</span><span class="o">(</span><span class="n">latch</span><span class="o">)</span>   <span class="c1">// actor will call latch.await() before proceeding</span>
+<span class="n">doSomeSetupStuff</span><span class="o">()</span>
+<span class="n">latch</span><span class="o">.</span><span class="n">countDown</span><span class="o">()</span>
+</pre></div>
+</div>
+<p>The example would hang indefinitely within the message processing initiated on
+the second line and never reach the fourth line, which would unblock it on a
+normal dispatcher.</p>
+<p>Thus, keep in mind that the <tt class="xref py py-class docutils literal"><span class="pre">CallingThreadDispatcher</span></tt> is not a
+general-purpose replacement for the normal dispatchers. On the other hand it
+may be quite useful to run your actor network on it for testing, because if it
+runs without dead-locking chances are very high that it will not dead-lock in
+production.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">The above sentence is unfortunately not a strong guarantee, because your
+code might directly or indirectly change its behavior when running on a
+different dispatcher. If you are looking for a tool to help you debug
+dead-locks, the <tt class="xref py py-class docutils literal"><span class="pre">CallingThreadDispatcher</span></tt> may help with certain error
+scenarios, but keep in mind that it has may give false negatives as well as
+false positives.</p>
+</div>
+</div>
+<div class="section" id="benefits">
+<h3><a class="toc-backref" href="#id11">Benefits</a><a class="headerlink" href="#benefits" title="Permalink to this headline">¶</a></h3>
+<p>To summarize, these are the features with the <tt class="xref py py-class docutils literal"><span class="pre">CallingThreadDispatcher</span></tt>
+has to offer:</p>
+<blockquote>
+<div><ul class="simple">
+<li>Deterministic execution of single-threaded tests while retaining nearly full
+actor semantics</li>
+<li>Full message processing history leading up to the point of failure in
+exception stack traces</li>
+<li>Exclusion of certain classes of dead-lock scenarios</li>
+</ul>
+</div></blockquote>
+</div>
+</div>
+</div>
+
+
+      </div>
+      <div class="bottomnav">
+      
+        <p>
+        «&#160;&#160;<a href="security.html">HTTP Security</a>
+        &#160;&#160;::&#160;&#160;
+        <a class="uplink" href="../index.html">Contents</a>
+        &#160;&#160;::&#160;&#160;
+        <a href="testkit-example.html">TestKit Example</a>&#160;&#160;»
+        </p>
+
+      </div>
+
+    <div class="footer">
+        &copy; Copyright 2011, Typesafe Inc.
+      Last updated on Jun 29, 2011.
+    </div>
+  </body>
+</html>

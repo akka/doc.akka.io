@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html class="no-js" lang="en">
+
+<head>
+<title>Persistence Query for LevelDB &bull; Akka Documentation</title>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta name="description" content="Akka is a toolkit for building highly concurrent, distributed, and resilient message-driven applications for Java and Scala."/>
+<link rel="canonical" href="https://doc.akka.io/docs/akka/current/persistence-query-leveldb.html"/>
+<script type="text/javascript" src="lib/jquery/jquery.min.js"></script>
+<script type="text/javascript" src="lib/foundation/dist/js/foundation.min.js"></script>
+<link rel="stylesheet" type="text/css" href="lib/normalize.css/normalize.css"/>
+<link rel="stylesheet" type="text/css" href="lib/foundation/dist/css/foundation.min.css"/>
+<link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/docsearch.js/2/docsearch.min.css" />
+<link rel="stylesheet" type="text/css" href="css/icons.css"/>
+<link rel="stylesheet" type="text/css" href="css/page.css"/>
+<link rel="shortcut icon" href="images/favicon.ico" />
+<link rel="apple-touch-icon" sizes="180x180" href="images/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="images/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="images/favicon-16x16.png">
+<link rel="manifest" href="images/manifest.json">
+<meta name="msapplication-TileImage" content="images/mstile-150x150.png">
+<meta name="msapplication-TileColor" content="#15a9ce">
+<meta name="theme-color" content="#15a9ce">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<!-- OneTrust Cookies Consent Notice (Production Standard, akka.io, en-GB) start -->
+<script src="https://optanon.blob.core.windows.net/consent/159bb13d-6748-4399-806e-ac28db879785.js" type="text/javascript" charset="UTF-8"></script>
+<script type="text/javascript">
+function OptanonWrapper() { }
+</script>
+<!-- OneTrust Cookies Consent Notice (Production Standard, akka.io, en-GB) end -->
+<!--Google Analytics-->
+<script type="text/plain" class="optanon-category-2">
+var _gaq = _gaq || [];
+_gaq.push(['_setAccount', 'UA-21117439-1']);
+_gaq.push(['_setDomainName', 'akka.io']);
+_gaq.push(['_trackPageview']);
+(function() {
+var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+})()
+</script>
+<script type="text/plain" class="optanon-category-2">
+(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+ga('create', 'UA-23127719-1', 'lightbend.com', {'allowLinker': true, 'name': 'tsTracker'});
+ga('tsTracker.require', 'linker');
+ga('tsTracker.linker:autoLink', ['lightbend.com','playframework.com','scala-lang.org','scaladays.org','spray.io','akka.io','scala-sbt.org','scala-ide.org']);
+ga('tsTracker.send', 'pageview');
+</script>
+<!--Marketo-->
+<script type="text/plain" class="optanon-category-3">
+(function() {
+var didInit = false;
+function initMunchkin() {
+if(didInit === false) {
+didInit = true;
+Munchkin.init('558-NCX-702', { 'asyncOnly': true, 'disableClickDelay': true });
+}
+}
+var s = document.createElement('script');
+s.type = 'text/javascript';
+s.async = true;
+s.src = '//munchkin.marketo.net/munchkin.js';
+s.onreadystatechange = function() {
+if (this.readyState == 'complete' || this.readyState == 'loaded') {
+initMunchkin();
+}
+};
+s.onload = initMunchkin;
+document.getElementsByTagName('head')[0].appendChild(s);
+})();
+</script>
+</head>
+
+<body id="underlay" data-toggler="nav-open">
+
+<header class="site-header hide-for-large">
+<div class="sticky-header clearfix">
+<a href="https://akka.io"><img class="logo" src="images/akka-logo-reverse.svg"></a>
+
+<button class="menu-icon float-right" type="button" data-toggle="underlay overlay"></button>
+</div>
+<div id="overlay" class="overlay-nav" data-toggler="nav-open">
+<header class="nav-header">
+<div class="nav-header-title">
+<h1><a href="index.html">Akka Documentation</a></h1>
+</div>
+<div class="nav-header-version">
+Version 2.5-SNAPSHOT
+</div>
+<div class="nav-header-groups">
+<select class="supergroup" name="Language"><option class="group" value="group-scala">Scala</option><option class="group" value="group-java">Java</option></select>
+</div>
+<div id="overlay-search-container" class="nav-header-search">
+<input id="overlay-search" type="search" class="search" placeholder="Search"/>
+</div>
+</header>
+<nav class="nav-toc">
+<ul>
+  <li><a href="security/index.html" class="page">Security Announcements</a></li>
+  <li><a href="guide/index.html" class="page">Getting Started Guide</a></li>
+  <li><a href="general/index.html" class="page">General Concepts</a></li>
+  <li><a href="index-actors.html" class="page">Actors</a>
+  <ul>
+    <li><a href="index-actors.html#dependency" class="header">Dependency</a></li>
+    <li><a href="actors.html" class="page">Actors</a></li>
+    <li><a href="fault-tolerance.html" class="page">Fault Tolerance</a></li>
+    <li><a href="dispatchers.html" class="page">Dispatchers</a></li>
+    <li><a href="mailboxes.html" class="page">Mailboxes</a></li>
+    <li><a href="routing.html" class="page">Routing</a></li>
+    <li><a href="fsm.html" class="page">FSM</a></li>
+    <li><a href="persistence.html" class="page">Persistence</a></li>
+    <li><a href="persistence-schema-evolution.html" class="page">Persistence - Schema Evolution</a></li>
+    <li><a href="persistence-query.html" class="page">Persistence Query</a></li>
+    <li><a href="persistence-query-leveldb.html#persistence-query-for-leveldb" class="active page">Persistence Query for LevelDB</a>
+    <ul>
+      <li><a href="persistence-query-leveldb.html#dependency" class="header">Dependency</a></li>
+      <li><a href="persistence-query-leveldb.html#introduction" class="header">Introduction</a></li>
+      <li><a href="persistence-query-leveldb.html#how-to-get-the-readjournal" class="header">How to get the ReadJournal</a></li>
+      <li><a href="persistence-query-leveldb.html#supported-queries" class="header">Supported Queries</a></li>
+      <li><a href="persistence-query-leveldb.html#configuration" class="header">Configuration</a></li>
+    </ul></li>
+    <li><a href="testing.html" class="page">Testing Actor Systems</a></li>
+  </ul></li>
+  <li><a href="typed/index.html" class="page">Akka Typed</a></li>
+  <li><a href="index-cluster.html" class="page">Clustering</a></li>
+  <li><a href="stream/index.html" class="page">Streams</a></li>
+  <li><a href="index-network.html" class="page">Networking</a></li>
+  <li><a href="index-futures.html" class="page">Futures and Agents</a></li>
+  <li><a href="index-utilities.html" class="page">Utilities</a></li>
+  <li><a href="common/other-modules.html" class="page">Other Akka modules</a></li>
+  <li><a href="howto.html" class="page">HowTo: Common Patterns</a></li>
+  <li><a href="project/index.html" class="page">Project Information</a></li>
+  <li><a href="additional/index.html" class="page">Additional Information</a></li>
+</ul>
+</nav>
+</div>
+</header>
+
+<aside class="show-for-large">
+<header class="nav-header fixed-sidebar-header">
+<div class="nav-header-title">
+<h1><a href="index.html">Akka Documentation</a></h1>
+</div>
+<div class="nav-header-version">
+Version 2.5-SNAPSHOT
+</div>
+<div class="nav-header-groups">
+<select class="supergroup" name="Language"><option class="group" value="group-scala">Scala</option><option class="group" value="group-java">Java</option></select>
+</div>
+<div class="nav-header-search">
+<input id="search" type="search" class="search" placeholder="Search"/>
+</div>
+</header>
+<nav class="site-nav fixed-sidebar-contents">
+<div class="nav-toc">
+<ul>
+  <li><a href="security/index.html" class="page">Security Announcements</a></li>
+  <li><a href="guide/index.html" class="page">Getting Started Guide</a></li>
+  <li><a href="general/index.html" class="page">General Concepts</a></li>
+  <li><a href="index-actors.html" class="page">Actors</a>
+  <ul>
+    <li><a href="index-actors.html#dependency" class="header">Dependency</a></li>
+    <li><a href="actors.html" class="page">Actors</a></li>
+    <li><a href="fault-tolerance.html" class="page">Fault Tolerance</a></li>
+    <li><a href="dispatchers.html" class="page">Dispatchers</a></li>
+    <li><a href="mailboxes.html" class="page">Mailboxes</a></li>
+    <li><a href="routing.html" class="page">Routing</a></li>
+    <li><a href="fsm.html" class="page">FSM</a></li>
+    <li><a href="persistence.html" class="page">Persistence</a></li>
+    <li><a href="persistence-schema-evolution.html" class="page">Persistence - Schema Evolution</a></li>
+    <li><a href="persistence-query.html" class="page">Persistence Query</a></li>
+    <li><a href="persistence-query-leveldb.html#persistence-query-for-leveldb" class="active page">Persistence Query for LevelDB</a>
+    <ul>
+      <li><a href="persistence-query-leveldb.html#dependency" class="header">Dependency</a></li>
+      <li><a href="persistence-query-leveldb.html#introduction" class="header">Introduction</a></li>
+      <li><a href="persistence-query-leveldb.html#how-to-get-the-readjournal" class="header">How to get the ReadJournal</a></li>
+      <li><a href="persistence-query-leveldb.html#supported-queries" class="header">Supported Queries</a></li>
+      <li><a href="persistence-query-leveldb.html#configuration" class="header">Configuration</a></li>
+    </ul></li>
+    <li><a href="testing.html" class="page">Testing Actor Systems</a></li>
+  </ul></li>
+  <li><a href="typed/index.html" class="page">Akka Typed</a></li>
+  <li><a href="index-cluster.html" class="page">Clustering</a></li>
+  <li><a href="stream/index.html" class="page">Streams</a></li>
+  <li><a href="index-network.html" class="page">Networking</a></li>
+  <li><a href="index-futures.html" class="page">Futures and Agents</a></li>
+  <li><a href="index-utilities.html" class="page">Utilities</a></li>
+  <li><a href="common/other-modules.html" class="page">Other Akka modules</a></li>
+  <li><a href="howto.html" class="page">HowTo: Common Patterns</a></li>
+  <li><a href="project/index.html" class="page">Project Information</a></li>
+  <li><a href="additional/index.html" class="page">Additional Information</a></li>
+</ul>
+</div>
+</nav>
+<footer class="nav-footer fixed-sidebar-footer">
+<a href="https://akka.io"><img class="logo" src="images/akka-logo-reverse.svg"></a>
+
+</footer>
+</aside>
+
+<main class="fixed-shift-for-large expanded row">
+<section class="site-content small-12 column">
+
+<article class="page-content row">
+<div class="small-12 large-9 column" id="docs">
+<h1><a href="#persistence-query-for-leveldb" name="persistence-query-for-leveldb" class="anchor"><span class="anchor-link"></span></a>Persistence Query for LevelDB</h1>
+<h2><a href="#dependency" name="dependency" class="anchor"><span class="anchor-link"></span></a>Dependency</h2>
+<p>To use Persistence Query, you must add the following dependency in your project:</p><dl class="dependency"><dt>sbt</dt><dd><pre class="prettyprint"><code class="language-scala">libraryDependencies += "com.typesafe.akka" %% "akka-persistence-query" % "2.5-SNAPSHOT"</code></pre></dd><dt>Maven</dt><dd><pre class="prettyprint"><code class="language-xml">&lt;dependency&gt;
+  &lt;groupId&gt;com.typesafe.akka&lt;/groupId&gt;
+  &lt;artifactId&gt;akka-persistence-query_2.12&lt;/artifactId&gt;
+  &lt;version&gt;2.5-SNAPSHOT&lt;/version&gt;
+&lt;/dependency&gt;</code></pre></dd><dt>Gradle</dt><dd><pre class="prettyprint"><code class="language-gradle">dependencies {
+  compile group: 'com.typesafe.akka', name: 'akka-persistence-query_2.12', version: '2.5-SNAPSHOT'
+}</code></pre></dd></dl>
+<p>This will also add dependency on the <a href="persistence.html">akka-persistence</a> module.</p>
+<h2><a href="#introduction" name="introduction" class="anchor"><span class="anchor-link"></span></a>Introduction</h2>
+<p>This is documentation for the LevelDB implementation of the <a href="persistence-query.html">Persistence Query</a> API. Note that implementations for other journals may have different semantics.</p>
+<h2><a href="#how-to-get-the-readjournal" name="how-to-get-the-readjournal" class="anchor"><span class="anchor-link"></span></a>How to get the ReadJournal</h2>
+<p>The <code>ReadJournal</code> is retrieved via the <code>akka.persistence.query.PersistenceQuery</code> extension:</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-scala">import akka.persistence.query.PersistenceQuery
+import akka.persistence.query.journal.leveldb.scaladsl.LeveldbReadJournal
+
+val queries = PersistenceQuery(system).readJournalFor[LeveldbReadJournal](
+  LeveldbReadJournal.Identifier)</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-java">final ActorMaterializer mat = ActorMaterializer.create(system);
+
+LeveldbReadJournal queries =
+  PersistenceQuery.get(system).getReadJournalFor(LeveldbReadJournal.class, 
+      LeveldbReadJournal.Identifier());</code></pre></dd>
+</dl>
+<h2><a href="#supported-queries" name="supported-queries" class="anchor"><span class="anchor-link"></span></a>Supported Queries</h2>
+<h3><a href="#eventsbypersistenceidquery-and-currenteventsbypersistenceidquery" name="eventsbypersistenceidquery-and-currenteventsbypersistenceidquery" class="anchor"><span class="anchor-link"></span></a>EventsByPersistenceIdQuery and CurrentEventsByPersistenceIdQuery</h3>
+<p><code>eventsByPersistenceId</code> is used for retrieving events for a specific <code>PersistentActor</code> identified by <code>persistenceId</code>.</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-scala">implicit val mat = ActorMaterializer()(system)
+val queries = PersistenceQuery(system).readJournalFor[LeveldbReadJournal](
+  LeveldbReadJournal.Identifier)
+
+val src: Source[EventEnvelope, NotUsed] =
+  queries.eventsByPersistenceId(&quot;some-persistence-id&quot;, 0L, Long.MaxValue)
+
+val events: Source[Any, NotUsed] = src.map(_.event)</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-java">LeveldbReadJournal queries =
+    PersistenceQuery.get(system).getReadJournalFor(LeveldbReadJournal.class, 
+        LeveldbReadJournal.Identifier());
+
+Source&lt;EventEnvelope, NotUsed&gt; source =
+    queries.eventsByPersistenceId(&quot;some-persistence-id&quot;, 0, Long.MAX_VALUE);</code></pre></dd>
+</dl>
+<p>You can retrieve a subset of all events by specifying <code>fromSequenceNr</code> and <code>toSequenceNr</code> or use <code>0L</code> and <span class="group-scala"><code>Long.MaxValue</code></span><span class="group-java"><code>Long.MAX_VALUE</code></span> respectively to retrieve all events. Note that the corresponding sequence number of each event is provided in the <code>EventEnvelope</code>, which makes it possible to resume the stream at a later point from a given sequence number.</p>
+<p>The returned event stream is ordered by sequence number, i.e. the same order as the <code>PersistentActor</code> persisted the events. The same prefix of stream elements (in same order) are returned for multiple executions of the query, except for when events have been deleted.</p>
+<p>The stream is not completed when it reaches the end of the currently stored events, but it continues to push new events when new events are persisted. Corresponding query that is completed when it reaches the end of the currently stored events is provided by <code>currentEventsByPersistenceId</code>.</p>
+<p>The LevelDB write journal is notifying the query side as soon as events are persisted, but for efficiency reasons the query side retrieves the events in batches that sometimes can be delayed up to the configured <code>refresh-interval</code> or given <code>RefreshInterval</code> hint.</p>
+<p>The stream is completed with failure if there is a failure in executing the query in the backend journal.</p>
+<h3><a href="#persistenceidsquery-and-currentpersistenceidsquery" name="persistenceidsquery-and-currentpersistenceidsquery" class="anchor"><span class="anchor-link"></span></a>PersistenceIdsQuery and CurrentPersistenceIdsQuery</h3>
+<p><code>persistenceIds</code> is used for retrieving all <code>persistenceIds</code> of all persistent actors.</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-scala">implicit val mat = ActorMaterializer()(system)
+val queries = PersistenceQuery(system).readJournalFor[LeveldbReadJournal](
+  LeveldbReadJournal.Identifier)
+
+val src: Source[String, NotUsed] = queries.persistenceIds()</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-java">LeveldbReadJournal queries =
+    PersistenceQuery.get(system).getReadJournalFor(LeveldbReadJournal.class, 
+        LeveldbReadJournal.Identifier());
+
+Source&lt;String, NotUsed&gt; source = queries.persistenceIds();</code></pre></dd>
+</dl>
+<p>The returned event stream is unordered and you can expect different order for multiple executions of the query.</p>
+<p>The stream is not completed when it reaches the end of the currently used <em>persistenceIds</em>, but it continues to push new <em>persistenceIds</em> when new persistent actors are created. Corresponding query that is completed when it reaches the end of the currently used <em>persistenceIds</em> is provided by <code>currentPersistenceIds</code>.</p>
+<p>The LevelDB write journal is notifying the query side as soon as new <code>persistenceIds</code> are created and there is no periodic polling or batching involved in this query.</p>
+<p>The stream is completed with failure if there is a failure in executing the query in the backend journal.</p>
+<h3><a href="#eventsbytag-and-currenteventsbytag" name="eventsbytag-and-currenteventsbytag" class="anchor"><span class="anchor-link"></span></a>EventsByTag and CurrentEventsByTag</h3>
+<p><code>eventsByTag</code> is used for retrieving events that were marked with a given tag, e.g. all domain events of an Aggregate Root type.</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-scala">implicit val mat = ActorMaterializer()(system)
+val queries = PersistenceQuery(system).readJournalFor[LeveldbReadJournal](
+  LeveldbReadJournal.Identifier)
+
+val src: Source[EventEnvelope, NotUsed] =
+  queries.eventsByTag(tag = &quot;green&quot;, offset = Sequence(0L))</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-java">LeveldbReadJournal queries =
+    PersistenceQuery.get(system).getReadJournalFor(LeveldbReadJournal.class, 
+        LeveldbReadJournal.Identifier());
+
+Source&lt;EventEnvelope, NotUsed&gt; source =
+    queries.eventsByTag(&quot;green&quot;, new Sequence(0L));</code></pre></dd>
+</dl>
+<p>To tag events you create an <a href="persistence.html#event-adapters">Event Adapters</a> that wraps the events in a <code>akka.persistence.journal.Tagged</code> with the given <code>tags</code>.</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-scala">import akka.persistence.journal.WriteEventAdapter
+import akka.persistence.journal.Tagged
+
+class MyTaggingEventAdapter extends WriteEventAdapter {
+  val colors = Set(&quot;green&quot;, &quot;black&quot;, &quot;blue&quot;)
+  override def toJournal(event: Any): Any = event match {
+    case s: String ⇒
+      var tags = colors.foldLeft(Set.empty[String]) { (acc, c) ⇒
+        if (s.contains(c)) acc + c else acc
+      }
+      if (tags.isEmpty) event
+      else Tagged(event, tags)
+    case _ ⇒ event
+  }
+
+  override def manifest(event: Any): String = &quot;&quot;
+}</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-java">public class MyTaggingEventAdapter implements WriteEventAdapter {
+
+  @Override
+  public Object toJournal(Object event) {
+    if (event instanceof String) {
+      String s = (String) event;
+      Set&lt;String&gt; tags = new HashSet&lt;String&gt;();
+      if (s.contains(&quot;green&quot;)) tags.add(&quot;green&quot;);
+      if (s.contains(&quot;black&quot;)) tags.add(&quot;black&quot;);
+      if (s.contains(&quot;blue&quot;)) tags.add(&quot;blue&quot;);
+      if (tags.isEmpty())
+        return event;
+      else
+        return new Tagged(event, tags);
+    } else {
+      return event;
+    }
+  }
+  
+  @Override
+  public String manifest(Object event) {
+    return &quot;&quot;;
+  }
+}</code></pre></dd>
+</dl>
+<p>You can use <code>NoOffset</code> to retrieve all events with a given tag or retrieve a subset of all events by specifying a <code>Sequence</code> <code>offset</code>. The <code>offset</code> corresponds to an ordered sequence number for the specific tag. Note that the corresponding offset of each event is provided in the <code>EventEnvelope</code>, which makes it possible to resume the stream at a later point from a given offset.</p>
+<p>The <code>offset</code> is exclusive, i.e. the event with the exact same sequence number will not be included in the returned stream. This means that you can use the offset that is returned in <code>EventEnvelope</code> as the <code>offset</code> parameter in a subsequent query.</p>
+<p>In addition to the <code>offset</code> the <code>EventEnvelope</code> also provides <code>persistenceId</code> and <code>sequenceNr</code> for each event. The <code>sequenceNr</code> is the sequence number for the persistent actor with the <code>persistenceId</code> that persisted the event. The <code>persistenceId</code> + <code>sequenceNr</code> is an unique identifier for the event.</p>
+<p>The returned event stream is ordered by the offset (tag sequence number), which corresponds to the same order as the write journal stored the events. The same stream elements (in same order) are returned for multiple executions of the query. Deleted events are not deleted from the tagged event stream.</p><div class="callout note "><div class="callout-title">Note</div>
+<p>Events deleted using <code>deleteMessages(toSequenceNr)</code> are not deleted from the &ldquo;tagged stream&rdquo;.</p></div>
+<p>The stream is not completed when it reaches the end of the currently stored events, but it continues to push new events when new events are persisted. Corresponding query that is completed when it reaches the end of the currently stored events is provided by <code>currentEventsByTag</code>.</p>
+<p>The LevelDB write journal is notifying the query side as soon as tagged events are persisted, but for efficiency reasons the query side retrieves the events in batches that sometimes can be delayed up to the configured <code>refresh-interval</code> or given <code>RefreshInterval</code> hint.</p>
+<p>The stream is completed with failure if there is a failure in executing the query in the backend journal.</p>
+<h2><a href="#configuration" name="configuration" class="anchor"><span class="anchor-link"></span></a>Configuration</h2>
+<p>Configuration settings can be defined in the configuration section with the absolute path corresponding to the identifier, which is <code>&quot;akka.persistence.query.journal.leveldb&quot;</code> for the default <code>LeveldbReadJournal.Identifier</code>.</p>
+<p>It can be configured with the following properties:</p>
+<pre class="prettyprint"><code class="language-conf"># Configuration for the LeveldbReadJournal
+akka.persistence.query.journal.leveldb {
+  # Implementation class of the LevelDB ReadJournalProvider
+  class = &quot;akka.persistence.query.journal.leveldb.LeveldbReadJournalProvider&quot;
+  
+  # Absolute path to the write journal plugin configuration entry that this 
+  # query journal will connect to. That must be a LeveldbJournal or SharedLeveldbJournal.
+  # If undefined (or &quot;&quot;) it will connect to the default journal as specified by the
+  # akka.persistence.journal.plugin property.
+  write-plugin = &quot;&quot;
+  
+  # The LevelDB write journal is notifying the query side as soon as things
+  # are persisted, but for efficiency reasons the query side retrieves the events 
+  # in batches that sometimes can be delayed up to the configured `refresh-interval`.
+  refresh-interval = 3s
+  
+  # How many events to fetch in one query (replay) and keep buffered until they
+  # are delivered downstreams.
+  max-buffer-size = 100
+}</code></pre>
+</div>
+</article>
+
+<div class="row">
+<div class="small-12 large-9 column">
+<section class="nav-prev-next row">
+<div class="nav-prev small-6 column">
+<a href="persistence-query.html"><i class="icon-prev"></i> <span class="link-prev">Persistence Query</span></a>
+</div>
+<div class="nav-next small-6 column clearfix">
+<a class="float-right" href="testing.html">Testing Actor Systems <i class="icon-next"></i></a>
+</div>
+</section>
+</div>
+</div>
+
+<div class="source-github row">
+Found an error in this documentation? The source code for this page can be found <a href="http://github.com/akka/akka/tree/master/akka-docs/src/main/paradox/persistence-query-leveldb.md">here</a>.
+Please feel free to edit and contribute a pull request.
+</div>
+
+
+<footer class="page-footer row clearfix">
+<img class="akka-icon float-left show-for-medium" src="images/akka-icon.svg">
+<section class="copyright">
+<div>Akka is Open Source and available under the Apache 2 License.</div>
+<p class="legal">
+&copy; 2011-2018 <a href="https://www.lightbend.com" target="_blank">Lightbend, Inc.</a> | 
+<a href="https://www.lightbend.com/legal/licenses" target="_blank">Licenses</a> | 
+<a href="https://www.lightbend.com/legal/terms" target="_blank">Terms</a> | 
+<a href="https://www.lightbend.com/legal/privacy" target="_blank">Privacy Policy</a> | 
+<a href="https://akka.io/cookie/" target="_blank">Cookie Listing</a> | 
+<a class="optanon-toggle-display">Cookie Settings</a>
+</p>
+</section>
+</footer>
+
+</section>
+</main>
+
+<script type="text/javascript" src="js/scrollsneak.js"></script>
+<script type="text/javascript">jQuery(document).foundation();</script>
+<script type="text/javascript" src="js/groups.js"></script>
+<script type="text/javascript" src="js/page.js"></script>
+<script type="text/javascript" src="js/magellan.js"></script>
+
+<style type="text/css">@import "lib/prettify/prettify.css";</style>
+<script type="text/javascript" src="lib/prettify/prettify.js"></script>
+<script type="text/javascript" src="lib/prettify/lang-scala.js"></script>
+<script type="text/javascript">jQuery(function(){window.prettyPrint && prettyPrint()});</script>
+
+<!-- Algolia docs search -->
+<script type="text/javascript" src="https://cdn.jsdelivr.net/docsearch.js/2/docsearch.min.js"></script>
+<style>.algolia-autocomplete { display: block !important }</style>
+<script type="text/javascript">
+docsearch({
+apiKey: '543bad5ad786495d9ccd445ed34ed082',
+indexName: 'akka_io',
+inputSelector: '#search',
+algoliaOptions: {
+hitsPerPage: 5
+}
+});
+
+docsearch({
+apiKey: '543bad5ad786495d9ccd445ed34ed082',
+indexName: 'akka_io',
+inputSelector: '#overlay-search',
+algoliaOptions: {
+hitsPerPage: 5
+}
+});
+
+// set up "/" as global shortcut for focusing on search
+jQuery(document).keypress(function (event) {
+if (event.keyCode == 47) {
+jQuery("#search").focus();
+return false; // swallow key event, otherwise the / char would be input into the search box
+}
+});
+</script>
+
+<script type="text/javascript" src="assets/js/warnOldDocs.js"></script>
+
+
+</body>
+</html>

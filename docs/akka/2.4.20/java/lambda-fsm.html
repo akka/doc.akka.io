@@ -1,0 +1,864 @@
+
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>FSM (Java with Lambda Support) &mdash; Akka Documentation</title>
+    
+    <link rel="stylesheet" href="../_static/style.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/prettify.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/base.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
+    <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,600,700" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '2.4.20',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="../_static/toc.js"></script>
+    <script type="text/javascript" src="../_static/prettify.js"></script>
+    <script type="text/javascript" src="../_static/highlightCode.js"></script>
+    <script type="text/javascript" src="../_static/effects.core.js"></script>
+    <script type="text/javascript" src="../_static/effects.highlight.js"></script>
+    <script type="text/javascript" src="../_static/scrollTo.js"></script>
+    <script type="text/javascript" src="../_static/contentsFix.js"></script>
+    <script type="text/javascript" src="../_static/ga.js"></script>
+    <script type="text/javascript" src="../_static/warnOldDocs.js"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/docsearch.js/1/docsearch.min.js"></script>
+    <link rel="shortcut icon" href="../_static/favicon.ico"/>
+    <link rel="top" title="Akka Documentation" href="../index.html" />
+    <link rel="up" title="Experimental Modules" href="../experimental/index.html" />
+    <link rel="next" title="Persistence Query" href="../scala/persistence-query.html" />
+    <link rel="prev" title="Actors (Java with Lambda Support)" href="lambda-actors.html" />
+    <!-- Hint to search engines that the "canonical" page is under "current", which will boost it appearing in search results -->
+    <link rel="canonical" href="https://doc.akka.io/docs/akka/2.4/java/lambda-fsm.html" />
+
+    <!--Google Analytics-->
+    <script type="text/javascript">
+      var _gaq = _gaq || [];
+      _gaq.push(['_setAccount', 'UA-21117439-1']);
+      _gaq.push(['_setDomainName', 'akka.io']);
+      _gaq.push(['_trackPageview']);
+      (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+      })()
+    </script>
+    <!--Google Analytics & Marketo-->
+    <script type="text/javascript">
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+      (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+      m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+      ga('create', 'UA-23127719-1', 'lightbend.com', {'allowLinker': true, 'name': 'tsTracker'});
+      ga('tsTracker.require', 'linker');
+      ga('tsTracker.linker:autoLink', ['lightbend.com','playframework.com','scala-lang.org','scaladays.org','spray.io','akka.io','scala-sbt.org','scala-ide.org']);
+      ga('tsTracker.send', 'pageview');
+
+      (function() {
+          var didInit = false;
+          function initMunchkin() {
+          if(didInit === false) {
+            didInit = true;
+            Munchkin.init('558-NCX-702');
+          }
+          }
+          var s = document.createElement('script');
+          s.type = 'text/javascript';
+          s.async = true;
+          s.src = '//munchkin.marketo.net/munchkin.js';
+          s.onreadystatechange = function() {
+          if (this.readyState == 'complete' || this.readyState == 'loaded') {
+            initMunchkin();
+          }
+          };
+          s.onload = initMunchkin;
+          document.getElementsByTagName('head')[0].appendChild(s);
+        })();
+    </script>
+
+
+  </head>
+  <body>
+  <div class="navbar">
+    <div class="navbar-inner">
+      <div class="container">
+        <div class="navbar-logo">
+          <a href="https://akka.io"><img class="svg-logo" src="../_static/akka_full_color.svg" /></a>
+        </div>
+        <ul class="nav">
+          <li><a href="https://akka.io/docs">Documentation</a></li>
+          <li><a href="https://doc.akka.io/docs/akka/current/additional/faq.html">FAQ</a></li>
+          <li><a href="https://akka.io/downloads">Download</a></li>
+          <li><a href="http://groups.google.com/group/akka-user">Mailing List</a></li>
+          <li><a href="http://github.com/akka/akka">Code</a></li>
+          <li><a href="http://www.lightbend.com/how/subscription">Commercial Support</a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="main">
+    <div class="container">
+      <div class="page-title">FSM (Java with Lambda Support) - Version 2.4.20</div>
+      <div class="pdf-link"><a href="../AkkaScala.pdf" title="Akka Scala Documentation"><img src="../_static/pdf-scala-icon.png" style="height: 40px;" /></a></div>
+      <div class="pdf-link"><a href="../AkkaJava.pdf" title="Akka Java Documentation"><img src="../_static/pdf-java-icon.png" style="height: 40px;" /></a></div>
+    </div>
+    <div class="main-container">
+      <div class="container">
+        <div class="row">
+          <div class="span12">
+            <div class="breadcrumb">
+              <div style="position: relative">
+                <input type="search" id="search" class="form-control" style="position: relative" placeholder="Search in the doc" />
+              </div>
+              <div>
+                <div>
+                  <span class="divider">«</span> <a href="lambda-actors.html">Actors (Java with Lambda Support)</a> <span class="divider">|</span>
+                </div>
+                <div>
+                  <a href="../java.html">Java Contents</a> <span class="divider">|</span> <a href="../scala.html">Scala Contents</a>
+                </div>
+                <div>
+                  <span class="divider">|</span> <a href="../scala/persistence-query.html">Persistence Query</a> <span class="divider">»</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="row">
+          <div class="span9">
+          </div><div class="span9">
+            
+  <div class="section" id="fsm-java-with-lambda-support">
+<span id="lambda-fsm"></span><h1>FSM (Java with Lambda Support)</h1>
+<div class="section" id="overview">
+<h2>Overview</h2>
+<p>The FSM (Finite State Machine) is available as an abstract base class that implements
+an Akka Actor and is best described in the <a class="reference external" href="http://www.erlang.org/documentation/doc-4.8.2/doc/design_principles/fsm.html">Erlang design principles</a></p>
+<p>A FSM can be described as a set of relations of the form:</p>
+<blockquote>
+<div><strong>State(S) x Event(E) -&gt; Actions (A), State(S')</strong></div></blockquote>
+<p>These relations are interpreted as meaning:</p>
+<blockquote>
+<div><em>If we are in state S and the event E occurs, we should perform the actions A
+and make a transition to the state S'.</em></div></blockquote>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">The Java with lambda support part of Akka is marked as <strong>“experimental”</strong> as of its introduction in
+Akka 2.3.0. We will continue to improve this API based on our users’ feedback, which implies that
+while we try to keep incompatible changes to a minimum, but the binary compatibility guarantee for
+maintenance releases does not apply to the <tt class="xref py py-class docutils literal"><span class="pre">akka.actor.AbstractFSM</span></tt>, related classes and the
+<tt class="xref py py-class docutils literal"><span class="pre">akka.japi.pf</span></tt> package.</p>
+</div>
+</div>
+<div class="section" id="a-simple-example">
+<h2>A Simple Example</h2>
+<p>To demonstrate most of the features of the <tt class="xref py py-class docutils literal"><span class="pre">AbstractFSM</span></tt> class, consider an
+actor which shall receive and queue messages while they arrive in a burst and
+send them on after the burst ended or a flush request is received.</p>
+<p>First, consider all of the below to use these import statements:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">import</span> <span class="nn">akka.actor.AbstractFSM</span><span class="o">;</span>
+<span class="k">import</span> <span class="nn">akka.actor.ActorRef</span><span class="o">;</span>
+<span class="k">import</span> <span class="nn">akka.japi.pf.UnitMatch</span><span class="o">;</span>
+<span class="k">import</span> <span class="nn">java.util.Arrays</span><span class="o">;</span>
+<span class="k">import</span> <span class="nn">java.util.LinkedList</span><span class="o">;</span>
+<span class="k">import</span> <span class="nn">java.util.List</span><span class="o">;</span>
+<span class="k">import</span> <span class="nn">scala.concurrent.duration.Duration</span><span class="o">;</span>
+</pre></div>
+</div>
+<p>The contract of our “Buncher” actor is that it accepts or produces the following messages:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="n">public</span> <span class="k">final</span> <span class="k">class</span> <span class="nc">SetTarget</span> <span class="o">{</span>
+  <span class="k">private</span> <span class="k">final</span> <span class="nc">ActorRef</span> <span class="n">ref</span><span class="o">;</span>
+
+  <span class="n">public</span> <span class="nc">SetTarget</span><span class="o">(</span><span class="nc">ActorRef</span> <span class="n">ref</span><span class="o">)</span> <span class="o">{</span>
+    <span class="k">this</span><span class="o">.</span><span class="n">ref</span> <span class="k">=</span> <span class="n">ref</span><span class="o">;</span>
+  <span class="o">}</span>
+
+  <span class="n">public</span> <span class="nc">ActorRef</span> <span class="n">getRef</span><span class="o">()</span> <span class="o">{</span>
+    <span class="k">return</span> <span class="n">ref</span><span class="o">;</span>
+  <span class="o">}</span>
+  <span class="c1">// boilerplate ...</span>
+<span class="o">}</span>
+
+<span class="n">public</span> <span class="k">final</span> <span class="k">class</span> <span class="nc">Queue</span> <span class="o">{</span>
+  <span class="k">private</span> <span class="k">final</span> <span class="nc">Object</span> <span class="n">obj</span><span class="o">;</span>
+
+  <span class="n">public</span> <span class="nc">Queue</span><span class="o">(</span><span class="nc">Object</span> <span class="n">obj</span><span class="o">)</span> <span class="o">{</span>
+    <span class="k">this</span><span class="o">.</span><span class="n">obj</span> <span class="k">=</span> <span class="n">obj</span><span class="o">;</span>
+  <span class="o">}</span>
+
+  <span class="n">public</span> <span class="nc">Object</span> <span class="n">getObj</span><span class="o">()</span> <span class="o">{</span>
+    <span class="k">return</span> <span class="n">obj</span><span class="o">;</span>
+  <span class="o">}</span>
+  <span class="c1">// boilerplate ...</span>
+<span class="o">}</span>
+
+<span class="n">public</span> <span class="k">final</span> <span class="k">class</span> <span class="nc">Batch</span> <span class="o">{</span>
+  <span class="k">private</span> <span class="k">final</span> <span class="nc">List</span><span class="o">&lt;</span><span class="nc">Object</span><span class="o">&gt;</span> <span class="n">list</span><span class="o">;</span>
+
+  <span class="n">public</span> <span class="nc">Batch</span><span class="o">(</span><span class="nc">List</span><span class="o">&lt;</span><span class="nc">Object</span><span class="o">&gt;</span> <span class="n">list</span><span class="o">)</span> <span class="o">{</span>
+    <span class="k">this</span><span class="o">.</span><span class="n">list</span> <span class="k">=</span> <span class="n">list</span><span class="o">;</span>
+  <span class="o">}</span>
+
+  <span class="n">public</span> <span class="nc">List</span><span class="o">&lt;</span><span class="nc">Object</span><span class="o">&gt;</span> <span class="n">getList</span><span class="o">()</span> <span class="o">{</span>
+    <span class="k">return</span> <span class="n">list</span><span class="o">;</span>
+  <span class="o">}</span>
+  <span class="c1">// boilerplate ...</span>
+<span class="o">}</span>
+
+<span class="n">public</span> <span class="n">enum</span> <span class="nc">Flush</span> <span class="o">{</span>
+  <span class="nc">Flush</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<p><tt class="docutils literal"><span class="pre">SetTarget</span></tt> is needed for starting it up, setting the destination for the
+<tt class="docutils literal"><span class="pre">Batches</span></tt> to be passed on; <tt class="docutils literal"><span class="pre">Queue</span></tt> will add to the internal queue while
+<tt class="docutils literal"><span class="pre">Flush</span></tt> will mark the end of a burst.</p>
+<p>The actor can be in two states: no message queued (aka <tt class="docutils literal"><span class="pre">Idle</span></tt>) or some
+message queued (aka <tt class="docutils literal"><span class="pre">Active</span></tt>). The states and the state data is defined like this:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="c1">// states</span>
+<span class="n">enum</span> <span class="nc">State</span> <span class="o">{</span>
+  <span class="nc">Idle</span><span class="o">,</span> <span class="nc">Active</span>
+<span class="o">}</span>
+
+<span class="c1">// state data</span>
+<span class="n">interface</span> <span class="nc">Data</span> <span class="o">{</span>
+<span class="o">}</span>
+
+<span class="n">enum</span> <span class="nc">Uninitialized</span> <span class="n">implements</span> <span class="nc">Data</span> <span class="o">{</span>
+  <span class="nc">Uninitialized</span>
+<span class="o">}</span>
+
+<span class="k">final</span> <span class="k">class</span> <span class="nc">Todo</span> <span class="n">implements</span> <span class="nc">Data</span> <span class="o">{</span>
+  <span class="k">private</span> <span class="k">final</span> <span class="nc">ActorRef</span> <span class="n">target</span><span class="o">;</span>
+  <span class="k">private</span> <span class="k">final</span> <span class="nc">List</span><span class="o">&lt;</span><span class="nc">Object</span><span class="o">&gt;</span> <span class="n">queue</span><span class="o">;</span>
+
+  <span class="n">public</span> <span class="nc">Todo</span><span class="o">(</span><span class="nc">ActorRef</span> <span class="n">target</span><span class="o">,</span> <span class="nc">List</span><span class="o">&lt;</span><span class="nc">Object</span><span class="o">&gt;</span> <span class="n">queue</span><span class="o">)</span> <span class="o">{</span>
+    <span class="k">this</span><span class="o">.</span><span class="n">target</span> <span class="k">=</span> <span class="n">target</span><span class="o">;</span>
+    <span class="k">this</span><span class="o">.</span><span class="n">queue</span> <span class="k">=</span> <span class="n">queue</span><span class="o">;</span>
+  <span class="o">}</span>
+
+  <span class="n">public</span> <span class="nc">ActorRef</span> <span class="n">getTarget</span><span class="o">()</span> <span class="o">{</span>
+    <span class="k">return</span> <span class="n">target</span><span class="o">;</span>
+  <span class="o">}</span>
+
+  <span class="n">public</span> <span class="nc">List</span><span class="o">&lt;</span><span class="nc">Object</span><span class="o">&gt;</span> <span class="n">getQueue</span><span class="o">()</span> <span class="o">{</span>
+    <span class="k">return</span> <span class="n">queue</span><span class="o">;</span>
+  <span class="o">}</span>
+  <span class="c1">// boilerplate ...</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<p>The actor starts out in the idle state. Once a message arrives it will go to the
+active state and stay there as long as messages keep arriving and no flush is
+requested. The internal state data of the actor is made up of the target actor
+reference to send the batches to and the actual queue of messages.</p>
+<p>Now let’s take a look at the skeleton for our FSM actor:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="n">public</span> <span class="k">class</span> <span class="nc">Buncher</span> <span class="k">extends</span> <span class="nc">AbstractFSM</span><span class="o">&lt;</span><span class="nc">State</span><span class="o">,</span> <span class="nc">Data</span><span class="o">&gt;</span> <span class="o">{</span>
+  <span class="o">{</span>
+    <span class="n">startWith</span><span class="o">(</span><span class="nc">Idle</span><span class="o">,</span> <span class="nc">Uninitialized</span><span class="o">);</span>
+
+    <span class="n">when</span><span class="o">(</span><span class="nc">Idle</span><span class="o">,</span>
+      <span class="n">matchEvent</span><span class="o">(</span><span class="nc">SetTarget</span><span class="o">.</span><span class="n">class</span><span class="o">,</span> <span class="nc">Uninitialized</span><span class="o">.</span><span class="n">class</span><span class="o">,</span>
+        <span class="o">(</span><span class="n">setTarget</span><span class="o">,</span> <span class="n">uninitialized</span><span class="o">)</span> <span class="o">-&gt;</span>
+          <span class="n">stay</span><span class="o">().</span><span class="n">using</span><span class="o">(</span><span class="k">new</span> <span class="nc">Todo</span><span class="o">(</span><span class="n">setTarget</span><span class="o">.</span><span class="n">getRef</span><span class="o">(),</span> <span class="k">new</span> <span class="nc">LinkedList</span><span class="o">&lt;&gt;()))));</span>
+
+    <span class="c1">// transition elided ...</span>
+
+    <span class="n">when</span><span class="o">(</span><span class="nc">Active</span><span class="o">,</span> <span class="nc">Duration</span><span class="o">.</span><span class="n">create</span><span class="o">(</span><span class="mi">1</span><span class="o">,</span> <span class="s">&quot;second&quot;</span><span class="o">),</span>
+      <span class="n">matchEvent</span><span class="o">(</span><span class="nc">Arrays</span><span class="o">.</span><span class="n">asList</span><span class="o">(</span><span class="nc">Flush</span><span class="o">.</span><span class="n">class</span><span class="o">,</span> <span class="nc">StateTimeout</span><span class="o">()),</span> <span class="nc">Todo</span><span class="o">.</span><span class="n">class</span><span class="o">,</span>
+        <span class="o">(</span><span class="n">event</span><span class="o">,</span> <span class="n">todo</span><span class="o">)</span> <span class="o">-&gt;</span> <span class="n">goTo</span><span class="o">(</span><span class="nc">Idle</span><span class="o">).</span><span class="n">using</span><span class="o">(</span><span class="n">todo</span><span class="o">.</span><span class="n">copy</span><span class="o">(</span><span class="k">new</span> <span class="nc">LinkedList</span><span class="o">&lt;&gt;()))));</span>
+
+    <span class="c1">// unhandled elided ...</span>
+
+    <span class="n">initialize</span><span class="o">();</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<p>The basic strategy is to declare the actor, by inheriting the <tt class="xref py py-class docutils literal"><span class="pre">AbstractFSM</span></tt> class
+and specifying the possible states and data values as type parameters. Within
+the body of the actor a DSL is used for declaring the state machine:</p>
+<blockquote>
+<div><ul class="simple">
+<li><tt class="xref py py-meth docutils literal"><span class="pre">startWith</span></tt> defines the initial state and initial data</li>
+<li>then there is one <tt class="xref py py-meth docutils literal"><span class="pre">when(&lt;state&gt;)</span> <span class="pre">{</span> <span class="pre">...</span> <span class="pre">}</span></tt> declaration per state to be
+handled (could potentially be multiple ones, the passed
+<tt class="xref py py-class docutils literal"><span class="pre">PartialFunction</span></tt> will be concatenated using <tt class="xref py py-meth docutils literal"><span class="pre">orElse</span></tt>)</li>
+<li>finally starting it up using <tt class="xref py py-meth docutils literal"><span class="pre">initialize</span></tt>, which performs the
+transition into the initial state and sets up timers (if required).</li>
+</ul>
+</div></blockquote>
+<p>In this case, we start out in the <tt class="docutils literal"><span class="pre">Idle</span></tt> and <tt class="docutils literal"><span class="pre">Uninitialized</span></tt> state, where
+only the <tt class="docutils literal"><span class="pre">SetTarget()</span></tt> message is handled; <tt class="docutils literal"><span class="pre">stay</span></tt> prepares to end this
+event’s processing for not leaving the current state, while the <tt class="docutils literal"><span class="pre">using</span></tt>
+modifier makes the FSM replace the internal state (which is <tt class="docutils literal"><span class="pre">Uninitialized</span></tt>
+at this point) with a fresh <tt class="docutils literal"><span class="pre">Todo()</span></tt> object containing the target actor
+reference. The <tt class="docutils literal"><span class="pre">Active</span></tt> state has a state timeout declared, which means that
+if no message is received for 1 second, a <tt class="docutils literal"><span class="pre">FSM.StateTimeout</span></tt> message will be
+generated. This has the same effect as receiving the <tt class="docutils literal"><span class="pre">Flush</span></tt> command in this
+case, namely to transition back into the <tt class="docutils literal"><span class="pre">Idle</span></tt> state and resetting the
+internal queue to the empty vector. But how do messages get queued? Since this
+shall work identically in both states, we make use of the fact that any event
+which is not handled by the <tt class="docutils literal"><span class="pre">when()</span></tt> block is passed to the
+<tt class="docutils literal"><span class="pre">whenUnhandled()</span></tt> block:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="n">whenUnhandled</span><span class="o">(</span>
+  <span class="n">matchEvent</span><span class="o">(</span><span class="nc">Queue</span><span class="o">.</span><span class="n">class</span><span class="o">,</span> <span class="nc">Todo</span><span class="o">.</span><span class="n">class</span><span class="o">,</span>
+    <span class="o">(</span><span class="n">queue</span><span class="o">,</span> <span class="n">todo</span><span class="o">)</span> <span class="o">-&gt;</span> <span class="n">goTo</span><span class="o">(</span><span class="nc">Active</span><span class="o">).</span><span class="n">using</span><span class="o">(</span><span class="n">todo</span><span class="o">.</span><span class="n">addElement</span><span class="o">(</span><span class="n">queue</span><span class="o">.</span><span class="n">getObj</span><span class="o">()))).</span>
+    <span class="n">anyEvent</span><span class="o">((</span><span class="n">event</span><span class="o">,</span> <span class="n">state</span><span class="o">)</span> <span class="o">-&gt;</span> <span class="o">{</span>
+      <span class="n">log</span><span class="o">().</span><span class="n">warning</span><span class="o">(</span><span class="s">&quot;received unhandled request {} in state {}/{}&quot;</span><span class="o">,</span>
+        <span class="n">event</span><span class="o">,</span> <span class="n">stateName</span><span class="o">(),</span> <span class="n">state</span><span class="o">);</span>
+      <span class="k">return</span> <span class="n">stay</span><span class="o">();</span>
+    <span class="o">}));</span>
+</pre></div>
+</div>
+<p>The first case handled here is adding <tt class="docutils literal"><span class="pre">Queue()</span></tt> requests to the internal
+queue and going to the <tt class="docutils literal"><span class="pre">Active</span></tt> state (this does the obvious thing of staying
+in the <tt class="docutils literal"><span class="pre">Active</span></tt> state if already there), but only if the FSM data are not
+<tt class="docutils literal"><span class="pre">Uninitialized</span></tt> when the <tt class="docutils literal"><span class="pre">Queue()</span></tt> event is received. Otherwise—and in all
+other non-handled cases—the second case just logs a warning and does not change
+the internal state.</p>
+<p>The only missing piece is where the <tt class="docutils literal"><span class="pre">Batches</span></tt> are actually sent to the
+target, for which we use the <tt class="docutils literal"><span class="pre">onTransition</span></tt> mechanism: you can declare
+multiple such blocks and all of them will be tried for matching behavior in
+case a state transition occurs (i.e. only when the state actually changes).</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="n">onTransition</span><span class="o">(</span>
+  <span class="n">matchState</span><span class="o">(</span><span class="nc">Active</span><span class="o">,</span> <span class="nc">Idle</span><span class="o">,</span> <span class="o">()</span> <span class="o">-&gt;</span> <span class="o">{</span>
+    <span class="c1">// reuse this matcher</span>
+    <span class="k">final</span> <span class="nc">UnitMatch</span><span class="o">&lt;</span><span class="nc">Data</span><span class="o">&gt;</span> <span class="n">m</span> <span class="k">=</span> <span class="nc">UnitMatch</span><span class="o">.</span><span class="n">create</span><span class="o">(</span>
+      <span class="n">matchData</span><span class="o">(</span><span class="nc">Todo</span><span class="o">.</span><span class="n">class</span><span class="o">,</span>
+        <span class="n">todo</span> <span class="o">-&gt;</span> <span class="n">todo</span><span class="o">.</span><span class="n">getTarget</span><span class="o">().</span><span class="n">tell</span><span class="o">(</span><span class="k">new</span> <span class="nc">Batch</span><span class="o">(</span><span class="n">todo</span><span class="o">.</span><span class="n">getQueue</span><span class="o">()),</span> <span class="n">self</span><span class="o">())));</span>
+    <span class="n">m</span><span class="o">.</span><span class="k">match</span><span class="o">(</span><span class="n">stateData</span><span class="o">());</span>
+  <span class="o">}).</span>
+  <span class="n">state</span><span class="o">(</span><span class="nc">Idle</span><span class="o">,</span> <span class="nc">Active</span><span class="o">,</span> <span class="o">()</span> <span class="o">-&gt;</span> <span class="o">{</span><span class="cm">/* Do something here */</span><span class="o">}));</span>
+</pre></div>
+</div>
+<p>The transition callback is a partial function which takes as input a pair of
+states—the current and the next state. During the state change, the old state
+data is available via <tt class="docutils literal"><span class="pre">stateData</span></tt> as shown, and the new state data would be
+available as <tt class="docutils literal"><span class="pre">nextStateData</span></tt>.</p>
+<p>To verify that this buncher actually works, it is quite easy to write a test
+using the <a class="reference internal" href="../scala/testing.html#akka-testkit"><em>Testing Actor Systems</em></a>, here using JUnit as an example:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="n">public</span> <span class="k">class</span> <span class="nc">BuncherTest</span> <span class="k">extends</span> <span class="nc">AbstractJavaTest</span> <span class="o">{</span>
+
+  <span class="n">static</span> <span class="nc">ActorSystem</span> <span class="n">system</span><span class="o">;</span>
+
+  <span class="nd">@BeforeClass</span>
+  <span class="n">public</span> <span class="n">static</span> <span class="n">void</span> <span class="n">setup</span><span class="o">()</span> <span class="o">{</span>
+    <span class="n">system</span> <span class="k">=</span> <span class="nc">ActorSystem</span><span class="o">.</span><span class="n">create</span><span class="o">(</span><span class="s">&quot;BuncherTest&quot;</span><span class="o">);</span>
+  <span class="o">}</span>
+
+  <span class="nd">@AfterClass</span>
+  <span class="n">public</span> <span class="n">static</span> <span class="n">void</span> <span class="n">tearDown</span><span class="o">()</span> <span class="o">{</span>
+    <span class="nc">JavaTestKit</span><span class="o">.</span><span class="n">shutdownActorSystem</span><span class="o">(</span><span class="n">system</span><span class="o">);</span>
+    <span class="n">system</span> <span class="k">=</span> <span class="kc">null</span><span class="o">;</span>
+  <span class="o">}</span>
+
+  <span class="nd">@Test</span>
+  <span class="n">public</span> <span class="n">void</span> <span class="n">testBuncherActorBatchesCorrectly</span><span class="o">()</span> <span class="o">{</span>
+    <span class="k">new</span> <span class="nc">JavaTestKit</span><span class="o">(</span><span class="n">system</span><span class="o">)</span> <span class="o">{{</span>
+      <span class="k">final</span> <span class="nc">ActorRef</span> <span class="n">buncher</span> <span class="k">=</span>
+        <span class="n">system</span><span class="o">.</span><span class="n">actorOf</span><span class="o">(</span><span class="nc">Props</span><span class="o">.</span><span class="n">create</span><span class="o">(</span><span class="nc">Buncher</span><span class="o">.</span><span class="n">class</span><span class="o">));</span>
+      <span class="k">final</span> <span class="nc">ActorRef</span> <span class="n">probe</span> <span class="k">=</span> <span class="n">getRef</span><span class="o">();</span>
+
+      <span class="n">buncher</span><span class="o">.</span><span class="n">tell</span><span class="o">(</span><span class="k">new</span> <span class="nc">SetTarget</span><span class="o">(</span><span class="n">probe</span><span class="o">),</span> <span class="n">probe</span><span class="o">);</span>
+      <span class="n">buncher</span><span class="o">.</span><span class="n">tell</span><span class="o">(</span><span class="k">new</span> <span class="nc">Queue</span><span class="o">(</span><span class="mi">42</span><span class="o">),</span> <span class="n">probe</span><span class="o">);</span>
+      <span class="n">buncher</span><span class="o">.</span><span class="n">tell</span><span class="o">(</span><span class="k">new</span> <span class="nc">Queue</span><span class="o">(</span><span class="mi">43</span><span class="o">),</span> <span class="n">probe</span><span class="o">);</span>
+      <span class="nc">LinkedList</span><span class="o">&lt;</span><span class="nc">Object</span><span class="o">&gt;</span> <span class="n">list1</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">LinkedList</span><span class="o">&lt;&gt;();</span>
+      <span class="n">list1</span><span class="o">.</span><span class="n">add</span><span class="o">(</span><span class="mi">42</span><span class="o">);</span>
+      <span class="n">list1</span><span class="o">.</span><span class="n">add</span><span class="o">(</span><span class="mi">43</span><span class="o">);</span>
+      <span class="n">expectMsgEquals</span><span class="o">(</span><span class="k">new</span> <span class="nc">Batch</span><span class="o">(</span><span class="n">list1</span><span class="o">));</span>
+      <span class="n">buncher</span><span class="o">.</span><span class="n">tell</span><span class="o">(</span><span class="k">new</span> <span class="nc">Queue</span><span class="o">(</span><span class="mi">44</span><span class="o">),</span> <span class="n">probe</span><span class="o">);</span>
+      <span class="n">buncher</span><span class="o">.</span><span class="n">tell</span><span class="o">(</span><span class="nc">Flush</span><span class="o">,</span> <span class="n">probe</span><span class="o">);</span>
+      <span class="n">buncher</span><span class="o">.</span><span class="n">tell</span><span class="o">(</span><span class="k">new</span> <span class="nc">Queue</span><span class="o">(</span><span class="mi">45</span><span class="o">),</span> <span class="n">probe</span><span class="o">);</span>
+      <span class="nc">LinkedList</span><span class="o">&lt;</span><span class="nc">Object</span><span class="o">&gt;</span> <span class="n">list2</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">LinkedList</span><span class="o">&lt;&gt;();</span>
+      <span class="n">list2</span><span class="o">.</span><span class="n">add</span><span class="o">(</span><span class="mi">44</span><span class="o">);</span>
+      <span class="n">expectMsgEquals</span><span class="o">(</span><span class="k">new</span> <span class="nc">Batch</span><span class="o">(</span><span class="n">list2</span><span class="o">));</span>
+      <span class="nc">LinkedList</span><span class="o">&lt;</span><span class="nc">Object</span><span class="o">&gt;</span> <span class="n">list3</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">LinkedList</span><span class="o">&lt;&gt;();</span>
+      <span class="n">list3</span><span class="o">.</span><span class="n">add</span><span class="o">(</span><span class="mi">45</span><span class="o">);</span>
+      <span class="n">expectMsgEquals</span><span class="o">(</span><span class="k">new</span> <span class="nc">Batch</span><span class="o">(</span><span class="n">list3</span><span class="o">));</span>
+      <span class="n">system</span><span class="o">.</span><span class="n">stop</span><span class="o">(</span><span class="n">buncher</span><span class="o">);</span>
+    <span class="o">}};</span>
+  <span class="o">}</span>
+
+  <span class="nd">@Test</span>
+  <span class="n">public</span> <span class="n">void</span> <span class="n">testBuncherActorDoesntBatchUninitialized</span><span class="o">()</span> <span class="o">{</span>
+    <span class="k">new</span> <span class="nc">JavaTestKit</span><span class="o">(</span><span class="n">system</span><span class="o">)</span> <span class="o">{{</span>
+      <span class="k">final</span> <span class="nc">ActorRef</span> <span class="n">buncher</span> <span class="k">=</span>
+        <span class="n">system</span><span class="o">.</span><span class="n">actorOf</span><span class="o">(</span><span class="nc">Props</span><span class="o">.</span><span class="n">create</span><span class="o">(</span><span class="nc">Buncher</span><span class="o">.</span><span class="n">class</span><span class="o">));</span>
+      <span class="k">final</span> <span class="nc">ActorRef</span> <span class="n">probe</span> <span class="k">=</span> <span class="n">getRef</span><span class="o">();</span>
+
+      <span class="n">buncher</span><span class="o">.</span><span class="n">tell</span><span class="o">(</span><span class="k">new</span> <span class="nc">Queue</span><span class="o">(</span><span class="mi">42</span><span class="o">),</span> <span class="n">probe</span><span class="o">);</span>
+      <span class="n">expectNoMsg</span><span class="o">();</span>
+      <span class="n">system</span><span class="o">.</span><span class="n">stop</span><span class="o">(</span><span class="n">buncher</span><span class="o">);</span>
+    <span class="o">}};</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="reference">
+<h2>Reference</h2>
+<div class="section" id="the-abstractfsm-class">
+<h3>The AbstractFSM Class</h3>
+<p>The <tt class="xref py py-class docutils literal"><span class="pre">AbstractFSM</span></tt> abstract class is the base class used to implement an FSM. It implements
+Actor since an Actor is created to drive the FSM.</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="n">public</span> <span class="k">class</span> <span class="nc">Buncher</span> <span class="k">extends</span> <span class="nc">AbstractFSM</span><span class="o">&lt;</span><span class="nc">State</span><span class="o">,</span> <span class="nc">Data</span><span class="o">&gt;</span> <span class="o">{</span>
+  <span class="o">{</span>
+    <span class="c1">// fsm body ...</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The AbstractFSM class defines a <tt class="docutils literal"><span class="pre">receive</span></tt> method which handles internal messages
+and passes everything else through to the FSM logic (according to the
+current state). When overriding the <tt class="docutils literal"><span class="pre">receive</span></tt> method, keep in mind that
+e.g. state timeout handling depends on actually passing the messages through
+the FSM logic.</p>
+</div>
+<p>The <tt class="xref py py-class docutils literal"><span class="pre">AbstractFSM</span></tt> class takes two type parameters:</p>
+<blockquote>
+<div><ol class="arabic simple">
+<li>the supertype of all state names, usually an enum,</li>
+<li>the type of the state data which are tracked by the <tt class="xref py py-class docutils literal"><span class="pre">AbstractFSM</span></tt> module
+itself.</li>
+</ol>
+</div></blockquote>
+<div class="admonition note" id="fsm-philosophy">
+<p class="first admonition-title">Note</p>
+<p class="last">The state data together with the state name describe the internal state of
+the state machine; if you stick to this scheme and do not add mutable fields
+to the FSM class you have the advantage of making all changes of the
+internal state explicit in a few well-known places.</p>
+</div>
+</div>
+<div class="section" id="defining-states">
+<h3>Defining States</h3>
+<p>A state is defined by one or more invocations of the method</p>
+<blockquote>
+<div><tt class="xref py py-func docutils literal"><span class="pre">when(&lt;name&gt;[,&nbsp;stateTimeout&nbsp;=&nbsp;&lt;timeout&gt;])(stateFunction)</span></tt>.</div></blockquote>
+<p>The given name must be an object which is type-compatible with the first type
+parameter given to the <tt class="xref py py-class docutils literal"><span class="pre">AbstractFSM</span></tt> class. This object is used as a hash key,
+so you must ensure that it properly implements <tt class="xref py py-meth docutils literal"><span class="pre">equals</span></tt> and
+<tt class="xref py py-meth docutils literal"><span class="pre">hashCode</span></tt>; in particular it must not be mutable. The easiest fit for
+these requirements are case objects.</p>
+<p>If the <tt class="xref py py-meth docutils literal"><span class="pre">stateTimeout</span></tt> parameter is given, then all transitions into this
+state, including staying, receive this timeout by default. Initiating the
+transition with an explicit timeout may be used to override this default, see
+<a class="reference internal" href="#initiating-transitions">Initiating Transitions</a> for more information. The state timeout of any state
+may be changed during action processing with
+<tt class="xref py py-func docutils literal"><span class="pre">setStateTimeout(state,&nbsp;duration)</span></tt>. This enables runtime configuration
+e.g. via external message.</p>
+<p>The <tt class="xref py py-meth docutils literal"><span class="pre">stateFunction</span></tt> argument is a <tt class="xref py py-class docutils literal"><span class="pre">PartialFunction[Event,&nbsp;State]</span></tt>,
+which is conveniently given using the state function builder syntax as
+demonstrated below:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="n">when</span><span class="o">(</span><span class="nc">Idle</span><span class="o">,</span>
+  <span class="n">matchEvent</span><span class="o">(</span><span class="nc">SetTarget</span><span class="o">.</span><span class="n">class</span><span class="o">,</span> <span class="nc">Uninitialized</span><span class="o">.</span><span class="n">class</span><span class="o">,</span>
+    <span class="o">(</span><span class="n">setTarget</span><span class="o">,</span> <span class="n">uninitialized</span><span class="o">)</span> <span class="o">-&gt;</span>
+      <span class="n">stay</span><span class="o">().</span><span class="n">using</span><span class="o">(</span><span class="k">new</span> <span class="nc">Todo</span><span class="o">(</span><span class="n">setTarget</span><span class="o">.</span><span class="n">getRef</span><span class="o">(),</span> <span class="k">new</span> <span class="nc">LinkedList</span><span class="o">&lt;&gt;()))));</span>
+</pre></div>
+</div>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">It is required that you define handlers for each of the possible FSM states,
+otherwise there will be failures when trying to switch to undeclared states.</p>
+</div>
+<p>It is recommended practice to declare the states as an enum and then verify that there is a
+<tt class="docutils literal"><span class="pre">when</span></tt> clause for each of the states. If you want to leave the handling of a state
+“unhandled” (more below), it still needs to be declared like this:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="n">when</span><span class="o">(</span><span class="nc">SomeState</span><span class="o">,</span> <span class="nc">AbstractFSM</span><span class="o">.</span><span class="nc">NullFunction</span><span class="o">());</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="defining-the-initial-state">
+<h3>Defining the Initial State</h3>
+<p>Each FSM needs a starting point, which is declared using</p>
+<blockquote>
+<div><tt class="xref py py-func docutils literal"><span class="pre">startWith(state,&nbsp;data[,&nbsp;timeout])</span></tt></div></blockquote>
+<p>The optionally given timeout argument overrides any specification given for the
+desired initial state. If you want to cancel a default timeout, use
+<tt class="xref py py-obj docutils literal"><span class="pre">Duration.Inf</span></tt>.</p>
+</div>
+<div class="section" id="unhandled-events">
+<h3>Unhandled Events</h3>
+<p>If a state doesn't handle a received event a warning is logged. If you want to
+do something else in this case you can specify that with
+<tt class="xref py py-func docutils literal"><span class="pre">whenUnhandled(stateFunction)</span></tt>:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="n">whenUnhandled</span><span class="o">(</span>
+  <span class="n">matchEvent</span><span class="o">(</span><span class="n">X</span><span class="o">.</span><span class="n">class</span><span class="o">,</span> <span class="o">(</span><span class="n">x</span><span class="o">,</span> <span class="n">data</span><span class="o">)</span> <span class="o">-&gt;</span> <span class="o">{</span>
+    <span class="n">log</span><span class="o">().</span><span class="n">info</span><span class="o">(</span><span class="s">&quot;Received unhandled event: &quot;</span> <span class="o">+</span> <span class="n">x</span><span class="o">);</span>
+    <span class="k">return</span> <span class="n">stay</span><span class="o">();</span>
+  <span class="o">}).</span>
+  <span class="n">anyEvent</span><span class="o">((</span><span class="n">event</span><span class="o">,</span> <span class="n">data</span><span class="o">)</span> <span class="o">-&gt;</span> <span class="o">{</span>
+    <span class="n">log</span><span class="o">().</span><span class="n">warning</span><span class="o">(</span><span class="s">&quot;Received unknown event: &quot;</span> <span class="o">+</span> <span class="n">event</span><span class="o">);</span>
+    <span class="k">return</span> <span class="n">goTo</span><span class="o">(</span><span class="nc">Error</span><span class="o">);</span>
+  <span class="o">}));</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<p>Within this handler the state of the FSM may be queried using the
+<tt class="xref py py-meth docutils literal"><span class="pre">stateName</span></tt> method.</p>
+<p><strong>IMPORTANT</strong>: This handler is not stacked, meaning that each invocation of
+<tt class="xref py py-func docutils literal"><span class="pre">whenUnhandled</span></tt> replaces the previously installed handler.</p>
+</div>
+<div class="section" id="initiating-transitions">
+<h3>Initiating Transitions</h3>
+<p>The result of any <tt class="xref py py-obj docutils literal"><span class="pre">stateFunction</span></tt> must be a definition of the next state
+unless terminating the FSM, which is described in <a class="reference internal" href="#termination-from-inside">Termination from Inside</a>.
+The state definition can either be the current state, as described by the
+<tt class="xref py py-func docutils literal"><span class="pre">stay</span></tt> directive, or it is a different state as given by
+<tt class="xref py py-func docutils literal"><span class="pre">goto(state)</span></tt>. The resulting object allows further qualification by way
+of the modifiers described in the following:</p>
+<ul>
+<li><p class="first"><tt class="xref py py-meth docutils literal"><span class="pre">forMax(duration)</span></tt></p>
+<p>This modifier sets a state timeout on the next state. This means that a timer
+is started which upon expiry sends a <tt class="xref py py-obj docutils literal"><span class="pre">StateTimeout</span></tt> message to the FSM.
+This timer is canceled upon reception of any other message in the meantime;
+you can rely on the fact that the <tt class="xref py py-obj docutils literal"><span class="pre">StateTimeout</span></tt> message will not be
+processed after an intervening message.</p>
+<p>This modifier can also be used to override any default timeout which is
+specified for the target state. If you want to cancel the default timeout,
+use <tt class="xref py py-obj docutils literal"><span class="pre">Duration.Inf</span></tt>.</p>
+</li>
+<li><p class="first"><tt class="xref py py-meth docutils literal"><span class="pre">using(data)</span></tt></p>
+<p>This modifier replaces the old state data with the new data given. If you
+follow the advice <a class="reference internal" href="../scala/fsm.html#fsm-philosophy"><em>above</em></a>, this is the only place where
+internal state data are ever modified.</p>
+</li>
+<li><p class="first"><tt class="xref py py-meth docutils literal"><span class="pre">replying(msg)</span></tt></p>
+<p>This modifier sends a reply to the currently processed message and otherwise
+does not modify the state transition.</p>
+</li>
+</ul>
+<p>All modifiers can be chained to achieve a nice and concise description:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="n">when</span><span class="o">(</span><span class="nc">SomeState</span><span class="o">,</span> <span class="n">matchAnyEvent</span><span class="o">((</span><span class="n">msg</span><span class="o">,</span> <span class="n">data</span><span class="o">)</span> <span class="o">-&gt;</span> <span class="o">{</span>
+    <span class="k">return</span> <span class="n">goTo</span><span class="o">(</span><span class="nc">Processing</span><span class="o">).</span><span class="n">using</span><span class="o">(</span><span class="n">newData</span><span class="o">).</span>
+      <span class="n">forMax</span><span class="o">(</span><span class="nc">Duration</span><span class="o">.</span><span class="n">create</span><span class="o">(</span><span class="mi">5</span><span class="o">,</span> <span class="nc">SECONDS</span><span class="o">)).</span><span class="n">replying</span><span class="o">(</span><span class="nc">WillDo</span><span class="o">);</span>
+<span class="o">}));</span>
+</pre></div>
+</div>
+<p>The parentheses are not actually needed in all cases, but they visually
+distinguish between modifiers and their arguments and therefore make the code
+even more pleasant to read for foreigners.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Please note that the <tt class="docutils literal"><span class="pre">return</span></tt> statement may not be used in <tt class="xref py py-meth docutils literal"><span class="pre">when</span></tt>
+blocks or similar; this is a Scala restriction. Either refactor your code
+using <tt class="docutils literal"><span class="pre">if&nbsp;()&nbsp;...&nbsp;else&nbsp;...</span></tt> or move it into a method definition.</p>
+</div>
+</div>
+<div class="section" id="monitoring-transitions">
+<h3>Monitoring Transitions</h3>
+<p>Transitions occur &quot;between states&quot; conceptually, which means after any actions
+you have put into the event handling block; this is obvious since the next
+state is only defined by the value returned by the event handling logic. You do
+not need to worry about the exact order with respect to setting the internal
+state variable, as everything within the FSM actor is running single-threaded
+anyway.</p>
+<div class="section" id="internal-monitoring">
+<h4>Internal Monitoring</h4>
+<p>Up to this point, the FSM DSL has been centered on states and events. The dual
+view is to describe it as a series of transitions. This is enabled by the
+method</p>
+<blockquote>
+<div><tt class="xref py py-func docutils literal"><span class="pre">onTransition(handler)</span></tt></div></blockquote>
+<p>which associates actions with a transition instead of with a state and event.
+The handler is a partial function which takes a pair of states as input; no
+resulting state is needed as it is not possible to modify the transition in
+progress.</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="n">onTransition</span><span class="o">(</span>
+  <span class="n">matchState</span><span class="o">(</span><span class="nc">Active</span><span class="o">,</span> <span class="nc">Idle</span><span class="o">,</span> <span class="o">()</span> <span class="o">-&gt;</span> <span class="n">setTimer</span><span class="o">(</span><span class="s">&quot;timeout&quot;</span><span class="o">,</span>
+    <span class="nc">Tick</span><span class="o">,</span> <span class="nc">Duration</span><span class="o">.</span><span class="n">create</span><span class="o">(</span><span class="mi">1</span><span class="o">,</span> <span class="nc">SECONDS</span><span class="o">),</span> <span class="kc">true</span><span class="o">)).</span>
+  <span class="n">state</span><span class="o">(</span><span class="nc">Active</span><span class="o">,</span> <span class="kc">null</span><span class="o">,</span> <span class="o">()</span> <span class="o">-&gt;</span> <span class="n">cancelTimer</span><span class="o">(</span><span class="s">&quot;timeout&quot;</span><span class="o">)).</span>
+  <span class="n">state</span><span class="o">(</span><span class="kc">null</span><span class="o">,</span> <span class="nc">Idle</span><span class="o">,</span> <span class="o">(</span><span class="n">f</span><span class="o">,</span> <span class="n">t</span><span class="o">)</span> <span class="o">-&gt;</span> <span class="n">log</span><span class="o">().</span><span class="n">info</span><span class="o">(</span><span class="s">&quot;entering Idle from &quot;</span> <span class="o">+</span> <span class="n">f</span><span class="o">)));</span>
+</pre></div>
+</div>
+<p>It is also possible to pass a function object accepting two states to
+<tt class="xref py py-func docutils literal"><span class="pre">onTransition</span></tt>, in case your transition handling logic is implemented as
+a method:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="n">public</span> <span class="n">void</span> <span class="n">handler</span><span class="o">(</span><span class="nc">StateType</span> <span class="n">from</span><span class="o">,</span> <span class="nc">StateType</span> <span class="n">to</span><span class="o">)</span> <span class="o">{</span>
+  <span class="c1">// handle transition here</span>
+<span class="o">}</span>
+
+<span class="n">onTransition</span><span class="o">(</span><span class="k">this</span><span class="o">::</span><span class="n">handler</span><span class="o">);</span>
+</pre></div>
+</div>
+<p>The handlers registered with this method are stacked, so you can intersperse
+<tt class="xref py py-func docutils literal"><span class="pre">onTransition</span></tt> blocks with <tt class="xref py py-func docutils literal"><span class="pre">when</span></tt> blocks as suits your design. It
+should be noted, however, that <em>all handlers will be invoked for each
+transition</em>, not only the first matching one. This is designed specifically so
+you can put all transition handling for a certain aspect into one place without
+having to worry about earlier declarations shadowing later ones; the actions
+are still executed in declaration order, though.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">This kind of internal monitoring may be used to structure your FSM according
+to transitions, so that for example the cancellation of a timer upon leaving
+a certain state cannot be forgot when adding new target states.</p>
+</div>
+</div>
+<div class="section" id="external-monitoring">
+<h4>External Monitoring</h4>
+<p>External actors may be registered to be notified of state transitions by
+sending a message <tt class="xref py py-class docutils literal"><span class="pre">SubscribeTransitionCallBack(actorRef)</span></tt>. The named
+actor will be sent a <tt class="xref py py-class docutils literal"><span class="pre">CurrentState(self,&nbsp;stateName)</span></tt> message immediately
+and will receive <tt class="xref py py-class docutils literal"><span class="pre">Transition(actorRef,&nbsp;oldState,&nbsp;newState)</span></tt> messages
+whenever a new state is reached. External monitors may be unregistered by
+sending <tt class="xref py py-class docutils literal"><span class="pre">UnsubscribeTransitionCallBack(actorRef)</span></tt> to the FSM actor.</p>
+<p>Stopping a listener without unregistering will not remove the listener from the
+subscription list; use <tt class="xref py py-class docutils literal"><span class="pre">UnsubscribeTransitionCallback</span></tt> before stopping
+the listener.</p>
+</div>
+</div>
+<div class="section" id="timers">
+<h3>Timers</h3>
+<p>Besides state timeouts, FSM manages timers identified by <tt class="xref py py-class docutils literal"><span class="pre">String</span></tt> names.
+You may set a timer using</p>
+<blockquote>
+<div><tt class="xref py py-func docutils literal"><span class="pre">setTimer(name,&nbsp;msg,&nbsp;interval,&nbsp;repeat)</span></tt></div></blockquote>
+<p>where <tt class="xref py py-obj docutils literal"><span class="pre">msg</span></tt> is the message object which will be sent after the duration
+<tt class="xref py py-obj docutils literal"><span class="pre">interval</span></tt> has elapsed. If <tt class="xref py py-obj docutils literal"><span class="pre">repeat</span></tt> is <tt class="xref py py-obj docutils literal"><span class="pre">true</span></tt>, then the timer is
+scheduled at fixed rate given by the <tt class="xref py py-obj docutils literal"><span class="pre">interval</span></tt> parameter.
+Any existing timer with the same name will automatically be canceled before
+adding the new timer.</p>
+<p>Timers may be canceled using</p>
+<blockquote>
+<div><tt class="xref py py-func docutils literal"><span class="pre">cancelTimer(name)</span></tt></div></blockquote>
+<p>which is guaranteed to work immediately, meaning that the scheduled message
+will not be processed after this call even if the timer already fired and
+queued it. The status of any timer may be inquired with</p>
+<blockquote>
+<div><tt class="xref py py-func docutils literal"><span class="pre">isTimerActive(name)</span></tt></div></blockquote>
+<p>These named timers complement state timeouts because they are not affected by
+intervening reception of other messages.</p>
+</div>
+<div class="section" id="termination-from-inside">
+<h3>Termination from Inside</h3>
+<p>The FSM is stopped by specifying the result state as</p>
+<blockquote>
+<div><tt class="xref py py-func docutils literal"><span class="pre">stop([reason[,&nbsp;data]])</span></tt></div></blockquote>
+<p>The reason must be one of <tt class="xref py py-obj docutils literal"><span class="pre">Normal</span></tt> (which is the default), <tt class="xref py py-obj docutils literal"><span class="pre">Shutdown</span></tt>
+or <tt class="xref py py-obj docutils literal"><span class="pre">Failure(reason)</span></tt>, and the second argument may be given to change the
+state data which is available during termination handling.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">It should be noted that <tt class="xref py py-func docutils literal"><span class="pre">stop</span></tt> does not abort the actions and stop the
+FSM immediately. The stop action must be returned from the event handler in
+the same way as a state transition (but note that the <tt class="docutils literal"><span class="pre">return</span></tt> statement
+may not be used within a <tt class="xref py py-meth docutils literal"><span class="pre">when</span></tt> block).</p>
+</div>
+<div class="highlight-scala"><div class="highlight"><pre><span class="n">when</span><span class="o">(</span><span class="nc">Error</span><span class="o">,</span> <span class="n">matchEventEquals</span><span class="o">(</span><span class="s">&quot;stop&quot;</span><span class="o">,</span> <span class="o">(</span><span class="n">event</span><span class="o">,</span> <span class="n">data</span><span class="o">)</span> <span class="o">-&gt;</span> <span class="o">{</span>
+  <span class="c1">// do cleanup ...</span>
+  <span class="k">return</span> <span class="n">stop</span><span class="o">();</span>
+<span class="o">}));</span>
+</pre></div>
+</div>
+<p>You can use <tt class="xref py py-func docutils literal"><span class="pre">onTermination(handler)</span></tt> to specify custom code that is
+executed when the FSM is stopped. The handler is a partial function which takes
+a <tt class="xref py py-class docutils literal"><span class="pre">StopEvent(reason,&nbsp;stateName,&nbsp;stateData)</span></tt> as argument:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="n">onTermination</span><span class="o">(</span>
+  <span class="n">matchStop</span><span class="o">(</span><span class="nc">Normal</span><span class="o">(),</span>
+    <span class="o">(</span><span class="n">state</span><span class="o">,</span> <span class="n">data</span><span class="o">)</span> <span class="o">-&gt;</span> <span class="o">{</span><span class="cm">/* Do something here */</span><span class="o">}).</span>
+    <span class="n">stop</span><span class="o">(</span><span class="nc">Shutdown</span><span class="o">(),</span>
+      <span class="o">(</span><span class="n">state</span><span class="o">,</span> <span class="n">data</span><span class="o">)</span> <span class="o">-&gt;</span> <span class="o">{</span><span class="cm">/* Do something here */</span><span class="o">}).</span>
+    <span class="n">stop</span><span class="o">(</span><span class="nc">Failure</span><span class="o">.</span><span class="n">class</span><span class="o">,</span>
+      <span class="o">(</span><span class="n">reason</span><span class="o">,</span> <span class="n">state</span><span class="o">,</span> <span class="n">data</span><span class="o">)</span> <span class="o">-&gt;</span> <span class="o">{</span><span class="cm">/* Do something here */</span><span class="o">}));</span>
+</pre></div>
+</div>
+<p>As for the <tt class="xref py py-func docutils literal"><span class="pre">whenUnhandled</span></tt> case, this handler is not stacked, so each
+invocation of <tt class="xref py py-func docutils literal"><span class="pre">onTermination</span></tt> replaces the previously installed handler.</p>
+</div>
+<div class="section" id="termination-from-outside">
+<h3>Termination from Outside</h3>
+<p>When an <tt class="xref py py-class docutils literal"><span class="pre">ActorRef</span></tt> associated to a FSM is stopped using the
+<tt class="xref py py-meth docutils literal"><span class="pre">stop</span></tt> method, its <tt class="xref py py-meth docutils literal"><span class="pre">postStop</span></tt> hook will be executed. The default
+implementation by the <tt class="xref py py-class docutils literal"><span class="pre">AbstractFSM</span></tt> class is to execute the
+<tt class="xref py py-meth docutils literal"><span class="pre">onTermination</span></tt> handler if that is prepared to handle a
+<tt class="xref py py-obj docutils literal"><span class="pre">StopEvent(Shutdown,&nbsp;...)</span></tt>.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">In case you override <tt class="xref py py-meth docutils literal"><span class="pre">postStop</span></tt> and want to have your
+<tt class="xref py py-meth docutils literal"><span class="pre">onTermination</span></tt> handler called, do not forget to call
+<tt class="docutils literal"><span class="pre">super.postStop</span></tt>.</p>
+</div>
+</div>
+</div>
+<div class="section" id="testing-and-debugging-finite-state-machines">
+<h2>Testing and Debugging Finite State Machines</h2>
+<p>During development and for trouble shooting FSMs need care just as any other
+actor. There are specialized tools available as described in <a class="reference internal" href="../scala/testing.html#testfsmref"><em>Testing Finite State Machines</em></a>
+and in the following.</p>
+<div class="section" id="event-tracing">
+<h3>Event Tracing</h3>
+<p>The setting <tt class="docutils literal"><span class="pre">akka.actor.debug.fsm</span></tt> in <a class="reference internal" href="../general/configuration.html#configuration"><em>Configuration</em></a> enables logging of an
+event trace by <tt class="xref py py-class docutils literal"><span class="pre">LoggingFSM</span></tt> instances:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="n">public</span> <span class="k">class</span> <span class="nc">MyFSM</span> <span class="k">extends</span> <span class="nc">AbstractLoggingFSM</span><span class="o">&lt;</span><span class="nc">StateType</span><span class="o">,</span> <span class="nc">Data</span><span class="o">&gt;</span> <span class="o">{</span>
+  <span class="c1">// body elided ...</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<p>This FSM will log at DEBUG level:</p>
+<blockquote>
+<div><ul class="simple">
+<li>all processed events, including <tt class="xref py py-obj docutils literal"><span class="pre">StateTimeout</span></tt> and scheduled timer
+messages</li>
+<li>every setting and cancellation of named timers</li>
+<li>all state transitions</li>
+</ul>
+</div></blockquote>
+<p>Life cycle changes and special messages can be logged as described for
+<a class="reference internal" href="../scala/testing.html#actor-logging-scala"><em>Actors</em></a>.</p>
+</div>
+<div class="section" id="rolling-event-log">
+<h3>Rolling Event Log</h3>
+<p>The <tt class="xref py py-class docutils literal"><span class="pre">AbstractLoggingFSM</span></tt> class adds one more feature to the FSM: a rolling event
+log which may be used during debugging (for tracing how the FSM entered a
+certain failure state) or for other creative uses:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="n">public</span> <span class="k">class</span> <span class="nc">MyFSM</span> <span class="k">extends</span> <span class="nc">AbstractLoggingFSM</span><span class="o">&lt;</span><span class="nc">StateType</span><span class="o">,</span> <span class="nc">Data</span><span class="o">&gt;</span> <span class="o">{</span>
+  <span class="nd">@Override</span>
+  <span class="n">public</span> <span class="n">int</span> <span class="n">logDepth</span><span class="o">()</span> <span class="o">{</span> <span class="k">return</span> <span class="mi">12</span><span class="o">;</span> <span class="o">}</span>
+  <span class="o">{</span>
+    <span class="n">onTermination</span><span class="o">(</span>
+      <span class="n">matchStop</span><span class="o">(</span><span class="nc">Failure</span><span class="o">.</span><span class="n">class</span><span class="o">,</span> <span class="o">(</span><span class="n">reason</span><span class="o">,</span> <span class="n">state</span><span class="o">,</span> <span class="n">data</span><span class="o">)</span> <span class="o">-&gt;</span> <span class="o">{</span>
+        <span class="nc">String</span> <span class="n">lastEvents</span> <span class="k">=</span> <span class="n">getLog</span><span class="o">().</span><span class="n">mkString</span><span class="o">(</span><span class="s">&quot;\n\t&quot;</span><span class="o">);</span>
+        <span class="n">log</span><span class="o">().</span><span class="n">warning</span><span class="o">(</span><span class="s">&quot;Failure in state &quot;</span> <span class="o">+</span> <span class="n">state</span> <span class="o">+</span> <span class="s">&quot; with data &quot;</span> <span class="o">+</span> <span class="n">data</span> <span class="o">+</span> <span class="s">&quot;\n&quot;</span> <span class="o">+</span>
+          <span class="s">&quot;Events leading up to this point:\n\t&quot;</span> <span class="o">+</span> <span class="n">lastEvents</span><span class="o">);</span>
+      <span class="o">})</span>
+    <span class="o">);</span>
+    <span class="c1">//...</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<p>The <tt class="xref py py-meth docutils literal"><span class="pre">logDepth</span></tt> defaults to zero, which turns off the event log.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">The log buffer is allocated during actor creation, which is why the
+configuration is done using a virtual method call. If you want to override
+with a <tt class="docutils literal"><span class="pre">val</span></tt>, make sure that its initialization happens before the
+initializer of <tt class="xref py py-class docutils literal"><span class="pre">LoggingFSM</span></tt> runs, and do not change the value returned
+by <tt class="docutils literal"><span class="pre">logDepth</span></tt> after the buffer has been allocated.</p>
+</div>
+<p>The contents of the event log are available using method <tt class="xref py py-meth docutils literal"><span class="pre">getLog</span></tt>, which
+returns an <tt class="xref py py-class docutils literal"><span class="pre">IndexedSeq[LogEntry]</span></tt> where the oldest entry is at index
+zero.</p>
+</div>
+</div>
+<div class="section" id="examples">
+<h2>Examples</h2>
+<p>A bigger FSM example contrasted with Actor's <tt class="xref py py-meth docutils literal"><span class="pre">become</span></tt>/<tt class="xref py py-meth docutils literal"><span class="pre">unbecome</span></tt> can be found in
+the <a class="reference external" href="http://www.lightbend.com/platform/getstarted">Lightbend Activator</a> template named
+<a class="reference external" href="http://www.lightbend.com/activator/template/akka-sample-fsm-java-lambda">Akka FSM in Scala</a></p>
+</div>
+</div>
+
+
+          </div>
+          <div class="span3"><p class="contents-title">Contents</p>
+              <div id="scroller-anchor">
+                <div id="scroller">
+                  <div id="toc"></div>
+                </div>
+              </div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="footer">
+  <div class="container">
+    <ul>
+      <li><h5>Akka</h5></li>
+      <li><a href="https://akka.io/docs">Documentation</a></li>
+      <li><a href="https://doc.akka.io/docs/akka/current/additional/faq.html">FAQ</a></li>
+      <li><a href="https://akka.io/downloads">Downloads</a></li>
+      <li><a href="https://akka.io/news">News</a></li>
+      <li><a href="http://letitcrash.com">Blog</a></li>
+    </ul>
+    <ul>
+      <li><h5>Contribute</h5></li>
+      <li><a href="https://akka.io/community">Community Projects</a></li>
+      <li><a href="http://github.com/akka/akka">Source Code</a></li>
+      <li><a href="http://groups.google.com/group/akka-user">Mailing List</a></li>
+      <li><a href="https://doc.akka.io/docs/akka/current/project/issue-tracking.html">Report a Bug</a></li>
+    </ul>
+    <ul>
+      <li><h5>Company</h5></li>
+      <li><a href="http://www.lightbend.com/how/subscription">Commercial Support</a></li>
+      <li><a href="https://akka.io/team">Team</a></li>
+      <li><a href="mailto:info@lightbend.com">Contact</a></li>
+    </ul>
+    <ul>
+      <li><img src="../_static/akka_icon_reverse.svg" align="center"/></li>
+    </ul>
+  </div>
+  <div class="container copyright">
+    <p style="float: left;">
+      © 2015 <a href="http://www.lightbend.com/">Lightbend Inc.</a> <span class="license">Akka is Open Source and available under the Apache 2 License.</span>
+    </p>
+    <p style="float: right; font-size: 12px;">
+      Last updated: Aug 10, 2017
+    </p>
+  </div>
+</div>
+<script type="text/javascript">
+  var $toc = $('#toc');
+  $toc.toc();
+
+  // show clickable section sign when section header hovered:
+  $('.section h2,.section h3,.section h4,.section h5').each(function(i, el) {
+      var $el = $(el);
+      $el.prepend($("<a class='section-marker' href='#" + $el.attr("id") + "'>&sect;</a>"))
+  });
+</script>
+
+<!-- Algolia docs search -->
+<script type="text/javascript">
+  var version = DOCUMENTATION_OPTIONS.VERSION;
+
+  var lang = "scala";
+  var path = window.location.pathname;
+  if (path.includes("/java/") || path.includes("java.html")) lang = "java";
+
+  console.log("Search configured for:", lang, "@", version);
+
+  docsearch({
+    apiKey: '543bad5ad786495d9ccd445ed34ed082',
+    indexName: 'akka_io',
+    inputSelector: '#search',
+    algoliaOptions: {
+      hitsPerPage: 5,
+      facetFilters: '[' + '["language:' + lang + '","language:general"]' + ',"version:' + version + '"]'
+    }
+  });
+
+  // set up "/" as global shortcut for focusing on search
+  $(document).keypress(function (event) {
+    if (event.keyCode == 47) {
+      $("#q").focus();
+      return false; // swallow key event, otherwise the / char would be input into the search box
+    }
+  });
+</script>
+
+  
+
+  </body>
+</html>

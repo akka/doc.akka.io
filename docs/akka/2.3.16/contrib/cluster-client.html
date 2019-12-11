@@ -1,0 +1,511 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" /><meta name="description" content="Akka is a toolkit for building highly concurrent, distributed, and resilient message-driven applications for Java and Scala."/><link rel="canonical" href="https://doc.akka.io/docs/akka/2.3/contrib/cluster-client.html"/>
+    
+    <title>Cluster Client &mdash; Akka Documentation</title>
+    
+    <link rel="stylesheet" href="../_static/style.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/prettify.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/base.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
+    <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,600,700" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '2.3.16',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="../_static/toc.js"></script>
+    <script type="text/javascript" src="../_static/prettify.js"></script>
+    <script type="text/javascript" src="../_static/highlightCode.js"></script>
+    <script type="text/javascript" src="../_static/effects.core.js"></script>
+    <script type="text/javascript" src="../_static/effects.highlight.js"></script>
+    <script type="text/javascript" src="../_static/scrollTo.js"></script>
+    <script type="text/javascript" src="../_static/contentsFix.js"></script>
+    <script type="text/javascript" src="../_static/ga.js"></script>
+    <link rel="shortcut icon" href="../_static/favicon.ico"/>
+    <link rel="top" title="Akka Documentation" href="../index.html" />
+    <link rel="up" title="External Contributions" href="index.html" />
+    <link rel="next" title="Aggregator Pattern" href="aggregator.html" />
+    <link rel="prev" title="Distributed Publish Subscribe in Cluster" href="distributed-pub-sub.html" />
+    <!--Google Analytics-->
+    <script type="text/javascript">
+      var _gaq = _gaq || [];
+      _gaq.push(['_setAccount', 'UA-21117439-1']);
+      _gaq.push(['_setDomainName', 'akka.io']);
+      _gaq.push(['_trackPageview']);
+      (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+      })()
+    </script>
+    <!--Google Analytics & Marketo-->
+    <script type="text/javascript">
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+      (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+      m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+      ga('create', 'UA-23127719-1', 'typesafe.com', {'allowLinker': true, 'name': 'tsTracker'});
+      ga('tsTracker.require', 'linker');
+      ga('tsTracker.linker:autoLink', ['typesafe.com','playframework.com','scala-lang.org','scaladays.org','spray.io','akka.io','scala-sbt.org','scala-ide.org']);
+      ga('tsTracker.send', 'pageview');
+      
+      (function() {
+          var didInit = false;
+          function initMunchkin() {
+          if(didInit === false) {
+            didInit = true;
+            Munchkin.init('558-NCX-702');
+          }
+          }
+          var s = document.createElement('script');
+          s.type = 'text/javascript';
+          s.async = true;
+          s.src = '//munchkin.marketo.net/munchkin.js';
+          s.onreadystatechange = function() {
+          if (this.readyState == 'complete' || this.readyState == 'loaded') {
+            initMunchkin();
+          }
+          };
+          s.onload = initMunchkin;
+          document.getElementsByTagName('head')[0].appendChild(s);
+        })();
+    </script>
+
+  </head>
+  <body role="document">
+  <div class="navbar">
+    <div class="navbar-inner">
+      <div class="container">
+        <div class="navbar-logo">
+          <a href="https://akka.io"><img class="svg-logo" src="../_static/akka_full_color.svg" /></a>
+        </div>    
+        <ul class="nav">
+          <li><a href="https://akka.io/docs">Documentation</a></li>
+          <li><a href="https://akka.io/faq">FAQ</a></li>
+          <li><a href="https://akka.io/downloads">Download</a></li>
+          <li><a href="http://groups.google.com/group/akka-user">Mailing List</a></li>
+          <li><a href="http://github.com/akka/akka">Code</a></li>           
+          <li><a href="http://www.typesafe.com/how/subscription">Commercial Support</a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="main">
+    <div class="container">
+      <div class="page-title">Cluster Client</div>
+      <div class="pdf-link"><a href="../AkkaScala.pdf" title="Akka Scala Documentation"><img src="../_static/pdf-scala-icon.png" style="height: 40px;" /></a></div>
+      <div class="pdf-link"><a href="../AkkaJava.pdf" title="Akka Java Documentation"><img src="../_static/pdf-java-icon.png" style="height: 40px;" /></a></div>
+    </div>
+    <div class="main-container">
+      <div class="container">
+        <div class="row">
+          <div class="span12">
+            <ul class="breadcrumb">           
+              <li>
+                 <span class="divider">|</span> <a href="aggregator.html">Aggregator Pattern</a> <span class="divider">»</span>
+              </li>
+              <li>
+                <a href="../index.html">Contents</a>
+              </li>
+              <li>
+                <span class="divider">«</span> <a href="distributed-pub-sub.html">Distributed Publish Subscribe in Cluster</a> <span class="divider">|</span>
+              </li>
+              <li>
+                Version 2.3.16
+              </li>
+            </ul>
+          </div>
+        </div>
+        <div class="row">
+          <div class="span9">
+            <div id="cse">Loading</div>
+          </div><div class="span9">
+            
+  <div class="section" id="cluster-client">
+<span id="id1"></span><h1>Cluster Client</h1>
+<p>An actor system that is not part of the cluster can communicate with actors
+somewhere in the cluster via this <code class="docutils literal"><span class="pre">ClusterClient</span></code>. The client can of course be part of
+another cluster. It only needs to know the location of one (or more) nodes to use as initial
+contact points. It will establish a connection to a <code class="docutils literal"><span class="pre">ClusterReceptionist</span></code> somewhere in
+the cluster. It will monitor the connection to the receptionist and establish a new
+connection if the link goes down. When looking for a new receptionist it uses fresh
+contact points retrieved from previous establishment, or periodically refreshed contacts,
+i.e. not necessarily the initial contact points. Also, note it's necessary to change
+<code class="docutils literal"><span class="pre">akka.actor.provider</span></code> from <code class="docutils literal"><span class="pre">akka.actor.LocalActorRefProvider</span></code> to
+<code class="docutils literal"><span class="pre">akka.remote.RemoteActorRefProvider</span></code> or <code class="docutils literal"><span class="pre">akka.cluster.ClusterActorRefProvider</span></code> when using
+the cluster client.</p>
+<p>The receptionist is supposed to be started on all nodes, or all nodes with specified role,
+in the cluster. The receptionist can be started with the <code class="docutils literal"><span class="pre">ClusterReceptionistExtension</span></code>
+or as an ordinary actor.</p>
+<p>You can send messages via the <code class="docutils literal"><span class="pre">ClusterClient</span></code> to any actor in the cluster that is registered
+in the <code class="docutils literal"><span class="pre">DistributedPubSubMediator</span></code> used by the <code class="docutils literal"><span class="pre">ClusterReceptionist</span></code>.
+The <code class="docutils literal"><span class="pre">ClusterReceptionistExtension</span></code> provides methods for registration of actors that
+should be reachable from the client. Messages are wrapped in <code class="docutils literal"><span class="pre">ClusterClient.Send</span></code>,
+<code class="docutils literal"><span class="pre">ClusterClient.SendToAll</span></code> or <code class="docutils literal"><span class="pre">ClusterClient.Publish</span></code>.</p>
+<p><strong>1. ClusterClient.Send</strong></p>
+<p>The message will be delivered to one recipient with a matching path, if any such
+exists. If several entries match the path the message will be delivered
+to one random destination. The sender() of the message can specify that local
+affinity is preferred, i.e. the message is sent to an actor in the same local actor
+system as the used receptionist actor, if any such exists, otherwise random to any other
+matching entry.</p>
+<p><strong>2. ClusterClient.SendToAll</strong></p>
+<p>The message will be delivered to all recipients with a matching path.</p>
+<p><strong>3. ClusterClient.Publish</strong></p>
+<p>The message will be delivered to all recipients Actors that have been registered as subscribers
+to the named topic.</p>
+<p>Response messages from the destination actor are tunneled via the receptionist
+to avoid inbound connections from other cluster nodes to the client, i.e.
+the <code class="docutils literal"><span class="pre">sender()</span></code>, as seen by the destination actor, is not the client itself.
+The <code class="docutils literal"><span class="pre">sender()</span></code> of the response messages, as seen by the client, is preserved
+as the original sender(), so the client can choose to send subsequent messages
+directly to the actor in the cluster.</p>
+<p>While establishing a connection to a receptionist the <code class="docutils literal"><span class="pre">ClusterClient</span></code> will buffer
+messages and send them when the connection is established. If the buffer is full
+the <code class="docutils literal"><span class="pre">ClusterClient</span></code> will throw <code class="docutils literal"><span class="pre">akka.actor.StashOverflowException</span></code>, which can be
+handled in by the supervision strategy of the parent actor. The size of the buffer
+can be configured by the following <code class="docutils literal"><span class="pre">stash-capacity</span></code> setting of the mailbox that is
+used by the <code class="docutils literal"><span class="pre">ClusterClient</span></code> actor.</p>
+<div class="highlight-scala"><div class="highlight"><pre><span></span><span class="n">akka</span><span class="o">.</span><span class="n">contrib</span><span class="o">.</span><span class="n">cluster</span><span class="o">.</span><span class="n">client</span> <span class="o">{</span>
+
+  <span class="k">#</span> <span class="nc">How</span> <span class="n">often</span> <span class="n">failure</span> <span class="n">detection</span> <span class="n">heartbeat</span> <span class="n">messages</span> <span class="n">should</span> <span class="n">be</span> <span class="n">sent</span>
+  <span class="n">heartbeat</span><span class="o">-</span><span class="n">interval</span> <span class="k">=</span> <span class="mi">2</span><span class="n">s</span>
+  
+  <span class="k">#</span> <span class="nc">Number</span> <span class="n">of</span> <span class="n">potentially</span> <span class="n">lost</span><span class="o">/</span><span class="n">delayed</span> <span class="n">heartbeats</span> <span class="n">that</span> <span class="n">will</span> <span class="n">be</span>
+  <span class="k">#</span> <span class="n">accepted</span> <span class="n">before</span> <span class="n">considering</span> <span class="n">it</span> <span class="n">to</span> <span class="n">be</span> <span class="n">an</span> <span class="n">anomaly</span><span class="o">.</span>
+  <span class="k">#</span> <span class="nc">The</span> <span class="nc">ClusterClient</span> <span class="n">is</span> <span class="n">using</span> <span class="n">the</span> <span class="n">akka</span><span class="o">.</span><span class="n">remote</span><span class="o">.</span><span class="nc">DeadlineFailureDetector</span><span class="o">,</span> <span class="n">which</span>
+  <span class="k">#</span> <span class="n">will</span> <span class="n">trigger</span> <span class="k">if</span> <span class="n">there</span> <span class="n">are</span> <span class="n">no</span> <span class="n">heartbeats</span> <span class="n">within</span> <span class="n">the</span> <span class="n">duration</span> 
+  <span class="k">#</span> <span class="n">heartbeat</span><span class="o">-</span><span class="n">interval</span> <span class="o">+</span> <span class="n">acceptable</span><span class="o">-</span><span class="n">heartbeat</span><span class="o">-</span><span class="n">pause</span><span class="o">,</span> <span class="n">i</span><span class="o">.</span><span class="n">e</span><span class="o">.</span> <span class="mi">15</span> <span class="n">seconds</span> <span class="k">with</span>
+  <span class="k">#</span> <span class="n">the</span> <span class="n">default</span> <span class="n">settings</span><span class="o">.</span>
+  <span class="n">acceptable</span><span class="o">-</span><span class="n">heartbeat</span><span class="o">-</span><span class="n">pause</span> <span class="k">=</span> <span class="mi">15</span><span class="n">s</span>
+
+  <span class="n">mailbox</span> <span class="o">{</span>
+    <span class="n">mailbox</span><span class="o">-</span><span class="k">type</span> <span class="o">=</span> <span class="s">&quot;akka.dispatch.UnboundedDequeBasedMailbox&quot;</span>
+    <span class="n">stash</span><span class="o">-</span><span class="n">capacity</span> <span class="k">=</span> <span class="mi">1000</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<div class="section" id="an-example">
+<h2>An Example</h2>
+<p>On the cluster nodes first start the receptionist. Note, it is recommended to load the extension
+when the actor system is started by defining it in the <code class="docutils literal"><span class="pre">akka.extensions</span></code> configuration property:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span></span>akka.extensions = [&quot;akka.contrib.pattern.ClusterReceptionistExtension&quot;]
+</pre></div>
+</div>
+<p>Next, register the actors that should be available for the client.</p>
+<div class="highlight-scala"><div class="highlight"><pre><span></span><span class="n">runOn</span><span class="o">(</span><span class="n">host1</span><span class="o">)</span> <span class="o">{</span>
+  <span class="k">val</span> <span class="n">serviceA</span> <span class="k">=</span> <span class="n">system</span><span class="o">.</span><span class="n">actorOf</span><span class="o">(</span><span class="nc">Props</span><span class="o">[</span><span class="kt">Service</span><span class="o">],</span> <span class="s">&quot;serviceA&quot;</span><span class="o">)</span>
+  <span class="nc">ClusterReceptionistExtension</span><span class="o">(</span><span class="n">system</span><span class="o">).</span><span class="n">registerService</span><span class="o">(</span><span class="n">serviceA</span><span class="o">)</span>
+<span class="o">}</span>
+
+<span class="n">runOn</span><span class="o">(</span><span class="n">host2</span><span class="o">,</span> <span class="n">host3</span><span class="o">)</span> <span class="o">{</span>
+  <span class="k">val</span> <span class="n">serviceB</span> <span class="k">=</span> <span class="n">system</span><span class="o">.</span><span class="n">actorOf</span><span class="o">(</span><span class="nc">Props</span><span class="o">[</span><span class="kt">Service</span><span class="o">],</span> <span class="s">&quot;serviceB&quot;</span><span class="o">)</span>
+  <span class="nc">ClusterReceptionistExtension</span><span class="o">(</span><span class="n">system</span><span class="o">).</span><span class="n">registerService</span><span class="o">(</span><span class="n">serviceB</span><span class="o">)</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<p>On the client you create the <code class="docutils literal"><span class="pre">ClusterClient</span></code> actor and use it as a gateway for sending
+messages to the actors identified by their path (without address information) somewhere
+in the cluster.</p>
+<div class="highlight-scala"><div class="highlight"><pre><span></span><span class="n">runOn</span><span class="o">(</span><span class="n">client</span><span class="o">)</span> <span class="o">{</span>
+  <span class="k">val</span> <span class="n">c</span> <span class="k">=</span> <span class="n">system</span><span class="o">.</span><span class="n">actorOf</span><span class="o">(</span><span class="nc">ClusterClient</span><span class="o">.</span><span class="n">props</span><span class="o">(</span><span class="n">initialContacts</span><span class="o">),</span> <span class="s">&quot;client&quot;</span><span class="o">)</span>
+  <span class="n">c</span> <span class="o">!</span> <span class="nc">ClusterClient</span><span class="o">.</span><span class="nc">Send</span><span class="o">(</span><span class="s">&quot;/user/serviceA&quot;</span><span class="o">,</span> <span class="s">&quot;hello&quot;</span><span class="o">,</span> <span class="n">localAffinity</span> <span class="k">=</span> <span class="kc">true</span><span class="o">)</span>
+  <span class="n">c</span> <span class="o">!</span> <span class="nc">ClusterClient</span><span class="o">.</span><span class="nc">SendToAll</span><span class="o">(</span><span class="s">&quot;/user/serviceB&quot;</span><span class="o">,</span> <span class="s">&quot;hi&quot;</span><span class="o">)</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<p>The <code class="docutils literal"><span class="pre">initialContacts</span></code> parameter is a <code class="docutils literal"><span class="pre">Set[ActorSelection]</span></code>, which can be created like this:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span></span><span class="k">val</span> <span class="n">initialContacts</span> <span class="k">=</span> <span class="nc">Set</span><span class="o">(</span>
+  <span class="n">system</span><span class="o">.</span><span class="n">actorSelection</span><span class="o">(</span><span class="s">&quot;akka.tcp://OtherSys@host1:2552/user/receptionist&quot;</span><span class="o">),</span>
+  <span class="n">system</span><span class="o">.</span><span class="n">actorSelection</span><span class="o">(</span><span class="s">&quot;akka.tcp://OtherSys@host2:2552/user/receptionist&quot;</span><span class="o">))</span>
+</pre></div>
+</div>
+<p>You will probably define the address information of the initial contact points in configuration or system property.</p>
+<p>A more comprehensive sample is available in the <a class="reference external" href="http://www.typesafe.com/platform/getstarted">Typesafe Activator</a>
+tutorial named <a class="reference external" href="http://www.typesafe.com/activator/template/akka-distributed-workers">Distributed workers with Akka and Scala!</a>
+and <a class="reference external" href="http://www.typesafe.com/activator/template/akka-distributed-workers-java">Distributed workers with Akka and Java!</a>.</p>
+</div>
+<div class="section" id="clusterreceptionistextension">
+<h2>ClusterReceptionistExtension</h2>
+<p>In the example above the receptionist is started and accessed with the <code class="docutils literal"><span class="pre">akka.contrib.pattern.ClusterReceptionistExtension</span></code>.
+That is convenient and perfectly fine in most cases, but it can be good to know that it is possible to
+start the <code class="docutils literal"><span class="pre">akka.contrib.pattern.ClusterReceptionist</span></code> actor as an ordinary actor and you can have several
+different receptionists at the same time, serving different types of clients.</p>
+<p>The <code class="docutils literal"><span class="pre">ClusterReceptionistExtension</span></code> can be configured with the following properties:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span></span><span class="k">#</span> <span class="nc">Settings</span> <span class="k">for</span> <span class="n">the</span> <span class="nc">ClusterReceptionistExtension</span>
+<span class="n">akka</span><span class="o">.</span><span class="n">contrib</span><span class="o">.</span><span class="n">cluster</span><span class="o">.</span><span class="n">receptionist</span> <span class="o">{</span>
+  <span class="k">#</span> <span class="nc">Actor</span> <span class="n">name</span> <span class="n">of</span> <span class="n">the</span> <span class="nc">ClusterReceptionist</span> <span class="n">actor</span><span class="o">,</span> <span class="o">/</span><span class="n">user</span><span class="o">/</span><span class="n">receptionist</span>
+  <span class="n">name</span> <span class="k">=</span> <span class="n">receptionist</span>
+
+  <span class="k">#</span> <span class="nc">Start</span> <span class="n">the</span> <span class="n">receptionist</span> <span class="n">on</span> <span class="n">members</span> <span class="n">tagged</span> <span class="k">with</span> <span class="k">this</span> <span class="n">role</span><span class="o">.</span>
+  <span class="k">#</span> <span class="nc">All</span> <span class="n">members</span> <span class="n">are</span> <span class="n">used</span> <span class="k">if</span> <span class="n">undefined</span> <span class="n">or</span> <span class="n">empty</span><span class="o">.</span>
+  <span class="n">role</span> <span class="k">=</span> <span class="s">&quot;&quot;</span>
+
+  <span class="k">#</span> <span class="nc">The</span> <span class="n">receptionist</span> <span class="n">will</span> <span class="n">send</span> <span class="k">this</span> <span class="n">number</span> <span class="n">of</span> <span class="n">contact</span> <span class="n">points</span> <span class="n">to</span> <span class="n">the</span> <span class="n">client</span>
+  <span class="n">number</span><span class="o">-</span><span class="n">of</span><span class="o">-</span><span class="n">contacts</span> <span class="k">=</span> <span class="mi">3</span>
+
+  <span class="k">#</span> <span class="nc">The</span> <span class="n">actor</span> <span class="n">that</span> <span class="n">tunnel</span> <span class="n">response</span> <span class="n">messages</span> <span class="n">to</span> <span class="n">the</span> <span class="n">client</span> <span class="n">will</span> <span class="n">be</span> <span class="n">stopped</span>
+  <span class="k">#</span> <span class="n">after</span> <span class="k">this</span> <span class="n">time</span> <span class="n">of</span> <span class="n">inactivity</span><span class="o">.</span>
+  <span class="n">response</span><span class="o">-</span><span class="n">tunnel</span><span class="o">-</span><span class="n">receive</span><span class="o">-</span><span class="n">timeout</span> <span class="k">=</span> <span class="mi">30</span><span class="n">s</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<p>Note that the <code class="docutils literal"><span class="pre">ClusterReceptionistExtension</span></code> uses the <code class="docutils literal"><span class="pre">DistributedPubSubExtension</span></code>, which is described
+in <a class="reference internal" href="distributed-pub-sub.html#distributed-pub-sub"><span class="std std-ref">Distributed Publish Subscribe in Cluster</span></a>.</p>
+<p>It is recommended to load the extension when the actor system is started by defining it in the
+<code class="docutils literal"><span class="pre">akka.extensions</span></code> configuration property:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span></span>akka.extensions = [&quot;akka.contrib.pattern.ClusterReceptionistExtension&quot;]
+</pre></div>
+</div>
+</div>
+</div>
+
+
+          </div>
+          <div class="span3"><p class="contents-title">Contents</p>
+              <div id="scroller-anchor">
+                <div id="scroller">
+                  <div id="toc"></div>
+                </div>
+              </div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="footer">
+  <div class="container">
+    <ul>
+      <li><h5>Akka</h5></li>
+      <li><a href="https://akka.io/docs">Documentation</a></li>
+      <li><a href="https://akka.io/faq">FAQ</a></li>
+      <li><a href="https://akka.io/downloads">Downloads</a></li>
+      <li><a href="https://akka.io/news">News</a></li>
+      <li><a href="http://letitcrash.com">Blog</a></li>
+    </ul>
+    <ul>
+      <li><h5>Contribute</h5></li>
+      <li><a href="https://akka.io/community">Community Projects</a></li>
+      <li><a href="http://github.com/akka/akka">Source Code</a></li>
+      <li><a href="http://groups.google.com/group/akka-user">Mailing List</a></li>      
+      <li><a href="https://doc.akka.io/docs/akka/current/project/issue-tracking.html">Report a Bug</a></li>      
+    </ul>
+    <ul>
+      <li><h5>Company</h5></li>
+      <li><a href="http://www.typesafe.com/how/subscription">Commercial Support</a></li>
+      <li><a href="https://akka.io/team">Team</a></li>
+      <li><a href="mailto:info@typesafe.com">Contact</a></li>
+    </ul>
+    <ul>
+      <li><img src="../_static/akka_icon_reverse.svg" align="center"/></li>
+    </ul>
+  </div>
+  <div class="container copyright">
+    <p style="float: left;">
+      © 2014 <a href="http://www.typesafe.com/">Typesafe Inc.</a> <span class="license">Akka is Open Source and available under the Apache 2 License.</span>
+    </p>
+    <p style="float: right; font-size: 12px;">
+      Last updated: Oct 28, 2016
+    </p>          
+  </div>
+</div>
+<script src="http://www.google.com/jsapi" type="text/javascript"></script>
+<script type="text/javascript">
+    google.load('search', '1', {language : 'en', style : google.loader.themes.MINIMALIST});
+    google.setOnLoadCallback(function() {
+    var customSearchOptions = {};  var customSearchControl = new google.search.CustomSearchControl(
+    '003065520604945464838:izzukx8-qba', customSearchOptions);
+    customSearchControl.setResultSetSize(google.search.Search.FILTERED_CSE_RESULTSET);
+    customSearchControl.draw('cse');
+    var path = window.location.pathname.split('/').slice(0,4);
+    if(window.location.hostname && path.length >= 4) {
+    var site = "site:" + window.location.hostname + path.join('/').toString();
+    customSearchControl.setSearchStartingCallback(this, function(c, s, q) { s.setQueryAddition(site); });
+    }
+    }, true);
+</script>
+<style type="text/css">
+    .gsc-control-cse {
+    font-family: Arial, sans-serif;
+    border-color: rgb(242, 242, 235);
+    background-color: rgb(242, 242, 235);
+    }
+    .gsc-control-cse .gsc-table-result {
+      font-family: Arial, sans-serif;
+      display: block;
+    }
+    input.gsc-input {
+    border-color: #BBBBBB;
+    }
+    input.gsc-search-button {
+    border-color: rgb(34, 57, 64);
+    background-color: rgb(68, 114, 129);
+    color: #FFFFFF;
+    }
+    .gsc-tabHeader.gsc-tabhInactive {
+    border-color: #777777;
+    background-color: #777777;
+    }
+    .gsc-tabHeader.gsc-tabhActive {
+    border-color: #333333;
+    background-color: #333333;
+    }
+    .gsc-tabsArea {
+    border-color: #333333;
+    }
+    .gsc-webResult.gsc-result,
+    .gsc-results .gsc-imageResult {
+      border-color: #666666;
+      background-color: #FFFFFF;
+      padding: 0.5em 0.5em;
+    }
+    .gsc-webResult.gsc-result:hover,
+    .gsc-imageResult:hover {
+      border-color: #AAAAAA;
+      background-color: #FFFFFF;
+      padding: 0.5em 0.5em;
+    }
+    .gsc-webResult.gsc-result.gsc-promotion:hover {
+    border-color: #AAAAAA;
+    background-color: #FFFFFF;
+    }
+    .gs-webResult.gs-result a.gs-title:link,
+    .gs-webResult.gs-result a.gs-title:link b,
+    .gs-imageResult a.gs-title:link,
+    .gs-imageResult a.gs-title:link b {
+    color: #444444;
+    }
+    .gs-webResult.gs-result a.gs-title:visited,
+    .gs-webResult.gs-result a.gs-title:visited b,
+    .gs-imageResult a.gs-title:visited,
+    .gs-imageResult a.gs-title:visited b {
+    color: #444444;
+    }
+    .gs-webResult.gs-result a.gs-title:hover,
+    .gs-webResult.gs-result a.gs-title:hover b,
+    .gs-imageResult a.gs-title:hover,
+    .gs-imageResult a.gs-title:hover b {
+    color: #444444;
+    }
+    .gs-webResult.gs-result a.gs-title:active,
+    .gs-webResult.gs-result a.gs-title:active b,
+    .gs-imageResult a.gs-title:active,
+    .gs-imageResult a.gs-title:active b {
+    color: #777777;
+    }
+    .gsc-cursor-page {
+    color: #444444;
+    }
+    a.gsc-trailing-more-results:link {
+    color: #444444;
+    }
+    .gs-webResult .gs-snippet,
+    .gs-imageResult .gs-snippet,
+    .gs-fileFormatType {
+    color: #333333;
+    }
+    .gs-webResult div.gs-visibleUrl,
+    .gs-imageResult div.gs-visibleUrl {
+    color: #000000;
+    }
+    .gs-webResult div.gs-visibleUrl-short {
+    color: #000000;
+    }
+    .gs-webResult div.gs-visibleUrl-short {
+    display: none;
+    }
+    .gs-webResult div.gs-visibleUrl-long {
+    display: block;
+    }
+    .gs-promotion div.gs-visibleUrl-short {
+    display: none;
+    }
+    .gs-promotion div.gs-visibleUrl-long {
+    display: block;
+    }
+    .gsc-cursor-box {
+    border-color: #FFFFFF;
+    }
+    .gsc-results .gsc-cursor-box .gsc-cursor-page {
+    border-color: #777777;
+    background-color: #FFFFFF;
+    color: #444444;
+    }
+    .gsc-results .gsc-cursor-box .gsc-cursor-current-page {
+    border-color: #333333;
+    background-color: #333333;
+    color: #444444;
+    }
+    .gsc-webResult.gsc-result.gsc-promotion {
+    border-color: #CCCCCC;
+    background-color: #E6E6E6;
+    }
+    .gsc-completion-title {
+    color: #444444;
+    }
+    .gsc-completion-snippet {
+    color: #333333;
+    }
+    .gs-promotion a.gs-title:link,
+    .gs-promotion a.gs-title:link *,
+    .gs-promotion .gs-snippet a:link {
+    color: #0000CC;
+    }
+    .gs-promotion a.gs-title:visited,
+    .gs-promotion a.gs-title:visited *,
+    .gs-promotion .gs-snippet a:visited {
+    color: #0000CC;
+    }
+    .gs-promotion a.gs-title:hover,
+    .gs-promotion a.gs-title:hover *,
+    .gs-promotion .gs-snippet a:hover {
+    color: #444444;
+    }
+    .gs-promotion a.gs-title:active,
+    .gs-promotion a.gs-title:active *,
+    .gs-promotion .gs-snippet a:active {
+    color: #00CC00;
+    }
+    .gs-promotion .gs-snippet,
+    .gs-promotion .gs-title .gs-promotion-title-right,
+    .gs-promotion .gs-title .gs-promotion-title-right *  {
+    color: #333333;
+    }
+    .gs-promotion .gs-visibleUrl,
+    .gs-promotion .gs-visibleUrl-short {
+    color: #00CC00;
+    }
+</style>
+<script type="text/javascript">
+  var $toc = $('#toc');
+  $toc.toc();
+
+  // change hash when TOC link clicked:
+  $toc.find("a").click(function() { window.location.hash = $(this).attr('href'); });
+
+  // show clickable section sign when section header hovered:
+  $('.section h2,.section h3,.section h4,.section h5').each(function(i, el) {
+      var $el = $(el);
+      $el.prepend($("<a class='section-marker' href='#" + $el.attr("id") + "'>&sect;</a>"))
+  });
+</script>
+  
+
+  </body>
+</html>

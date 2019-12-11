@@ -1,0 +1,876 @@
+
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Cluster Sharding &mdash; Akka Documentation</title>
+    
+    <link rel="stylesheet" href="../_static/style.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/prettify.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/base.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
+    <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,600,700" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '2.4.20',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="../_static/toc.js"></script>
+    <script type="text/javascript" src="../_static/prettify.js"></script>
+    <script type="text/javascript" src="../_static/highlightCode.js"></script>
+    <script type="text/javascript" src="../_static/effects.core.js"></script>
+    <script type="text/javascript" src="../_static/effects.highlight.js"></script>
+    <script type="text/javascript" src="../_static/scrollTo.js"></script>
+    <script type="text/javascript" src="../_static/contentsFix.js"></script>
+    <script type="text/javascript" src="../_static/ga.js"></script>
+    <script type="text/javascript" src="../_static/warnOldDocs.js"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/docsearch.js/1/docsearch.min.js"></script>
+    <link rel="shortcut icon" href="../_static/favicon.ico"/>
+    <link rel="top" title="Akka Documentation" href="../index.html" />
+    <link rel="up" title="Networking" href="index-network.html" />
+    <link rel="next" title="Cluster Metrics Extension" href="cluster-metrics.html" />
+    <link rel="prev" title="Cluster Client" href="cluster-client.html" />
+    <!-- Hint to search engines that the "canonical" page is under "current", which will boost it appearing in search results -->
+    <link rel="canonical" href="https://doc.akka.io/docs/akka/2.4/java/cluster-sharding.html" />
+
+    <!--Google Analytics-->
+    <script type="text/javascript">
+      var _gaq = _gaq || [];
+      _gaq.push(['_setAccount', 'UA-21117439-1']);
+      _gaq.push(['_setDomainName', 'akka.io']);
+      _gaq.push(['_trackPageview']);
+      (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+      })()
+    </script>
+    <!--Google Analytics & Marketo-->
+    <script type="text/javascript">
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+      (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+      m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+      ga('create', 'UA-23127719-1', 'lightbend.com', {'allowLinker': true, 'name': 'tsTracker'});
+      ga('tsTracker.require', 'linker');
+      ga('tsTracker.linker:autoLink', ['lightbend.com','playframework.com','scala-lang.org','scaladays.org','spray.io','akka.io','scala-sbt.org','scala-ide.org']);
+      ga('tsTracker.send', 'pageview');
+
+      (function() {
+          var didInit = false;
+          function initMunchkin() {
+          if(didInit === false) {
+            didInit = true;
+            Munchkin.init('558-NCX-702');
+          }
+          }
+          var s = document.createElement('script');
+          s.type = 'text/javascript';
+          s.async = true;
+          s.src = '//munchkin.marketo.net/munchkin.js';
+          s.onreadystatechange = function() {
+          if (this.readyState == 'complete' || this.readyState == 'loaded') {
+            initMunchkin();
+          }
+          };
+          s.onload = initMunchkin;
+          document.getElementsByTagName('head')[0].appendChild(s);
+        })();
+    </script>
+
+
+  </head>
+  <body>
+  <div class="navbar">
+    <div class="navbar-inner">
+      <div class="container">
+        <div class="navbar-logo">
+          <a href="https://akka.io"><img class="svg-logo" src="../_static/akka_full_color.svg" /></a>
+        </div>
+        <ul class="nav">
+          <li><a href="https://akka.io/docs">Documentation</a></li>
+          <li><a href="https://doc.akka.io/docs/akka/current/additional/faq.html">FAQ</a></li>
+          <li><a href="https://akka.io/downloads">Download</a></li>
+          <li><a href="http://groups.google.com/group/akka-user">Mailing List</a></li>
+          <li><a href="http://github.com/akka/akka">Code</a></li>
+          <li><a href="http://www.lightbend.com/how/subscription">Commercial Support</a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="main">
+    <div class="container">
+      <div class="page-title">Cluster Sharding - Version 2.4.20</div>
+      <div class="pdf-link"><a href="../AkkaScala.pdf" title="Akka Scala Documentation"><img src="../_static/pdf-scala-icon.png" style="height: 40px;" /></a></div>
+      <div class="pdf-link"><a href="../AkkaJava.pdf" title="Akka Java Documentation"><img src="../_static/pdf-java-icon.png" style="height: 40px;" /></a></div>
+    </div>
+    <div class="main-container">
+      <div class="container">
+        <div class="row">
+          <div class="span12">
+            <div class="breadcrumb">
+              <div style="position: relative">
+                <input type="search" id="search" class="form-control" style="position: relative" placeholder="Search in the doc" />
+              </div>
+              <div>
+                <div>
+                  <span class="divider">«</span> <a href="cluster-client.html">Cluster Client</a> <span class="divider">|</span>
+                </div>
+                <div>
+                  <a href="../java.html">Java Contents</a> <span class="divider">|</span> <a href="../scala.html">Scala Contents</a>
+                </div>
+                <div>
+                  <span class="divider">|</span> <a href="cluster-metrics.html">Cluster Metrics Extension</a> <span class="divider">»</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="row">
+          <div class="span9">
+          </div><div class="span9">
+            
+  <div class="section" id="cluster-sharding">
+<span id="cluster-sharding-java"></span><h1>Cluster Sharding</h1>
+<p>Cluster sharding is useful when you need to distribute actors across several nodes in the cluster and want to
+be able to interact with them using their logical identifier, but without having to care about
+their physical location in the cluster, which might also change over time.</p>
+<p>It could for example be actors representing Aggregate Roots in Domain-Driven Design terminology.
+Here we call these actors &quot;entities&quot;. These actors typically have persistent (durable) state,
+but this feature is not limited to actors with persistent state.</p>
+<p>Cluster sharding is typically used when you have many stateful actors that together consume
+more resources (e.g. memory) than fit on one machine. If you only have a few stateful actors
+it might be easier to run them on a <a class="reference internal" href="cluster-singleton.html#cluster-singleton-java"><em>Cluster Singleton</em></a> node.</p>
+<p>In this context sharding means that actors with an identifier, so called entities,
+can be automatically distributed across multiple nodes in the cluster. Each entity
+actor runs only at one place, and messages can be sent to the entity without requiring
+the sender to know the location of the destination actor. This is achieved by sending
+the messages via a <tt class="docutils literal"><span class="pre">ShardRegion</span></tt> actor provided by this extension, which knows how
+to route the message with the entity id to the final destination.</p>
+<p>Cluster sharding will not be active on members with status <a class="reference internal" href="cluster-usage.html#weakly-up-java"><em>WeaklyUp</em></a>
+if that feature is enabled.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last"><strong>Don't use Cluster Sharding together with Automatic Downing</strong>,
+since it allows the cluster to split up into two separate clusters, which in turn will result
+in <em>multiple shards and entities</em> being started, one in each separate cluster!
+See <a class="reference internal" href="cluster-usage.html#automatic-vs-manual-downing-java"><em>Downing</em></a>.</p>
+</div>
+<div class="section" id="an-example">
+<h2>An Example</h2>
+<p>This is how an entity actor may look like:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="n">public</span> <span class="k">class</span> <span class="nc">Counter</span> <span class="k">extends</span> <span class="nc">UntypedPersistentActor</span> <span class="o">{</span>
+
+  <span class="n">public</span> <span class="n">static</span> <span class="n">enum</span> <span class="nc">CounterOp</span> <span class="o">{</span>
+    <span class="nc">INCREMENT</span><span class="o">,</span> <span class="nc">DECREMENT</span>
+  <span class="o">}</span>
+
+  <span class="n">public</span> <span class="n">static</span> <span class="k">class</span> <span class="nc">Get</span> <span class="o">{</span>
+    <span class="k">final</span> <span class="n">public</span> <span class="n">long</span> <span class="n">counterId</span><span class="o">;</span>
+
+    <span class="n">public</span> <span class="nc">Get</span><span class="o">(</span><span class="n">long</span> <span class="n">counterId</span><span class="o">)</span> <span class="o">{</span>
+      <span class="k">this</span><span class="o">.</span><span class="n">counterId</span> <span class="k">=</span> <span class="n">counterId</span><span class="o">;</span>
+    <span class="o">}</span>
+  <span class="o">}</span>
+
+  <span class="n">public</span> <span class="n">static</span> <span class="k">class</span> <span class="nc">EntityEnvelope</span> <span class="o">{</span>
+    <span class="k">final</span> <span class="n">public</span> <span class="n">long</span> <span class="n">id</span><span class="o">;</span>
+    <span class="k">final</span> <span class="n">public</span> <span class="nc">Object</span> <span class="n">payload</span><span class="o">;</span>
+
+    <span class="n">public</span> <span class="nc">EntityEnvelope</span><span class="o">(</span><span class="n">long</span> <span class="n">id</span><span class="o">,</span> <span class="nc">Object</span> <span class="n">payload</span><span class="o">)</span> <span class="o">{</span>
+      <span class="k">this</span><span class="o">.</span><span class="n">id</span> <span class="k">=</span> <span class="n">id</span><span class="o">;</span>
+      <span class="k">this</span><span class="o">.</span><span class="n">payload</span> <span class="k">=</span> <span class="n">payload</span><span class="o">;</span>
+    <span class="o">}</span>
+  <span class="o">}</span>
+
+  <span class="n">public</span> <span class="n">static</span> <span class="k">class</span> <span class="nc">CounterChanged</span> <span class="o">{</span>
+    <span class="k">final</span> <span class="n">public</span> <span class="n">int</span> <span class="n">delta</span><span class="o">;</span>
+
+    <span class="n">public</span> <span class="nc">CounterChanged</span><span class="o">(</span><span class="n">int</span> <span class="n">delta</span><span class="o">)</span> <span class="o">{</span>
+      <span class="k">this</span><span class="o">.</span><span class="n">delta</span> <span class="k">=</span> <span class="n">delta</span><span class="o">;</span>
+    <span class="o">}</span>
+  <span class="o">}</span>
+
+  <span class="n">int</span> <span class="n">count</span> <span class="k">=</span> <span class="mi">0</span><span class="o">;</span>
+
+  <span class="c1">// getSelf().path().name() is the entity identifier (utf-8 URL-encoded)</span>
+  <span class="nd">@Override</span>
+  <span class="n">public</span> <span class="nc">String</span> <span class="n">persistenceId</span><span class="o">()</span> <span class="o">{</span>
+    <span class="k">return</span> <span class="s">&quot;Counter-&quot;</span> <span class="o">+</span> <span class="n">getSelf</span><span class="o">().</span><span class="n">path</span><span class="o">().</span><span class="n">name</span><span class="o">();</span>
+  <span class="o">}</span>
+
+  <span class="nd">@Override</span>
+  <span class="n">public</span> <span class="n">void</span> <span class="n">preStart</span><span class="o">()</span> <span class="n">throws</span> <span class="nc">Exception</span> <span class="o">{</span>
+    <span class="k">super</span><span class="o">.</span><span class="n">preStart</span><span class="o">();</span>
+    <span class="n">context</span><span class="o">().</span><span class="n">setReceiveTimeout</span><span class="o">(</span><span class="nc">Duration</span><span class="o">.</span><span class="n">create</span><span class="o">(</span><span class="mi">120</span><span class="o">,</span> <span class="nc">SECONDS</span><span class="o">));</span>
+  <span class="o">}</span>
+
+  <span class="n">void</span> <span class="n">updateState</span><span class="o">(</span><span class="nc">CounterChanged</span> <span class="n">event</span><span class="o">)</span> <span class="o">{</span>
+    <span class="n">count</span> <span class="o">+=</span> <span class="n">event</span><span class="o">.</span><span class="n">delta</span><span class="o">;</span>
+  <span class="o">}</span>
+
+  <span class="nd">@Override</span>
+  <span class="n">public</span> <span class="n">void</span> <span class="n">onReceiveRecover</span><span class="o">(</span><span class="nc">Object</span> <span class="n">msg</span><span class="o">)</span> <span class="o">{</span>
+    <span class="k">if</span> <span class="o">(</span><span class="n">msg</span> <span class="n">instanceof</span> <span class="nc">CounterChanged</span><span class="o">)</span>
+      <span class="n">updateState</span><span class="o">((</span><span class="nc">CounterChanged</span><span class="o">)</span> <span class="n">msg</span><span class="o">);</span>
+    <span class="k">else</span>
+      <span class="n">unhandled</span><span class="o">(</span><span class="n">msg</span><span class="o">);</span>
+  <span class="o">}</span>
+
+  <span class="nd">@Override</span>
+  <span class="n">public</span> <span class="n">void</span> <span class="n">onReceiveCommand</span><span class="o">(</span><span class="nc">Object</span> <span class="n">msg</span><span class="o">)</span> <span class="o">{</span>
+    <span class="k">if</span> <span class="o">(</span><span class="n">msg</span> <span class="n">instanceof</span> <span class="nc">Get</span><span class="o">)</span>
+      <span class="n">getSender</span><span class="o">().</span><span class="n">tell</span><span class="o">(</span><span class="n">count</span><span class="o">,</span> <span class="n">getSelf</span><span class="o">());</span>
+
+    <span class="k">else</span> <span class="k">if</span> <span class="o">(</span><span class="n">msg</span> <span class="o">==</span> <span class="nc">CounterOp</span><span class="o">.</span><span class="nc">INCREMENT</span><span class="o">)</span>
+      <span class="n">persist</span><span class="o">(</span><span class="k">new</span> <span class="nc">CounterChanged</span><span class="o">(+</span><span class="mi">1</span><span class="o">),</span> <span class="k">new</span> <span class="nc">Procedure</span><span class="o">&lt;</span><span class="nc">CounterChanged</span><span class="o">&gt;()</span> <span class="o">{</span>
+        <span class="n">public</span> <span class="n">void</span> <span class="n">apply</span><span class="o">(</span><span class="nc">CounterChanged</span> <span class="n">evt</span><span class="o">)</span> <span class="o">{</span>
+          <span class="n">updateState</span><span class="o">(</span><span class="n">evt</span><span class="o">);</span>
+        <span class="o">}</span>
+      <span class="o">});</span>
+
+    <span class="k">else</span> <span class="k">if</span> <span class="o">(</span><span class="n">msg</span> <span class="o">==</span> <span class="nc">CounterOp</span><span class="o">.</span><span class="nc">DECREMENT</span><span class="o">)</span>
+      <span class="n">persist</span><span class="o">(</span><span class="k">new</span> <span class="nc">CounterChanged</span><span class="o">(-</span><span class="mi">1</span><span class="o">),</span> <span class="k">new</span> <span class="nc">Procedure</span><span class="o">&lt;</span><span class="nc">CounterChanged</span><span class="o">&gt;()</span> <span class="o">{</span>
+        <span class="n">public</span> <span class="n">void</span> <span class="n">apply</span><span class="o">(</span><span class="nc">CounterChanged</span> <span class="n">evt</span><span class="o">)</span> <span class="o">{</span>
+          <span class="n">updateState</span><span class="o">(</span><span class="n">evt</span><span class="o">);</span>
+        <span class="o">}</span>
+      <span class="o">});</span>
+
+    <span class="k">else</span> <span class="k">if</span> <span class="o">(</span><span class="n">msg</span><span class="o">.</span><span class="n">equals</span><span class="o">(</span><span class="nc">ReceiveTimeout</span><span class="o">.</span><span class="n">getInstance</span><span class="o">()))</span>
+      <span class="n">getContext</span><span class="o">().</span><span class="n">parent</span><span class="o">().</span><span class="n">tell</span><span class="o">(</span>
+          <span class="k">new</span> <span class="nc">ShardRegion</span><span class="o">.</span><span class="nc">Passivate</span><span class="o">(</span><span class="nc">PoisonPill</span><span class="o">.</span><span class="n">getInstance</span><span class="o">()),</span> <span class="n">getSelf</span><span class="o">());</span>
+
+    <span class="k">else</span>
+      <span class="n">unhandled</span><span class="o">(</span><span class="n">msg</span><span class="o">);</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<p>The above actor uses event sourcing and the support provided in <tt class="docutils literal"><span class="pre">UntypedPersistentActor</span></tt> to store its state.
+It does not have to be a persistent actor, but in case of failure or migration of entities between nodes it must be able to recover
+its state if it is valuable.</p>
+<p>Note how the <tt class="docutils literal"><span class="pre">persistenceId</span></tt> is defined. The name of the actor is the entity identifier (utf-8 URL-encoded).
+You may define it another way, but it must be unique.</p>
+<p>When using the sharding extension you are first, typically at system startup on each node
+in the cluster, supposed to register the supported entity types with the <tt class="docutils literal"><span class="pre">ClusterSharding.start</span></tt>
+method. <tt class="docutils literal"><span class="pre">ClusterSharding.start</span></tt> gives you the reference which you can pass along.</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="nc">Option</span><span class="o">&lt;</span><span class="nc">String</span><span class="o">&gt;</span> <span class="n">roleOption</span> <span class="k">=</span> <span class="nc">Option</span><span class="o">.</span><span class="n">none</span><span class="o">();</span>
+<span class="nc">ClusterShardingSettings</span> <span class="n">settings</span> <span class="k">=</span> <span class="nc">ClusterShardingSettings</span><span class="o">.</span><span class="n">create</span><span class="o">(</span><span class="n">system</span><span class="o">);</span>
+<span class="nc">ActorRef</span> <span class="n">startedCounterRegion</span> <span class="k">=</span> <span class="nc">ClusterSharding</span><span class="o">.</span><span class="n">get</span><span class="o">(</span><span class="n">system</span><span class="o">).</span><span class="n">start</span><span class="o">(</span><span class="s">&quot;Counter&quot;</span><span class="o">,</span>
+  <span class="nc">Props</span><span class="o">.</span><span class="n">create</span><span class="o">(</span><span class="nc">Counter</span><span class="o">.</span><span class="n">class</span><span class="o">),</span> <span class="n">settings</span><span class="o">,</span> <span class="n">messageExtractor</span><span class="o">);</span>
+</pre></div>
+</div>
+<p>The <tt class="docutils literal"><span class="pre">messageExtractor</span></tt> defines application specific methods to extract the entity
+identifier and the shard identifier from incoming messages.</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="nc">ShardRegion</span><span class="o">.</span><span class="nc">MessageExtractor</span> <span class="n">messageExtractor</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">ShardRegion</span><span class="o">.</span><span class="nc">MessageExtractor</span><span class="o">()</span> <span class="o">{</span>
+
+  <span class="nd">@Override</span>
+  <span class="n">public</span> <span class="nc">String</span> <span class="n">entityId</span><span class="o">(</span><span class="nc">Object</span> <span class="n">message</span><span class="o">)</span> <span class="o">{</span>
+    <span class="k">if</span> <span class="o">(</span><span class="n">message</span> <span class="n">instanceof</span> <span class="nc">Counter</span><span class="o">.</span><span class="nc">EntityEnvelope</span><span class="o">)</span>
+      <span class="k">return</span> <span class="nc">String</span><span class="o">.</span><span class="n">valueOf</span><span class="o">(((</span><span class="nc">Counter</span><span class="o">.</span><span class="nc">EntityEnvelope</span><span class="o">)</span> <span class="n">message</span><span class="o">).</span><span class="n">id</span><span class="o">);</span>
+    <span class="k">else</span> <span class="k">if</span> <span class="o">(</span><span class="n">message</span> <span class="n">instanceof</span> <span class="nc">Counter</span><span class="o">.</span><span class="nc">Get</span><span class="o">)</span>
+      <span class="k">return</span> <span class="nc">String</span><span class="o">.</span><span class="n">valueOf</span><span class="o">(((</span><span class="nc">Counter</span><span class="o">.</span><span class="nc">Get</span><span class="o">)</span> <span class="n">message</span><span class="o">).</span><span class="n">counterId</span><span class="o">);</span>
+    <span class="k">else</span>
+      <span class="k">return</span> <span class="kc">null</span><span class="o">;</span>
+  <span class="o">}</span>
+
+  <span class="nd">@Override</span>
+  <span class="n">public</span> <span class="nc">Object</span> <span class="n">entityMessage</span><span class="o">(</span><span class="nc">Object</span> <span class="n">message</span><span class="o">)</span> <span class="o">{</span>
+    <span class="k">if</span> <span class="o">(</span><span class="n">message</span> <span class="n">instanceof</span> <span class="nc">Counter</span><span class="o">.</span><span class="nc">EntityEnvelope</span><span class="o">)</span>
+      <span class="k">return</span> <span class="o">((</span><span class="nc">Counter</span><span class="o">.</span><span class="nc">EntityEnvelope</span><span class="o">)</span> <span class="n">message</span><span class="o">).</span><span class="n">payload</span><span class="o">;</span>
+    <span class="k">else</span>
+      <span class="k">return</span> <span class="n">message</span><span class="o">;</span>
+  <span class="o">}</span>
+
+  <span class="nd">@Override</span>
+  <span class="n">public</span> <span class="nc">String</span> <span class="n">shardId</span><span class="o">(</span><span class="nc">Object</span> <span class="n">message</span><span class="o">)</span> <span class="o">{</span>
+    <span class="n">int</span> <span class="n">numberOfShards</span> <span class="k">=</span> <span class="mi">100</span><span class="o">;</span>
+    <span class="k">if</span> <span class="o">(</span><span class="n">message</span> <span class="n">instanceof</span> <span class="nc">Counter</span><span class="o">.</span><span class="nc">EntityEnvelope</span><span class="o">)</span> <span class="o">{</span>
+      <span class="n">long</span> <span class="n">id</span> <span class="k">=</span> <span class="o">((</span><span class="nc">Counter</span><span class="o">.</span><span class="nc">EntityEnvelope</span><span class="o">)</span> <span class="n">message</span><span class="o">).</span><span class="n">id</span><span class="o">;</span>
+      <span class="k">return</span> <span class="nc">String</span><span class="o">.</span><span class="n">valueOf</span><span class="o">(</span><span class="n">id</span> <span class="o">%</span> <span class="n">numberOfShards</span><span class="o">);</span>
+    <span class="o">}</span> <span class="k">else</span> <span class="k">if</span> <span class="o">(</span><span class="n">message</span> <span class="n">instanceof</span> <span class="nc">Counter</span><span class="o">.</span><span class="nc">Get</span><span class="o">)</span> <span class="o">{</span>
+      <span class="n">long</span> <span class="n">id</span> <span class="k">=</span> <span class="o">((</span><span class="nc">Counter</span><span class="o">.</span><span class="nc">Get</span><span class="o">)</span> <span class="n">message</span><span class="o">).</span><span class="n">counterId</span><span class="o">;</span>
+      <span class="k">return</span> <span class="nc">String</span><span class="o">.</span><span class="n">valueOf</span><span class="o">(</span><span class="n">id</span> <span class="o">%</span> <span class="n">numberOfShards</span><span class="o">);</span>
+    <span class="o">}</span> <span class="k">else</span> <span class="o">{</span>
+      <span class="k">return</span> <span class="kc">null</span><span class="o">;</span>
+    <span class="o">}</span>
+  <span class="o">}</span>
+
+<span class="o">};</span>
+</pre></div>
+</div>
+<p>This example illustrates two different ways to define the entity identifier in the messages:</p>
+<blockquote>
+<div><ul class="simple">
+<li>The <tt class="docutils literal"><span class="pre">Get</span></tt> message includes the identifier itself.</li>
+<li>The <tt class="docutils literal"><span class="pre">EntityEnvelope</span></tt> holds the identifier, and the actual message that is
+sent to the entity actor is wrapped in the envelope.</li>
+</ul>
+</div></blockquote>
+<p>Note how these two messages types are handled in the <tt class="docutils literal"><span class="pre">entityId</span></tt> and <tt class="docutils literal"><span class="pre">entityMessage</span></tt> methods shown above.
+The message sent to the entity actor is what <tt class="docutils literal"><span class="pre">entityMessage</span></tt> returns and that makes it possible to unwrap envelopes
+if needed.</p>
+<p>A shard is a group of entities that will be managed together. The grouping is defined by the
+<tt class="docutils literal"><span class="pre">extractShardId</span></tt> function shown above. For a specific entity identifier the shard identifier must always
+be the same. Otherwise the entity actor might accidentally be started in several places at the same time.</p>
+<p>Creating a good sharding algorithm is an interesting challenge in itself. Try to produce a uniform distribution,
+i.e. same amount of entities in each shard. As a rule of thumb, the number of shards should be a factor ten greater
+than the planned maximum number of cluster nodes. Less shards than number of nodes will result in that some nodes
+will not host any shards. Too many shards will result in less efficient management of the shards, e.g. rebalancing
+overhead, and increased latency because the coordinator is involved in the routing of the first message for each
+shard. The sharding algorithm must be the same on all nodes in a running cluster. It can be changed after stopping
+all nodes in the cluster.</p>
+<p>A simple sharding algorithm that works fine in most cases is to take the absolute value of the <tt class="docutils literal"><span class="pre">hashCode</span></tt> of
+the entity identifier modulo number of shards. As a convenience this is provided by the
+<tt class="docutils literal"><span class="pre">ShardRegion.HashCodeMessageExtractor</span></tt>.</p>
+<p>Messages to the entities are always sent via the local <tt class="docutils literal"><span class="pre">ShardRegion</span></tt>. The <tt class="docutils literal"><span class="pre">ShardRegion</span></tt> actor reference for a
+named entity type is returned by <tt class="docutils literal"><span class="pre">ClusterSharding.start</span></tt> and it can also be retrieved with <tt class="docutils literal"><span class="pre">ClusterSharding.shardRegion</span></tt>.
+The <tt class="docutils literal"><span class="pre">ShardRegion</span></tt> will lookup the location of the shard for the entity if it does not already know its location. It will
+delegate the message to the right node and it will create the entity actor on demand, i.e. when the
+first message for a specific entity is delivered.</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="nc">ActorRef</span> <span class="n">counterRegion</span> <span class="k">=</span> <span class="nc">ClusterSharding</span><span class="o">.</span><span class="n">get</span><span class="o">(</span><span class="n">system</span><span class="o">).</span><span class="n">shardRegion</span><span class="o">(</span><span class="s">&quot;Counter&quot;</span><span class="o">);</span>
+<span class="n">counterRegion</span><span class="o">.</span><span class="n">tell</span><span class="o">(</span><span class="k">new</span> <span class="nc">Counter</span><span class="o">.</span><span class="nc">Get</span><span class="o">(</span><span class="mi">123</span><span class="o">),</span> <span class="n">getSelf</span><span class="o">());</span>
+
+<span class="n">counterRegion</span><span class="o">.</span><span class="n">tell</span><span class="o">(</span><span class="k">new</span> <span class="nc">Counter</span><span class="o">.</span><span class="nc">EntityEnvelope</span><span class="o">(</span><span class="mi">123</span><span class="o">,</span>
+    <span class="nc">Counter</span><span class="o">.</span><span class="nc">CounterOp</span><span class="o">.</span><span class="nc">INCREMENT</span><span class="o">),</span> <span class="n">getSelf</span><span class="o">());</span>
+<span class="n">counterRegion</span><span class="o">.</span><span class="n">tell</span><span class="o">(</span><span class="k">new</span> <span class="nc">Counter</span><span class="o">.</span><span class="nc">Get</span><span class="o">(</span><span class="mi">123</span><span class="o">),</span> <span class="n">getSelf</span><span class="o">());</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="how-it-works">
+<h2>How it works</h2>
+<p>The <tt class="docutils literal"><span class="pre">ShardRegion</span></tt> actor is started on each node in the cluster, or group of nodes
+tagged with a specific role. The <tt class="docutils literal"><span class="pre">ShardRegion</span></tt> is created with two application specific
+functions to extract the entity identifier and the shard identifier from incoming messages.
+A shard is a group of entities that will be managed together. For the first message in a
+specific shard the <tt class="docutils literal"><span class="pre">ShardRegion</span></tt> request the location of the shard from a central coordinator,
+the <tt class="docutils literal"><span class="pre">ShardCoordinator</span></tt>.</p>
+<p>The <tt class="docutils literal"><span class="pre">ShardCoordinator</span></tt> decides which <tt class="docutils literal"><span class="pre">ShardRegion</span></tt> shall own the <tt class="docutils literal"><span class="pre">Shard</span></tt> and informs
+that <tt class="docutils literal"><span class="pre">ShardRegion</span></tt>. The region will confirm this request and create the <tt class="docutils literal"><span class="pre">Shard</span></tt> supervisor
+as a child actor. The individual <tt class="docutils literal"><span class="pre">Entities</span></tt> will then be created when needed by the <tt class="docutils literal"><span class="pre">Shard</span></tt>
+actor. Incoming messages thus travel via the <tt class="docutils literal"><span class="pre">ShardRegion</span></tt> and the <tt class="docutils literal"><span class="pre">Shard</span></tt> to the target
+<tt class="docutils literal"><span class="pre">Entity</span></tt>.</p>
+<p>If the shard home is another <tt class="docutils literal"><span class="pre">ShardRegion</span></tt> instance messages will be forwarded
+to that <tt class="docutils literal"><span class="pre">ShardRegion</span></tt> instance instead. While resolving the location of a
+shard incoming messages for that shard are buffered and later delivered when the
+shard home is known. Subsequent messages to the resolved shard can be delivered
+to the target destination immediately without involving the <tt class="docutils literal"><span class="pre">ShardCoordinator</span></tt>.</p>
+<p>Scenario 1:</p>
+<ol class="arabic simple">
+<li>Incoming message M1 to <tt class="docutils literal"><span class="pre">ShardRegion</span></tt> instance R1.</li>
+<li>M1 is mapped to shard S1. R1 doesn't know about S1, so it asks the coordinator C for the location of S1.</li>
+<li>C answers that the home of S1 is R1.</li>
+<li>R1 creates child actor for the entity E1 and sends buffered messages for S1 to E1 child</li>
+<li>All incoming messages for S1 which arrive at R1 can be handled by R1 without C. It creates entity children as needed, and forwards messages to them.</li>
+</ol>
+<p>Scenario 2:</p>
+<ol class="arabic simple">
+<li>Incoming message M2 to R1.</li>
+<li>M2 is mapped to S2. R1 doesn't know about S2, so it asks C for the location of S2.</li>
+<li>C answers that the home of S2 is R2.</li>
+<li>R1 sends buffered messages for S2 to R2</li>
+<li>All incoming messages for S2 which arrive at R1 can be handled by R1 without C. It forwards messages to R2.</li>
+<li>R2 receives message for S2, ask C, which answers that the home of S2 is R2, and we are in Scenario 1 (but for R2).</li>
+</ol>
+<p>To make sure that at most one instance of a specific entity actor is running somewhere
+in the cluster it is important that all nodes have the same view of where the shards
+are located. Therefore the shard allocation decisions are taken by the central
+<tt class="docutils literal"><span class="pre">ShardCoordinator</span></tt>, which is running as a cluster singleton, i.e. one instance on
+the oldest member among all cluster nodes or a group of nodes tagged with a specific
+role.</p>
+<p>The logic that decides where a shard is to be located is defined in a pluggable shard
+allocation strategy. The default implementation <tt class="docutils literal"><span class="pre">ShardCoordinator.LeastShardAllocationStrategy</span></tt>
+allocates new shards to the <tt class="docutils literal"><span class="pre">ShardRegion</span></tt> with least number of previously allocated shards.
+This strategy can be replaced by an application specific implementation.</p>
+<p>To be able to use newly added members in the cluster the coordinator facilitates rebalancing
+of shards, i.e. migrate entities from one node to another. In the rebalance process the
+coordinator first notifies all <tt class="docutils literal"><span class="pre">ShardRegion</span></tt> actors that a handoff for a shard has started.
+That means they will start buffering incoming messages for that shard, in the same way as if the
+shard location is unknown. During the rebalance process the coordinator will not answer any
+requests for the location of shards that are being rebalanced, i.e. local buffering will
+continue until the handoff is completed. The <tt class="docutils literal"><span class="pre">ShardRegion</span></tt> responsible for the rebalanced shard
+will stop all entities in that shard by sending the specified <tt class="docutils literal"><span class="pre">handOffStopMessage</span></tt>
+(default <tt class="docutils literal"><span class="pre">PoisonPill</span></tt>) to them. When all entities have been terminated the <tt class="docutils literal"><span class="pre">ShardRegion</span></tt>
+owning the entities will acknowledge the handoff as completed to the coordinator.
+Thereafter the coordinator will reply to requests for the location of
+the shard and thereby allocate a new home for the shard and then buffered messages in the
+<tt class="docutils literal"><span class="pre">ShardRegion</span></tt> actors are delivered to the new location. This means that the state of the entities
+are not transferred or migrated. If the state of the entities are of importance it should be
+persistent (durable), e.g. with <a class="reference internal" href="persistence.html#persistence-java"><em>Persistence</em></a>, so that it can be recovered at the new
+location.</p>
+<p>The logic that decides which shards to rebalance is defined in a pluggable shard
+allocation strategy. The default implementation <tt class="docutils literal"><span class="pre">ShardCoordinator.LeastShardAllocationStrategy</span></tt>
+picks shards for handoff from the <tt class="docutils literal"><span class="pre">ShardRegion</span></tt> with most number of previously allocated shards.
+They will then be allocated to the <tt class="docutils literal"><span class="pre">ShardRegion</span></tt> with least number of previously allocated shards,
+i.e. new members in the cluster. There is a configurable threshold of how large the difference
+must be to begin the rebalancing. This strategy can be replaced by an application specific
+implementation.</p>
+<p>The state of shard locations in the <tt class="docutils literal"><span class="pre">ShardCoordinator</span></tt> is persistent (durable) with
+<a class="reference internal" href="persistence.html#persistence-java"><em>Persistence</em></a> to survive failures. Since it is running in a cluster <a class="reference internal" href="persistence.html#persistence-java"><em>Persistence</em></a>
+must be configured with a distributed journal. When a crashed or unreachable coordinator
+node has been removed (via down) from the cluster a new <tt class="docutils literal"><span class="pre">ShardCoordinator</span></tt> singleton
+actor will take over and the state is recovered. During such a failure period shards
+with known location are still available, while messages for new (unknown) shards
+are buffered until the new <tt class="docutils literal"><span class="pre">ShardCoordinator</span></tt> becomes available.</p>
+<p>As long as a sender uses the same <tt class="docutils literal"><span class="pre">ShardRegion</span></tt> actor to deliver messages to an entity
+actor the order of the messages is preserved. As long as the buffer limit is not reached
+messages are delivered on a best effort basis, with at-most once delivery semantics,
+in the same way as ordinary message sending. Reliable end-to-end messaging, with
+at-least-once semantics can be added by using <tt class="docutils literal"><span class="pre">AtLeastOnceDelivery</span></tt>  in <a class="reference internal" href="persistence.html#persistence-java"><em>Persistence</em></a>.</p>
+<p>Some additional latency is introduced for messages targeted to new or previously
+unused shards due to the round-trip to the coordinator. Rebalancing of shards may
+also add latency. This should be considered when designing the application specific
+shard resolution, e.g. to avoid too fine grained shards.</p>
+</div>
+<div class="section" id="distributed-data-mode">
+<h2>Distributed Data Mode</h2>
+<p>Instead of using <a class="reference internal" href="persistence.html#persistence-java"><em>Persistence</em></a> it is possible to use the <a class="reference internal" href="distributed-data.html#distributed-data-java"><em>Distributed Data</em></a> module
+as storage for the state of the sharding coordinator. In such case the state of the
+<tt class="docutils literal"><span class="pre">ShardCoordinator</span></tt> will be replicated inside a cluster by the <a class="reference internal" href="distributed-data.html#distributed-data-java"><em>Distributed Data</em></a> module with
+<tt class="docutils literal"><span class="pre">WriteMajority</span></tt>/<tt class="docutils literal"><span class="pre">ReadMajority</span></tt> consistency.</p>
+<p>This mode can be enabled by setting configuration property:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="n">akka</span><span class="o">.</span><span class="n">cluster</span><span class="o">.</span><span class="n">sharding</span><span class="o">.</span><span class="n">state</span><span class="o">-</span><span class="n">store</span><span class="o">-</span><span class="n">mode</span> <span class="k">=</span> <span class="n">ddata</span>
+</pre></div>
+</div>
+<p>It is using the Distributed Data extension that must be running on all nodes in the cluster.
+Therefore you should add that extension to the configuration to make sure that it is started
+on all nodes:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="n">akka</span><span class="o">.</span><span class="n">extensions</span> <span class="o">+=</span> <span class="s">&quot;akka.cluster.ddata.DistributedData&quot;</span>
+</pre></div>
+</div>
+<p>You must explicitly add the <tt class="docutils literal"><span class="pre">akka-distributed-data-experimental</span></tt> dependency to your build if
+you use this mode. It is possible to remove <tt class="docutils literal"><span class="pre">akka-persistence</span></tt> dependency from a project if it
+is not used in user code and <tt class="docutils literal"><span class="pre">remember-entities</span></tt> is <tt class="docutils literal"><span class="pre">off</span></tt>.
+Using it together with <tt class="docutils literal"><span class="pre">Remember</span> <span class="pre">Entities</span></tt> shards will be recreated after rebalancing, however will
+not be recreated after a clean cluster start as the Sharding Coordinator state is empty after a clean cluster
+start when using ddata mode. When <tt class="docutils literal"><span class="pre">Remember</span> <span class="pre">Entities</span></tt> is <tt class="docutils literal"><span class="pre">on</span></tt> Sharding Region always keeps data usig persistence,
+no matter how <tt class="docutils literal"><span class="pre">State</span> <span class="pre">Store</span> <span class="pre">Mode</span></tt> is set.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">The <tt class="docutils literal"><span class="pre">ddata</span></tt> mode is considered as <strong>“experimental”</strong> as of its introduction in Akka 2.4.0, since
+it depends on the experimental Distributed Data module.</p>
+</div>
+</div>
+<div class="section" id="startup-after-minimum-number-of-members">
+<h2>Startup after minimum number of members</h2>
+<p>It's good to use Cluster Sharding with the Cluster setting <tt class="docutils literal"><span class="pre">akka.cluster.min-nr-of-members</span></tt> or
+<tt class="docutils literal"><span class="pre">akka.cluster.role.&lt;role-name&gt;.min-nr-of-members</span></tt>. That will defer the allocation of the shards
+until at least that number of regions have been started and registered to the coordinator. This
+avoids that many shards are allocated to the first region that registers and only later are
+rebalanced to other nodes.</p>
+<p>See <a class="reference internal" href="cluster-usage.html#min-members-java"><em>How To Startup when Cluster Size Reached</em></a> for more information about <tt class="docutils literal"><span class="pre">min-nr-of-members</span></tt>.</p>
+</div>
+<div class="section" id="proxy-only-mode">
+<h2>Proxy Only Mode</h2>
+<p>The <tt class="docutils literal"><span class="pre">ShardRegion</span></tt> actor can also be started in proxy only mode, i.e. it will not
+host any entities itself, but knows how to delegate messages to the right location.
+A <tt class="docutils literal"><span class="pre">ShardRegion</span></tt> is started in proxy only mode with the method <tt class="docutils literal"><span class="pre">ClusterSharding.startProxy</span></tt>
+method.</p>
+</div>
+<div class="section" id="passivation">
+<h2>Passivation</h2>
+<p>If the state of the entities are persistent you may stop entities that are not used to
+reduce memory consumption. This is done by the application specific implementation of
+the entity actors for example by defining receive timeout (<tt class="docutils literal"><span class="pre">context.setReceiveTimeout</span></tt>).
+If a message is already enqueued to the entity when it stops itself the enqueued message
+in the mailbox will be dropped. To support graceful passivation without losing such
+messages the entity actor can send <tt class="docutils literal"><span class="pre">ShardRegion.Passivate</span></tt> to its parent <tt class="docutils literal"><span class="pre">Shard</span></tt>.
+The specified wrapped message in <tt class="docutils literal"><span class="pre">Passivate</span></tt> will be sent back to the entity, which is
+then supposed to stop itself. Incoming messages will be buffered by the <tt class="docutils literal"><span class="pre">Shard</span></tt>
+between reception of <tt class="docutils literal"><span class="pre">Passivate</span></tt> and termination of the entity. Such buffered messages
+are thereafter delivered to a new incarnation of the entity.</p>
+</div>
+<div class="section" id="remembering-entities">
+<h2>Remembering Entities</h2>
+<p>The list of entities in each <tt class="docutils literal"><span class="pre">Shard</span></tt> can be made persistent (durable) by setting
+the <tt class="docutils literal"><span class="pre">rememberEntities</span></tt> flag to true in <tt class="docutils literal"><span class="pre">ClusterShardingSettings</span></tt> when calling
+<tt class="docutils literal"><span class="pre">ClusterSharding.start</span></tt>. When configured to remember entities, whenever a <tt class="docutils literal"><span class="pre">Shard</span></tt>
+is rebalanced onto another node or recovers after a crash it will recreate all the
+entities which were previously running in that <tt class="docutils literal"><span class="pre">Shard</span></tt>. To permanently stop entities,
+a <tt class="docutils literal"><span class="pre">Passivate</span></tt> message must be sent to the parent of the entity actor, otherwise the
+entity will be automatically restarted after the entity restart backoff specified in
+the configuration.</p>
+<p>When <tt class="docutils literal"><span class="pre">rememberEntities</span></tt> is set to false, a <tt class="docutils literal"><span class="pre">Shard</span></tt> will not automatically restart any entities
+after a rebalance or recovering from a crash. Entities will only be started once the first message
+for that entity has been received in the <tt class="docutils literal"><span class="pre">Shard</span></tt>. Entities will not be restarted if they stop without
+using a <tt class="docutils literal"><span class="pre">Passivate</span></tt>.</p>
+<p>Note that the state of the entities themselves will not be restored unless they have been made persistent,
+e.g. with <a class="reference internal" href="persistence.html#persistence-java"><em>Persistence</em></a>.</p>
+</div>
+<div class="section" id="supervision">
+<h2>Supervision</h2>
+<p>If you need to use another <tt class="docutils literal"><span class="pre">supervisorStrategy</span></tt> for the entity actors than the default (restarting) strategy
+you need to create an intermediate parent actor that defines the <tt class="docutils literal"><span class="pre">supervisorStrategy</span></tt> to the
+child entity actor.</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="n">public</span> <span class="k">class</span> <span class="nc">CounterSupervisor</span> <span class="k">extends</span> <span class="nc">UntypedActor</span> <span class="o">{</span>
+
+  <span class="k">private</span> <span class="k">final</span> <span class="nc">ActorRef</span> <span class="n">counter</span> <span class="k">=</span> <span class="n">getContext</span><span class="o">().</span><span class="n">actorOf</span><span class="o">(</span>
+      <span class="nc">Props</span><span class="o">.</span><span class="n">create</span><span class="o">(</span><span class="nc">Counter</span><span class="o">.</span><span class="n">class</span><span class="o">),</span> <span class="s">&quot;theCounter&quot;</span><span class="o">);</span>
+
+  <span class="k">private</span> <span class="n">static</span> <span class="k">final</span> <span class="nc">SupervisorStrategy</span> <span class="n">strategy</span> <span class="k">=</span>
+    <span class="k">new</span> <span class="nc">OneForOneStrategy</span><span class="o">(</span><span class="nc">DeciderBuilder</span><span class="o">.</span>
+      <span class="k">match</span><span class="o">(</span><span class="nc">IllegalArgumentException</span><span class="o">.</span><span class="n">class</span><span class="o">,</span> <span class="n">e</span> <span class="o">-&gt;</span> <span class="nc">SupervisorStrategy</span><span class="o">.</span><span class="n">resume</span><span class="o">()).</span>
+      <span class="k">match</span><span class="o">(</span><span class="nc">ActorInitializationException</span><span class="o">.</span><span class="n">class</span><span class="o">,</span> <span class="n">e</span> <span class="o">-&gt;</span> <span class="nc">SupervisorStrategy</span><span class="o">.</span><span class="n">stop</span><span class="o">()).</span>
+      <span class="k">match</span><span class="o">(</span><span class="nc">Exception</span><span class="o">.</span><span class="n">class</span><span class="o">,</span> <span class="n">e</span> <span class="o">-&gt;</span> <span class="nc">SupervisorStrategy</span><span class="o">.</span><span class="n">restart</span><span class="o">()).</span>
+      <span class="n">matchAny</span><span class="o">(</span><span class="n">o</span> <span class="o">-&gt;</span> <span class="nc">SupervisorStrategy</span><span class="o">.</span><span class="n">escalate</span><span class="o">()).</span><span class="n">build</span><span class="o">());</span>
+
+  <span class="nd">@Override</span>
+  <span class="n">public</span> <span class="nc">SupervisorStrategy</span> <span class="n">supervisorStrategy</span><span class="o">()</span> <span class="o">{</span>
+    <span class="k">return</span> <span class="n">strategy</span><span class="o">;</span>
+  <span class="o">}</span>
+
+  <span class="nd">@Override</span>
+  <span class="n">public</span> <span class="n">void</span> <span class="n">onReceive</span><span class="o">(</span><span class="nc">Object</span> <span class="n">msg</span><span class="o">)</span> <span class="o">{</span>
+    <span class="n">counter</span><span class="o">.</span><span class="n">forward</span><span class="o">(</span><span class="n">msg</span><span class="o">,</span> <span class="n">getContext</span><span class="o">());</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<p>You start such a supervisor in the same way as if it was the entity actor.</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="nc">ClusterSharding</span><span class="o">.</span><span class="n">get</span><span class="o">(</span><span class="n">system</span><span class="o">).</span><span class="n">start</span><span class="o">(</span><span class="s">&quot;SupervisedCounter&quot;</span><span class="o">,</span>
+    <span class="nc">Props</span><span class="o">.</span><span class="n">create</span><span class="o">(</span><span class="nc">CounterSupervisor</span><span class="o">.</span><span class="n">class</span><span class="o">),</span> <span class="n">settings</span><span class="o">,</span> <span class="n">messageExtractor</span><span class="o">);</span>
+</pre></div>
+</div>
+<p>Note that stopped entities will be started again when a new message is targeted to the entity.</p>
+</div>
+<div class="section" id="graceful-shutdown">
+<h2>Graceful Shutdown</h2>
+<p>You can send the <tt class="docutils literal"><span class="pre">ShardRegion.gracefulShutdownInstance</span></tt> message
+to the <tt class="docutils literal"><span class="pre">ShardRegion</span></tt> actor to handoff all shards that are hosted by that <tt class="docutils literal"><span class="pre">ShardRegion</span></tt> and then the
+<tt class="docutils literal"><span class="pre">ShardRegion</span></tt> actor will be stopped. You can <tt class="docutils literal"><span class="pre">watch</span></tt> the <tt class="docutils literal"><span class="pre">ShardRegion</span></tt> actor to know when it is completed.
+During this period other regions will buffer messages for those shards in the same way as when a rebalance is
+triggered by the coordinator. When the shards have been stopped the coordinator will allocate these shards elsewhere.</p>
+<p>When the <tt class="docutils literal"><span class="pre">ShardRegion</span></tt> has terminated you probably want to <tt class="docutils literal"><span class="pre">leave</span></tt> the cluster, and shut down the <tt class="docutils literal"><span class="pre">ActorSystem</span></tt>.</p>
+<p>This is how to do that:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="n">public</span> <span class="k">class</span> <span class="nc">IllustrateGracefulShutdown</span> <span class="k">extends</span> <span class="nc">AbstractActor</span> <span class="o">{</span>
+
+  <span class="n">public</span> <span class="nc">IllustrateGracefulShutdown</span><span class="o">()</span> <span class="o">{</span>
+    <span class="k">final</span> <span class="nc">ActorSystem</span> <span class="n">system</span> <span class="k">=</span> <span class="n">context</span><span class="o">().</span><span class="n">system</span><span class="o">();</span>
+    <span class="k">final</span> <span class="nc">Cluster</span> <span class="n">cluster</span> <span class="k">=</span> <span class="nc">Cluster</span><span class="o">.</span><span class="n">get</span><span class="o">(</span><span class="n">system</span><span class="o">);</span>
+    <span class="k">final</span> <span class="nc">ActorRef</span> <span class="n">region</span> <span class="k">=</span> <span class="nc">ClusterSharding</span><span class="o">.</span><span class="n">get</span><span class="o">(</span><span class="n">system</span><span class="o">).</span><span class="n">shardRegion</span><span class="o">(</span><span class="s">&quot;Entity&quot;</span><span class="o">);</span>
+
+    <span class="n">receive</span><span class="o">(</span><span class="nc">ReceiveBuilder</span><span class="o">.</span>
+      <span class="k">match</span><span class="o">(</span><span class="nc">String</span><span class="o">.</span><span class="n">class</span><span class="o">,</span> <span class="n">s</span> <span class="o">-&gt;</span> <span class="n">s</span><span class="o">.</span><span class="n">equals</span><span class="o">(</span><span class="s">&quot;leave&quot;</span><span class="o">),</span> <span class="n">s</span> <span class="o">-&gt;</span> <span class="o">{</span>
+        <span class="n">context</span><span class="o">().</span><span class="n">watch</span><span class="o">(</span><span class="n">region</span><span class="o">);</span>
+        <span class="n">region</span><span class="o">.</span><span class="n">tell</span><span class="o">(</span><span class="nc">ShardRegion</span><span class="o">.</span><span class="n">gracefulShutdownInstance</span><span class="o">(),</span> <span class="n">self</span><span class="o">());</span>
+      <span class="o">}).</span>
+      <span class="k">match</span><span class="o">(</span><span class="nc">Terminated</span><span class="o">.</span><span class="n">class</span><span class="o">,</span> <span class="n">t</span> <span class="o">-&gt;</span> <span class="n">t</span><span class="o">.</span><span class="n">actor</span><span class="o">().</span><span class="n">equals</span><span class="o">(</span><span class="n">region</span><span class="o">),</span> <span class="n">t</span> <span class="o">-&gt;</span> <span class="o">{</span>
+        <span class="n">cluster</span><span class="o">.</span><span class="n">registerOnMemberRemoved</span><span class="o">(()</span> <span class="o">-&gt;</span>
+          <span class="n">self</span><span class="o">().</span><span class="n">tell</span><span class="o">(</span><span class="s">&quot;member-removed&quot;</span><span class="o">,</span> <span class="n">self</span><span class="o">()));</span>
+        <span class="n">cluster</span><span class="o">.</span><span class="n">leave</span><span class="o">(</span><span class="n">cluster</span><span class="o">.</span><span class="n">selfAddress</span><span class="o">());</span>
+      <span class="o">}).</span>
+      <span class="k">match</span><span class="o">(</span><span class="nc">String</span><span class="o">.</span><span class="n">class</span><span class="o">,</span> <span class="n">s</span> <span class="o">-&gt;</span> <span class="n">s</span><span class="o">.</span><span class="n">equals</span><span class="o">(</span><span class="s">&quot;member-removed&quot;</span><span class="o">),</span> <span class="n">s</span> <span class="o">-&gt;</span> <span class="o">{</span>
+        <span class="c1">// Let singletons hand over gracefully before stopping the system</span>
+        <span class="n">context</span><span class="o">().</span><span class="n">system</span><span class="o">().</span><span class="n">scheduler</span><span class="o">().</span><span class="n">scheduleOnce</span><span class="o">(</span><span class="nc">Duration</span><span class="o">.</span><span class="n">create</span><span class="o">(</span><span class="mi">10</span><span class="o">,</span> <span class="nc">SECONDS</span><span class="o">),</span>
+            <span class="n">self</span><span class="o">(),</span> <span class="s">&quot;stop-system&quot;</span><span class="o">,</span> <span class="n">context</span><span class="o">().</span><span class="n">dispatcher</span><span class="o">(),</span> <span class="n">self</span><span class="o">());</span>
+      <span class="o">}).</span>
+      <span class="k">match</span><span class="o">(</span><span class="nc">String</span><span class="o">.</span><span class="n">class</span><span class="o">,</span> <span class="n">s</span> <span class="o">-&gt;</span> <span class="n">s</span><span class="o">.</span><span class="n">equals</span><span class="o">(</span><span class="s">&quot;stop-system&quot;</span><span class="o">),</span> <span class="n">s</span> <span class="o">-&gt;</span> <span class="o">{</span>
+        <span class="n">system</span><span class="o">.</span><span class="n">terminate</span><span class="o">();</span>
+      <span class="o">}).</span>
+      <span class="n">build</span><span class="o">());</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="removal-of-internal-cluster-sharding-data">
+<span id="removeinternalclustershardingdata-java"></span><h2>Removal of Internal Cluster Sharding Data</h2>
+<p>The Cluster Sharding coordinator stores the locations of the shards using Akka Persistence.
+This data can safely be removed when restarting the whole Akka Cluster.
+Note that this is not application data.</p>
+<p>There is a utility program <tt class="docutils literal"><span class="pre">akka.cluster.sharding.RemoveInternalClusterShardingData</span></tt>
+that removes this data.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">Never use this program while there are running Akka Cluster nodes that are
+using Cluster Sharding. Stop all Cluster nodes before using this program.</p>
+</div>
+<p>It can be needed to remove the data if the Cluster Sharding coordinator
+cannot startup because of corrupt data, which may happen if accidentally
+two clusters were running at the same time, e.g. caused by using auto-down
+and there was a network partition.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last"><strong>Don't use Cluster Sharding together with Automatic Downing</strong>,
+since it allows the cluster to split up into two separate clusters, which in turn will result
+in <em>multiple shards and entities</em> being started, one in each separate cluster!
+See <a class="reference internal" href="cluster-usage.html#automatic-vs-manual-downing-java"><em>Downing</em></a>.</p>
+</div>
+<p>Use this program as a standalone Java main program:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="n">java</span> <span class="o">-</span><span class="n">classpath</span> <span class="o">&lt;</span><span class="n">jar</span> <span class="n">files</span><span class="o">,</span> <span class="n">including</span> <span class="n">akka</span><span class="o">-</span><span class="n">cluster</span><span class="o">-</span><span class="n">sharding</span><span class="o">&gt;</span>
+  <span class="n">akka</span><span class="o">.</span><span class="n">cluster</span><span class="o">.</span><span class="n">sharding</span><span class="o">.</span><span class="nc">RemoveInternalClusterShardingData</span>
+    <span class="o">-</span><span class="mf">2.3</span> <span class="n">entityType1</span> <span class="n">entityType2</span> <span class="n">entityType3</span>
+</pre></div>
+</div>
+<p>The program is included in the <tt class="docutils literal"><span class="pre">akka-cluster-sharding</span></tt> jar file. It
+is easiest to run it with same classpath and configuration as your ordinary
+application. It can be run from sbt or maven in similar way.</p>
+<p>Specify the entity type names (same as you use in the <tt class="docutils literal"><span class="pre">start</span></tt> method
+of <tt class="docutils literal"><span class="pre">ClusterSharding</span></tt>) as program arguments.</p>
+<p>If you specify <tt class="docutils literal"><span class="pre">-2.3</span></tt> as the first program argument it will also try
+to remove data that was stored by Cluster Sharding in Akka 2.3.x using
+different persistenceId.</p>
+</div>
+<div class="section" id="dependencies">
+<h2>Dependencies</h2>
+<p>To use the Cluster Sharding you must add the following dependency in your project.</p>
+<p>sbt:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="s">&quot;com.typesafe.akka&quot;</span> <span class="o">%%</span> <span class="s">&quot;akka-cluster-sharding&quot;</span> <span class="o">%</span> <span class="s">&quot;2.4.20&quot;</span>
+</pre></div>
+</div>
+<p>maven:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="o">&lt;</span><span class="n">dependency</span><span class="o">&gt;</span>
+  <span class="o">&lt;</span><span class="n">groupId</span><span class="o">&gt;</span><span class="n">com</span><span class="o">.</span><span class="n">typesafe</span><span class="o">.</span><span class="n">akka</span><span class="o">&lt;/</span><span class="n">groupId</span><span class="o">&gt;</span>
+  <span class="o">&lt;</span><span class="n">artifactId</span><span class="o">&gt;</span><span class="n">akka</span><span class="o">-</span><span class="n">cluster</span><span class="o">-</span><span class="n">sharding_2</span><span class="o">.</span><span class="mi">11</span><span class="o">&lt;/</span><span class="n">artifactId</span><span class="o">&gt;</span>
+  <span class="o">&lt;</span><span class="n">version</span><span class="o">&gt;</span><span class="mf">2.4</span><span class="o">.</span><span class="mi">20</span><span class="o">&lt;/</span><span class="n">version</span><span class="o">&gt;</span>
+<span class="o">&lt;/</span><span class="n">dependency</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="configuration">
+<h2>Configuration</h2>
+<p>The <tt class="docutils literal"><span class="pre">ClusterSharding</span></tt> extension can be configured with the following properties. These configuration
+properties are read by the <tt class="docutils literal"><span class="pre">ClusterShardingSettings</span></tt> when created with a <tt class="docutils literal"><span class="pre">ActorSystem</span></tt> parameter.
+It is also possible to amend the <tt class="docutils literal"><span class="pre">ClusterShardingSettings</span></tt> or create it from another config section
+with the same layout as below. <tt class="docutils literal"><span class="pre">ClusterShardingSettings</span></tt> is a parameter to the <tt class="docutils literal"><span class="pre">start</span></tt> method of
+the <tt class="docutils literal"><span class="pre">ClusterSharding</span></tt> extension, i.e. each each entity type can be configured with different settings
+if needed.</p>
+<div class="highlight-scala"><pre># Settings for the ClusterShardingExtension
+akka.cluster.sharding {
+
+  # The extension creates a top level actor with this name in top level system scope,
+  # e.g. '/system/sharding'
+  guardian-name = sharding
+
+  # Specifies that entities runs on cluster nodes with a specific role.
+  # If the role is not specified (or empty) all nodes in the cluster are used.
+  role = ""
+
+  # When this is set to 'on' the active entity actors will automatically be restarted
+  # upon Shard restart. i.e. if the Shard is started on a different ShardRegion
+  # due to rebalance or crash.
+  remember-entities = off
+
+  # If the coordinator can't store state changes it will be stopped
+  # and started again after this duration, with an exponential back-off
+  # of up to 5 times this duration.
+  coordinator-failure-backoff = 5 s
+
+  # The ShardRegion retries registration and shard location requests to the
+  # ShardCoordinator with this interval if it does not reply.
+  retry-interval = 2 s
+
+  # Maximum number of messages that are buffered by a ShardRegion actor.
+  buffer-size = 100000
+
+  # Timeout of the shard rebalancing process.
+  handoff-timeout = 60 s
+
+  # Time given to a region to acknowledge it's hosting a shard.
+  shard-start-timeout = 10 s
+
+  # If the shard is remembering entities and can't store state changes
+  # will be stopped and then started again after this duration. Any messages
+  # sent to an affected entity may be lost in this process.
+  shard-failure-backoff = 10 s
+
+  # If the shard is remembering entities and an entity stops itself without
+  # using passivate. The entity will be restarted after this duration or when
+  # the next message for it is received, which ever occurs first.
+  entity-restart-backoff = 10 s
+
+  # Rebalance check is performed periodically with this interval.
+  rebalance-interval = 10 s
+
+  # Absolute path to the journal plugin configuration entity that is to be
+  # used for the internal persistence of ClusterSharding. If not defined
+  # the default journal plugin is used. Note that this is not related to
+  # persistence used by the entity actors.
+  journal-plugin-id = ""
+
+  # Absolute path to the snapshot plugin configuration entity that is to be
+  # used for the internal persistence of ClusterSharding. If not defined
+  # the default snapshot plugin is used. Note that this is not related to
+  # persistence used by the entity actors.
+  snapshot-plugin-id = ""
+
+  # Parameter which determines how the coordinator will be store a state
+  # valid values either "persistence" or "ddata"
+  # The "ddata" mode is experimental, since it depends on the experimental
+  # module akka-distributed-data-experimental.
+  state-store-mode = "persistence"
+
+  # The shard saves persistent snapshots after this number of persistent
+  # events. Snapshots are used to reduce recovery times.
+  snapshot-after = 1000
+
+  # Setting for the default shard allocation strategy
+  least-shard-allocation-strategy {
+    # Threshold of how large the difference between most and least number of
+    # allocated shards must be to begin the rebalancing.
+    rebalance-threshold = 10
+
+    # The number of ongoing rebalancing processes is limited to this number.
+    max-simultaneous-rebalance = 3
+  }
+
+  # Timeout of waiting the initial distributed state (an initial state will be queried again if the timeout happened)
+  # works only for state-store-mode = "ddata"
+  waiting-for-state-timeout = 5 s
+
+  # Timeout of waiting for update the distributed state (update will be retried if the timeout happened)
+  # works only for state-store-mode = "ddata"
+  updating-state-timeout = 5 s
+
+  # The shard uses this strategy to determines how to recover the underlying entity actors. The strategy is only used
+  # by the persistent shard when rebalancing or restarting. The value can either be "all" or "constant". The "all"
+  # strategy start all the underlying entity actors at the same time. The constant strategy will start the underlying
+  # entity actors at a fix rate. The default strategy "all".
+  entity-recovery-strategy = "all"
+
+  # Default settings for the constant rate entity recovery strategy
+  entity-recovery-constant-rate-strategy {
+    # Sets the frequency at which a batch of entity actors is started.
+    frequency = 100 ms
+    # Sets the number of entity actors to be restart at a particular interval
+    number-of-entities = 5
+  }
+
+  # Settings for the coordinator singleton. Same layout as akka.cluster.singleton.
+  # The "role" of the singleton configuration is not used. The singleton role will
+  # be the same as "akka.cluster.sharding.role".
+  coordinator-singleton = ${akka.cluster.singleton}
+
+  # The id of the dispatcher to use for ClusterSharding actors.
+  # If not specified default dispatcher is used.
+  # If specified you need to define the settings of the actual dispatcher.
+  # This dispatcher for the entity actors is defined by the user provided
+  # Props, i.e. this dispatcher is not used for the entity actors.
+  use-dispatcher = ""
+}
+</pre>
+</div>
+<p>Custom shard allocation strategy can be defined in an optional parameter to
+<tt class="docutils literal"><span class="pre">ClusterSharding.start</span></tt>. See the API documentation of <tt class="docutils literal"><span class="pre">AbstractShardAllocationStrategy</span></tt> for details
+of how to implement a custom shard allocation strategy.</p>
+</div>
+<div class="section" id="inspecting-cluster-sharding-state">
+<h2>Inspecting cluster sharding state</h2>
+<p>Two requests to inspect the cluster state are available:</p>
+<p><tt class="docutils literal"><span class="pre">ShardRegion.getShardRegionStateInstance</span></tt> which will return a <tt class="docutils literal"><span class="pre">ShardRegion.ShardRegionState</span></tt> that contains
+the identifiers of the shards running in a Region and what entities are alive for each of them.</p>
+<p><tt class="docutils literal"><span class="pre">ShardRegion.GetClusterShardingStats</span></tt> which will query all the regions in the cluster and return
+a <tt class="docutils literal"><span class="pre">ShardRegion.ClusterShardingStats</span></tt> containing the identifiers of the shards running in each region and a count
+of entities that are alive in each shard.</p>
+<p>The purpose of these messages is testing and monitoring, they are not provided to give access to
+directly sending messages to the individual entities.</p>
+</div>
+</div>
+
+
+          </div>
+          <div class="span3"><p class="contents-title">Contents</p>
+              <div id="scroller-anchor">
+                <div id="scroller">
+                  <div id="toc"></div>
+                </div>
+              </div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="footer">
+  <div class="container">
+    <ul>
+      <li><h5>Akka</h5></li>
+      <li><a href="https://akka.io/docs">Documentation</a></li>
+      <li><a href="https://doc.akka.io/docs/akka/current/additional/faq.html">FAQ</a></li>
+      <li><a href="https://akka.io/downloads">Downloads</a></li>
+      <li><a href="https://akka.io/news">News</a></li>
+      <li><a href="http://letitcrash.com">Blog</a></li>
+    </ul>
+    <ul>
+      <li><h5>Contribute</h5></li>
+      <li><a href="https://akka.io/community">Community Projects</a></li>
+      <li><a href="http://github.com/akka/akka">Source Code</a></li>
+      <li><a href="http://groups.google.com/group/akka-user">Mailing List</a></li>
+      <li><a href="https://doc.akka.io/docs/akka/current/project/issue-tracking.html">Report a Bug</a></li>
+    </ul>
+    <ul>
+      <li><h5>Company</h5></li>
+      <li><a href="http://www.lightbend.com/how/subscription">Commercial Support</a></li>
+      <li><a href="https://akka.io/team">Team</a></li>
+      <li><a href="mailto:info@lightbend.com">Contact</a></li>
+    </ul>
+    <ul>
+      <li><img src="../_static/akka_icon_reverse.svg" align="center"/></li>
+    </ul>
+  </div>
+  <div class="container copyright">
+    <p style="float: left;">
+      © 2015 <a href="http://www.lightbend.com/">Lightbend Inc.</a> <span class="license">Akka is Open Source and available under the Apache 2 License.</span>
+    </p>
+    <p style="float: right; font-size: 12px;">
+      Last updated: Aug 10, 2017
+    </p>
+  </div>
+</div>
+<script type="text/javascript">
+  var $toc = $('#toc');
+  $toc.toc();
+
+  // show clickable section sign when section header hovered:
+  $('.section h2,.section h3,.section h4,.section h5').each(function(i, el) {
+      var $el = $(el);
+      $el.prepend($("<a class='section-marker' href='#" + $el.attr("id") + "'>&sect;</a>"))
+  });
+</script>
+
+<!-- Algolia docs search -->
+<script type="text/javascript">
+  var version = DOCUMENTATION_OPTIONS.VERSION;
+
+  var lang = "scala";
+  var path = window.location.pathname;
+  if (path.includes("/java/") || path.includes("java.html")) lang = "java";
+
+  console.log("Search configured for:", lang, "@", version);
+
+  docsearch({
+    apiKey: '543bad5ad786495d9ccd445ed34ed082',
+    indexName: 'akka_io',
+    inputSelector: '#search',
+    algoliaOptions: {
+      hitsPerPage: 5,
+      facetFilters: '[' + '["language:' + lang + '","language:general"]' + ',"version:' + version + '"]'
+    }
+  });
+
+  // set up "/" as global shortcut for focusing on search
+  $(document).keypress(function (event) {
+    if (event.keyCode == 47) {
+      $("#q").focus();
+      return false; // swallow key event, otherwise the / char would be input into the search box
+    }
+  });
+</script>
+
+  
+
+  </body>
+</html>

@@ -1,0 +1,162 @@
+
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Routing (Java) &mdash; Akka Documentation</title>
+    <link rel="stylesheet" href="../_static/akka.css" type="text/css" />
+<link rel="stylesheet" href="https://doc.akka.io/docs/akka/1.2/_static/akka.css" type="text/css"/>
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/print.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '1.2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+<script type="text/javascript" src="https://doc.akka.io/docs/akka/1.2/_static/warnOldDocs.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="../_static/theme_extras.js"></script>
+    <link rel="top" title="Akka Documentation" href="../index.html" />
+    <link rel="up" title="Java API" href="index.html" />
+    <link rel="next" title="Guice Integration" href="guice-integration.html" />
+    <link rel="prev" title="Dispatchers (Java)" href="dispatchers.html" /> 
+  </head>
+  <body>
+      <div class="header"><a href="../index.html"><img class="leftlogo" src="../_static/logo.png" alt="Logo"/></a><h1 class="heading"><a href="../index.html"><span>Akka Documentation</span></a></h1>
+       <h2 class="heading"><a href="../index.html"><span>Version 1.2</span></a></h2>
+       <h2 class="rightheading"><span><a href="https://akka.io/docs/akka/1.2/Akka.pdf">PDF</a></span></h2>
+      </div>
+      <div class="topnav">
+      
+        <p>
+        «&#160;&#160;<a href="dispatchers.html">Dispatchers (Java)</a>
+        &#160;&#160;::&#160;&#160;
+        <a class="uplink" href="../index.html">Contents</a>
+        &#160;&#160;::&#160;&#160;
+        <a href="guice-integration.html">Guice Integration</a>&#160;&#160;»
+        </p>
+
+      </div>
+      <div class="content">
+        
+        
+  <div class="section" id="routing-java">
+<h1>Routing (Java)<a class="headerlink" href="#routing-java" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="untypeddispatcher">
+<h2>UntypedDispatcher<a class="headerlink" href="#untypeddispatcher" title="Permalink to this headline">¶</a></h2>
+<p>An UntypedDispatcher is an actor that routes incoming messages to outbound actors.</p>
+<div class="highlight-java"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">static</span> <span class="n">akka</span><span class="o">.</span><span class="na">actor</span><span class="o">.</span><span class="na">Actors</span><span class="o">.*;</span>
+<span class="kn">import</span> <span class="nn">akka.actor.*</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">akka.routing.*</span><span class="o">;</span>
+
+<span class="c1">//A Pinger is an UntypedActor that prints &quot;Pinger: &lt;message&gt;&quot;</span>
+<span class="kd">class</span> <span class="nc">Pinger</span> <span class="kd">extends</span> <span class="n">UntypedActor</span> <span class="o">{</span>
+  <span class="kd">public</span> <span class="kt">void</span> <span class="nf">onReceive</span><span class="o">(</span><span class="n">Object</span> <span class="n">message</span><span class="o">)</span> <span class="kd">throws</span> <span class="n">Exception</span> <span class="o">{</span>
+    <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="s">&quot;Pinger: &quot;</span> <span class="o">+</span> <span class="n">message</span><span class="o">);</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+
+<span class="c1">//A Ponger is an UntypedActor that prints &quot;Ponger: &lt;message&gt;&quot;</span>
+<span class="kd">class</span> <span class="nc">Ponger</span> <span class="kd">extends</span> <span class="n">UntypedActor</span> <span class="o">{</span>
+  <span class="kd">public</span> <span class="kt">void</span> <span class="nf">onReceive</span><span class="o">(</span><span class="n">Object</span> <span class="n">message</span><span class="o">)</span> <span class="kd">throws</span> <span class="n">Exception</span> <span class="o">{</span>
+    <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="s">&quot;Ponger: &quot;</span> <span class="o">+</span> <span class="n">message</span><span class="o">);</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+
+<span class="kd">public</span> <span class="kd">class</span> <span class="nc">MyDispatcher</span> <span class="kd">extends</span> <span class="n">UntypedDispatcher</span> <span class="o">{</span>
+  <span class="kd">private</span> <span class="n">ActorRef</span> <span class="n">pinger</span> <span class="o">=</span> <span class="n">actorOf</span><span class="o">(</span><span class="n">Pinger</span><span class="o">.</span><span class="na">class</span><span class="o">).</span><span class="na">start</span><span class="o">();</span>
+  <span class="kd">private</span> <span class="n">ActorRef</span> <span class="n">ponger</span> <span class="o">=</span> <span class="n">actorOf</span><span class="o">(</span><span class="n">Ponger</span><span class="o">.</span><span class="na">class</span><span class="o">).</span><span class="na">start</span><span class="o">();</span>
+
+  <span class="c1">//Route Ping-messages to the pinger, and Pong-messages to the ponger</span>
+  <span class="kd">public</span> <span class="n">ActorRef</span> <span class="nf">route</span><span class="o">(</span><span class="n">Object</span> <span class="n">message</span><span class="o">)</span> <span class="o">{</span>
+    <span class="k">if</span><span class="o">(</span><span class="s">&quot;Ping&quot;</span><span class="o">.</span><span class="na">equals</span><span class="o">(</span><span class="n">message</span><span class="o">))</span> <span class="k">return</span> <span class="n">pinger</span><span class="o">;</span>
+    <span class="k">else</span> <span class="nf">if</span><span class="o">(</span><span class="s">&quot;Pong&quot;</span><span class="o">.</span><span class="na">equals</span><span class="o">(</span><span class="n">message</span><span class="o">))</span> <span class="k">return</span> <span class="n">ponger</span><span class="o">;</span>
+    <span class="k">else</span> <span class="k">throw</span> <span class="k">new</span> <span class="nf">IllegalArgumentException</span><span class="o">(</span><span class="s">&quot;I do not understand &quot;</span> <span class="o">+</span> <span class="n">message</span><span class="o">);</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+
+<span class="n">ActorRef</span> <span class="n">dispatcher</span> <span class="o">=</span> <span class="n">actorOf</span><span class="o">(</span><span class="n">MyDispatcher</span><span class="o">.</span><span class="na">class</span><span class="o">).</span><span class="na">start</span><span class="o">();</span>
+<span class="n">dispatcher</span><span class="o">.</span><span class="na">tell</span><span class="o">(</span><span class="s">&quot;Ping&quot;</span><span class="o">);</span> <span class="c1">//Prints &quot;Pinger: Ping&quot;</span>
+<span class="n">dispatcher</span><span class="o">.</span><span class="na">tell</span><span class="o">(</span><span class="s">&quot;Pong&quot;</span><span class="o">);</span> <span class="c1">//Prints &quot;Ponger: Pong&quot;</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="untypedloadbalancer">
+<h2>UntypedLoadBalancer<a class="headerlink" href="#untypedloadbalancer" title="Permalink to this headline">¶</a></h2>
+<p>An UntypedLoadBalancer is an actor that forwards messages it receives to a boundless sequence of destination actors.</p>
+<div class="highlight-java"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">static</span> <span class="n">akka</span><span class="o">.</span><span class="na">actor</span><span class="o">.</span><span class="na">Actors</span><span class="o">.*;</span>
+<span class="kn">import</span> <span class="nn">akka.actor.*</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">akka.routing.*</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">static</span> <span class="n">java</span><span class="o">.</span><span class="na">util</span><span class="o">.</span><span class="na">Arrays</span><span class="o">.</span><span class="na">asList</span><span class="o">;</span>
+
+<span class="c1">//A Pinger is an UntypedActor that prints &quot;Pinger: &lt;message&gt;&quot;</span>
+<span class="kd">class</span> <span class="nc">Pinger</span> <span class="kd">extends</span> <span class="n">UntypedActor</span> <span class="o">{</span>
+  <span class="kd">public</span> <span class="kt">void</span> <span class="nf">onReceive</span><span class="o">(</span><span class="n">Object</span> <span class="n">message</span><span class="o">)</span> <span class="kd">throws</span> <span class="n">Exception</span> <span class="o">{</span>
+    <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="s">&quot;Pinger: &quot;</span> <span class="o">+</span> <span class="n">message</span><span class="o">);</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+
+<span class="c1">//A Ponger is an UntypedActor that prints &quot;Ponger: &lt;message&gt;&quot;</span>
+<span class="kd">class</span> <span class="nc">Ponger</span> <span class="kd">extends</span> <span class="n">UntypedActor</span> <span class="o">{</span>
+  <span class="kd">public</span> <span class="kt">void</span> <span class="nf">onReceive</span><span class="o">(</span><span class="n">Object</span> <span class="n">message</span><span class="o">)</span> <span class="kd">throws</span> <span class="n">Exception</span> <span class="o">{</span>
+    <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="s">&quot;Ponger: &quot;</span> <span class="o">+</span> <span class="n">message</span><span class="o">);</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+
+<span class="c1">//Our load balancer, sends messages to a pinger, then a ponger, rinse and repeat.</span>
+<span class="kd">public</span> <span class="kd">class</span> <span class="nc">MyLoadBalancer</span> <span class="kd">extends</span> <span class="n">UntypedLoadBalancer</span> <span class="o">{</span>
+  <span class="kd">private</span> <span class="n">InfiniteIterator</span><span class="o">&lt;</span><span class="n">ActorRef</span><span class="o">&gt;</span> <span class="n">actors</span> <span class="o">=</span> <span class="k">new</span> <span class="n">CyclicIterator</span><span class="o">&lt;</span><span class="n">ActorRef</span><span class="o">&gt;(</span><span class="n">asList</span><span class="o">(</span>
+    <span class="n">actorOf</span><span class="o">(</span><span class="n">Pinger</span><span class="o">.</span><span class="na">class</span><span class="o">).</span><span class="na">start</span><span class="o">(),</span>
+    <span class="n">actorOf</span><span class="o">(</span><span class="n">Ponger</span><span class="o">.</span><span class="na">class</span><span class="o">).</span><span class="na">start</span><span class="o">()</span>
+  <span class="o">));</span>
+
+  <span class="kd">public</span> <span class="n">InfiniteIterator</span><span class="o">&lt;</span><span class="n">ActorRef</span><span class="o">&gt;</span> <span class="n">seq</span><span class="o">()</span> <span class="o">{</span>
+    <span class="k">return</span> <span class="n">actors</span><span class="o">;</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+
+<span class="n">ActorRef</span> <span class="n">dispatcher</span> <span class="o">=</span> <span class="n">actorOf</span><span class="o">(</span><span class="n">MyLoadBalancer</span><span class="o">.</span><span class="na">class</span><span class="o">).</span><span class="na">start</span><span class="o">();</span>
+<span class="n">dispatcher</span><span class="o">.</span><span class="na">tell</span><span class="o">(</span><span class="s">&quot;Pong&quot;</span><span class="o">);</span> <span class="c1">//Prints &quot;Pinger: Pong&quot;</span>
+<span class="n">dispatcher</span><span class="o">.</span><span class="na">tell</span><span class="o">(</span><span class="s">&quot;Ping&quot;</span><span class="o">);</span> <span class="c1">//Prints &quot;Ponger: Ping&quot;</span>
+<span class="n">dispatcher</span><span class="o">.</span><span class="na">tell</span><span class="o">(</span><span class="s">&quot;Ping&quot;</span><span class="o">);</span> <span class="c1">//Prints &quot;Pinger: Ping&quot;</span>
+<span class="n">dispatcher</span><span class="o">.</span><span class="na">tell</span><span class="o">(</span><span class="s">&quot;Pong&quot;</span><span class="o">);</span> <span class="c1">//Prints &quot;Ponger: Pong</span>
+</pre></div>
+</div>
+<p>You can also send a &#8216;new Routing.Broadcast(msg)&#8217; message to the router to have it be broadcasted out to all the actors it represents.</p>
+<div class="highlight-java"><div class="highlight"><pre><span class="n">router</span><span class="o">.</span><span class="na">tell</span><span class="o">(</span><span class="k">new</span> <span class="n">Routing</span><span class="o">.</span><span class="na">Broadcast</span><span class="o">(</span><span class="k">new</span> <span class="n">PoisonPill</span><span class="o">()));</span>
+</pre></div>
+</div>
+</div>
+</div>
+
+
+      </div>
+      <div class="bottomnav">
+      
+        <p>
+        «&#160;&#160;<a href="dispatchers.html">Dispatchers (Java)</a>
+        &#160;&#160;::&#160;&#160;
+        <a class="uplink" href="../index.html">Contents</a>
+        &#160;&#160;::&#160;&#160;
+        <a href="guice-integration.html">Guice Integration</a>&#160;&#160;»
+        </p>
+
+      </div>
+
+    <div class="footer">
+        &copy; Copyright 2011, Typesafe Inc.
+      Last updated on Sep 19, 2011.
+    </div>
+  </body>
+</html>

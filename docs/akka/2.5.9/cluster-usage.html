@@ -1,0 +1,1403 @@
+<!DOCTYPE html>
+<html class="no-js" lang="en">
+
+<head>
+<title>Cluster Usage &bull; Akka Documentation</title>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta name="description" content="Akka is a toolkit for building highly concurrent, distributed, and resilient message-driven applications for Java and Scala."/>
+<link rel="canonical" href="https://doc.akka.io/docs/akka/current/cluster-usage.html"/>
+<script type="text/javascript" src="lib/jquery/jquery.min.js"></script>
+<script type="text/javascript" src="lib/foundation/dist/js/foundation.min.js"></script>
+<link rel="stylesheet" type="text/css" href="lib/normalize.css/normalize.css"/>
+<link rel="stylesheet" type="text/css" href="lib/foundation/dist/css/foundation.min.css"/>
+<link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/docsearch.js/2/docsearch.min.css" />
+<link rel="stylesheet" type="text/css" href="css/icons.css"/>
+<link rel="stylesheet" type="text/css" href="css/page.css"/>
+<link rel="shortcut icon" href="images/favicon.ico" />
+<link rel="apple-touch-icon" sizes="180x180" href="images/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="images/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="images/favicon-16x16.png">
+<link rel="manifest" href="images/manifest.json">
+<meta name="msapplication-TileImage" content="images/mstile-150x150.png">
+<meta name="msapplication-TileColor" content="#15a9ce">
+<meta name="theme-color" content="#15a9ce">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<!--Google Analytics-->
+<script type="text/javascript">
+var _gaq = _gaq || [];
+_gaq.push(['_setAccount', 'UA-21117439-1']);
+_gaq.push(['_setDomainName', 'akka.io']);
+_gaq.push(['_trackPageview']);
+(function() {
+var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+})()
+</script>
+<!--Google Analytics & Marketo-->
+<script type="text/javascript">
+(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+ga('create', 'UA-23127719-1', 'lightbend.com', {'allowLinker': true, 'name': 'tsTracker'});
+ga('tsTracker.require', 'linker');
+ga('tsTracker.linker:autoLink', ['lightbend.com','playframework.com','scala-lang.org','scaladays.org','spray.io','akka.io','scala-sbt.org','scala-ide.org']);
+ga('tsTracker.send', 'pageview');
+(function() {
+var didInit = false;
+function initMunchkin() {
+if(didInit === false) {
+didInit = true;
+Munchkin.init('558-NCX-702');
+}
+}
+var s = document.createElement('script');
+s.type = 'text/javascript';
+s.async = true;
+s.src = '//munchkin.marketo.net/munchkin.js';
+s.onreadystatechange = function() {
+if (this.readyState == 'complete' || this.readyState == 'loaded') {
+initMunchkin();
+}
+};
+s.onload = initMunchkin;
+document.getElementsByTagName('head')[0].appendChild(s);
+})();
+</script>
+
+</head>
+
+<body id="underlay" data-toggler="nav-open">
+
+<header class="site-header hide-for-large">
+<div class="sticky-header clearfix">
+<a href="https://akka.io"><img class="logo" src="images/akka-logo-reverse.svg"></a>
+
+<button class="menu-icon float-right" type="button" data-toggle="underlay overlay"></button>
+</div>
+<div id="overlay" class="overlay-nav" data-toggler="nav-open">
+<header class="nav-header">
+<div class="nav-header-title">
+<h1><a href="index.html">Akka Documentation</a></h1>
+</div>
+<div class="nav-header-version">
+Version 2.5.9
+</div>
+<div class="nav-header-groups">
+<select class="supergroup" name="Language"><option class="group" value="group-scala">Scala</option><option class="group" value="group-java">Java</option></select>
+</div>
+<div id="overlay-search-container" class="nav-header-search">
+<input id="overlay-search" type="search" class="search" placeholder="Search"/>
+</div>
+</header>
+<nav class="nav-toc">
+<ul>
+  <li><a href="security/index.html" class="page">Security Announcements</a></li>
+  <li><a href="guide/index.html" class="page">Getting Started Guide</a></li>
+  <li><a href="general/index.html" class="page">General Concepts</a></li>
+  <li><a href="index-actors.html" class="page">Actors</a></li>
+  <li><a href="index-typed.html" class="page">Akka Typed</a></li>
+  <li><a href="index-cluster.html" class="page">Clustering</a>
+  <ul>
+    <li><a href="common/cluster.html" class="page">Cluster Specification</a></li>
+    <li><a href="cluster-usage.html#cluster-usage" class="active page">Cluster Usage</a>
+    <ul>
+      <li><a href="cluster-usage.html#preparing-your-project-for-clustering" class="header">Preparing Your Project for Clustering</a></li>
+      <li><a href="cluster-usage.html#a-simple-cluster-example" class="header">A Simple Cluster Example</a></li>
+      <li><a href="cluster-usage.html#joining-to-seed-nodes" class="header">Joining to Seed Nodes</a></li>
+      <li><a href="cluster-usage.html#downing" class="header">Downing</a></li>
+      <li><a href="cluster-usage.html#leaving" class="header">Leaving</a></li>
+      <li><a href="cluster-usage.html#weaklyup-members" class="header">WeaklyUp Members</a></li>
+      <li><a href="cluster-usage.html#subscribe-to-cluster-events" class="header">Subscribe to Cluster Events</a></li>
+      <li><a href="cluster-usage.html#node-roles" class="header">Node Roles</a></li>
+      <li><a href="cluster-usage.html#how-to-startup-when-cluster-size-reached" class="header">How To Startup when Cluster Size Reached</a></li>
+      <li><a href="cluster-usage.html#how-to-cleanup-when-member-is-removed" class="header">How To Cleanup when Member is Removed</a></li>
+      <li><a href="cluster-usage.html#cluster-singleton" class="header">Cluster Singleton</a></li>
+      <li><a href="cluster-usage.html#cluster-sharding" class="header">Cluster Sharding</a></li>
+      <li><a href="cluster-usage.html#distributed-publish-subscribe" class="header">Distributed Publish Subscribe</a></li>
+      <li><a href="cluster-usage.html#cluster-client" class="header">Cluster Client</a></li>
+      <li><a href="cluster-usage.html#distributed-data" class="header">Distributed Data</a></li>
+      <li><a href="cluster-usage.html#failure-detector" class="header">Failure Detector</a></li>
+      <li><a href="cluster-usage.html#cluster-aware-routers" class="header">Cluster Aware Routers</a></li>
+      <li><a href="cluster-usage.html#cluster-metrics" class="header">Cluster Metrics</a></li>
+      <li><a href="cluster-usage.html#how-to-test" class="header group-scala">How to Test</a></li>
+      <li><a href="cluster-usage.html#how-to-test" class="header group-java">How to Test</a></li>
+      <li><a href="cluster-usage.html#management" class="header">Management</a></li>
+      <li><a href="cluster-usage.html#configuration" class="header">Configuration</a></li>
+    </ul></li>
+    <li><a href="cluster-singleton.html" class="page">Cluster Singleton</a></li>
+    <li><a href="distributed-pub-sub.html" class="page">Distributed Publish Subscribe in Cluster</a></li>
+    <li><a href="cluster-client.html" class="page">Cluster Client</a></li>
+    <li><a href="cluster-sharding.html" class="page">Cluster Sharding</a></li>
+    <li><a href="cluster-metrics.html" class="page">Cluster Metrics Extension</a></li>
+    <li><a href="distributed-data.html" class="page">Distributed Data</a></li>
+    <li><a href="cluster-dc.html" class="page">Cluster across multiple data centers</a></li>
+  </ul></li>
+  <li><a href="stream/index.html" class="page">Streams</a></li>
+  <li><a href="index-network.html" class="page">Networking</a></li>
+  <li><a href="index-futures.html" class="page">Futures and Agents</a></li>
+  <li><a href="index-utilities.html" class="page">Utilities</a></li>
+  <li><a href="common/other-modules.html" class="page">Other Akka modules</a></li>
+  <li><a href="howto.html" class="page">HowTo: Common Patterns</a></li>
+  <li><a href="project/index.html" class="page">Project Information</a></li>
+  <li><a href="additional/index.html" class="page">Additional Information</a></li>
+</ul>
+</nav>
+</div>
+</header>
+
+<aside class="show-for-large">
+<header class="nav-header fixed-sidebar-header">
+<div class="nav-header-title">
+<h1><a href="index.html">Akka Documentation</a></h1>
+</div>
+<div class="nav-header-version">
+Version 2.5.9
+</div>
+<div class="nav-header-groups">
+<select class="supergroup" name="Language"><option class="group" value="group-scala">Scala</option><option class="group" value="group-java">Java</option></select>
+</div>
+<div class="nav-header-search">
+<input id="search" type="search" class="search" placeholder="Search"/>
+</div>
+</header>
+<nav class="site-nav fixed-sidebar-contents">
+<div class="nav-toc">
+<ul>
+  <li><a href="security/index.html" class="page">Security Announcements</a></li>
+  <li><a href="guide/index.html" class="page">Getting Started Guide</a></li>
+  <li><a href="general/index.html" class="page">General Concepts</a></li>
+  <li><a href="index-actors.html" class="page">Actors</a></li>
+  <li><a href="index-typed.html" class="page">Akka Typed</a></li>
+  <li><a href="index-cluster.html" class="page">Clustering</a>
+  <ul>
+    <li><a href="common/cluster.html" class="page">Cluster Specification</a></li>
+    <li><a href="cluster-usage.html#cluster-usage" class="active page">Cluster Usage</a>
+    <ul>
+      <li><a href="cluster-usage.html#preparing-your-project-for-clustering" class="header">Preparing Your Project for Clustering</a></li>
+      <li><a href="cluster-usage.html#a-simple-cluster-example" class="header">A Simple Cluster Example</a></li>
+      <li><a href="cluster-usage.html#joining-to-seed-nodes" class="header">Joining to Seed Nodes</a></li>
+      <li><a href="cluster-usage.html#downing" class="header">Downing</a></li>
+      <li><a href="cluster-usage.html#leaving" class="header">Leaving</a></li>
+      <li><a href="cluster-usage.html#weaklyup-members" class="header">WeaklyUp Members</a></li>
+      <li><a href="cluster-usage.html#subscribe-to-cluster-events" class="header">Subscribe to Cluster Events</a></li>
+      <li><a href="cluster-usage.html#node-roles" class="header">Node Roles</a></li>
+      <li><a href="cluster-usage.html#how-to-startup-when-cluster-size-reached" class="header">How To Startup when Cluster Size Reached</a></li>
+      <li><a href="cluster-usage.html#how-to-cleanup-when-member-is-removed" class="header">How To Cleanup when Member is Removed</a></li>
+      <li><a href="cluster-usage.html#cluster-singleton" class="header">Cluster Singleton</a></li>
+      <li><a href="cluster-usage.html#cluster-sharding" class="header">Cluster Sharding</a></li>
+      <li><a href="cluster-usage.html#distributed-publish-subscribe" class="header">Distributed Publish Subscribe</a></li>
+      <li><a href="cluster-usage.html#cluster-client" class="header">Cluster Client</a></li>
+      <li><a href="cluster-usage.html#distributed-data" class="header">Distributed Data</a></li>
+      <li><a href="cluster-usage.html#failure-detector" class="header">Failure Detector</a></li>
+      <li><a href="cluster-usage.html#cluster-aware-routers" class="header">Cluster Aware Routers</a></li>
+      <li><a href="cluster-usage.html#cluster-metrics" class="header">Cluster Metrics</a></li>
+      <li><a href="cluster-usage.html#how-to-test" class="header group-scala">How to Test</a></li>
+      <li><a href="cluster-usage.html#how-to-test" class="header group-java">How to Test</a></li>
+      <li><a href="cluster-usage.html#management" class="header">Management</a></li>
+      <li><a href="cluster-usage.html#configuration" class="header">Configuration</a></li>
+    </ul></li>
+    <li><a href="cluster-singleton.html" class="page">Cluster Singleton</a></li>
+    <li><a href="distributed-pub-sub.html" class="page">Distributed Publish Subscribe in Cluster</a></li>
+    <li><a href="cluster-client.html" class="page">Cluster Client</a></li>
+    <li><a href="cluster-sharding.html" class="page">Cluster Sharding</a></li>
+    <li><a href="cluster-metrics.html" class="page">Cluster Metrics Extension</a></li>
+    <li><a href="distributed-data.html" class="page">Distributed Data</a></li>
+    <li><a href="cluster-dc.html" class="page">Cluster across multiple data centers</a></li>
+  </ul></li>
+  <li><a href="stream/index.html" class="page">Streams</a></li>
+  <li><a href="index-network.html" class="page">Networking</a></li>
+  <li><a href="index-futures.html" class="page">Futures and Agents</a></li>
+  <li><a href="index-utilities.html" class="page">Utilities</a></li>
+  <li><a href="common/other-modules.html" class="page">Other Akka modules</a></li>
+  <li><a href="howto.html" class="page">HowTo: Common Patterns</a></li>
+  <li><a href="project/index.html" class="page">Project Information</a></li>
+  <li><a href="additional/index.html" class="page">Additional Information</a></li>
+</ul>
+</div>
+</nav>
+<footer class="nav-footer fixed-sidebar-footer">
+<a href="https://akka.io"><img class="logo" src="images/akka-logo-reverse.svg"></a>
+
+</footer>
+</aside>
+
+<main class="fixed-shift-for-large expanded row">
+<section class="site-content small-12 column">
+
+<article class="page-content row">
+<div class="small-12 large-9 column" id="docs">
+<h1><a href="#cluster-usage" name="cluster-usage" class="anchor"><span class="anchor-link"></span></a>Cluster Usage</h1>
+<p>For introduction to the Akka Cluster concepts please see <a href="common/cluster.html">Cluster Specification</a>.</p>
+<h2><a href="#preparing-your-project-for-clustering" name="preparing-your-project-for-clustering" class="anchor"><span class="anchor-link"></span></a>Preparing Your Project for Clustering</h2>
+<p>The Akka cluster is a separate jar file. Make sure that you have the following dependency in your project:</p>
+<dl>
+  <dt>sbt</dt>
+  <dd>
+  <pre><code>&quot;com.typesafe.akka&quot; %% &quot;akka-cluster&quot; % &quot;2.5.9&quot;
+</code></pre></dd>
+  <dt>Gradle</dt>
+  <dd>
+  <pre><code> compile group: &#39;com.typesafe.akka&#39;, name: &#39;akka-cluster_2.12&#39;, version: &#39;2.5.9&#39;
+</code></pre></dd>
+  <dt>Maven</dt>
+  <dd>
+  <pre><code>&lt;dependency&gt;
+  &lt;groupId&gt;com.typesafe.akka&lt;/groupId&gt;
+  &lt;artifactId&gt;akka-cluster_2.12&lt;/artifactId&gt;
+  &lt;version&gt;2.5.9&lt;/version&gt;
+&lt;/dependency&gt;
+</code></pre></dd>
+</dl>
+<h2><a href="#a-simple-cluster-example" name="a-simple-cluster-example" class="anchor"><span class="anchor-link"></span></a>A Simple Cluster Example</h2>
+<p>The following configuration enables the <code>Cluster</code> extension to be used. It joins the cluster and an actor subscribes to cluster membership events and logs them.</p>
+<p>The <code>application.conf</code> configuration looks like this:</p>
+<pre><code>akka {
+  actor {
+    provider = &quot;cluster&quot;
+  }
+  remote {
+    log-remote-lifecycle-events = off
+    netty.tcp {
+      hostname = &quot;127.0.0.1&quot;
+      port = 0
+    }
+  }
+
+  cluster {
+    seed-nodes = [
+      &quot;akka.tcp://ClusterSystem@127.0.0.1:2551&quot;,
+      &quot;akka.tcp://ClusterSystem@127.0.0.1:2552&quot;]
+
+    # auto downing is NOT safe for production deployments.
+    # you may want to use it during development, read more about it in the docs.
+    #
+    # auto-down-unreachable-after = 10s
+  }
+}
+
+# Enable metrics extension in akka-cluster-metrics.
+akka.extensions=[&quot;akka.cluster.metrics.ClusterMetricsExtension&quot;]
+
+# Sigar native library extract location during tests.
+# Note: use per-jvm-instance folder when running multiple jvm on one host.
+akka.cluster.metrics.native-library-extract-folder=${user.dir}/target/native
+</code></pre>
+<p>To enable cluster capabilities in your Akka project you should, at a minimum, add the <a href="remoting.html">Remoting</a> settings, but with <code>cluster</code>. The <code>akka.cluster.seed-nodes</code> should normally also be added to your <code>application.conf</code> file.</p><div class="callout note "><div class="callout-title">Note</div>
+<p>If you are running Akka in a Docker container or the nodes for some other reason have separate internal and external ip addresses you must configure remoting according to <a href="remoting.html#remote-configuration-nat">Akka behind NAT or in a Docker container</a></p></div>
+<p>The seed nodes are configured contact points for initial, automatic, join of the cluster.</p>
+<p>Note that if you are going to start the nodes on different machines you need to specify the ip-addresses or host names of the machines in <code>application.conf</code> instead of <code>127.0.0.1</code></p>
+<p>An actor that uses the cluster extension may look like this:</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-scala">package scala.docs.cluster
+
+import akka.cluster.Cluster
+import akka.cluster.ClusterEvent._
+import akka.actor.ActorLogging
+import akka.actor.Actor
+
+class SimpleClusterListener extends Actor with ActorLogging {
+
+  val cluster = Cluster(context.system)
+
+  // subscribe to cluster changes, re-subscribe when restart
+  override def preStart(): Unit = {
+    cluster.subscribe(self, initialStateMode = InitialStateAsEvents,
+      classOf[MemberEvent], classOf[UnreachableMember])
+  }
+  override def postStop(): Unit = cluster.unsubscribe(self)
+
+  def receive = {
+    case MemberUp(member) ⇒
+      log.info(&quot;Member is Up: {}&quot;, member.address)
+    case UnreachableMember(member) ⇒
+      log.info(&quot;Member detected as unreachable: {}&quot;, member)
+    case MemberRemoved(member, previousStatus) ⇒
+      log.info(
+        &quot;Member is Removed: {} after {}&quot;,
+        member.address, previousStatus)
+    case _: MemberEvent ⇒ // ignore
+  }
+}</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-java">package jdocs.cluster;
+
+import akka.actor.AbstractActor;
+import akka.cluster.Cluster;
+import akka.cluster.ClusterEvent;
+import akka.cluster.ClusterEvent.MemberEvent;
+import akka.cluster.ClusterEvent.MemberUp;
+import akka.cluster.ClusterEvent.MemberRemoved;
+import akka.cluster.ClusterEvent.UnreachableMember;
+import akka.event.Logging;
+import akka.event.LoggingAdapter;
+
+public class SimpleClusterListener extends AbstractActor {
+  LoggingAdapter log = Logging.getLogger(getContext().getSystem(), this);
+  Cluster cluster = Cluster.get(getContext().getSystem());
+
+  //subscribe to cluster changes
+  @Override
+  public void preStart() {
+    cluster.subscribe(getSelf(), ClusterEvent.initialStateAsEvents(), 
+        MemberEvent.class, UnreachableMember.class);
+  }
+
+  //re-subscribe when restart
+  @Override
+  public void postStop() {
+    cluster.unsubscribe(getSelf());
+  }
+
+  @Override
+  public Receive createReceive() {
+    return receiveBuilder()
+      .match(MemberUp.class, mUp -&gt; {
+        log.info(&quot;Member is Up: {}&quot;, mUp.member());
+      })
+      .match(UnreachableMember.class, mUnreachable -&gt; {
+        log.info(&quot;Member detected as unreachable: {}&quot;, mUnreachable.member());
+      })
+      .match(MemberRemoved.class, mRemoved -&gt; {
+        log.info(&quot;Member is Removed: {}&quot;, mRemoved.member());
+      })
+      .match(MemberEvent.class, message -&gt; {
+        // ignore
+      })
+      .build();
+  }
+}</code></pre></dd>
+</dl>
+<p>The actor registers itself as subscriber of certain cluster events. It receives events corresponding to the current state of the cluster when the subscription starts and then it receives events for changes that happen in the cluster.</p>
+<p>The easiest way to run this example yourself is to download the ready to run <span class="group-scala"><a href="https://example.lightbend.com/v1/download/akka-samples-cluster-scala">Akka Cluster Sample with Scala</a></span> <span class="group-java"><a href="https://example.lightbend.com/v1/download/akka-samples-cluster-java">Akka Cluster Sample with Java</a></span> together with the tutorial. It contains instructions on how to run the <code>SimpleClusterApp</code>. The source code of this sample can be found in the <span class="group-scala"><a href="https://github.com/akka/akka-samples/tree/2.5/akka-sample-cluster-scala">Akka Samples Repository</a></span><span class="group-java"><a href="https://github.com/akka/akka-samples/tree/2.5/akka-sample-cluster-java">Akka Samples Repository</a></span>.</p>
+<h2><a href="#joining-to-seed-nodes" name="joining-to-seed-nodes" class="anchor"><span class="anchor-link"></span></a>Joining to Seed Nodes</h2>
+<p>You may decide if joining to the cluster should be done manually or automatically to configured initial contact points, so-called seed nodes. After the joining process the seed nodes are not special and they participate in the cluster in exactly the same way as other nodes.</p>
+<p>When a new node is started it sends a message to all seed nodes and then sends join command to the one that answers first. If no one of the seed nodes replied (might not be started yet) it retries this procedure until successful or shutdown.</p>
+<p>You define the seed nodes in the <a href="#cluster-configuration">configuration</a> file (application.conf):</p>
+<pre><code>akka.cluster.seed-nodes = [
+  &quot;akka.tcp://ClusterSystem@host1:2552&quot;,
+  &quot;akka.tcp://ClusterSystem@host2:2552&quot;]
+</code></pre>
+<p>This can also be defined as Java system properties when starting the JVM using the following syntax:</p>
+<pre><code>-Dakka.cluster.seed-nodes.0=akka.tcp://ClusterSystem@host1:2552
+-Dakka.cluster.seed-nodes.1=akka.tcp://ClusterSystem@host2:2552
+</code></pre>
+<p>Such configuration is typically created dynamically by external tools, see for example:</p>
+<ul>
+  <li><a href="http://developer.lightbend.com/guides/k8-akka-cluster/">Deploying clustered Akka applications on Kubernetes</a></li>
+  <li><a href="https://github.com/hseeberger/constructr">ConstructR</a></li>
+</ul>
+<p>The seed nodes can be started in any order and it is not necessary to have all seed nodes running, but the node configured as the first element in the <code>seed-nodes</code> configuration list must be started when initially starting a cluster, otherwise the other seed-nodes will not become initialized and no other node can join the cluster. The reason for the special first seed node is to avoid forming separated islands when starting from an empty cluster. It is quickest to start all configured seed nodes at the same time (order doesn&rsquo;t matter), otherwise it can take up to the configured <code>seed-node-timeout</code> until the nodes can join.</p>
+<p>Once more than two seed nodes have been started it is no problem to shut down the first seed node. If the first seed node is restarted, it will first try to join the other seed nodes in the existing cluster. Note that if you stop all seed nodes at the same time and restart them with the same <code>seed-nodes</code> configuration they will join themselves and form a new cluster instead of joining remaining nodes of the existing cluster. That is likely not desired and should be avoided by listing several nodes as seed nodes for redundancy and don&rsquo;t stop all of them at the same time. </p>
+<p>You may also use <span class="group-scala"><code>Cluster(system).joinSeedNodes</code></span><span class="group-java"><code>Cluster.get(system).joinSeedNodes</code></span> to join programmatically, which is attractive when dynamically discovering other nodes at startup by using some external tool or API. When using <code>joinSeedNodes</code> you should not include the node itself except for the node that is supposed to be the first seed node, and that should be placed first in the parameter to <code>joinSeedNodes</code>.</p>
+<p>Unsuccessful attempts to contact seed nodes are automatically retried after the time period defined in configuration property <code>seed-node-timeout</code>. Unsuccessful attempt to join a specific seed node is automatically retried after the configured <code>retry-unsuccessful-join-after</code>. Retrying means that it tries to contact all seed nodes and then joins the node that answers first. The first node in the list of seed nodes will join itself if it cannot contact any of the other seed nodes within the configured <code>seed-node-timeout</code>.</p>
+<p>The joining of given seed nodes will by default be retried indefinitely until a successful join. That process can be aborted if unsuccessful by configuring a timeout. When aborted it will run <a href="actors.html#coordinated-shutdown">Coordinated Shutdown</a>, which by default will terminated the ActorSystem. CoordinatedShutdown can also be configured to exit the JVM. It is useful to define this timeout if the <code>seed-nodes</code> are assembled dynamically and a restart with new seed-nodes should be tried after unsuccessful attempts.</p>
+<pre><code>akka.cluster.shutdown-after-unsuccessful-join-seed-nodes = 20s
+akka.coordinated-shutdown.terminate-actor-system = on
+</code></pre>
+<p>If you don&rsquo;t configure seed nodes or use <code>joinSeedNodes</code> you need to join the cluster manually, which can be performed by using <a href="#cluster-jmx">JMX</a> or <a href="#cluster-http">HTTP</a>.</p>
+<p>You can join to any node in the cluster. It does not have to be configured as a seed node. Note that you can only join to an existing cluster member, which means that for bootstrapping some node must join itself,and then the following nodes could join them to make up a cluster.</p>
+<p>An actor system can only join a cluster once. Additional attempts will be ignored. When it has successfully joined it must be restarted to be able to join another cluster or to join the same cluster again. It can use the same host name and port after the restart, when it come up as new incarnation of existing member in the cluster, trying to join in, then the existing one will be removed from the cluster and then it will be allowed to join.</p><div class="callout note "><div class="callout-title">Note</div>
+<p>The name of the <code>ActorSystem</code> must be the same for all members of a cluster. The name is given when you start the <code>ActorSystem</code>.</p></div>
+<a id="automatic-vs-manual-downing"></a>
+<h2><a href="#downing" name="downing" class="anchor"><span class="anchor-link"></span></a>Downing</h2>
+<p>When a member is considered by the failure detector to be unreachable the leader is not allowed to perform its duties, such as changing status of new joining members to &lsquo;Up&rsquo;. The node must first become reachable again, or the status of the unreachable member must be changed to &lsquo;Down&rsquo;. Changing status to &lsquo;Down&rsquo; can be performed automatically or manually. By default it must be done manually, using <a href="#cluster-jmx">JMX</a> or <a href="#cluster-http">HTTP</a>.</p>
+<p>It can also be performed programmatically with <span class="group-scala"><code>Cluster(system).down(address)</code></span><span class="group-java"><code>Cluster.get(system).down(address)</code></span>.</p>
+<p>A pre-packaged solution for the downing problem is provided by <a href="http://developer.lightbend.com/docs/akka-commercial-addons/current/split-brain-resolver.html">Split Brain Resolver</a>, which is part of the <a href="http://www.lightbend.com/platform">Lightbend Reactive Platform</a>. If you don’t use RP, you should anyway carefully read the <a href="http://developer.lightbend.com/docs/akka-commercial-addons/current/split-brain-resolver.html">documentation</a> of the Split Brain Resolver and make sure that the solution you are using handles the concerns described there.</p>
+<h3><a href="#auto-downing-do-not-use-" name="auto-downing-do-not-use-" class="anchor"><span class="anchor-link"></span></a>Auto-downing (DO NOT USE)</h3>
+<p>There is an automatic downing feature that you should not use in production. For testing purpose you can enable it with configuration:</p>
+<pre><code>akka.cluster.auto-down-unreachable-after = 120s
+</code></pre>
+<p>This means that the cluster leader member will change the <code>unreachable</code> node status to <code>down</code> automatically after the configured time of unreachability.</p>
+<p>This is a naïve approach to remove unreachable nodes from the cluster membership. It works great for crashes and short transient network partitions, but not for long network partitions. Both sides of the network partition will see the other side as unreachable and after a while remove it from its cluster membership. Since this happens on both sides the result is that two separate disconnected clusters have been created. This can also happen because of long GC pauses or system overload.</p><div class="callout warning "><div class="callout-title">Warning</div>
+<p>We recommend against using the auto-down feature of Akka Cluster in production. This is crucial for correct behavior if you use <a href="cluster-singleton.html">Cluster Singleton</a> or <a href="cluster-sharding.html">Cluster Sharding</a>, especially together with Akka <a href="persistence.html">Persistence</a>. For Akka Persistence with Cluster Sharding it can result in corrupt data in case of network partitions.</p></div>
+<h2><a href="#leaving" name="leaving" class="anchor"><span class="anchor-link"></span></a>Leaving</h2>
+<p>There are two ways to remove a member from the cluster.</p>
+<p>You can just stop the actor system (or the JVM process). It will be detected as unreachable and removed after the automatic or manual downing as described above.</p>
+<p>A more graceful exit can be performed if you tell the cluster that a node shall leave. This can be performed using <a href="#cluster-jmx">JMX</a> or <a href="#cluster-http">HTTP</a>. It can also be performed programmatically with:</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-scala">val cluster = Cluster(system)
+cluster.leave(cluster.selfAddress)</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-java">final Cluster cluster = Cluster.get(system);
+cluster.leave(cluster.selfAddress());</code></pre></dd>
+</dl>
+<p>Note that this command can be issued to any member in the cluster, not necessarily the one that is leaving.</p>
+<p>The <a href="actors.html#coordinated-shutdown">Coordinated Shutdown</a> will automatically run when the cluster node sees itself as <code>Exiting</code>, i.e. leaving from another node will trigger the shutdown process on the leaving node. Tasks for graceful leaving of cluster including graceful shutdown of Cluster Singletons and Cluster Sharding are added automatically when Akka Cluster is used, i.e. running the shutdown process will also trigger the graceful leaving if it&rsquo;s not already in progress.</p>
+<p>Normally this is handled automatically, but in case of network failures during this process it might still be necessary to set the node’s status to <code>Down</code> in order to complete the removal.</p>
+<a id="weakly-up"></a>
+<h2><a href="#weaklyup-members" name="weaklyup-members" class="anchor"><span class="anchor-link"></span></a>WeaklyUp Members</h2>
+<p>If a node is <code>unreachable</code> then gossip convergence is not possible and therefore any <code>leader</code> actions are also not possible. However, we still might want new nodes to join the cluster in this scenario.</p>
+<p><code>Joining</code> members will be promoted to <code>WeaklyUp</code> and become part of the cluster if convergence can&rsquo;t be reached. Once gossip convergence is reached, the leader will move <code>WeaklyUp</code> members to <code>Up</code>.</p>
+<p>This feature is enabled by default, but it can be disabled with configuration option:</p>
+<pre><code>akka.cluster.allow-weakly-up-members = off
+</code></pre>
+<p>You can subscribe to the <code>WeaklyUp</code> membership event to make use of the members that are in this state, but you should be aware of that members on the other side of a network partition have no knowledge about the existence of the new members. You should for example not count <code>WeaklyUp</code> members in quorum decisions.</p>
+<a id="cluster-subscriber"></a>
+<h2><a href="#subscribe-to-cluster-events" name="subscribe-to-cluster-events" class="anchor"><span class="anchor-link"></span></a>Subscribe to Cluster Events</h2>
+<p>You can subscribe to change notifications of the cluster membership by using <span class="group-scala"><code>Cluster(system).subscribe</code></span><span class="group-java"><code>Cluster.get(system).subscribe</code></span>.</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-scala">cluster.subscribe(self, classOf[MemberEvent], classOf[UnreachableMember])</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-java">cluster.subscribe(getSelf(), MemberEvent.class, UnreachableMember.class);</code></pre></dd>
+</dl>
+<p>A snapshot of the full state, <code>akka.cluster.ClusterEvent.CurrentClusterState</code>, is sent to the subscriber as the first message, followed by events for incremental updates.</p>
+<p>Note that you may receive an empty <code>CurrentClusterState</code>, containing no members, if you start the subscription before the initial join procedure has completed. This is expected behavior. When the node has been accepted in the cluster you will receive <code>MemberUp</code> for that node, and other nodes.</p>
+<p>If you find it inconvenient to handle the <code>CurrentClusterState</code> you can use <span class="group-scala"><code>ClusterEvent.InitialStateAsEvents</code></span> <span class="group-java"><code>ClusterEvent.initialStateAsEvents()</code></span> as parameter to <code>subscribe</code>. That means that instead of receiving <code>CurrentClusterState</code> as the first message you will receive the events corresponding to the current state to mimic what you would have seen if you were listening to the events when they occurred in the past. Note that those initial events only correspond to the current state and it is not the full history of all changes that actually has occurred in the cluster.</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-scala">cluster.subscribe(self, initialStateMode = InitialStateAsEvents,
+  classOf[MemberEvent], classOf[UnreachableMember])</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-java">cluster.subscribe(getSelf(), ClusterEvent.initialStateAsEvents(), 
+    MemberEvent.class, UnreachableMember.class);</code></pre></dd>
+</dl>
+<p>The events to track the life-cycle of members are:</p>
+<ul>
+  <li><code>ClusterEvent.MemberJoined</code> - A new member has joined the cluster and its status has been changed to <code>Joining</code></li>
+  <li><code>ClusterEvent.MemberUp</code> - A new member has joined the cluster and its status has been changed to <code>Up</code></li>
+  <li><code>ClusterEvent.MemberExited</code> - A member is leaving the cluster and its status has been changed to <code>Exiting</code> Note that the node might already have been shutdown when this event is published on another node.</li>
+  <li><code>ClusterEvent.MemberRemoved</code> - Member completely removed from the cluster.</li>
+  <li><code>ClusterEvent.UnreachableMember</code> - A member is considered as unreachable, detected by the failure detector of at least one other node.</li>
+  <li><code>ClusterEvent.ReachableMember</code> - A member is considered as reachable again, after having been unreachable. All nodes that previously detected it as unreachable has detected it as reachable again.</li>
+</ul>
+<p>There are more types of change events, consult the API documentation of classes that extends <code>akka.cluster.ClusterEvent.ClusterDomainEvent</code> for details about the events.</p>
+<p>Instead of subscribing to cluster events it can sometimes be convenient to only get the full membership state with <span class="group-scala"><code>Cluster(system).state</code></span><span class="group-java"><code>Cluster.get(system).state()</code></span>. Note that this state is not necessarily in sync with the events published to a cluster subscription.</p>
+<h3><a href="#worker-dial-in-example" name="worker-dial-in-example" class="anchor"><span class="anchor-link"></span></a>Worker Dial-in Example</h3>
+<p>Let&rsquo;s take a look at an example that illustrates how workers, here named <em>backend</em>, can detect and register to new master nodes, here named <em>frontend</em>.</p>
+<p>The example application provides a service to transform text. When some text is sent to one of the frontend services, it will be delegated to one of the backend workers, which performs the transformation job, and sends the result back to the original client. New backend nodes, as well as new frontend nodes, can be added or removed to the cluster dynamically.</p>
+<p>Messages:</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-scala">final case class TransformationJob(text: String)
+final case class TransformationResult(text: String)
+final case class JobFailed(reason: String, job: TransformationJob)
+case object BackendRegistration</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-java">public interface TransformationMessages {
+
+  public static class TransformationJob implements Serializable {
+    private final String text;
+
+    public TransformationJob(String text) {
+      this.text = text;
+    }
+
+    public String getText() {
+      return text;
+    }
+  }
+
+  public static class TransformationResult implements Serializable {
+    private final String text;
+
+    public TransformationResult(String text) {
+      this.text = text;
+    }
+
+    public String getText() {
+      return text;
+    }
+
+    @Override
+    public String toString() {
+      return &quot;TransformationResult(&quot; + text + &quot;)&quot;;
+    }
+  }
+
+  public static class JobFailed implements Serializable {
+    private final String reason;
+    private final TransformationJob job;
+
+    public JobFailed(String reason, TransformationJob job) {
+      this.reason = reason;
+      this.job = job;
+    }
+
+    public String getReason() {
+      return reason;
+    }
+
+    public TransformationJob getJob() {
+      return job;
+    }
+
+    @Override
+    public String toString() {
+      return &quot;JobFailed(&quot; + reason + &quot;)&quot;;
+    }
+  }
+
+  public static final String BACKEND_REGISTRATION = &quot;BackendRegistration&quot;;
+
+}</code></pre></dd>
+</dl>
+<p>The backend worker that performs the transformation job:</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-scala">class TransformationBackend extends Actor {
+
+  val cluster = Cluster(context.system)
+
+  // subscribe to cluster changes, MemberUp
+  // re-subscribe when restart
+  override def preStart(): Unit = cluster.subscribe(self, classOf[MemberUp])
+  override def postStop(): Unit = cluster.unsubscribe(self)
+
+  def receive = {
+    case TransformationJob(text) ⇒ sender() ! TransformationResult(text.toUpperCase)
+    case state: CurrentClusterState ⇒
+      state.members.filter(_.status == MemberStatus.Up) foreach register
+    case MemberUp(m) ⇒ register(m)
+  }
+
+  def register(member: Member): Unit =
+    if (member.hasRole(&quot;frontend&quot;))
+      context.actorSelection(RootActorPath(member.address) / &quot;user&quot; / &quot;frontend&quot;) !
+        BackendRegistration
+}</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-java">public class TransformationBackend extends AbstractActor {
+
+  Cluster cluster = Cluster.get(getContext().getSystem());
+
+  //subscribe to cluster changes, MemberUp
+  @Override
+  public void preStart() {
+    cluster.subscribe(getSelf(), MemberUp.class);
+  }
+
+  //re-subscribe when restart
+  @Override
+  public void postStop() {
+    cluster.unsubscribe(getSelf());
+  }
+
+  @Override
+  public Receive createReceive() {
+    return receiveBuilder()
+      .match(TransformationJob.class, job -&gt; {
+        getSender().tell(new TransformationResult(job.getText().toUpperCase()),
+         getSelf());
+      })
+      .match(CurrentClusterState.class, state -&gt; {
+        for (Member member : state.getMembers()) {
+          if (member.status().equals(MemberStatus.up())) {
+            register(member);
+          }
+        }
+      })
+      .match(MemberUp.class, mUp -&gt; {
+        register(mUp.member());
+      })
+      .build();
+  }
+
+  void register(Member member) {
+    if (member.hasRole(&quot;frontend&quot;))
+      getContext().actorSelection(member.address() + &quot;/user/frontend&quot;).tell(
+          BACKEND_REGISTRATION, getSelf());
+  }
+}</code></pre></dd>
+</dl>
+<p>Note that the <code>TransformationBackend</code> actor subscribes to cluster events to detect new, potential, frontend nodes, and send them a registration message so that they know that they can use the backend worker.</p>
+<p>The frontend that receives user jobs and delegates to one of the registered backend workers:</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-scala">class TransformationFrontend extends Actor {
+
+  var backends = IndexedSeq.empty[ActorRef]
+  var jobCounter = 0
+
+  def receive = {
+    case job: TransformationJob if backends.isEmpty ⇒
+      sender() ! JobFailed(&quot;Service unavailable, try again later&quot;, job)
+
+    case job: TransformationJob ⇒
+      jobCounter += 1
+      backends(jobCounter % backends.size) forward job
+
+    case BackendRegistration if !backends.contains(sender()) ⇒
+      context watch sender()
+      backends = backends :+ sender()
+
+    case Terminated(a) ⇒
+      backends = backends.filterNot(_ == a)
+  }
+}</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-java">public class TransformationFrontend extends AbstractActor {
+
+  List&lt;ActorRef&gt; backends = new ArrayList&lt;ActorRef&gt;();
+  int jobCounter = 0;
+
+  @Override
+  public Receive createReceive() {
+    return receiveBuilder()
+      .match(TransformationJob.class, job -&gt; backends.isEmpty(), job -&gt; {
+        getSender().tell(
+          new JobFailed(&quot;Service unavailable, try again later&quot;, job),
+            getSender());
+      })
+      .match(TransformationJob.class, job -&gt; {
+        jobCounter++;
+        backends.get(jobCounter % backends.size())
+          .forward(job, getContext());
+      })
+      .matchEquals(BACKEND_REGISTRATION, x -&gt; {
+        getContext().watch(getSender());
+        backends.add(getSender());
+      })
+      .match(Terminated.class, terminated -&gt; {
+        backends.remove(terminated.getActor());
+      })
+      .build();
+  }
+
+}</code></pre></dd>
+</dl>
+<p>Note that the <code>TransformationFrontend</code> actor watch the registered backend to be able to remove it from its list of available backend workers. Death watch uses the cluster failure detector for nodes in the cluster, i.e. it detects network failures and JVM crashes, in addition to graceful termination of watched actor. Death watch generates the <code>Terminated</code> message to the watching actor when the unreachable cluster node has been downed and removed.</p>
+<p>The easiest way to run <strong>Worker Dial-in Example</strong> example yourself is to download the ready to run <span class="group-scala"><a href="https://example.lightbend.com/v1/download/akka-samples-cluster-scala">Akka Cluster Sample with Scala</a></span> <span class="group-java"><a href="https://example.lightbend.com/v1/download/akka-samples-cluster-java">Akka Cluster Sample with Java</a></span> together with the tutorial. It contains instructions on how to run the <strong>Worker Dial-in Example</strong> sample. The source code of this sample can be found in the <span class="group-scala"><a href="https://github.com/akka/akka-samples/tree/2.5/akka-sample-cluster-scala">Akka Samples Repository</a></span><span class="group-java"><a href="https://github.com/akka/akka-samples/tree/2.5/akka-sample-cluster-java">Akka Samples Repository</a></span>.</p>
+<h2><a href="#node-roles" name="node-roles" class="anchor"><span class="anchor-link"></span></a>Node Roles</h2>
+<p>Not all nodes of a cluster need to perform the same function: there might be one sub-set which runs the web front-end, one which runs the data access layer and one for the number-crunching. Deployment of actors—for example by cluster-aware routers—can take node roles into account to achieve this distribution of responsibilities.</p>
+<p>The roles of a node is defined in the configuration property named <code>akka.cluster.roles</code> and it is typically defined in the start script as a system property or environment variable.</p>
+<p>The roles of the nodes is part of the membership information in <code>MemberEvent</code> that you can subscribe to.</p>
+<a id="min-members"></a>
+<h2><a href="#how-to-startup-when-cluster-size-reached" name="how-to-startup-when-cluster-size-reached" class="anchor"><span class="anchor-link"></span></a>How To Startup when Cluster Size Reached</h2>
+<p>A common use case is to start actors after the cluster has been initialized, members have joined, and the cluster has reached a certain size.</p>
+<p>With a configuration option you can define required number of members before the leader changes member status of &lsquo;Joining&rsquo; members to &lsquo;Up&rsquo;.:</p>
+<pre><code>akka.cluster.min-nr-of-members = 3
+</code></pre>
+<p>In a similar way you can define required number of members of a certain role before the leader changes member status of &lsquo;Joining&rsquo; members to &lsquo;Up&rsquo;.:</p>
+<pre><code>akka.cluster.role {
+  frontend.min-nr-of-members = 1
+  backend.min-nr-of-members = 2
+}
+</code></pre>
+<p>You can start the actors in a <code>registerOnMemberUp</code> callback, which will be invoked when the current member status is changed to &lsquo;Up&rsquo;, i.e. the cluster has at least the defined number of members.</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-scala">Cluster(system) registerOnMemberUp {
+  system.actorOf(
+    Props(classOf[FactorialFrontend], upToN, true),
+    name = &quot;factorialFrontend&quot;)
+}</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-java">Cluster.get(system).registerOnMemberUp(new Runnable() {
+  @Override
+  public void run() {
+    system.actorOf(Props.create(FactorialFrontend.class, upToN, true),
+        &quot;factorialFrontend&quot;);
+  }
+});</code></pre></dd>
+</dl>
+<p>This callback can be used for other things than starting actors.</p>
+<h2><a href="#how-to-cleanup-when-member-is-removed" name="how-to-cleanup-when-member-is-removed" class="anchor"><span class="anchor-link"></span></a>How To Cleanup when Member is Removed</h2>
+<p>You can do some clean up in a <code>registerOnMemberRemoved</code> callback, which will be invoked when the current member status is changed to &lsquo;Removed&rsquo; or the cluster have been shutdown.</p>
+<p>An alternative is to register tasks to the <a href="actors.html#coordinated-shutdown">Coordinated Shutdown</a>.</p><div class="callout note "><div class="callout-title">Note</div>
+<p>Register a OnMemberRemoved callback on a cluster that have been shutdown, the callback will be invoked immediately on the caller thread, otherwise it will be invoked later when the current member status changed to &lsquo;Removed&rsquo;. You may want to install some cleanup handling after the cluster was started up, but the cluster might already be shutting down when you installing, and depending on the race is not healthy.</p></div>
+<h2><a href="#cluster-singleton" name="cluster-singleton" class="anchor"><span class="anchor-link"></span></a>Cluster Singleton</h2>
+<p>For some use cases it is convenient and sometimes also mandatory to ensure that you have exactly one actor of a certain type running somewhere in the cluster.</p>
+<p>This can be implemented by subscribing to member events, but there are several corner cases to consider. Therefore, this specific use case is made easily accessible by the <a href="cluster-singleton.html">Cluster Singleton</a>.</p>
+<h2><a href="#cluster-sharding" name="cluster-sharding" class="anchor"><span class="anchor-link"></span></a>Cluster Sharding</h2>
+<p>Distributes actors across several nodes in the cluster and supports interaction with the actors using their logical identifier, but without having to care about their physical location in the cluster.</p>
+<p>See <a href="cluster-sharding.html">Cluster Sharding</a>.</p>
+<h2><a href="#distributed-publish-subscribe" name="distributed-publish-subscribe" class="anchor"><span class="anchor-link"></span></a>Distributed Publish Subscribe</h2>
+<p>Publish-subscribe messaging between actors in the cluster, and point-to-point messaging using the logical path of the actors, i.e. the sender does not have to know on which node the destination actor is running.</p>
+<p>See <a href="distributed-pub-sub.html">Distributed Publish Subscribe in Cluster</a>.</p>
+<h2><a href="#cluster-client" name="cluster-client" class="anchor"><span class="anchor-link"></span></a>Cluster Client</h2>
+<p>Communication from an actor system that is not part of the cluster to actors running somewhere in the cluster. The client does not have to know on which node the destination actor is running.</p>
+<p>See <a href="cluster-client.html">Cluster Client</a>.</p>
+<h2><a href="#distributed-data" name="distributed-data" class="anchor"><span class="anchor-link"></span></a>Distributed Data</h2>
+<p><em>Akka Distributed Data</em> is useful when you need to share data between nodes in an Akka Cluster. The data is accessed with an actor providing a key-value store like API.</p>
+<p>See <a href="distributed-data.html">Distributed Data</a>.</p>
+<h2><a href="#failure-detector" name="failure-detector" class="anchor"><span class="anchor-link"></span></a>Failure Detector</h2>
+<p>In a cluster each node is monitored by a few (default maximum 5) other nodes, and when any of these detects the node as <code>unreachable</code> that information will spread to the rest of the cluster through the gossip. In other words, only one node needs to mark a node <code>unreachable</code> to have the rest of the cluster mark that node <code>unreachable</code>.</p>
+<p>The failure detector will also detect if the node becomes <code>reachable</code> again. When all nodes that monitored the <code>unreachable</code> node detects it as <code>reachable</code> again the cluster, after gossip dissemination, will consider it as <code>reachable</code>.</p>
+<p>If system messages cannot be delivered to a node it will be quarantined and then it cannot come back from <code>unreachable</code>. This can happen if the there are too many unacknowledged system messages (e.g. watch, Terminated, remote actor deployment, failures of actors supervised by remote parent). Then the node needs to be moved to the <code>down</code> or <code>removed</code> states and the actor system of the quarantined node must be restarted before it can join the cluster again.</p>
+<p>The nodes in the cluster monitor each other by sending heartbeats to detect if a node is unreachable from the rest of the cluster. The heartbeat arrival times is interpreted by an implementation of <a href="http://www.jaist.ac.jp/~defago/files/pdf/IS_RR_2004_010.pdf">The Phi Accrual Failure Detector</a>.</p>
+<p>The suspicion level of failure is given by a value called <em>phi</em>. The basic idea of the phi failure detector is to express the value of <em>phi</em> on a scale that is dynamically adjusted to reflect current network conditions.</p>
+<p>The value of <em>phi</em> is calculated as:</p>
+<pre><code>phi = -log10(1 - F(timeSinceLastHeartbeat))
+</code></pre>
+<p>where F is the cumulative distribution function of a normal distribution with mean and standard deviation estimated from historical heartbeat inter-arrival times.</p>
+<p>In the <a href="#cluster-configuration">configuration</a> you can adjust the <code>akka.cluster.failure-detector.threshold</code> to define when a <em>phi</em> value is considered to be a failure.</p>
+<p>A low <code>threshold</code> is prone to generate many false positives but ensures a quick detection in the event of a real crash. Conversely, a high <code>threshold</code> generates fewer mistakes but needs more time to detect actual crashes. The default <code>threshold</code> is 8 and is appropriate for most situations. However in cloud environments, such as Amazon EC2, the value could be increased to 12 in order to account for network issues that sometimes occur on such platforms.</p>
+<p>The following chart illustrates how <em>phi</em> increase with increasing time since the previous heartbeat.</p>
+<p><img src="./images/phi1.png" alt="phi1.png" /></p>
+<p>Phi is calculated from the mean and standard deviation of historical inter arrival times. The previous chart is an example for standard deviation of 200 ms. If the heartbeats arrive with less deviation the curve becomes steeper, i.e. it is possible to determine failure more quickly. The curve looks like this for a standard deviation of 100 ms.</p>
+<p><img src="./images/phi2.png" alt="phi2.png" /></p>
+<p>To be able to survive sudden abnormalities, such as garbage collection pauses and transient network failures the failure detector is configured with a margin, <code>akka.cluster.failure-detector.acceptable-heartbeat-pause</code>. You may want to adjust the <a href="#cluster-configuration">configuration</a> of this depending on your environment. This is how the curve looks like for <code>acceptable-heartbeat-pause</code> configured to 3 seconds.</p>
+<p><img src="./images/phi3.png" alt="phi3.png" /></p>
+<p>Death watch uses the cluster failure detector for nodes in the cluster, i.e. it detects network failures and JVM crashes, in addition to graceful termination of watched actor. Death watch generates the <code>Terminated</code> message to the watching actor when the unreachable cluster node has been downed and removed.</p>
+<p>If you encounter suspicious false positives when the system is under load you should define a separate dispatcher for the cluster actors as described in <a href="#cluster-dispatcher">Cluster Dispatcher</a>.</p>
+<a id="cluster-aware-routers"></a>
+<h2><a href="#cluster-aware-routers" name="cluster-aware-routers" class="anchor"><span class="anchor-link"></span></a>Cluster Aware Routers</h2>
+<p>All <a href="routing.html">routers</a> can be made aware of member nodes in the cluster, i.e. deploying new routees or looking up routees on nodes in the cluster. When a node becomes unreachable or leaves the cluster the routees of that node are automatically unregistered from the router. When new nodes join the cluster, additional routees are added to the router, according to the configuration. Routees are also added when a node becomes reachable again, after having been unreachable.</p>
+<p>Cluster aware routers make use of members with status <a href="#weakly-up">WeaklyUp</a> if that feature is enabled.</p>
+<p>There are two distinct types of routers.</p>
+<ul>
+  <li><strong>Group - router that sends messages to the specified path using actor selection</strong> The routees can be shared among routers running on different nodes in the cluster. One example of a use case for this type of router is a service running on some backend nodes in the cluster and used by routers running on front-end nodes in the cluster.</li>
+  <li><strong>Pool - router that creates routees as child actors and deploys them on remote nodes.</strong> Each router will have its own routee instances. For example, if you start a router on 3 nodes in a 10-node cluster, you will have 30 routees in total if the router is configured to use one instance per node. The routees created by the different routers will not be shared among the routers. One example of a use case for this type of router is a single master that coordinates jobs and delegates the actual work to routees running on other nodes in the cluster.</li>
+</ul>
+<h3><a href="#router-with-group-of-routees" name="router-with-group-of-routees" class="anchor"><span class="anchor-link"></span></a>Router with Group of Routees</h3>
+<p>When using a <code>Group</code> you must start the routee actors on the cluster member nodes. That is not done by the router. The configuration for a group looks like this::</p>
+<pre><code>akka.actor.deployment {
+  /statsService/workerRouter {
+      router = consistent-hashing-group
+      routees.paths = [&quot;/user/statsWorker&quot;]
+      cluster {
+        enabled = on
+        allow-local-routees = on
+        use-roles = [&quot;compute&quot;]
+      }
+    }
+}
+</code></pre><div class="callout note "><div class="callout-title">Note</div>
+<p>The routee actors should be started as early as possible when starting the actor system, because the router will try to use them as soon as the member status is changed to &lsquo;Up&rsquo;.</p></div>
+<p>The actor paths without address information that are defined in <code>routees.paths</code> are used for selecting the actors to which the messages will be forwarded to by the router. Messages will be forwarded to the routees using <a href="actors.html#actorselection">ActorSelection</a>, so the same delivery semantics should be expected. It is possible to limit the lookup of routees to member nodes tagged with a particular set of roles by specifying <code>use-roles</code>.</p>
+<p><code>max-total-nr-of-instances</code> defines total number of routees in the cluster. By default <code>max-total-nr-of-instances</code> is set to a high value (10000) that will result in new routees added to the router when nodes join the cluster. Set it to a lower value if you want to limit total number of routees.</p>
+<p>The same type of router could also have been defined in code:</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-scala">import akka.cluster.routing.{ ClusterRouterGroup, ClusterRouterGroupSettings }
+import akka.routing.ConsistentHashingGroup
+
+val workerRouter = context.actorOf(
+  ClusterRouterGroup(ConsistentHashingGroup(Nil), ClusterRouterGroupSettings(
+    totalInstances = 100, routeesPaths = List(&quot;/user/statsWorker&quot;),
+    allowLocalRoutees = true, useRoles = Set(&quot;compute&quot;))).props(),
+  name = &quot;workerRouter2&quot;)</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-java">int totalInstances = 100;
+Iterable&lt;String&gt; routeesPaths = Collections
+  .singletonList(&quot;/user/statsWorker&quot;);
+boolean allowLocalRoutees = true;
+Set&lt;String&gt; useRoles = new HashSet&lt;&gt;(Arrays.asList(&quot;compute&quot;));
+ActorRef workerRouter = getContext().actorOf(
+  new ClusterRouterGroup(new ConsistentHashingGroup(routeesPaths),
+    new ClusterRouterGroupSettings(totalInstances, routeesPaths,
+      allowLocalRoutees, useRoles)).props(), &quot;workerRouter2&quot;);</code></pre></dd>
+</dl>
+<p>See <a href="#cluster-configuration">configuration</a> section for further descriptions of the settings.</p>
+<h3><a href="#router-example-with-group-of-routees" name="router-example-with-group-of-routees" class="anchor"><span class="anchor-link"></span></a>Router Example with Group of Routees</h3>
+<p>Let&rsquo;s take a look at how to use a cluster aware router with a group of routees, i.e. router sending to the paths of the routees.</p>
+<p>The example application provides a service to calculate statistics for a text. When some text is sent to the service it splits it into words, and delegates the task to count number of characters in each word to a separate worker, a routee of a router. The character count for each word is sent back to an aggregator that calculates the average number of characters per word when all results have been collected.</p>
+<p>Messages:</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-scala">final case class StatsJob(text: String)
+final case class StatsResult(meanWordLength: Double)
+final case class JobFailed(reason: String)</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-java">public interface StatsMessages {
+
+  public static class StatsJob implements Serializable {
+    private final String text;
+
+    public StatsJob(String text) {
+      this.text = text;
+    }
+
+    public String getText() {
+      return text;
+    }
+  }
+
+  public static class StatsResult implements Serializable {
+    private final double meanWordLength;
+
+    public StatsResult(double meanWordLength) {
+      this.meanWordLength = meanWordLength;
+    }
+
+    public double getMeanWordLength() {
+      return meanWordLength;
+    }
+
+    @Override
+    public String toString() {
+      return &quot;meanWordLength: &quot; + meanWordLength;
+    }
+  }
+
+  public static class JobFailed implements Serializable {
+    private final String reason;
+
+    public JobFailed(String reason) {
+      this.reason = reason;
+    }
+
+    public String getReason() {
+      return reason;
+    }
+
+    @Override
+    public String toString() {
+      return &quot;JobFailed(&quot; + reason + &quot;)&quot;;
+    }
+  }
+
+}</code></pre></dd>
+</dl>
+<p>The worker that counts number of characters in each word:</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-scala">class StatsWorker extends Actor {
+  var cache = Map.empty[String, Int]
+  def receive = {
+    case word: String ⇒
+      val length = cache.get(word) match {
+        case Some(x) ⇒ x
+        case None ⇒
+          val x = word.length
+          cache += (word → x)
+          x
+      }
+
+      sender() ! length
+  }
+}</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-java">public class StatsWorker extends AbstractActor {
+
+  Map&lt;String, Integer&gt; cache = new HashMap&lt;String, Integer&gt;();
+
+  @Override
+  public Receive createReceive() {
+    return receiveBuilder()
+      .match(String.class, word -&gt; {
+        Integer length = cache.get(word);
+        if (length == null) {
+          length = word.length();
+          cache.put(word, length);
+        }
+        getSender().tell(length, getSelf());
+      })
+      .build();
+  }
+}</code></pre></dd>
+</dl>
+<p>The service that receives text from users and splits it up into words, delegates to workers and aggregates:</p><div class="group-scala">
+<pre class="prettyprint"><code class="language-scala">class StatsService extends Actor {
+  // This router is used both with lookup and deploy of routees. If you
+  // have a router with only lookup of routees you can use Props.empty
+  // instead of Props[StatsWorker.class].
+  val workerRouter = context.actorOf(
+    FromConfig.props(Props[StatsWorker]),
+    name = &quot;workerRouter&quot;)
+
+  def receive = {
+    case StatsJob(text) if text != &quot;&quot; ⇒
+      val words = text.split(&quot; &quot;)
+      val replyTo = sender() // important to not close over sender()
+      // create actor that collects replies from workers
+      val aggregator = context.actorOf(Props(
+        classOf[StatsAggregator], words.size, replyTo))
+      words foreach { word ⇒
+        workerRouter.tell(
+          ConsistentHashableEnvelope(word, word), aggregator)
+      }
+  }
+}
+
+class StatsAggregator(expectedResults: Int, replyTo: ActorRef) extends Actor {
+  var results = IndexedSeq.empty[Int]
+  context.setReceiveTimeout(3.seconds)
+
+  def receive = {
+    case wordCount: Int ⇒
+      results = results :+ wordCount
+      if (results.size == expectedResults) {
+        val meanWordLength = results.sum.toDouble / results.size
+        replyTo ! StatsResult(meanWordLength)
+        context.stop(self)
+      }
+    case ReceiveTimeout ⇒
+      replyTo ! JobFailed(&quot;Service unavailable, try again later&quot;)
+      context.stop(self)
+  }
+}</code></pre></div><div class="group-java">
+<pre class="prettyprint"><code class="language-java">public class StatsService extends AbstractActor {
+
+  // This router is used both with lookup and deploy of routees. If you
+  // have a router with only lookup of routees you can use Props.empty()
+  // instead of Props.create(StatsWorker.class).
+  ActorRef workerRouter = getContext().actorOf(
+      FromConfig.getInstance().props(Props.create(StatsWorker.class)),
+      &quot;workerRouter&quot;);
+
+  @Override
+  public Receive createReceive() {
+    return receiveBuilder()
+      .match(StatsJob.class, job -&gt; !job.getText().isEmpty(), job -&gt; {
+        String[] words = job.getText().split(&quot; &quot;);
+        ActorRef replyTo = getSender();
+
+        // create actor that collects replies from workers
+        ActorRef aggregator = getContext().actorOf(
+          Props.create(StatsAggregator.class, words.length, replyTo));
+
+        // send each word to a worker
+        for (String word : words) {
+          workerRouter.tell(new ConsistentHashableEnvelope(word, word),
+            aggregator);
+        }
+
+      })
+      .build();
+  }
+}</code></pre>
+<pre class="prettyprint"><code class="language-java">public class StatsAggregator extends AbstractActor {
+
+  final int expectedResults;
+  final ActorRef replyTo;
+  final List&lt;Integer&gt; results = new ArrayList&lt;Integer&gt;();
+
+  public StatsAggregator(int expectedResults, ActorRef replyTo) {
+    this.expectedResults = expectedResults;
+    this.replyTo = replyTo;
+  }
+
+  @Override
+  public void preStart() {
+    getContext().setReceiveTimeout(Duration.create(3, TimeUnit.SECONDS));
+  }
+
+  @Override
+  public Receive createReceive() {
+    return receiveBuilder()
+      .match(Integer.class, wordCount -&gt; {
+        results.add(wordCount);
+        if (results.size() == expectedResults) {
+          int sum = 0;
+          for (int c : results) {
+            sum += c;
+          }
+          double meanWordLength = ((double) sum) / results.size();
+          replyTo.tell(new StatsResult(meanWordLength), getSelf());
+          getContext().stop(getSelf());
+        }
+      })
+      .match(ReceiveTimeout.class, x -&gt; {
+        replyTo.tell(new JobFailed(&quot;Service unavailable, try again later&quot;),
+          getSelf());
+        getContext().stop(getSelf());
+      })
+      .build();
+  }
+
+}</code></pre></div>
+<p>Note, nothing cluster specific so far, just plain actors.</p>
+<p>All nodes start <code>StatsService</code> and <code>StatsWorker</code> actors. Remember, routees are the workers in this case. The router is configured with <code>routees.paths</code>::</p>
+<pre><code>akka.actor.deployment {
+  /statsService/workerRouter {
+    router = consistent-hashing-group
+    routees.paths = [&quot;/user/statsWorker&quot;]
+    cluster {
+      enabled = on
+      allow-local-routees = on
+      use-roles = [&quot;compute&quot;]
+    }
+  }
+}
+</code></pre>
+<p>This means that user requests can be sent to <code>StatsService</code> on any node and it will use <code>StatsWorker</code> on all nodes.</p>
+<p>The easiest way to run <strong>Router Example with Group of Routees</strong> example yourself is to download the ready to run <span class="group-scala"><a href="https://example.lightbend.com/v1/download/akka-samples-cluster-scala">Akka Cluster Sample with Scala</a></span> <span class="group-java"><a href="https://example.lightbend.com/v1/download/akka-samples-cluster-java">Akka Cluster Sample with Java</a></span> together with the tutorial. It contains instructions on how to run the <strong>Router Example with Group of Routees</strong> sample. The source code of this sample can be found in the <span class="group-scala"><a href="https://github.com/akka/akka-samples/tree/2.5/akka-sample-cluster-scala">Akka Samples Repository</a></span><span class="group-java"><a href="https://github.com/akka/akka-samples/tree/2.5/akka-sample-cluster-java">Akka Samples Repository</a></span>.</p>
+<h3><a href="#router-with-pool-of-remote-deployed-routees" name="router-with-pool-of-remote-deployed-routees" class="anchor"><span class="anchor-link"></span></a>Router with Pool of Remote Deployed Routees</h3>
+<p>When using a <code>Pool</code> with routees created and deployed on the cluster member nodes the configuration for a router looks like this::</p>
+<pre><code>akka.actor.deployment {
+  /statsService/singleton/workerRouter {
+      router = consistent-hashing-pool
+      cluster {
+        enabled = on
+        max-nr-of-instances-per-node = 3
+        allow-local-routees = on
+        use-roles = [&quot;compute&quot;]
+      }
+    }
+}
+</code></pre>
+<p>It is possible to limit the deployment of routees to member nodes tagged with a particular set of roles by specifying <code>use-roles</code>.</p>
+<p><code>max-total-nr-of-instances</code> defines total number of routees in the cluster, but the number of routees per node, <code>max-nr-of-instances-per-node</code>, will not be exceeded. By default <code>max-total-nr-of-instances</code> is set to a high value (10000) that will result in new routees added to the router when nodes join the cluster. Set it to a lower value if you want to limit total number of routees.</p>
+<p>The same type of router could also have been defined in code:</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-scala">import akka.cluster.routing.{ ClusterRouterPool, ClusterRouterPoolSettings }
+import akka.routing.ConsistentHashingPool
+
+val workerRouter = context.actorOf(
+  ClusterRouterPool(ConsistentHashingPool(0), ClusterRouterPoolSettings(
+    totalInstances = 100, maxInstancesPerNode = 3,
+    allowLocalRoutees = false)).props(Props[StatsWorker]),
+  name = &quot;workerRouter3&quot;)</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-java">int totalInstances = 100;
+int maxInstancesPerNode = 3;
+boolean allowLocalRoutees = false;
+Set&lt;String&gt; useRoles = new HashSet&lt;&gt;(Arrays.asList(&quot;compute&quot;));
+ActorRef workerRouter = getContext().actorOf(
+  new ClusterRouterPool(new ConsistentHashingPool(0),
+    new ClusterRouterPoolSettings(totalInstances, maxInstancesPerNode,
+      allowLocalRoutees, useRoles)).props(Props
+        .create(StatsWorker.class)), &quot;workerRouter3&quot;);</code></pre></dd>
+</dl>
+<p>See <a href="#cluster-configuration">configuration</a> section for further descriptions of the settings.</p>
+<h3><a href="#router-example-with-pool-of-remote-deployed-routees" name="router-example-with-pool-of-remote-deployed-routees" class="anchor"><span class="anchor-link"></span></a>Router Example with Pool of Remote Deployed Routees</h3>
+<p>Let&rsquo;s take a look at how to use a cluster aware router on single master node that creates and deploys workers. To keep track of a single master we use the <a href="cluster-singleton.html">Cluster Singleton</a> in the cluster-tools module. The <code>ClusterSingletonManager</code> is started on each node:</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre><code>system.actorOf(
+  ClusterSingletonManager.props(
+    singletonProps = Props[StatsService],
+    terminationMessage = PoisonPill,
+    settings = ClusterSingletonManagerSettings(system).withRole(&quot;compute&quot;)),
+  name = &quot;statsService&quot;)
+</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-java">ClusterSingletonManagerSettings settings = ClusterSingletonManagerSettings.create(system)
+    .withRole(&quot;compute&quot;);
+system.actorOf(ClusterSingletonManager.props(
+    Props.create(StatsService.class), PoisonPill.getInstance(), settings),
+    &quot;statsService&quot;);</code></pre></dd>
+</dl>
+<p>We also need an actor on each node that keeps track of where current single master exists and delegates jobs to the <code>StatsService</code>. That is provided by the <code>ClusterSingletonProxy</code>:</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre><code>system.actorOf(
+  ClusterSingletonProxy.props(
+    singletonManagerPath = &quot;/user/statsService&quot;,
+    settings = ClusterSingletonProxySettings(system).withRole(&quot;compute&quot;)),
+  name = &quot;statsServiceProxy&quot;)
+</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-java">ClusterSingletonProxySettings proxySettings =
+    ClusterSingletonProxySettings.create(system).withRole(&quot;compute&quot;);
+system.actorOf(ClusterSingletonProxy.props(&quot;/user/statsService&quot;,
+    proxySettings), &quot;statsServiceProxy&quot;);</code></pre></dd>
+</dl>
+<p>The <code>ClusterSingletonProxy</code> receives text from users and delegates to the current <code>StatsService</code>, the single master. It listens to cluster events to lookup the <code>StatsService</code> on the oldest node.</p>
+<p>All nodes start <code>ClusterSingletonProxy</code> and the <code>ClusterSingletonManager</code>. The router is now configured like this::</p>
+<pre><code>akka.actor.deployment {
+  /statsService/singleton/workerRouter {
+    router = consistent-hashing-pool
+    cluster {
+      enabled = on
+      max-nr-of-instances-per-node = 3
+      allow-local-routees = on
+      use-roles = [&quot;compute&quot;]
+    }
+  }
+}
+</code></pre>
+<p>The easiest way to run <strong>Router Example with Pool of Remote Deployed Routees</strong> example yourself is to download the ready to run <span class="group-scala"><a href="https://example.lightbend.com/v1/download/akka-samples-cluster-scala">Akka Cluster Sample with Scala</a></span> <span class="group-java"><a href="https://example.lightbend.com/v1/download/akka-samples-cluster-java">Akka Cluster Sample with Java</a></span> together with the tutorial. It contains instructions on how to run the <strong>Router Example with Pool of Remote Deployed Routees</strong> sample. The source code of this sample can be found in the <span class="group-scala"><a href="https://github.com/akka/akka-samples/tree/2.5/akka-sample-cluster-scala">Akka Samples Repository</a></span><span class="group-java"><a href="https://github.com/akka/akka-samples/tree/2.5/akka-sample-cluster-java">Akka Samples Repository</a></span>.</p>
+<h2><a href="#cluster-metrics" name="cluster-metrics" class="anchor"><span class="anchor-link"></span></a>Cluster Metrics</h2>
+<p>The member nodes of the cluster can collect system health metrics and publish that to other cluster nodes and to the registered subscribers on the system event bus with the help of <code>cluster-metrics</code>.</p><div class="group-scala">
+<h2><a href="#how-to-test" name="how-to-test" class="anchor"><span class="anchor-link"></span></a>How to Test</h2>
+<p><a href="multi-node-testing.html">Multi Node Testing</a> is useful for testing cluster applications.</p>
+<p>Set up your project according to the instructions in <a href="multi-node-testing.html">Multi Node Testing</a> and <a href="multi-jvm-testing.html">Multi JVM Testing</a>, i.e. add the <code>sbt-multi-jvm</code> plugin and the dependency to <code>akka-multi-node-testkit</code>.</p>
+<p>First, as described in <a href="multi-node-testing.html">Multi Node Testing</a>, we need some scaffolding to configure the <code>MultiNodeSpec</code>. Define the participating roles and their <a href="#cluster-configuration">configuration</a> in an object extending <code>MultiNodeConfig</code>:</p>
+<pre class="prettyprint"><code class="language-scala">import akka.remote.testkit.MultiNodeConfig
+import com.typesafe.config.ConfigFactory
+
+object StatsSampleSpecConfig extends MultiNodeConfig {
+  // register the named roles (nodes) of the test
+  val first = role(&quot;first&quot;)
+  val second = role(&quot;second&quot;)
+  val third = role(&quot;third&quot;)
+
+  def nodeList = Seq(first, second, third)
+
+  // Extract individual sigar library for every node.
+  nodeList foreach { role ⇒
+    nodeConfig(role) {
+      ConfigFactory.parseString(s&quot;&quot;&quot;
+      # Enable metrics extension in akka-cluster-metrics.
+      akka.extensions=[&quot;akka.cluster.metrics.ClusterMetricsExtension&quot;]
+      # Sigar native library extract location during tests.
+      akka.cluster.metrics.native-library-extract-folder=target/native/${role.name}
+      &quot;&quot;&quot;)
+    }
+  }
+
+  // this configuration will be used for all nodes
+  // note that no fixed host names and ports are used
+  commonConfig(ConfigFactory.parseString(&quot;&quot;&quot;
+    akka.actor.provider = cluster
+    akka.remote.log-remote-lifecycle-events = off
+    akka.cluster.roles = [compute]
+    akka.actor.deployment {
+      /statsService/workerRouter {
+          router = consistent-hashing-group
+          routees.paths = [&quot;/user/statsWorker&quot;]
+          cluster {
+            enabled = on
+            allow-local-routees = on
+            use-roles = [&quot;compute&quot;]
+          }
+        }
+    }
+    &quot;&quot;&quot;))
+
+}</code></pre>
+<p>Define one concrete test class for each role/node. These will be instantiated on the different nodes (JVMs). They can be implemented differently, but often they are the same and extend an abstract test class, as illustrated here.</p>
+<pre class="prettyprint"><code class="language-scala">// need one concrete test class per node
+class StatsSampleSpecMultiJvmNode1 extends StatsSampleSpec
+class StatsSampleSpecMultiJvmNode2 extends StatsSampleSpec
+class StatsSampleSpecMultiJvmNode3 extends StatsSampleSpec</code></pre>
+<p>Note the naming convention of these classes. The name of the classes must end with <code>MultiJvmNode1</code>, <code>MultiJvmNode2</code> and so on. It is possible to define another suffix to be used by the <code>sbt-multi-jvm</code>, but the default should be fine in most cases.</p>
+<p>Then the abstract <code>MultiNodeSpec</code>, which takes the <code>MultiNodeConfig</code> as constructor parameter.</p>
+<pre class="prettyprint"><code class="language-scala">import akka.remote.testkit.MultiNodeSpec
+import akka.testkit.ImplicitSender
+import org.scalatest.{ BeforeAndAfterAll, Matchers, WordSpecLike }
+
+abstract class StatsSampleSpec extends MultiNodeSpec(StatsSampleSpecConfig)
+  with WordSpecLike with Matchers with BeforeAndAfterAll
+  with ImplicitSender {
+
+  import StatsSampleSpecConfig._
+
+  override def initialParticipants = roles.size
+
+  override def beforeAll() = multiNodeSpecBeforeAll()
+
+  override def afterAll() = multiNodeSpecAfterAll()
+</code></pre>
+<p>Most of this can of course be extracted to a separate trait to avoid repeating this in all your tests.</p>
+<p>Typically you begin your test by starting up the cluster and let the members join, and create some actors. That can be done like this:</p>
+<pre class="prettyprint"><code class="language-scala">&quot;illustrate how to startup cluster&quot; in within(15 seconds) {
+  Cluster(system).subscribe(testActor, classOf[MemberUp])
+  expectMsgClass(classOf[CurrentClusterState])
+
+  val firstAddress = node(first).address
+  val secondAddress = node(second).address
+  val thirdAddress = node(third).address
+
+  Cluster(system) join firstAddress
+
+  system.actorOf(Props[StatsWorker], &quot;statsWorker&quot;)
+  system.actorOf(Props[StatsService], &quot;statsService&quot;)
+
+  receiveN(3).collect { case MemberUp(m) ⇒ m.address }.toSet should be(
+    Set(firstAddress, secondAddress, thirdAddress))
+
+  Cluster(system).unsubscribe(testActor)
+
+  testConductor.enter(&quot;all-up&quot;)
+}</code></pre>
+<p>From the test you interact with the cluster using the <code>Cluster</code> extension, e.g. <code>join</code>.</p>
+<pre class="prettyprint"><code class="language-scala">Cluster(system) join firstAddress</code></pre>
+<p>Notice how the <em>testActor</em> from <a href="testing.html">testkit</a> is added as <a href="#cluster-subscriber">subscriber</a> to cluster changes and then waiting for certain events, such as in this case all members becoming &lsquo;Up&rsquo;.</p>
+<p>The above code was running for all roles (JVMs). <code>runOn</code> is a convenient utility to declare that a certain block of code should only run for a specific role.</p>
+<pre class="prettyprint"><code class="language-scala">&quot;show usage of the statsService from one node&quot; in within(15 seconds) {
+  runOn(second) {
+    assertServiceOk()
+  }
+
+  testConductor.enter(&quot;done-2&quot;)
+}
+
+def assertServiceOk(): Unit = {
+  val service = system.actorSelection(node(third) / &quot;user&quot; / &quot;statsService&quot;)
+  // eventually the service should be ok,
+  // first attempts might fail because worker actors not started yet
+  awaitAssert {
+    service ! StatsJob(&quot;this is the text that will be analyzed&quot;)
+    expectMsgType[StatsResult](1.second).meanWordLength should be(
+      3.875 +- 0.001)
+  }
+
+}</code></pre>
+<p>Once again we take advantage of the facilities in <a href="testing.html">testkit</a> to verify expected behavior. Here using <code>testActor</code> as sender (via <code>ImplicitSender</code>) and verifying the reply with <code>expectMsgPF</code>.</p>
+<p>In the above code you can see <code>node(third)</code>, which is useful facility to get the root actor reference of the actor system for a specific role. This can also be used to grab the <code>akka.actor.Address</code> of that node.</p>
+<pre class="prettyprint"><code class="language-scala">val firstAddress = node(first).address
+val secondAddress = node(second).address
+val thirdAddress = node(third).address</code></pre></div><div class="group-java">
+<h2><a href="#how-to-test" name="how-to-test" class="anchor"><span class="anchor-link"></span></a>How to Test</h2>
+<p>Currently testing with the <code>sbt-multi-jvm</code> plugin is only documented for Scala. Go to the corresponding Scala version of this page for details.</p></div>
+<h2><a href="#management" name="management" class="anchor"><span class="anchor-link"></span></a>Management</h2>
+<a id="cluster-http"></a>
+<h3><a href="#http" name="http" class="anchor"><span class="anchor-link"></span></a>HTTP</h3>
+<p>Information and management of the cluster is available with a HTTP API. See documentation of <a href="http://developer.lightbend.com/docs/akka-management/current/">Akka Management</a>.</p>
+<a id="cluster-jmx"></a>
+<h3><a href="#jmx" name="jmx" class="anchor"><span class="anchor-link"></span></a>JMX</h3>
+<p>Information and management of the cluster is available as JMX MBeans with the root name <code>akka.Cluster</code>. The JMX information can be displayed with an ordinary JMX console such as JConsole or JVisualVM.</p>
+<p>From JMX you can:</p>
+<ul>
+  <li>see what members that are part of the cluster</li>
+  <li>see status of this node</li>
+  <li>see roles of each member</li>
+  <li>join this node to another node in cluster</li>
+  <li>mark any node in the cluster as down</li>
+  <li>tell any node in the cluster to leave</li>
+</ul>
+<p>Member nodes are identified by their address, in format <em>akka.<protocol>://<actor-system-name>@<hostname>:<port></em>.</p>
+<a id="cluster-command-line"></a>
+<h3><a href="#command-line" name="command-line" class="anchor"><span class="anchor-link"></span></a>Command Line</h3><div class="callout warning "><div class="callout-title">Warning</div>
+<p><strong>Deprecation warning</strong> - The command line script has been deprecated and is scheduled for removal in the next major version. Use the <a href="#cluster-http">HTTP management</a> API with <a href="https://curl.haxx.se/">curl</a> or similar instead.</p></div>
+<p>The cluster can be managed with the script <code>akka-cluster</code> provided in the Akka GitHub repository <a href="http://github.com/akka/akka/tree/v2.5.9/akka-cluster/jmx-client">here</a>. Place the script and the <code>jmxsh-R5.jar</code> library in the same directory.</p>
+<p>Run it without parameters to see instructions about how to use the script:</p>
+<pre><code>Usage: ./akka-cluster &lt;node-hostname&gt; &lt;jmx-port&gt; &lt;command&gt; ...
+
+Supported commands are:
+           join &lt;node-url&gt; - Sends request a JOIN node with the specified URL
+          leave &lt;node-url&gt; - Sends a request for node with URL to LEAVE the cluster
+           down &lt;node-url&gt; - Sends a request for marking node with URL as DOWN
+             member-status - Asks the member node for its current status
+                   members - Asks the cluster for addresses of current members
+               unreachable - Asks the cluster for addresses of unreachable members
+            cluster-status - Asks the cluster for its current status (member ring,
+                             unavailable nodes, meta data etc.)
+                    leader - Asks the cluster who the current leader is
+              is-singleton - Checks if the cluster is a singleton cluster (single
+                             node cluster)
+              is-available - Checks if the member node is available
+Where the &lt;node-url&gt; should be on the format of
+  &#39;akka.&lt;protocol&gt;://&lt;actor-system-name&gt;@&lt;hostname&gt;:&lt;port&gt;&#39;
+
+Examples: ./akka-cluster localhost 9999 is-available
+          ./akka-cluster localhost 9999 join akka.tcp://MySystem@darkstar:2552
+          ./akka-cluster localhost 9999 cluster-status
+</code></pre>
+<p>To be able to use the script you must enable remote monitoring and management when starting the JVMs of the cluster nodes, as described in <a href="http://docs.oracle.com/javase/8/docs/technotes/guides/management/agent.html">Monitoring and Management Using JMX Technology</a>. Make sure you understand the security implications of enabling remote monitoring and management.</p>
+<a id="cluster-configuration"></a>
+<h2><a href="#configuration" name="configuration" class="anchor"><span class="anchor-link"></span></a>Configuration</h2>
+<p>There are several configuration properties for the cluster. We refer to the <a href="general/configuration.html#config-akka-cluster">reference configuration</a> for more information.</p>
+<h3><a href="#cluster-info-logging" name="cluster-info-logging" class="anchor"><span class="anchor-link"></span></a>Cluster Info Logging</h3>
+<p>You can silence the logging of cluster events at info level with configuration property:</p>
+<pre><code>akka.cluster.log-info = off
+</code></pre>
+<a id="cluster-dispatcher"></a>
+<h3><a href="#cluster-dispatcher" name="cluster-dispatcher" class="anchor"><span class="anchor-link"></span></a>Cluster Dispatcher</h3>
+<p>Under the hood the cluster extension is implemented with actors and it can be necessary to create a bulkhead for those actors to avoid disturbance from other actors. Especially the heartbeating actors that is used for failure detection can generate false positives if they are not given a chance to run at regular intervals. For this purpose you can define a separate dispatcher to be used for the cluster actors:</p>
+<pre><code>akka.cluster.use-dispatcher = cluster-dispatcher
+
+cluster-dispatcher {
+  type = &quot;Dispatcher&quot;
+  executor = &quot;fork-join-executor&quot;
+  fork-join-executor {
+    parallelism-min = 2
+    parallelism-max = 4
+  }
+}
+</code></pre><div class="callout note "><div class="callout-title">Note</div>
+<p>Normally it should not be necessary to configure a separate dispatcher for the Cluster. The default-dispatcher should be sufficient for performing the Cluster tasks, i.e. <code>akka.cluster.use-dispatcher</code> should not be changed. If you have Cluster related problems when using the default-dispatcher that is typically an indication that you are running blocking or CPU intensive actors/tasks on the default-dispatcher. Use dedicated dispatchers for such actors/tasks instead of running them on the default-dispatcher, because that may starve system internal tasks. Related config properties: <code>akka.cluster.use-dispatcher = akka.cluster.cluster-dispatcher</code>. Corresponding default values: <code>akka.cluster.use-dispatcher =</code>.</p></div>
+</div>
+</article>
+
+<div class="row">
+<div class="small-12 large-9 column">
+<section class="nav-prev-next row">
+<div class="nav-prev small-6 column">
+<a href="common/cluster.html"><i class="icon-prev"></i> <span class="link-prev">Cluster Specification</span></a>
+</div>
+<div class="nav-next small-6 column clearfix">
+<a class="float-right" href="cluster-singleton.html">Cluster Singleton <i class="icon-next"></i></a>
+</div>
+</section>
+</div>
+</div>
+
+<div class="source-github row">
+Found an error in this documentation? The source code for this page can be found <a href="https://github.com/akka/akka/tree/master/akka-docs/src/main/paradox/cluster-usage.md">here</a>.
+Please feel free to edit and contribute a pull request.
+</div>
+
+
+<footer class="page-footer row clearfix">
+<img class="akka-icon float-left show-for-medium" src="images/akka-icon.svg">
+<section class="copyright">
+<div>&copy; 2011-2018 <a href="https://www.lightbend.com">Lightbend</a></div>
+<div>Akka is Open Source and available under the Apache 2 License.</div>
+</section>
+</footer>
+
+</section>
+</main>
+
+<script type="text/javascript" src="js/scrollsneak.js"></script>
+<script type="text/javascript">jQuery(document).foundation();</script>
+<script type="text/javascript" src="js/groups.js"></script>
+<script type="text/javascript" src="js/page.js"></script>
+<script type="text/javascript" src="js/magellan.js"></script>
+
+<style type="text/css">@import "lib/prettify/prettify.css";</style>
+<script type="text/javascript" src="lib/prettify/prettify.js"></script>
+<script type="text/javascript" src="lib/prettify/lang-scala.js"></script>
+<script type="text/javascript">jQuery(function(){window.prettyPrint && prettyPrint()});</script>
+
+<!-- Algolia docs search -->
+<script type="text/javascript" src="https://cdn.jsdelivr.net/docsearch.js/2/docsearch.min.js"></script>
+<style>.algolia-autocomplete { display: block !important }</style>
+<script type="text/javascript">
+var lang = "scala";
+var path = window.location.pathname;
+if (path.includes("/java/") || path.includes("java.html")) {
+lang = "java";
+}
+
+docsearch({
+apiKey: '543bad5ad786495d9ccd445ed34ed082',
+indexName: 'akka_io',
+inputSelector: '#search',
+algoliaOptions: {
+hitsPerPage: 5,
+facetFilters: ["language:" + lang]
+}
+});
+
+docsearch({
+apiKey: '543bad5ad786495d9ccd445ed34ed082',
+indexName: 'akka_io',
+inputSelector: '#overlay-search',
+algoliaOptions: {
+hitsPerPage: 5,
+facetFilters: ["language:" + lang]
+}
+});
+
+// set up "/" as global shortcut for focusing on search
+jQuery(document).keypress(function (event) {
+if (event.keyCode == 47) {
+jQuery("#search").focus();
+return false; // swallow key event, otherwise the / char would be input into the search box
+}
+});
+</script>
+
+
+</body>
+</html>

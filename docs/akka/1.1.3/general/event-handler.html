@@ -1,0 +1,150 @@
+
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Event Handler &mdash; Akka Documentation</title>
+    <link rel="stylesheet" href="../_static/akka.css" type="text/css" />
+<link rel="stylesheet" href="https://doc.akka.io/docs/akka/1.1.3/_static/docs.css" type="text/css"/>
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/print.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '1.1.3',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+<script type="text/javascript" src="https://doc.akka.io/docs/akka/1.1.3/_static/warnOldDocs.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="../_static/theme_extras.js"></script>
+    <link rel="top" title="Akka Documentation" href="../index.html" />
+    <link rel="up" title="General" href="index.html" />
+    <link rel="next" title="SLF4J" href="slf4j.html" />
+    <link rel="prev" title="Configuration" href="configuration.html" /> 
+  </head>
+  <body>
+      <div class="header"><a href="../index.html"><img class="leftlogo" src="../_static/logo.png" alt="Logo"/></a><h1 class="heading"><a href="../index.html"><span>Akka Documentation</span></a></h1>
+       <h2 class="heading"><a href="../index.html"><span>Version 1.1.3</span></a></h2>
+       <h2 class="rightheading"><span><a href="https://akka.io/docs/akka/1.1.3/Akka.pdf">PDF</a></span></h2>
+      </div>
+      <div class="topnav">
+      
+        <p>
+        «&#160;&#160;<a href="configuration.html">Configuration</a>
+        &#160;&#160;::&#160;&#160;
+        <a class="uplink" href="../index.html">Contents</a>
+        &#160;&#160;::&#160;&#160;
+        <a href="slf4j.html">SLF4J</a>&#160;&#160;»
+        </p>
+
+      </div>
+      <div class="content">
+        
+        
+  <div class="section" id="event-handler">
+<span id="id1"></span><h1>Event Handler<a class="headerlink" href="#event-handler" title="Permalink to this headline">¶</a></h1>
+<p>There is an Event Handler which takes the place of a logging system in Akka:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="n">akka</span><span class="o">.</span><span class="n">event</span><span class="o">.</span><span class="nc">EventHandler</span>
+</pre></div>
+</div>
+<p>You can configure which event handlers should be registered at boot time. That is done using the &#8216;event-handlers&#8217; element in akka.conf. Here you can also define the log level.</p>
+<div class="highlight-ruby"><div class="highlight"><pre><span class="n">akka</span> <span class="p">{</span>
+  <span class="c1"># event handlers to register at boot time (EventHandler$DefaultListener logs to STDOUT)</span>
+  <span class="n">event</span><span class="o">-</span><span class="n">handlers</span> <span class="o">=</span> <span class="o">[</span><span class="s2">&quot;akka.event.EventHandler$DefaultListener&quot;</span><span class="o">]</span>
+  <span class="n">event</span><span class="o">-</span><span class="n">handler</span><span class="o">-</span><span class="n">level</span> <span class="o">=</span> <span class="s2">&quot;DEBUG&quot;</span> <span class="c1"># Options: ERROR, WARNING, INFO, DEBUG</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>The default one logs to STDOUT and is registered by default. It is not intended to be used for production. There is also an <a class="reference internal" href="slf4j.html#slf4j"><em>SLF4J</em></a> event handler available in the &#8216;akka-slf4j&#8217; module.</p>
+<p>Example of creating a listener from Scala (from Java you just have to create an &#8216;UntypedActor&#8217; and create a handler for these messages):</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">val</span> <span class="n">errorHandlerEventListener</span> <span class="k">=</span> <span class="nc">Actor</span><span class="o">.</span><span class="n">actorOf</span><span class="o">(</span><span class="k">new</span> <span class="nc">Actor</span> <span class="o">{</span>
+  <span class="n">self</span><span class="o">.</span><span class="n">dispatcher</span> <span class="k">=</span> <span class="nc">EventHandler</span><span class="o">.</span><span class="nc">EventHandlerDispatcher</span>
+
+  <span class="k">def</span> <span class="n">receive</span> <span class="k">=</span> <span class="o">{</span>
+    <span class="k">case</span> <span class="nc">EventHandler</span><span class="o">.</span><span class="nc">Error</span><span class="o">(</span><span class="n">cause</span><span class="o">,</span> <span class="n">instance</span><span class="o">,</span> <span class="n">message</span><span class="o">)</span> <span class="k">=&gt;</span> <span class="o">...</span>
+    <span class="k">case</span> <span class="nc">EventHandler</span><span class="o">.</span><span class="nc">Warning</span><span class="o">(</span><span class="n">instance</span><span class="o">,</span> <span class="n">message</span><span class="o">)</span> <span class="k">=&gt;</span> <span class="o">...</span>
+    <span class="k">case</span> <span class="nc">EventHandler</span><span class="o">.</span><span class="nc">Info</span><span class="o">(</span><span class="n">instance</span><span class="o">,</span> <span class="n">message</span><span class="o">)</span> <span class="k">=&gt;</span> <span class="o">...</span>
+    <span class="k">case</span> <span class="nc">EventHandler</span><span class="o">.</span><span class="nc">Debug</span><span class="o">(</span><span class="n">instance</span><span class="o">,</span> <span class="n">message</span><span class="o">)</span> <span class="k">=&gt;</span> <span class="o">...</span>
+    <span class="k">case</span> <span class="n">genericEvent</span> <span class="k">=&gt;</span> <span class="o">...</span>
+  <span class="o">}</span>
+<span class="o">})</span>
+</pre></div>
+</div>
+<p>To add the listener:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="nc">EventHandler</span><span class="o">.</span><span class="n">addListener</span><span class="o">(</span><span class="n">errorHandlerEventListener</span><span class="o">)</span>
+</pre></div>
+</div>
+<p>To remove the listener:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="nc">EventHandler</span><span class="o">.</span><span class="n">removeListener</span><span class="o">(</span><span class="n">errorHandlerEventListener</span><span class="o">)</span>
+</pre></div>
+</div>
+<p>To log an event:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="nc">EventHandler</span><span class="o">.</span><span class="n">notify</span><span class="o">(</span><span class="nc">EventHandler</span><span class="o">.</span><span class="nc">Error</span><span class="o">(</span><span class="n">exception</span><span class="o">,</span> <span class="k">this</span><span class="o">,</span> <span class="n">message</span><span class="o">))</span>
+
+<span class="nc">EventHandler</span><span class="o">.</span><span class="n">notify</span><span class="o">(</span><span class="nc">EventHandler</span><span class="o">.</span><span class="nc">Warning</span><span class="o">(</span><span class="k">this</span><span class="o">,</span> <span class="n">message</span><span class="o">))</span>
+
+<span class="nc">EventHandler</span><span class="o">.</span><span class="n">notify</span><span class="o">(</span><span class="nc">EventHandler</span><span class="o">.</span><span class="nc">Info</span><span class="o">(</span><span class="k">this</span><span class="o">,</span> <span class="n">message</span><span class="o">))</span>
+
+<span class="nc">EventHandler</span><span class="o">.</span><span class="n">notify</span><span class="o">(</span><span class="nc">EventHandler</span><span class="o">.</span><span class="nc">Debug</span><span class="o">(</span><span class="k">this</span><span class="o">,</span> <span class="n">message</span><span class="o">))</span>
+
+<span class="nc">EventHandler</span><span class="o">.</span><span class="n">notify</span><span class="o">(</span><span class="n">object</span><span class="o">)</span>
+</pre></div>
+</div>
+<p>You can also use one of the direct methods (for a bit better performance):</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="nc">EventHandler</span><span class="o">.</span><span class="n">error</span><span class="o">(</span><span class="n">exception</span><span class="o">,</span> <span class="k">this</span><span class="o">,</span> <span class="n">message</span><span class="o">)</span>
+
+<span class="nc">EventHandler</span><span class="o">.</span><span class="n">error</span><span class="o">(</span><span class="k">this</span><span class="o">,</span> <span class="n">message</span><span class="o">)</span>
+
+<span class="nc">EventHandler</span><span class="o">.</span><span class="n">warning</span><span class="o">(</span><span class="k">this</span><span class="o">,</span> <span class="n">message</span><span class="o">)</span>
+
+<span class="nc">EventHandler</span><span class="o">.</span><span class="n">info</span><span class="o">(</span><span class="k">this</span><span class="o">,</span> <span class="n">message</span><span class="o">)</span>
+
+<span class="nc">EventHandler</span><span class="o">.</span><span class="n">debug</span><span class="o">(</span><span class="k">this</span><span class="o">,</span> <span class="n">message</span><span class="o">)</span>
+</pre></div>
+</div>
+<p>The event handler allows you to send an arbitrary object to the handler which you can handle in your event handler listener. The default listener prints it&#8217;s toString String out to STDOUT.</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="nc">EventHandler</span><span class="o">.</span><span class="n">notify</span><span class="o">(</span><span class="n">anyRef</span><span class="o">)</span>
+</pre></div>
+</div>
+<p>The methods take a call-by-name parameter for the message to avoid object allocation and execution if level is disabled. The following formatting function will not be evaluated if level is INFO, WARNING, or ERROR.</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="nc">EventHandler</span><span class="o">.</span><span class="n">debug</span><span class="o">(</span><span class="k">this</span><span class="o">,</span> <span class="s">&quot;Processing took %s ms&quot;</span><span class="o">.</span><span class="n">format</span><span class="o">(</span><span class="n">duration</span><span class="o">))</span>
+</pre></div>
+</div>
+<p>From Java you need to nest the call in an if statement to achieve the same thing.</p>
+<div class="highlight-java"><div class="highlight"><pre><span class="k">if</span> <span class="o">(</span><span class="n">EventHandler</span><span class="o">.</span><span class="na">isDebugEnabled</span><span class="o">())</span> <span class="o">{</span>
+  <span class="n">EventHandler</span><span class="o">.</span><span class="na">debug</span><span class="o">(</span><span class="k">this</span><span class="o">,</span> <span class="n">String</span><span class="o">.</span><span class="na">format</span><span class="o">(</span><span class="s">&quot;Processing took %s ms&quot;</span><span class="o">,</span> <span class="n">duration</span><span class="o">));</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+</div>
+
+
+      </div>
+      <div class="bottomnav">
+      
+        <p>
+        «&#160;&#160;<a href="configuration.html">Configuration</a>
+        &#160;&#160;::&#160;&#160;
+        <a class="uplink" href="../index.html">Contents</a>
+        &#160;&#160;::&#160;&#160;
+        <a href="slf4j.html">SLF4J</a>&#160;&#160;»
+        </p>
+
+      </div>
+
+    <div class="footer">
+        &copy; Copyright 2011, Typesafe Inc.
+      Last updated on Jun 29, 2011.
+    </div>
+  </body>
+</html>

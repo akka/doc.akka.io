@@ -1,0 +1,841 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" /><meta name="description" content="Akka is a toolkit for building highly concurrent, distributed, and resilient message-driven applications for Java and Scala."/><link rel="canonical" href="https://doc.akka.io/docs/akka/2.2/scala/io-codec.html"/>
+    
+    <title>Encoding and decoding binary data &mdash; Akka Documentation</title>
+    
+    <link rel="stylesheet" href="../_static/style.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/prettify.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/base.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
+    <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Exo:300,400,600,700" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '2.2.5',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+<script type="text/javascript" src="https://doc.akka.io/docs/akka/2.2.5/_static/warnOldDocs.js"></script>
+<script type="text/javascript" src="https://doc.akka.io/docs/akka/2.2.5/_static/warnOldDocs.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="../_static/toc.js"></script>
+    <script type="text/javascript" src="../_static/prettify.js"></script>
+    <script type="text/javascript" src="../_static/highlightCode.js"></script>
+    <script type="text/javascript" src="../_static/effects.core.js"></script>
+    <script type="text/javascript" src="../_static/effects.highlight.js"></script>
+    <script type="text/javascript" src="../_static/scrollTo.js"></script>
+    <script type="text/javascript" src="../_static/contentsFix.js"></script>
+    <script type="text/javascript" src="../_static/ga.js"></script>
+    <link rel="shortcut icon" href="../_static/favicon.ico"/>
+    <link rel="top" title="Akka Documentation" href="../index.html" />
+    <link rel="up" title="Networking" href="index-network.html" />
+    <link rel="next" title="Using TCP" href="io-tcp.html" />
+    <link rel="prev" title="Old IO" href="io-old.html" />
+    <!--Google Analytics-->
+    <script type="text/javascript">
+      var _gaq = _gaq || [];
+      _gaq.push(['_setAccount', 'UA-21117439-1']);
+      _gaq.push(['_setDomainName', 'akka.io']);
+      _gaq.push(['_trackPageview']);
+      (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+      })()
+    </script>
+
+  </head>
+  <body>
+  <div class="navbar">
+    <div class="navbar-inner">
+      <div class="container">
+        <div class="navbar-logo">
+          <a href="https://akka.io"><img src="../_static/logo-small.png" /></a>
+        </div>    
+        <ul class="nav">
+          <li><a href="https://akka.io/docs">Documentation</a></li>
+          <li><a href="https://akka.io/faq">FAQ</a></li>
+          <li><a href="http://typesafe.com/stack/downloads/akka">Download</a></li>
+          <li><a href="http://groups.google.com/group/akka-user">Mailing List</a></li>
+          <li><a href="http://github.com/akka/akka">Code</a></li>           
+          <li><a href="http://typesafe.com/products/typesafe-subscription">Commercial Support</a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="main">
+    <div class="container">
+      <div class="page-title">Encoding and decoding binary data</div>
+      <div class="pdf-link"><a href="../AkkaScala.pdf" title="Akka Scala Documentation"><img src="../_static/pdf-scala-icon.png" style="height: 40px;" /></a></div>
+      <div class="pdf-link"><a href="../AkkaJava.pdf" title="Akka Java Documentation"><img src="../_static/pdf-java-icon.png" style="height: 40px;" /></a></div>
+    </div>
+    <div class="main-container">
+      <div class="container">
+        <div class="row">
+          <div class="span12">
+            <ul class="breadcrumb">           
+              <li>
+                 <span class="divider">|</span> <a href="io-tcp.html">Using TCP</a> <span class="divider">»</span>
+              </li>
+              <li>
+                <a href="../index.html">Contents</a>
+              </li>
+              <li>
+                <span class="divider">«</span> <a href="io-old.html">Old IO</a> <span class="divider">|</span>
+              </li>
+              <li>
+                Version 2.2.5
+              </li>
+            </ul>
+          </div>
+        </div>
+        <div class="row">
+          <div class="span9">
+            <div id="cse">Loading</div>
+          </div><div class="span9">
+            
+  <div class="section" id="encoding-and-decoding-binary-data">
+<span id="io-scala-codec"></span><h1>Encoding and decoding binary data</h1>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Previously Akka offered a specialized Iteratee implementation in the
+<tt class="docutils literal"><span class="pre">akka.actor.IO</span></tt> object which is now deprecated in favor of the pipeline
+mechanism described here. The documentation for Iteratees can be found <a class="reference external" href="https://doc.akka.io/docs/akka/2.1.4/scala/io.html#Encoding_and_decoding_of_binary_data">here</a>.</p>
+</div>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">The IO implementation is marked as <strong>“experimental”</strong> as of its introduction
+in Akka 2.2.0. We will continue to improve this API based on our users’
+feedback, which implies that while we try to keep incompatible changes to a
+minimum the binary compatibility guarantee for maintenance releases does not
+apply to the contents of the <cite>akka.io</cite> package.</p>
+</div>
+<p>Akka adopted and adapted the implementation of data processing pipelines found
+in the <tt class="docutils literal"><span class="pre">spray-io</span></tt> module. The idea is that encoding and decoding often
+go hand in hand and keeping the code pertaining to one protocol layer together
+is deemed more important than writing down the complete read side—say—in the
+iteratee style in one go; pipelines encourage packaging the stages in a form
+which lends itself better to reuse in a protocol stack. Another reason for
+choosing this abstraction is that it is at times necessary to change the
+behavior of encoding and decoding within a stage based on a message stream’s
+state, and pipeline stages allow communication between the read and write
+halves quite naturally.</p>
+<p>The actual byte-fiddling can be done within pipeline stages, for example using
+the rich API of <tt class="xref py py-class docutils literal"><span class="pre">ByteIterator</span></tt> and <tt class="xref py py-class docutils literal"><span class="pre">ByteStringBuilder</span></tt> as shown
+below. All these activities are synchronous transformations which benefit
+greatly from CPU affinity to make good use of those data caches. Therefore the
+design of the pipeline infrastructure is completely synchronous, every stage’s
+handler code can only directly return the events and/or commands resulting from
+an input, there are no callbacks. Exceptions thrown within a pipeline stage
+will abort processing of the whole pipeline under the assumption that
+recoverable error conditions will be signaled in-band to the next stage instead
+of raising an exception.</p>
+<p>An overall “logical” pipeline can span multiple execution contexts, for example
+starting with the low-level protocol layers directly within an actor handling
+the reads and writes to a TCP connection and then being passed to a number of
+higher-level actors which do the costly application level processing. This is
+supported by feeding the generated events into a sink which sends them to
+another actor, and that other actor will then upon reception feed them into its
+own pipeline.</p>
+<div class="section" id="introducing-the-sample-protocol">
+<h2>Introducing the Sample Protocol</h2>
+<p>In the following the process of implementing a protocol stack using pipelines
+is demonstrated on the following simple example:</p>
+<div class="highlight-text"><div class="highlight"><pre>frameLen: Int
+persons: Int
+persons times {
+  first: String
+  last: String
+}
+points: Int
+points times Double
+</pre></div>
+</div>
+<p>mapping to the following data type:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">case</span> <span class="k">class</span> <span class="nc">Person</span><span class="o">(</span><span class="n">first</span><span class="k">:</span> <span class="kt">String</span><span class="o">,</span> <span class="n">last</span><span class="k">:</span> <span class="kt">String</span><span class="o">)</span>
+<span class="k">case</span> <span class="k">class</span> <span class="nc">HappinessCurve</span><span class="o">(</span><span class="n">points</span><span class="k">:</span> <span class="kt">IndexedSeq</span><span class="o">[</span><span class="kt">Double</span><span class="o">])</span>
+<span class="k">case</span> <span class="k">class</span> <span class="nc">Message</span><span class="o">(</span><span class="n">persons</span><span class="k">:</span> <span class="kt">Seq</span><span class="o">[</span><span class="kt">Person</span><span class="o">],</span> <span class="n">stats</span><span class="k">:</span> <span class="kt">HappinessCurve</span><span class="o">)</span>
+</pre></div>
+</div>
+<p>We will split the handling of this protocol into two parts: the frame-length
+encoding handles the buffering necessary on the read side and the actual
+encoding of the frame contents is done in a separate stage.</p>
+</div>
+<div class="section" id="building-a-pipeline-stage">
+<h2>Building a Pipeline Stage</h2>
+<p>As a common example, which is also included in the <tt class="docutils literal"><span class="pre">akka-actor</span></tt> package, let
+us look at a framing protocol which works by prepending a length field to each
+message.</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="cm">/**</span>
+<span class="cm"> * Pipeline stage for length-field encoded framing. It will prepend a</span>
+<span class="cm"> * four-byte length header to the message; the header contains the length of</span>
+<span class="cm"> * the resulting frame including header in big-endian representation.</span>
+<span class="cm"> *</span>
+<span class="cm"> * The `maxSize` argument is used to protect the communication channel sanity:</span>
+<span class="cm"> * larger frames will not be sent (silently dropped) or received (in which case</span>
+<span class="cm"> * stream decoding would be broken, hence throwing an IllegalArgumentException).</span>
+<span class="cm"> */</span>
+<span class="k">class</span> <span class="nc">LengthFieldFrame</span><span class="o">(</span><span class="n">maxSize</span><span class="k">:</span> <span class="kt">Int</span><span class="o">,</span>
+                       <span class="n">byteOrder</span><span class="k">:</span> <span class="kt">ByteOrder</span> <span class="o">=</span> <span class="nc">ByteOrder</span><span class="o">.</span><span class="nc">BIG_ENDIAN</span><span class="o">,</span>
+                       <span class="n">headerSize</span><span class="k">:</span> <span class="kt">Int</span> <span class="o">=</span> <span class="mi">4</span><span class="o">,</span>
+                       <span class="n">lengthIncludesHeader</span><span class="k">:</span> <span class="kt">Boolean</span> <span class="o">=</span> <span class="kc">true</span><span class="o">)</span>
+  <span class="k">extends</span> <span class="nc">SymmetricPipelineStage</span><span class="o">[</span><span class="kt">PipelineContext</span>, <span class="kt">ByteString</span>, <span class="kt">ByteString</span><span class="o">]</span> <span class="o">{</span>
+
+  <span class="c1">// range checks omitted ...</span>
+
+  <span class="k">override</span> <span class="k">def</span> <span class="n">apply</span><span class="o">(</span><span class="n">ctx</span><span class="k">:</span> <span class="kt">PipelineContext</span><span class="o">)</span> <span class="k">=</span>
+    <span class="k">new</span> <span class="nc">SymmetricPipePair</span><span class="o">[</span><span class="kt">ByteString</span>, <span class="kt">ByteString</span><span class="o">]</span> <span class="o">{</span>
+      <span class="k">var</span> <span class="n">buffer</span> <span class="k">=</span> <span class="nc">None</span><span class="k">:</span> <span class="kt">Option</span><span class="o">[</span><span class="kt">ByteString</span><span class="o">]</span>
+      <span class="k">implicit</span> <span class="k">val</span> <span class="n">byteOrder</span> <span class="k">=</span> <span class="nc">LengthFieldFrame</span><span class="o">.</span><span class="k">this</span><span class="o">.</span><span class="n">byteOrder</span>
+
+      <span class="cm">/**</span>
+<span class="cm">       * Extract as many complete frames as possible from the given ByteString</span>
+<span class="cm">       * and return the remainder together with the extracted frames in reverse</span>
+<span class="cm">       * order.</span>
+<span class="cm">       */</span>
+      <span class="nd">@tailrec</span>
+      <span class="k">def</span> <span class="n">extractFrames</span><span class="o">(</span><span class="n">bs</span><span class="k">:</span> <span class="kt">ByteString</span><span class="o">,</span> <span class="n">acc</span><span class="k">:</span> <span class="kt">List</span><span class="o">[</span><span class="kt">ByteString</span><span class="o">])</span> <span class="c1">//</span>
+      <span class="k">:</span> <span class="o">(</span><span class="kt">Option</span><span class="o">[</span><span class="kt">ByteString</span><span class="o">],</span> <span class="nc">Seq</span><span class="o">[</span><span class="kt">ByteString</span><span class="o">])</span> <span class="k">=</span> <span class="o">{</span>
+        <span class="k">if</span> <span class="o">(</span><span class="n">bs</span><span class="o">.</span><span class="n">isEmpty</span><span class="o">)</span> <span class="o">{</span>
+          <span class="o">(</span><span class="nc">None</span><span class="o">,</span> <span class="n">acc</span><span class="o">)</span>
+        <span class="o">}</span> <span class="k">else</span> <span class="k">if</span> <span class="o">(</span><span class="n">bs</span><span class="o">.</span><span class="n">length</span> <span class="o">&lt;</span> <span class="n">headerSize</span><span class="o">)</span> <span class="o">{</span>
+          <span class="o">(</span><span class="nc">Some</span><span class="o">(</span><span class="n">bs</span><span class="o">.</span><span class="n">compact</span><span class="o">),</span> <span class="n">acc</span><span class="o">)</span>
+        <span class="o">}</span> <span class="k">else</span> <span class="o">{</span>
+          <span class="k">val</span> <span class="n">length</span> <span class="k">=</span> <span class="n">bs</span><span class="o">.</span><span class="n">iterator</span><span class="o">.</span><span class="n">getLongPart</span><span class="o">(</span><span class="n">headerSize</span><span class="o">).</span><span class="n">toInt</span>
+          <span class="k">if</span> <span class="o">(</span><span class="n">length</span> <span class="o">&lt;</span> <span class="mi">0</span> <span class="o">||</span> <span class="n">length</span> <span class="o">&gt;</span> <span class="n">maxSize</span><span class="o">)</span>
+            <span class="k">throw</span> <span class="k">new</span> <span class="nc">IllegalArgumentException</span><span class="o">(</span>
+              <span class="s">s&quot;received too large frame of size </span><span class="si">$length</span><span class="s"> (max = </span><span class="si">$maxSize</span><span class="s">)&quot;</span><span class="o">)</span>
+          <span class="k">val</span> <span class="n">total</span> <span class="k">=</span> <span class="k">if</span> <span class="o">(</span><span class="n">lengthIncludesHeader</span><span class="o">)</span> <span class="n">length</span> <span class="k">else</span> <span class="n">length</span> <span class="o">+</span> <span class="n">headerSize</span>
+          <span class="k">if</span> <span class="o">(</span><span class="n">bs</span><span class="o">.</span><span class="n">length</span> <span class="o">&gt;=</span> <span class="n">total</span><span class="o">)</span> <span class="o">{</span>
+            <span class="n">extractFrames</span><span class="o">(</span><span class="n">bs</span> <span class="n">drop</span> <span class="n">total</span><span class="o">,</span> <span class="n">bs</span><span class="o">.</span><span class="n">slice</span><span class="o">(</span><span class="n">headerSize</span><span class="o">,</span> <span class="n">total</span><span class="o">)</span> <span class="o">::</span> <span class="n">acc</span><span class="o">)</span>
+          <span class="o">}</span> <span class="k">else</span> <span class="o">{</span>
+            <span class="o">(</span><span class="nc">Some</span><span class="o">(</span><span class="n">bs</span><span class="o">.</span><span class="n">compact</span><span class="o">),</span> <span class="n">acc</span><span class="o">)</span>
+          <span class="o">}</span>
+        <span class="o">}</span>
+      <span class="o">}</span>
+
+      <span class="cm">/*</span>
+<span class="cm">       * This is how commands (writes) are transformed: calculate length</span>
+<span class="cm">       * including header, write that to a ByteStringBuilder and append the</span>
+<span class="cm">       * payload data. The result is a single command (i.e. `Right(...)`).</span>
+<span class="cm">       */</span>
+      <span class="k">override</span> <span class="k">def</span> <span class="n">commandPipeline</span> <span class="k">=</span>
+        <span class="o">{</span> <span class="n">bs</span><span class="k">:</span> <span class="kt">ByteString</span> <span class="o">⇒</span>
+          <span class="k">val</span> <span class="n">length</span> <span class="k">=</span>
+            <span class="k">if</span> <span class="o">(</span><span class="n">lengthIncludesHeader</span><span class="o">)</span> <span class="n">bs</span><span class="o">.</span><span class="n">length</span> <span class="o">+</span> <span class="n">headerSize</span> <span class="k">else</span> <span class="n">bs</span><span class="o">.</span><span class="n">length</span>
+          <span class="k">if</span> <span class="o">(</span><span class="n">length</span> <span class="o">&gt;</span> <span class="n">maxSize</span><span class="o">)</span> <span class="nc">Seq</span><span class="o">()</span>
+          <span class="k">else</span> <span class="o">{</span>
+            <span class="k">val</span> <span class="n">bb</span> <span class="k">=</span> <span class="nc">ByteString</span><span class="o">.</span><span class="n">newBuilder</span>
+            <span class="n">bb</span><span class="o">.</span><span class="n">putLongPart</span><span class="o">(</span><span class="n">length</span><span class="o">,</span> <span class="n">headerSize</span><span class="o">)</span>
+            <span class="n">bb</span> <span class="o">++=</span> <span class="n">bs</span>
+            <span class="n">ctx</span><span class="o">.</span><span class="n">singleCommand</span><span class="o">(</span><span class="n">bb</span><span class="o">.</span><span class="n">result</span><span class="o">)</span>
+          <span class="o">}</span>
+        <span class="o">}</span>
+
+      <span class="cm">/*</span>
+<span class="cm">       * This is how events (reads) are transformed: append the received</span>
+<span class="cm">       * ByteString to the buffer (if any) and extract the frames from the</span>
+<span class="cm">       * result. In the end store the new buffer contents and return the</span>
+<span class="cm">       * list of events (i.e. `Left(...)`).</span>
+<span class="cm">       */</span>
+      <span class="k">override</span> <span class="k">def</span> <span class="n">eventPipeline</span> <span class="k">=</span>
+        <span class="o">{</span> <span class="n">bs</span><span class="k">:</span> <span class="kt">ByteString</span> <span class="o">⇒</span>
+          <span class="k">val</span> <span class="n">data</span> <span class="k">=</span> <span class="k">if</span> <span class="o">(</span><span class="n">buffer</span><span class="o">.</span><span class="n">isEmpty</span><span class="o">)</span> <span class="n">bs</span> <span class="k">else</span> <span class="n">buffer</span><span class="o">.</span><span class="n">get</span> <span class="o">++</span> <span class="n">bs</span>
+          <span class="k">val</span> <span class="o">(</span><span class="n">nb</span><span class="o">,</span> <span class="n">frames</span><span class="o">)</span> <span class="k">=</span> <span class="n">extractFrames</span><span class="o">(</span><span class="n">data</span><span class="o">,</span> <span class="nc">Nil</span><span class="o">)</span>
+          <span class="n">buffer</span> <span class="k">=</span> <span class="n">nb</span>
+          <span class="cm">/*</span>
+<span class="cm">           * please note the specialized (optimized) facility for emitting</span>
+<span class="cm">           * just a single event</span>
+<span class="cm">           */</span>
+          <span class="n">frames</span> <span class="k">match</span> <span class="o">{</span>
+            <span class="k">case</span> <span class="nc">Nil</span>        <span class="k">⇒</span> <span class="nc">Nil</span>
+            <span class="k">case</span> <span class="n">one</span> <span class="o">::</span> <span class="nc">Nil</span> <span class="k">⇒</span> <span class="n">ctx</span><span class="o">.</span><span class="n">singleEvent</span><span class="o">(</span><span class="n">one</span><span class="o">)</span>
+            <span class="k">case</span> <span class="n">many</span>       <span class="k">⇒</span> <span class="n">many</span> <span class="n">reverseMap</span> <span class="o">(</span><span class="nc">Left</span><span class="o">(</span><span class="k">_</span><span class="o">))</span>
+          <span class="o">}</span>
+        <span class="o">}</span>
+    <span class="o">}</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<p>In the end a pipeline stage is nothing more than a set of three functions: one
+transforming commands arriving from above, one transforming events arriving
+from below and the third transforming incoming management commands (not shown
+here, see below for more information). The result of the transformation can in
+either case be a sequence of commands flowing downwards or events flowing
+upwards (or a combination thereof).</p>
+<p>In the case above the data type for commands and events are equal as both
+functions operate only on <tt class="docutils literal"><span class="pre">ByteString</span></tt>, and the transformation does not
+change that type because it only adds or removes four octets at the front.</p>
+<p>The pair of command and event transformation functions is represented by an
+object of type <tt class="xref py py-class docutils literal"><span class="pre">PipePair</span></tt>, or in this case a <tt class="xref py py-class docutils literal"><span class="pre">SymmetricPipePair</span></tt>.
+This object could benefit from knowledge about the context it is running in,
+for example an <tt class="xref py py-class docutils literal"><span class="pre">Actor</span></tt>, and this context is introduced by making a
+<tt class="xref py py-class docutils literal"><span class="pre">PipelineStage</span></tt> be a factory for producing a <tt class="xref py py-class docutils literal"><span class="pre">PipePair</span></tt>. The
+factory method is called <tt class="xref py py-meth docutils literal"><span class="pre">apply</span></tt> (in good Scala tradition) and receives
+the context object as its argument. The implementation of this factory method
+could now make use of the context in whatever way it sees fit, you will see an
+example further down.</p>
+</div>
+<div class="section" id="manipulating-bytestrings">
+<h2>Manipulating ByteStrings</h2>
+<p>The second stage of our sample protocol stack illustrates in more depth what
+showed only a little in the pipeline stage built above: constructing and
+deconstructing byte strings. Let us first take a look at the encoder:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="cm">/**</span>
+<span class="cm"> * This trait is used to formualate a requirement for the pipeline context.</span>
+<span class="cm"> * In this example it is used to configure the byte order to be used.</span>
+<span class="cm"> */</span>
+<span class="k">trait</span> <span class="nc">HasByteOrder</span> <span class="k">extends</span> <span class="nc">PipelineContext</span> <span class="o">{</span>
+  <span class="k">def</span> <span class="n">byteOrder</span><span class="k">:</span> <span class="kt">java.nio.ByteOrder</span>
+<span class="o">}</span>
+
+<span class="k">class</span> <span class="nc">MessageStage</span> <span class="k">extends</span> <span class="nc">SymmetricPipelineStage</span><span class="o">[</span><span class="kt">HasByteOrder</span>, <span class="kt">Message</span>, <span class="kt">ByteString</span><span class="o">]</span> <span class="o">{</span>
+
+  <span class="k">override</span> <span class="k">def</span> <span class="n">apply</span><span class="o">(</span><span class="n">ctx</span><span class="k">:</span> <span class="kt">HasByteOrder</span><span class="o">)</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">SymmetricPipePair</span><span class="o">[</span><span class="kt">Message</span>, <span class="kt">ByteString</span><span class="o">]</span> <span class="o">{</span>
+
+    <span class="k">implicit</span> <span class="k">val</span> <span class="n">byteOrder</span> <span class="k">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">byteOrder</span>
+
+    <span class="cm">/**</span>
+<span class="cm">     * Append a length-prefixed UTF-8 encoded string to the ByteStringBuilder.</span>
+<span class="cm">     */</span>
+    <span class="k">def</span> <span class="n">putString</span><span class="o">(</span><span class="n">builder</span><span class="k">:</span> <span class="kt">ByteStringBuilder</span><span class="o">,</span> <span class="n">str</span><span class="k">:</span> <span class="kt">String</span><span class="o">)</span><span class="k">:</span> <span class="kt">Unit</span> <span class="o">=</span> <span class="o">{</span>
+      <span class="k">val</span> <span class="n">bs</span> <span class="k">=</span> <span class="nc">ByteString</span><span class="o">(</span><span class="n">str</span><span class="o">,</span> <span class="s">&quot;UTF-8&quot;</span><span class="o">)</span>
+      <span class="n">builder</span> <span class="n">putInt</span> <span class="n">bs</span><span class="o">.</span><span class="n">length</span>
+      <span class="n">builder</span> <span class="o">++=</span> <span class="n">bs</span>
+    <span class="o">}</span>
+
+    <span class="k">override</span> <span class="k">val</span> <span class="n">commandPipeline</span> <span class="k">=</span> <span class="o">{</span> <span class="n">msg</span><span class="k">:</span> <span class="kt">Message</span> <span class="o">⇒</span>
+      <span class="k">val</span> <span class="n">bs</span> <span class="k">=</span> <span class="nc">ByteString</span><span class="o">.</span><span class="n">newBuilder</span>
+
+      <span class="c1">// first store the persons</span>
+      <span class="n">bs</span> <span class="n">putInt</span> <span class="n">msg</span><span class="o">.</span><span class="n">persons</span><span class="o">.</span><span class="n">size</span>
+      <span class="n">msg</span><span class="o">.</span><span class="n">persons</span> <span class="n">foreach</span> <span class="o">{</span> <span class="n">p</span> <span class="k">⇒</span>
+        <span class="n">putString</span><span class="o">(</span><span class="n">bs</span><span class="o">,</span> <span class="n">p</span><span class="o">.</span><span class="n">first</span><span class="o">)</span>
+        <span class="n">putString</span><span class="o">(</span><span class="n">bs</span><span class="o">,</span> <span class="n">p</span><span class="o">.</span><span class="n">last</span><span class="o">)</span>
+      <span class="o">}</span>
+
+      <span class="c1">// then store the doubles</span>
+      <span class="n">bs</span> <span class="n">putInt</span> <span class="n">msg</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">points</span><span class="o">.</span><span class="n">length</span>
+      <span class="n">bs</span> <span class="n">putDoubles</span> <span class="o">(</span><span class="n">msg</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">points</span><span class="o">.</span><span class="n">toArray</span><span class="o">)</span>
+
+      <span class="c1">// and return the result as a command</span>
+      <span class="n">ctx</span><span class="o">.</span><span class="n">singleCommand</span><span class="o">(</span><span class="n">bs</span><span class="o">.</span><span class="n">result</span><span class="o">)</span>
+    <span class="o">}</span>
+
+    <span class="c1">// decoding omitted ...</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<p>Note how the byte order to be used by this stage is fixed in exactly one place,
+making it impossible get wrong between commands and events; the way how the
+byte order is passed into the stage demonstrates one possible use for the
+stage’s <tt class="docutils literal"><span class="pre">context</span></tt> parameter.</p>
+<p>The basic tool for constucting a <tt class="xref py py-class docutils literal"><span class="pre">ByteString</span></tt> is a
+<tt class="xref py py-class docutils literal"><span class="pre">ByteStringBuilder</span></tt> which can be obtained by calling
+<tt class="xref py py-meth docutils literal"><span class="pre">ByteString.newBuilder</span></tt> since byte strings implement the
+<tt class="xref py py-class docutils literal"><span class="pre">IndexesSeq[Byte]</span></tt> interface of the standard Scala collections. This
+builder knows a few extra tricks, though, for appending byte representations of
+the primitive data types like <tt class="docutils literal"><span class="pre">Int</span></tt> and <tt class="docutils literal"><span class="pre">Double</span></tt> or arrays thereof.
+Encoding a <tt class="docutils literal"><span class="pre">String</span></tt> requires a bit more work because not only the sequence of
+bytes needs to be encoded but also the length, otherwise the decoding stage
+would not know where the <tt class="docutils literal"><span class="pre">String</span></tt> terminates. When all values making up the
+<tt class="xref py py-class docutils literal"><span class="pre">Message</span></tt> have been appended to the builder, we simply pass the
+resulting <tt class="xref py py-class docutils literal"><span class="pre">ByteString</span></tt> on to the next stage as a command using the
+optimized <tt class="xref py py-meth docutils literal"><span class="pre">singleCommand</span></tt> facility.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">The <tt class="xref py py-meth docutils literal"><span class="pre">singleCommand</span></tt> and <tt class="xref py py-meth docutils literal"><span class="pre">singleEvent</span></tt> methods provide a way to
+generate responses which transfer exactly one result from one pipeline stage
+to the next without suffering the overhead of object allocations. This means
+that the returned collection object will not work for anything else (you will
+get <tt class="xref py py-class docutils literal"><span class="pre">ClassCastExceptions</span></tt>!) and this facility can only be used <em>EXACTLY
+ONCE</em> during the processing of one input (command or event).</p>
+</div>
+<p>Now let us look at the decoder side:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">def</span> <span class="n">getString</span><span class="o">(</span><span class="n">iter</span><span class="k">:</span> <span class="kt">ByteIterator</span><span class="o">)</span><span class="k">:</span> <span class="kt">String</span> <span class="o">=</span> <span class="o">{</span>
+  <span class="k">val</span> <span class="n">length</span> <span class="k">=</span> <span class="n">iter</span><span class="o">.</span><span class="n">getInt</span>
+  <span class="k">val</span> <span class="n">bytes</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">Array</span><span class="o">[</span><span class="kt">Byte</span><span class="o">](</span><span class="n">length</span><span class="o">)</span>
+  <span class="n">iter</span> <span class="n">getBytes</span> <span class="n">bytes</span>
+  <span class="nc">ByteString</span><span class="o">(</span><span class="n">bytes</span><span class="o">).</span><span class="n">utf8String</span>
+<span class="o">}</span>
+
+<span class="k">override</span> <span class="k">val</span> <span class="n">eventPipeline</span> <span class="k">=</span> <span class="o">{</span> <span class="n">bs</span><span class="k">:</span> <span class="kt">ByteString</span> <span class="o">⇒</span>
+  <span class="k">val</span> <span class="n">iter</span> <span class="k">=</span> <span class="n">bs</span><span class="o">.</span><span class="n">iterator</span>
+
+  <span class="k">val</span> <span class="n">personLength</span> <span class="k">=</span> <span class="n">iter</span><span class="o">.</span><span class="n">getInt</span>
+  <span class="k">val</span> <span class="n">persons</span> <span class="k">=</span>
+    <span class="o">(</span><span class="mi">1</span> <span class="n">to</span> <span class="n">personLength</span><span class="o">)</span> <span class="n">map</span> <span class="o">(</span><span class="k">_</span> <span class="k">⇒</span> <span class="nc">Person</span><span class="o">(</span><span class="n">getString</span><span class="o">(</span><span class="n">iter</span><span class="o">),</span> <span class="n">getString</span><span class="o">(</span><span class="n">iter</span><span class="o">)))</span>
+
+  <span class="k">val</span> <span class="n">curveLength</span> <span class="k">=</span> <span class="n">iter</span><span class="o">.</span><span class="n">getInt</span>
+  <span class="k">val</span> <span class="n">curve</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">Array</span><span class="o">[</span><span class="kt">Double</span><span class="o">](</span><span class="n">curveLength</span><span class="o">)</span>
+  <span class="n">iter</span> <span class="n">getDoubles</span> <span class="n">curve</span>
+
+  <span class="c1">// verify that this was all; could be left out to allow future extensions</span>
+  <span class="n">assert</span><span class="o">(</span><span class="n">iter</span><span class="o">.</span><span class="n">isEmpty</span><span class="o">)</span>
+
+  <span class="n">ctx</span><span class="o">.</span><span class="n">singleEvent</span><span class="o">(</span><span class="nc">Message</span><span class="o">(</span><span class="n">persons</span><span class="o">,</span> <span class="nc">HappinessCurve</span><span class="o">(</span><span class="n">curve</span><span class="o">)))</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<p>The decoding side does the same things that the encoder does in the same order,
+it just uses a <tt class="xref py py-class docutils literal"><span class="pre">ByteIterator</span></tt> to retrieve primitive data types or arrays
+of those from the underlying <tt class="xref py py-class docutils literal"><span class="pre">ByteString</span></tt>. And in the end it hands the
+assembled <tt class="xref py py-class docutils literal"><span class="pre">Message</span></tt> as an event to the next stage using the optimized
+<tt class="xref py py-meth docutils literal"><span class="pre">singleEvent</span></tt> facility (see warning above).</p>
+</div>
+<div class="section" id="building-a-pipeline">
+<h2>Building a Pipeline</h2>
+<p>Given the two pipeline stages introduced in the sections above we can now put
+them to some use. First we define some message to be encoded:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">val</span> <span class="n">msg</span> <span class="k">=</span>
+  <span class="nc">Message</span><span class="o">(</span>
+    <span class="nc">Seq</span><span class="o">(</span>
+      <span class="nc">Person</span><span class="o">(</span><span class="s">&quot;Alice&quot;</span><span class="o">,</span> <span class="s">&quot;Gibbons&quot;</span><span class="o">),</span>
+      <span class="nc">Person</span><span class="o">(</span><span class="s">&quot;Bob&quot;</span><span class="o">,</span> <span class="s">&quot;Sparsely&quot;</span><span class="o">)),</span>
+    <span class="nc">HappinessCurve</span><span class="o">(</span><span class="nc">Array</span><span class="o">(</span><span class="mf">1.0</span><span class="o">,</span> <span class="mf">3.0</span><span class="o">,</span> <span class="mf">5.0</span><span class="o">)))</span>
+</pre></div>
+</div>
+<p>Then we need to create a pipeline context which satisfies our declared needs:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">val</span> <span class="n">ctx</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">HasByteOrder</span> <span class="o">{</span>
+  <span class="k">def</span> <span class="n">byteOrder</span> <span class="k">=</span> <span class="n">java</span><span class="o">.</span><span class="n">nio</span><span class="o">.</span><span class="nc">ByteOrder</span><span class="o">.</span><span class="nc">BIG_ENDIAN</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<p>Building the pipeline and encoding this message then is quite simple:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">val</span> <span class="n">stages</span> <span class="k">=</span>
+  <span class="k">new</span> <span class="nc">MessageStage</span> <span class="o">&gt;&gt;</span>
+    <span class="k">new</span> <span class="nc">LengthFieldFrame</span><span class="o">(</span><span class="mi">10000</span><span class="o">)</span>
+
+<span class="c1">// using the extractor for the returned case class here</span>
+<span class="k">val</span> <span class="nc">PipelinePorts</span><span class="o">(</span><span class="n">cmd</span><span class="o">,</span> <span class="n">evt</span><span class="o">,</span> <span class="n">mgmt</span><span class="o">)</span> <span class="k">=</span>
+  <span class="nc">PipelineFactory</span><span class="o">.</span><span class="n">buildFunctionTriple</span><span class="o">(</span><span class="n">ctx</span><span class="o">,</span> <span class="n">stages</span><span class="o">)</span>
+
+<span class="k">val</span> <span class="n">encoded</span><span class="k">:</span> <span class="o">(</span><span class="kt">Iterable</span><span class="o">[</span><span class="kt">Message</span><span class="o">],</span> <span class="nc">Iterable</span><span class="o">[</span><span class="kt">ByteString</span><span class="o">])</span> <span class="k">=</span> <span class="n">cmd</span><span class="o">(</span><span class="n">msg</span><span class="o">)</span>
+</pre></div>
+</div>
+<p>The tuple returned from <tt class="xref py py-meth docutils literal"><span class="pre">buildFunctionTriple</span></tt> contains one function for
+injecting commands, one for events and a third for injecting management
+commands (see below). In this case we demonstrate how a single message <tt class="docutils literal"><span class="pre">msg</span></tt>
+is encoded by passing it into the <tt class="docutils literal"><span class="pre">cmd</span></tt> function. The return value is a pair
+of sequences, one for the resulting events and the other for the resulting
+commands. For the sample pipeline this will contain exactly one command—one
+<tt class="xref py py-class docutils literal"><span class="pre">ByteString</span></tt>. Decoding works in the same way, only with the <tt class="docutils literal"><span class="pre">evt</span></tt>
+function (which can again also result in commands being generated, although
+that is not demonstrated in this sample).</p>
+<p>Besides the more functional style there is also an explicitly side-effecting one:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">val</span> <span class="n">stages</span> <span class="k">=</span>
+  <span class="k">new</span> <span class="nc">MessageStage</span> <span class="o">&gt;&gt;</span>
+    <span class="k">new</span> <span class="nc">LengthFieldFrame</span><span class="o">(</span><span class="mi">10000</span><span class="o">)</span>
+
+<span class="k">val</span> <span class="n">injector</span> <span class="k">=</span> <span class="nc">PipelineFactory</span><span class="o">.</span><span class="n">buildWithSinkFunctions</span><span class="o">(</span><span class="n">ctx</span><span class="o">,</span> <span class="n">stages</span><span class="o">)(</span>
+  <span class="n">commandHandler</span> <span class="o">!</span> <span class="k">_</span><span class="o">,</span> <span class="c1">// will receive messages of type Try[ByteString]</span>
+  <span class="n">eventHandler</span> <span class="o">!</span> <span class="k">_</span> <span class="c1">// will receive messages of type Try[Message]</span>
+  <span class="o">)</span>
+
+<span class="n">injector</span><span class="o">.</span><span class="n">injectCommand</span><span class="o">(</span><span class="n">msg</span><span class="o">)</span>
+</pre></div>
+</div>
+<p>The functions passed into the <tt class="xref py py-meth docutils literal"><span class="pre">buildWithSinkFunctions</span></tt> factory method
+describe what shall happen to the commands and events as they fall out of the
+pipeline. In this case we just send those to some actors, since that is usually
+quite a good strategy for distributing the work represented by the messages.</p>
+<p>The types of commands or events fed into the provided sink functions are
+wrapped within <tt class="xref py py-class docutils literal"><span class="pre">Try</span></tt> so that failures can also be encoded and acted
+upon. This means that injecting into a pipeline using a
+<tt class="xref py py-class docutils literal"><span class="pre">PipelineInjector</span></tt> will catch exceptions resulting from processing the
+input, in which case the exception (there can only be one per injection) is
+passed into the respective sink.</p>
+</div>
+<div class="section" id="using-the-pipelines-context">
+<h2>Using the Pipeline’s Context</h2>
+<p>Up to this point there was always a parameter <tt class="docutils literal"><span class="pre">ctx</span></tt> which was used when
+constructing a pipeline, but it was not explained in full. The context is a
+piece of information which is made available to all stages of a pipeline. The
+context may also carry behavior, provide infrastructure or helper methods etc.
+It should be noted that the context is bound to the pipeline and as such must
+not be accessed concurrently from different threads unless care is taken to
+properly synchronize such access. Since the context will in many cases be
+provided by an actor it is not recommended to share this context with code
+executing outside of the actor’s message handling.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">A PipelineContext instance <em>MUST NOT</em> be used by two different pipelines
+since it contains mutable fields which are used during message processing.</p>
+</div>
+</div>
+<div class="section" id="using-management-commands">
+<h2>Using Management Commands</h2>
+<p>Since pipeline stages do not have any reference to the pipeline or even to
+their neighbors they cannot directly effect the injection of commands or events
+outside of their normal processing. But sometimes things need to happen driven
+by a timer, for example. In this case the timer would need to cause sending
+tick messages to the whole pipeline, and those stages which wanted to receive
+them would act upon those. In order to keep the type signatures for events and
+commands useful, such external triggers are sent out-of-band, via a different
+channel—the management port. One example which makes use of this facility is
+the <tt class="xref py py-class docutils literal"><span class="pre">TickGenerator</span></tt> which comes included with <tt class="docutils literal"><span class="pre">akka-actor</span></tt>:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="cm">/**</span>
+<span class="cm"> * This trait expresses that the pipeline’s context needs to live within an</span>
+<span class="cm"> * actor and provide its ActorContext.</span>
+<span class="cm"> */</span>
+<span class="k">trait</span> <span class="nc">HasActorContext</span> <span class="k">extends</span> <span class="nc">PipelineContext</span> <span class="o">{</span>
+  <span class="cm">/**</span>
+<span class="cm">   * Retrieve the [[akka.actor.ActorContext]] for this pipeline’s context.</span>
+<span class="cm">   */</span>
+  <span class="k">def</span> <span class="n">getContext</span><span class="k">:</span> <span class="kt">ActorContext</span>
+<span class="o">}</span>
+
+<span class="k">object</span> <span class="nc">TickGenerator</span> <span class="o">{</span>
+  <span class="cm">/**</span>
+<span class="cm">   * This message type is used by the TickGenerator to trigger</span>
+<span class="cm">   * the rescheduling of the next Tick. The actor hosting the pipeline</span>
+<span class="cm">   * which includes a TickGenerator must arrange for messages of this</span>
+<span class="cm">   * type to be injected into the management port of the pipeline.</span>
+<span class="cm">   */</span>
+  <span class="k">trait</span> <span class="nc">Trigger</span>
+
+  <span class="cm">/**</span>
+<span class="cm">   * This message type is emitted by the TickGenerator to the whole</span>
+<span class="cm">   * pipeline, informing all stages about the time at which this Tick</span>
+<span class="cm">   * was emitted (relative to some arbitrary epoch).</span>
+<span class="cm">   */</span>
+  <span class="k">case</span> <span class="k">class</span> <span class="nc">Tick</span><span class="o">(</span><span class="nd">@BeanProperty</span> <span class="n">timestamp</span><span class="k">:</span> <span class="kt">FiniteDuration</span><span class="o">)</span> <span class="k">extends</span> <span class="nc">Trigger</span>
+<span class="o">}</span>
+
+<span class="cm">/**</span>
+<span class="cm"> * This pipeline stage does not alter the events or commands</span>
+<span class="cm"> */</span>
+<span class="k">class</span> <span class="nc">TickGenerator</span><span class="o">[</span><span class="kt">Cmd</span> <span class="k">&lt;:</span> <span class="kt">AnyRef</span>, <span class="kt">Evt</span> <span class="k">&lt;:</span> <span class="kt">AnyRef</span><span class="o">](</span><span class="n">interval</span><span class="k">:</span> <span class="kt">FiniteDuration</span><span class="o">)</span>
+  <span class="k">extends</span> <span class="nc">PipelineStage</span><span class="o">[</span><span class="kt">HasActorContext</span>, <span class="kt">Cmd</span>, <span class="kt">Cmd</span>, <span class="kt">Evt</span>, <span class="kt">Evt</span><span class="o">]</span> <span class="o">{</span>
+  <span class="k">import</span> <span class="nn">TickGenerator._</span>
+
+  <span class="k">override</span> <span class="k">def</span> <span class="n">apply</span><span class="o">(</span><span class="n">ctx</span><span class="k">:</span> <span class="kt">HasActorContext</span><span class="o">)</span> <span class="k">=</span>
+    <span class="k">new</span> <span class="nc">PipePair</span><span class="o">[</span><span class="kt">Cmd</span>, <span class="kt">Cmd</span>, <span class="kt">Evt</span>, <span class="kt">Evt</span><span class="o">]</span> <span class="o">{</span>
+
+      <span class="c1">// use unique object to avoid double-activation on actor restart</span>
+      <span class="k">private</span> <span class="k">val</span> <span class="n">trigger</span><span class="k">:</span> <span class="kt">Trigger</span> <span class="o">=</span> <span class="o">{</span>
+        <span class="k">val</span> <span class="n">path</span> <span class="k">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">getContext</span><span class="o">.</span><span class="n">self</span><span class="o">.</span><span class="n">path</span>
+
+        <span class="k">new</span> <span class="nc">Trigger</span> <span class="o">{</span>
+          <span class="k">override</span> <span class="k">def</span> <span class="n">toString</span> <span class="k">=</span> <span class="s">s&quot;Tick[</span><span class="si">$path</span><span class="s">]&quot;</span>
+        <span class="o">}</span>
+      <span class="o">}</span>
+
+      <span class="k">private</span> <span class="k">def</span> <span class="n">schedule</span><span class="o">()</span> <span class="k">=</span>
+        <span class="n">ctx</span><span class="o">.</span><span class="n">getContext</span><span class="o">.</span><span class="n">system</span><span class="o">.</span><span class="n">scheduler</span><span class="o">.</span><span class="n">scheduleOnce</span><span class="o">(</span>
+          <span class="n">interval</span><span class="o">,</span> <span class="n">ctx</span><span class="o">.</span><span class="n">getContext</span><span class="o">.</span><span class="n">self</span><span class="o">,</span> <span class="n">trigger</span><span class="o">)(</span><span class="n">ctx</span><span class="o">.</span><span class="n">getContext</span><span class="o">.</span><span class="n">dispatcher</span><span class="o">)</span>
+
+      <span class="c1">// automatically activate this generator</span>
+      <span class="n">schedule</span><span class="o">()</span>
+
+      <span class="k">override</span> <span class="k">val</span> <span class="n">commandPipeline</span> <span class="k">=</span> <span class="o">(</span><span class="n">cmd</span><span class="k">:</span> <span class="kt">Cmd</span><span class="o">)</span> <span class="k">⇒</span> <span class="n">ctx</span><span class="o">.</span><span class="n">singleCommand</span><span class="o">(</span><span class="n">cmd</span><span class="o">)</span>
+
+      <span class="k">override</span> <span class="k">val</span> <span class="n">eventPipeline</span> <span class="k">=</span> <span class="o">(</span><span class="n">evt</span><span class="k">:</span> <span class="kt">Evt</span><span class="o">)</span> <span class="k">⇒</span> <span class="n">ctx</span><span class="o">.</span><span class="n">singleEvent</span><span class="o">(</span><span class="n">evt</span><span class="o">)</span>
+
+      <span class="k">override</span> <span class="k">val</span> <span class="n">managementPort</span><span class="k">:</span> <span class="kt">Mgmt</span> <span class="o">=</span> <span class="o">{</span>
+        <span class="k">case</span> <span class="n">`trigger`</span> <span class="k">⇒</span>
+          <span class="n">ctx</span><span class="o">.</span><span class="n">getContext</span><span class="o">.</span><span class="n">self</span> <span class="o">!</span> <span class="nc">Tick</span><span class="o">(</span><span class="nc">Deadline</span><span class="o">.</span><span class="n">now</span><span class="o">.</span><span class="n">time</span><span class="o">)</span>
+          <span class="n">schedule</span><span class="o">()</span>
+          <span class="nc">Nil</span>
+      <span class="o">}</span>
+    <span class="o">}</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<p>This pipeline stage is to be used within an actor, and it will make use of this
+context in order to schedule the delivery of <tt class="xref py py-class docutils literal"><span class="pre">TickGenerator.Trigger</span></tt>
+messages; the actor is then supposed to feed these messages into the management
+port of the pipeline.  An example could look like this:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">class</span> <span class="nc">Processor</span><span class="o">(</span><span class="n">cmds</span><span class="k">:</span> <span class="kt">ActorRef</span><span class="o">,</span> <span class="n">evts</span><span class="k">:</span> <span class="kt">ActorRef</span><span class="o">)</span> <span class="k">extends</span> <span class="nc">Actor</span> <span class="o">{</span>
+
+  <span class="k">val</span> <span class="n">ctx</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">HasActorContext</span> <span class="k">with</span> <span class="nc">HasByteOrder</span> <span class="o">{</span>
+    <span class="k">def</span> <span class="n">getContext</span> <span class="k">=</span> <span class="nc">Processor</span><span class="o">.</span><span class="k">this</span><span class="o">.</span><span class="n">context</span>
+    <span class="k">def</span> <span class="n">byteOrder</span> <span class="k">=</span> <span class="n">java</span><span class="o">.</span><span class="n">nio</span><span class="o">.</span><span class="nc">ByteOrder</span><span class="o">.</span><span class="nc">BIG_ENDIAN</span>
+  <span class="o">}</span>
+
+  <span class="k">val</span> <span class="n">pipeline</span> <span class="k">=</span> <span class="nc">PipelineFactory</span><span class="o">.</span><span class="n">buildWithSinkFunctions</span><span class="o">(</span><span class="n">ctx</span><span class="o">,</span>
+    <span class="k">new</span> <span class="nc">TickGenerator</span><span class="o">(</span><span class="mf">1000.</span><span class="n">millis</span><span class="o">)</span> <span class="o">&gt;&gt;</span>
+      <span class="k">new</span> <span class="nc">MessageStage</span> <span class="o">&gt;&gt;</span>
+      <span class="k">new</span> <span class="nc">LengthFieldFrame</span><span class="o">(</span><span class="mi">10000</span><span class="o">)</span> <span class="c1">//</span>
+      <span class="o">)(</span>
+      <span class="c1">// failure in the pipeline will fail this actor</span>
+      <span class="n">cmd</span> <span class="k">⇒</span> <span class="n">cmds</span> <span class="o">!</span> <span class="n">cmd</span><span class="o">.</span><span class="n">get</span><span class="o">,</span>
+      <span class="n">evt</span> <span class="k">⇒</span> <span class="n">evts</span> <span class="o">!</span> <span class="n">evt</span><span class="o">.</span><span class="n">get</span><span class="o">)</span>
+
+  <span class="k">def</span> <span class="n">receive</span> <span class="k">=</span> <span class="o">{</span>
+    <span class="k">case</span> <span class="n">m</span><span class="k">:</span> <span class="kt">Message</span>               <span class="o">⇒</span> <span class="n">pipeline</span><span class="o">.</span><span class="n">injectCommand</span><span class="o">(</span><span class="n">m</span><span class="o">)</span>
+    <span class="k">case</span> <span class="n">b</span><span class="k">:</span> <span class="kt">ByteString</span>            <span class="o">⇒</span> <span class="n">pipeline</span><span class="o">.</span><span class="n">injectEvent</span><span class="o">(</span><span class="n">b</span><span class="o">)</span>
+    <span class="k">case</span> <span class="n">t</span><span class="k">:</span> <span class="kt">TickGenerator.Trigger</span> <span class="o">⇒</span> <span class="n">pipeline</span><span class="o">.</span><span class="n">managementCommand</span><span class="o">(</span><span class="n">t</span><span class="o">)</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<p>This actor extends our well-known pipeline with the tick generator and attaches
+the outputs to functions which send commands and events to actors for further
+processing. The pipeline stages will then all receive one <tt class="docutils literal"><span class="pre">Tick</span></tt> per second
+which can be used like so:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">var</span> <span class="n">lastTick</span> <span class="k">=</span> <span class="nc">Duration</span><span class="o">.</span><span class="nc">Zero</span>
+
+<span class="k">override</span> <span class="k">val</span> <span class="n">managementPort</span><span class="k">:</span> <span class="kt">Mgmt</span> <span class="o">=</span> <span class="o">{</span>
+  <span class="k">case</span> <span class="nc">TickGenerator</span><span class="o">.</span><span class="nc">Tick</span><span class="o">(</span><span class="n">timestamp</span><span class="o">)</span> <span class="k">⇒</span>
+    <span class="c1">// omitted ...</span>
+    <span class="n">println</span><span class="o">(</span><span class="s">s&quot;time since last tick: </span><span class="si">${</span><span class="n">timestamp</span> <span class="o">-</span> <span class="n">lastTick</span><span class="si">}</span><span class="s">&quot;</span><span class="o">)</span>
+    <span class="n">lastTick</span> <span class="k">=</span> <span class="n">timestamp</span>
+    <span class="nc">Nil</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Management commands are delivered to all stages of a pipeline “effectively
+parallel”, like on a broadcast medium. No code will actually run concurrently
+since a pipeline is strictly single-threaded, but the order in which these
+commands are processed is not specified.</p>
+</div>
+<p>The intended purpose of management commands is for each stage to define its
+special command types and then listen only to those (where the aforementioned
+<tt class="docutils literal"><span class="pre">Tick</span></tt> message is a useful counter-example), exactly like sending packets on
+a wifi network where every station receives all traffic but reacts only to
+those messages which are destined for it.</p>
+<p>If you need all stages to react upon something in their defined order, then
+this must be modeled either as a command or event, i.e. it will be part of the
+“business” type of the pipeline.</p>
+</div>
+</div>
+
+
+          </div>
+          <div class="span3"><p class="contents-title">Contents</p>
+              <div id="scroller-anchor">
+                <div id="scroller">
+                  <div id="toc"></div>
+                </div>
+              </div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="footer">
+  <div class="container">
+    <ul>
+      <li><h5>Akka</h5></li>
+      <li><a href="https://akka.io/docs">Documentation</a></li>
+      <li><a href="https://akka.io/faq">FAQ</a></li>
+      <li><a href="http://typesafe.com/stack/downloads/akka">Downloads</a></li>
+      <li><a href="https://akka.io/news">News</a></li>
+      <li><a href="http://letitcrash.com">Blog</a></li>
+    </ul>
+    <ul>
+      <li><h5>Contribute</h5></li>
+      <li><a href="https://akka.io/community">Community Projects</a></li>
+      <li><a href="http://github.com/akka/akka">Source Code</a></li>
+      <li><a href="http://groups.google.com/group/akka-user">Mailing List</a></li>      
+      <li><a href="https://doc.akka.io/docs/akka/current/project/issue-tracking.html">Report a Bug</a></li>      
+    </ul>
+    <ul>
+      <li><h5>Company</h5></li>
+      <li><a href="http://typesafe.com/products/typesafe-subscription">Commercial Support</a></li>
+      <li><a href="https://akka.io/team">Team</a></li>
+      <li><a href="mailto:info@typesafe.com">Contact</a></li>
+    </ul>
+    <ul>
+      <li><img src="../_static/watermark.png" align="center"/></li>
+    </ul>
+  </div>
+  <div class="container copyright">
+    <p style="float: left;">
+      © 2013 <a href="http://typesafe.com/">Typesafe Inc.</a> <span class="license">Akka is Open Source and available under the Apache 2 License.</span>
+    </p>
+    <p style="float: right; font-size: 12px;">
+      Last updated: Feb 19, 2015
+    </p>          
+  </div>
+</div>
+<script src="http://www.google.com/jsapi" type="text/javascript"></script>
+<script type="text/javascript">
+    google.load('search', '1', {language : 'en', style : google.loader.themes.MINIMALIST});
+    google.setOnLoadCallback(function() {
+    var customSearchOptions = {};  var customSearchControl = new google.search.CustomSearchControl(
+    '003065520604945464838:izzukx8-qba', customSearchOptions);
+    customSearchControl.setResultSetSize(google.search.Search.FILTERED_CSE_RESULTSET);
+    customSearchControl.draw('cse');
+    var path = window.location.pathname.split('/').slice(0,4);
+    if(window.location.hostname && path.length >= 4) {
+    var site = "site:" + window.location.hostname + path.join('/').toString();
+    customSearchControl.setSearchStartingCallback(this, function(c, s, q) { s.setQueryAddition(site); });
+    }
+    }, true);
+</script>
+<style type="text/css">
+    .gsc-control-cse {
+    font-family: Arial, sans-serif;
+    border-color: rgb(242, 242, 235);
+    background-color: rgb(242, 242, 235);
+    }
+    .gsc-control-cse .gsc-table-result {
+      font-family: Arial, sans-serif;
+      display: block;
+    }
+    input.gsc-input {
+    border-color: #BBBBBB;
+    }
+    input.gsc-search-button {
+    border-color: rgb(34, 57, 64);
+    background-color: rgb(68, 114, 129);
+    color: #FFFFFF;
+    }
+    .gsc-tabHeader.gsc-tabhInactive {
+    border-color: #777777;
+    background-color: #777777;
+    }
+    .gsc-tabHeader.gsc-tabhActive {
+    border-color: #333333;
+    background-color: #333333;
+    }
+    .gsc-tabsArea {
+    border-color: #333333;
+    }
+    .gsc-webResult.gsc-result,
+    .gsc-results .gsc-imageResult {
+      border-color: #666666;
+      background-color: #FFFFFF;
+      padding: 0.5em 0.5em;
+    }
+    .gsc-webResult.gsc-result:hover,
+    .gsc-imageResult:hover {
+      border-color: #AAAAAA;
+      background-color: #FFFFFF;
+      padding: 0.5em 0.5em;
+    }
+    .gsc-webResult.gsc-result.gsc-promotion:hover {
+    border-color: #AAAAAA;
+    background-color: #FFFFFF;
+    }
+    .gs-webResult.gs-result a.gs-title:link,
+    .gs-webResult.gs-result a.gs-title:link b,
+    .gs-imageResult a.gs-title:link,
+    .gs-imageResult a.gs-title:link b {
+    color: #444444;
+    }
+    .gs-webResult.gs-result a.gs-title:visited,
+    .gs-webResult.gs-result a.gs-title:visited b,
+    .gs-imageResult a.gs-title:visited,
+    .gs-imageResult a.gs-title:visited b {
+    color: #444444;
+    }
+    .gs-webResult.gs-result a.gs-title:hover,
+    .gs-webResult.gs-result a.gs-title:hover b,
+    .gs-imageResult a.gs-title:hover,
+    .gs-imageResult a.gs-title:hover b {
+    color: #444444;
+    }
+    .gs-webResult.gs-result a.gs-title:active,
+    .gs-webResult.gs-result a.gs-title:active b,
+    .gs-imageResult a.gs-title:active,
+    .gs-imageResult a.gs-title:active b {
+    color: #777777;
+    }
+    .gsc-cursor-page {
+    color: #444444;
+    }
+    a.gsc-trailing-more-results:link {
+    color: #444444;
+    }
+    .gs-webResult .gs-snippet,
+    .gs-imageResult .gs-snippet,
+    .gs-fileFormatType {
+    color: #333333;
+    }
+    .gs-webResult div.gs-visibleUrl,
+    .gs-imageResult div.gs-visibleUrl {
+    color: #000000;
+    }
+    .gs-webResult div.gs-visibleUrl-short {
+    color: #000000;
+    }
+    .gs-webResult div.gs-visibleUrl-short {
+    display: none;
+    }
+    .gs-webResult div.gs-visibleUrl-long {
+    display: block;
+    }
+    .gs-promotion div.gs-visibleUrl-short {
+    display: none;
+    }
+    .gs-promotion div.gs-visibleUrl-long {
+    display: block;
+    }
+    .gsc-cursor-box {
+    border-color: #FFFFFF;
+    }
+    .gsc-results .gsc-cursor-box .gsc-cursor-page {
+    border-color: #777777;
+    background-color: #FFFFFF;
+    color: #444444;
+    }
+    .gsc-results .gsc-cursor-box .gsc-cursor-current-page {
+    border-color: #333333;
+    background-color: #333333;
+    color: #444444;
+    }
+    .gsc-webResult.gsc-result.gsc-promotion {
+    border-color: #CCCCCC;
+    background-color: #E6E6E6;
+    }
+    .gsc-completion-title {
+    color: #444444;
+    }
+    .gsc-completion-snippet {
+    color: #333333;
+    }
+    .gs-promotion a.gs-title:link,
+    .gs-promotion a.gs-title:link *,
+    .gs-promotion .gs-snippet a:link {
+    color: #0000CC;
+    }
+    .gs-promotion a.gs-title:visited,
+    .gs-promotion a.gs-title:visited *,
+    .gs-promotion .gs-snippet a:visited {
+    color: #0000CC;
+    }
+    .gs-promotion a.gs-title:hover,
+    .gs-promotion a.gs-title:hover *,
+    .gs-promotion .gs-snippet a:hover {
+    color: #444444;
+    }
+    .gs-promotion a.gs-title:active,
+    .gs-promotion a.gs-title:active *,
+    .gs-promotion .gs-snippet a:active {
+    color: #00CC00;
+    }
+    .gs-promotion .gs-snippet,
+    .gs-promotion .gs-title .gs-promotion-title-right,
+    .gs-promotion .gs-title .gs-promotion-title-right *  {
+    color: #333333;
+    }
+    .gs-promotion .gs-visibleUrl,
+    .gs-promotion .gs-visibleUrl-short {
+    color: #00CC00;
+    }
+</style>
+<script type="text/javascript">
+  $('#toc').toc();
+</script>
+  
+
+  </body>
+</html>

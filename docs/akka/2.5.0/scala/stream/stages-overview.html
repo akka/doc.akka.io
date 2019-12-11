@@ -1,0 +1,1341 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Overview of built-in stages and their semantics &#8212; Akka Documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/style.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/prettify.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/base.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/docs.css" type="text/css" />
+    <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,600,700" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '2.5.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="../../_static/toc.js"></script>
+    <script type="text/javascript" src="../../_static/prettify.js"></script>
+    <script type="text/javascript" src="../../_static/highlightCode.js"></script>
+    <script type="text/javascript" src="../../_static/effects.core.js"></script>
+    <script type="text/javascript" src="../../_static/effects.highlight.js"></script>
+    <script type="text/javascript" src="../../_static/scrollTo.js"></script>
+    <script type="text/javascript" src="../../_static/contentsFix.js"></script>
+    <script type="text/javascript" src="../../_static/ga.js"></script>
+    <script type="text/javascript" src="../../_static/warnOldDocs.js"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/docsearch.js/1/docsearch.min.js"></script>
+    <link rel="shortcut icon" href="../../_static/favicon.ico"/>
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="Streams Cookbook" href="stream-cookbook.html" />
+    <link rel="prev" title="Testing streams" href="stream-testkit.html" />
+    <!-- Hint to search engines that the "canonical" page is under "current", which will boost it appearing in search results -->
+    
+      <link rel="canonical" href="https://doc.akka.io/docs/akka/current/stream/stages-overview.html" />
+    
+
+    <!--Google Analytics-->
+    <script type="text/javascript">
+      var _gaq = _gaq || [];
+      _gaq.push(['_setAccount', 'UA-21117439-1']);
+      _gaq.push(['_setDomainName', 'akka.io']);
+      _gaq.push(['_trackPageview']);
+      (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+      })()
+    </script>
+    <!--Google Analytics & Marketo-->
+    <script type="text/javascript">
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+      (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+      m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+      ga('create', 'UA-23127719-1', 'lightbend.com', {'allowLinker': true, 'name': 'tsTracker'});
+      ga('tsTracker.require', 'linker');
+      ga('tsTracker.linker:autoLink', ['lightbend.com','playframework.com','scala-lang.org','scaladays.org','spray.io','akka.io','scala-sbt.org','scala-ide.org']);
+      ga('tsTracker.send', 'pageview');
+
+      (function() {
+          var didInit = false;
+          function initMunchkin() {
+          if(didInit === false) {
+            didInit = true;
+            Munchkin.init('558-NCX-702');
+          }
+          }
+          var s = document.createElement('script');
+          s.type = 'text/javascript';
+          s.async = true;
+          s.src = '//munchkin.marketo.net/munchkin.js';
+          s.onreadystatechange = function() {
+          if (this.readyState == 'complete' || this.readyState == 'loaded') {
+            initMunchkin();
+          }
+          };
+          s.onload = initMunchkin;
+          document.getElementsByTagName('head')[0].appendChild(s);
+        })();
+    </script>
+
+
+  </head>
+  <body role="document">
+  <div class="navbar">
+    <div class="navbar-inner">
+      <div class="container">
+        <div class="navbar-logo">
+          <a href="https://akka.io"><img class="svg-logo" src="../../_static/akka_full_color.svg" /></a>
+        </div>
+        <ul class="nav">
+          <li><a href="https://akka.io/docs">Documentation</a></li>
+          <li><a href="https://doc.akka.io/docs/akka/current/additional/faq.html">FAQ</a></li>
+          <li><a href="https://akka.io/downloads">Download</a></li>
+          <li><a href="http://groups.google.com/group/akka-user">Mailing List</a></li>
+          <li><a href="http://github.com/akka/akka">Code</a></li>
+          <li><a href="http://www.lightbend.com/how/subscription">Commercial Support</a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="main">
+    <div class="container">
+      <div class="page-title">Overview of built-in stages and their semantics - Version 2.5.0</div>
+      <div class="pdf-link"><a href="../../AkkaScala.pdf" title="Akka Scala Documentation"><img src="../../_static/pdf-scala-icon.png" style="height: 40px;" /></a></div>
+      <div class="pdf-link"><a href="../../AkkaJava.pdf" title="Akka Java Documentation"><img src="../../_static/pdf-java-icon.png" style="height: 40px;" /></a></div>
+    </div>
+    <div class="main-container">
+      <div class="container">
+        <div class="row">
+          <div class="span12">
+            <div class="breadcrumb">
+              <div style="position: relative">
+                <input type="search" id="search" class="form-control" style="position: relative" placeholder="Search in the doc" />
+              </div>
+              <div>
+                <div>
+                  <span class="divider">«</span> <a href="stream-testkit.html">Testing streams</a> <span class="divider">|</span>
+                </div>
+                <div>
+                  <a href="../../java.html">Java Contents</a> <span class="divider">|</span> <a href="../../scala.html">Scala Contents</a>
+                </div>
+                <div>
+                  <span class="divider">|</span> <a href="stream-cookbook.html">Streams Cookbook</a> <span class="divider">»</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="row">
+          <div class="span9">
+          </div><div class="span9">
+            
+  <div class="section" id="overview-of-built-in-stages-and-their-semantics">
+<span id="stages-overview-scala"></span><h1>Overview of built-in stages and their semantics</h1>
+<div class="section" id="source-stages">
+<h2>Source stages</h2>
+<p>These built-in sources are available from <code class="docutils literal"><span class="pre">akka.stream.scaladsl.Source</span></code>:</p>
+<div class="section" id="fromiterator">
+<h3>fromIterator</h3>
+<p>Stream the values from an <code class="docutils literal"><span class="pre">Iterator</span></code>, requesting the next value when there is demand. The iterator will be created anew
+for each materialization, which is the reason the method takes a function rather than an iterator directly.</p>
+<p>If the iterator perform blocking operations, make sure to run it on a separate dispatcher.</p>
+<p><strong>emits</strong> the next value returned from the iterator</p>
+<p><strong>completes</strong> when the iterator reaches its end</p>
+</div>
+<div class="section" id="apply">
+<h3>apply</h3>
+<p>Stream the values of an <code class="docutils literal"><span class="pre">immutable.Seq</span></code>.</p>
+<p><strong>emits</strong> the next value of the seq</p>
+<p><strong>completes</strong> when the last element of the seq has been emitted</p>
+</div>
+<div class="section" id="single">
+<h3>single</h3>
+<p>Stream a single object</p>
+<p><strong>emits</strong> the value once</p>
+<p><strong>completes</strong> when the single value has been emitted</p>
+</div>
+<div class="section" id="repeat">
+<h3>repeat</h3>
+<p>Stream a single object repeatedly</p>
+<p><strong>emits</strong> the same value repeatedly when there is demand</p>
+<p><strong>completes</strong> never</p>
+</div>
+<div class="section" id="cycle">
+<h3>cycle</h3>
+<p>Stream iterator in cycled manner. Internally new iterator is being created to cycle the one provided via argument meaning
+when original iterator runs out of elements process will start all over again from the beginning of the iterator
+provided by the evaluation of provided parameter. If method argument provides empty iterator stream will be terminated with
+exception.</p>
+<p><strong>emits</strong> the next value returned from cycled iterator</p>
+<p><strong>completes</strong> never</p>
+</div>
+<div class="section" id="tick">
+<h3>tick</h3>
+<p>A periodical repetition of an arbitrary object. Delay of first tick is specified
+separately from interval of the following ticks.</p>
+<p><strong>emits</strong> periodically, if there is downstream backpressure ticks are skipped</p>
+<p><strong>completes</strong> never</p>
+</div>
+<div class="section" id="fromfuture">
+<h3>fromFuture</h3>
+<p>Send the single value of the <code class="docutils literal"><span class="pre">Future</span></code> when it completes and there is demand.
+If the future fails the stream is failed with that exception.</p>
+<p><strong>emits</strong> the future completes</p>
+<p><strong>completes</strong> after the future has completed</p>
+</div>
+<div class="section" id="fromcompletionstage">
+<h3>fromCompletionStage</h3>
+<p>Send the single value of the Java <code class="docutils literal"><span class="pre">CompletionStage</span></code> when it completes and there is demand.
+If the future fails the stream is failed with that exception.</p>
+<p><strong>emits</strong> the future completes</p>
+<p><strong>completes</strong> after the future has completed</p>
+</div>
+<div class="section" id="fromfuturesource">
+<h3>fromFutureSource</h3>
+<p>Streams the elements of the given future source once it successfully completes.
+If the future fails the stream is failed.</p>
+<p><strong>emits</strong> the next value from the <cite>future</cite> source, once it has completed</p>
+<p><strong>completes</strong> after the <cite>future</cite> source completes</p>
+</div>
+<div class="section" id="fromsourcecompletionstage">
+<h3>fromSourceCompletionStage</h3>
+<p>Streams the elements of an asynchronous source once its given <cite>completion</cite> stage completes.
+If the <cite>completion</cite> fails the stream is failed with that exception.</p>
+<p><strong>emits</strong> the next value from the asynchronous source, once its <cite>completion stage</cite> has completed</p>
+<p><strong>completes</strong> after the asynchronous source completes</p>
+</div>
+<div class="section" id="unfold">
+<h3>unfold</h3>
+<p>Stream the result of a function as long as it returns a <code class="docutils literal"><span class="pre">Some</span></code>, the value inside the option
+consists of a tuple where the first value is a state passed back into the next call to the function allowing
+to pass a state. The first invocation of the provided fold function will receive the <code class="docutils literal"><span class="pre">zero</span></code> state.</p>
+<p>Can be used to implement many stateful sources without having to touch the more low level <code class="docutils literal"><span class="pre">GraphStage</span></code> API.</p>
+<p><strong>emits</strong> when there is demand and the unfold function over the previous state returns non empty value</p>
+<p><strong>completes</strong> when the unfold function returns an empty value</p>
+</div>
+<div class="section" id="unfoldasync">
+<h3>unfoldAsync</h3>
+<p>Just like <code class="docutils literal"><span class="pre">unfold</span></code> but the fold function returns a <code class="docutils literal"><span class="pre">Future</span></code> which will cause the source to
+complete or emit when it completes.</p>
+<p>Can be used to implement many stateful sources without having to touch the more low level <code class="docutils literal"><span class="pre">GraphStage</span></code> API.</p>
+<p><strong>emits</strong> when there is demand and unfold state returned future completes with some value</p>
+<p><strong>completes</strong> when the future returned by the unfold function completes with an empty value</p>
+</div>
+<div class="section" id="empty">
+<h3>empty</h3>
+<p>Complete right away without ever emitting any elements. Useful when you have to provide a source to
+an API but there are no elements to emit.</p>
+<p><strong>emits</strong> never</p>
+<p><strong>completes</strong> directly</p>
+</div>
+<div class="section" id="maybe">
+<h3>maybe</h3>
+<p>Materialize a <code class="docutils literal"><span class="pre">Promise[Option[T]]</span></code> that if completed with a <code class="docutils literal"><span class="pre">Some[T]</span></code> will emit that <cite>T</cite> and then complete
+the stream, or if completed with <code class="docutils literal"><span class="pre">None</span></code> complete the stream right away.</p>
+<p><strong>emits</strong> when the returned promise is completed with some value</p>
+<p><strong>completes</strong> after emitting some value, or directly if the promise is completed with no value</p>
+</div>
+<div class="section" id="failed">
+<h3>failed</h3>
+<p>Fail directly with a user specified exception.</p>
+<p><strong>emits</strong> never</p>
+<p><strong>completes</strong> fails the stream directly with the given exception</p>
+<div class="section" id="lazily">
+<h4>lazily</h4>
+<p>Defers creation and materialization of a <code class="docutils literal"><span class="pre">Source</span></code> until there is demand.</p>
+<p><strong>emits</strong> depends on the wrapped <code class="docutils literal"><span class="pre">Source</span></code></p>
+<p><strong>completes</strong> depends on the wrapped <code class="docutils literal"><span class="pre">Source</span></code></p>
+</div>
+</div>
+<div class="section" id="actorpublisher">
+<h3>actorPublisher</h3>
+<p>Wrap an actor extending <code class="docutils literal"><span class="pre">ActorPublisher</span></code> as a source.</p>
+<p><strong>emits</strong> depends on the actor implementation</p>
+<p><strong>completes</strong> when the actor stops</p>
+</div>
+<div class="section" id="actorref">
+<h3>actorRef</h3>
+<p>Materialize an <code class="docutils literal"><span class="pre">ActorRef</span></code>, sending messages to it will emit them on the stream. The actor contain
+a buffer but since communication is one way, there is no back pressure. Handling overflow is done by either dropping
+elements or failing the stream, the strategy is chosen by the user.</p>
+<p><strong>emits</strong> when there is demand and there are messages in the buffer or a message is sent to the actorref</p>
+<p><strong>completes</strong> when the actorref is sent <code class="docutils literal"><span class="pre">akka.actor.Status.Success</span></code> or <code class="docutils literal"><span class="pre">PoisonPill</span></code></p>
+</div>
+<div class="section" id="combine">
+<h3>combine</h3>
+<p>Combine several sources, using a given strategy such as merge or concat, into one source.</p>
+<p><strong>emits</strong> when there is demand, but depending on the strategy</p>
+<p><strong>completes</strong> when all sources has completed</p>
+</div>
+<div class="section" id="unfoldresource">
+<h3>unfoldResource</h3>
+<p>Wrap any resource that can be opened, queried for next element (in a blocking way) and closed using three distinct functions into a source.</p>
+<p><strong>emits</strong> when there is demand and read function returns value</p>
+<p><strong>completes</strong> when read function returns <code class="docutils literal"><span class="pre">None</span></code></p>
+</div>
+<div class="section" id="unfoldresourceasync">
+<h3>unfoldResourceAsync</h3>
+<p>Wrap any resource that can be opened, queried for next element (in a blocking way) and closed using three distinct functions into a source.
+Functions return <code class="docutils literal"><span class="pre">Future</span></code> to achieve asynchronous processing</p>
+<p><strong>emits</strong> when there is demand and <code class="docutils literal"><span class="pre">Future</span></code> from read function returns value</p>
+<p><strong>completes</strong> when <code class="docutils literal"><span class="pre">Future</span></code> from read function returns <code class="docutils literal"><span class="pre">None</span></code></p>
+</div>
+<div class="section" id="queue">
+<h3>queue</h3>
+<p>Materialize a <code class="docutils literal"><span class="pre">SourceQueue</span></code> onto which elements can be pushed for emitting from the source. The queue contains
+a buffer, if elements are pushed onto the queue faster than the source is consumed the overflow will be handled with
+a strategy specified by the user. Functionality for tracking when an element has been emitted is available through
+<code class="docutils literal"><span class="pre">SourceQueue.offer</span></code>.</p>
+<p><strong>emits</strong> when there is demand and the queue contains elements</p>
+<p><strong>completes</strong> when downstream completes</p>
+</div>
+<div class="section" id="assubscriber">
+<h3>asSubscriber</h3>
+<p>Integration with Reactive Streams, materializes into a <code class="docutils literal"><span class="pre">org.reactivestreams.Subscriber</span></code>.</p>
+</div>
+<div class="section" id="frompublisher">
+<h3>fromPublisher</h3>
+<p>Integration with Reactive Streams, subscribes to a <code class="docutils literal"><span class="pre">org.reactivestreams.Publisher</span></code>.</p>
+</div>
+<div class="section" id="zipn">
+<h3>zipN</h3>
+<p>Combine the elements of multiple streams into a stream of sequences.</p>
+<p><strong>emits</strong> when all of the inputs has an element available</p>
+<p><strong>completes</strong> when any upstream completes</p>
+</div>
+<div class="section" id="zipwithn">
+<h3>zipWithN</h3>
+<p>Combine the elements of multiple streams into a stream of sequences using a combiner function.</p>
+<p><strong>emits</strong> when all of the inputs has an element available</p>
+<p><strong>completes</strong> when any upstream completes</p>
+</div>
+</div>
+<div class="section" id="sink-stages">
+<h2>Sink stages</h2>
+<p>These built-in sinks are available from <code class="docutils literal"><span class="pre">akka.stream.scaladsl.Sink</span></code>:</p>
+<div class="section" id="head">
+<h3>head</h3>
+<p>Materializes into a <code class="docutils literal"><span class="pre">Future</span></code> which completes with the first value arriving,
+after this the stream is canceled. If no element is emitted, the future is be failed.</p>
+<p><strong>cancels</strong> after receiving one element</p>
+<p><strong>backpressures</strong> never</p>
+</div>
+<div class="section" id="headoption">
+<h3>headOption</h3>
+<p>Materializes into a <code class="docutils literal"><span class="pre">Future[Option[T]]</span></code> which completes with the first value arriving wrapped in a <code class="docutils literal"><span class="pre">Some</span></code>,
+or a <code class="docutils literal"><span class="pre">None</span></code> if the stream completes without any elements emitted.</p>
+<p><strong>cancels</strong> after receiving one element</p>
+<p><strong>backpressures</strong> never</p>
+</div>
+<div class="section" id="last">
+<h3>last</h3>
+<p>Materializes into a <code class="docutils literal"><span class="pre">Future</span></code> which will complete with the last value emitted when the stream
+completes. If the stream completes with no elements the future is failed.</p>
+<p><strong>cancels</strong> never</p>
+<p><strong>backpressures</strong> never</p>
+</div>
+<div class="section" id="lastoption">
+<h3>lastOption</h3>
+<p>Materialize a <code class="docutils literal"><span class="pre">Future[Option[T]]</span></code> which completes with the last value
+emitted wrapped in an <code class="docutils literal"><span class="pre">Some</span></code> when the stream completes. if the stream completes with no elements the future is
+completed with <code class="docutils literal"><span class="pre">None</span></code>.</p>
+<p><strong>cancels</strong> never</p>
+<p><strong>backpressures</strong> never</p>
+</div>
+<div class="section" id="ignore">
+<h3>ignore</h3>
+<p>Consume all elements but discards them. Useful when a stream has to be consumed but there is no use to actually
+do anything with the elements.</p>
+<p><strong>cancels</strong> never</p>
+<p><strong>backpressures</strong> never</p>
+</div>
+<div class="section" id="cancelled">
+<h3>cancelled</h3>
+<p>Immediately cancel the stream</p>
+<p><strong>cancels</strong> immediately</p>
+</div>
+<div class="section" id="seq">
+<h3>seq</h3>
+<p>Collect values emitted from the stream into a collection, the collection is available through a <code class="docutils literal"><span class="pre">Future</span></code> or
+which completes when the stream completes. Note that the collection is bounded to <code class="docutils literal"><span class="pre">Int.MaxValue</span></code>,
+if more element are emitted the sink will cancel the stream</p>
+<p><strong>cancels</strong> If too many values are collected</p>
+</div>
+<div class="section" id="foreach">
+<h3>foreach</h3>
+<p>Invoke a given procedure for each element received. Note that it is not safe to mutate shared state from the procedure.</p>
+<p>The sink materializes into a  <code class="docutils literal"><span class="pre">Future[Option[Done]]</span></code> which completes when the
+stream completes, or fails if the stream fails.</p>
+<p>Note that it is not safe to mutate state from the procedure.</p>
+<p><strong>cancels</strong> never</p>
+<p><strong>backpressures</strong> when the previous procedure invocation has not yet completed</p>
+</div>
+<div class="section" id="foreachparallel">
+<h3>foreachParallel</h3>
+<p>Like <code class="docutils literal"><span class="pre">foreach</span></code> but allows up to <code class="docutils literal"><span class="pre">parallellism</span></code> procedure calls to happen in parallel.</p>
+<p><strong>cancels</strong> never</p>
+<p><strong>backpressures</strong> when the previous parallel procedure invocations has not yet completed</p>
+</div>
+<div class="section" id="oncomplete">
+<h3>onComplete</h3>
+<p>Invoke a callback when the stream has completed or failed.</p>
+<p><strong>cancels</strong> never</p>
+<p><strong>backpressures</strong> never</p>
+</div>
+<div class="section" id="lazyinit">
+<h3>lazyInit</h3>
+<p>Invoke sinkFactory function to create a real sink upon receiving the first element. Internal <code class="docutils literal"><span class="pre">Sink</span></code> will not be created if there are no elements,
+because of completion or error. <cite>fallback</cite> will be invoked if there was no elements and completed is received from upstream.</p>
+<p><strong>cancels</strong> never</p>
+<p><strong>backpressures</strong> when initialized and when created sink backpressures</p>
+</div>
+<div class="section" id="id1">
+<h3>queue</h3>
+<p>Materialize a <code class="docutils literal"><span class="pre">SinkQueue</span></code> that can be pulled to trigger demand through the sink. The queue contains
+a buffer in case stream emitting elements faster than queue pulling them.</p>
+<p><strong>cancels</strong> when  <code class="docutils literal"><span class="pre">SinkQueue.cancel</span></code> is called</p>
+<p><strong>backpressures</strong> when buffer has some space</p>
+</div>
+<div class="section" id="fold">
+<h3>fold</h3>
+<p>Fold over emitted element with a function, where each invocation will get the new element and the result from the
+previous fold invocation. The first invocation will be provided the <code class="docutils literal"><span class="pre">zero</span></code> value.</p>
+<p>Materializes into a future that will complete with the last state when the stream has completed.</p>
+<p>This stage allows combining values into a result without a global mutable state by instead passing the state along
+between invocations.</p>
+<p><strong>cancels</strong> never</p>
+<p><strong>backpressures</strong> when the previous fold function invocation has not yet completed</p>
+</div>
+<div class="section" id="reduce">
+<h3>reduce</h3>
+<p>Apply a reduction function on the incoming elements and pass the result to the next invocation. The first invocation
+receives the two first elements of the flow.</p>
+<p>Materializes into a future that will be completed by the last result of the reduction function.</p>
+<p><strong>cancels</strong> never</p>
+<p><strong>backpressures</strong> when the previous reduction function invocation has not yet completed</p>
+</div>
+<div class="section" id="id2">
+<h3>combine</h3>
+<p>Combine several sinks into one using a user specified strategy</p>
+<p><strong>cancels</strong> depends on the strategy</p>
+<p><strong>backpressures</strong> depends on the strategy</p>
+</div>
+<div class="section" id="id3">
+<h3>actorRef</h3>
+<p>Send the elements from the stream to an <code class="docutils literal"><span class="pre">ActorRef</span></code>. No backpressure so care must be taken to not overflow the inbox.</p>
+<p><strong>cancels</strong> when the actor terminates</p>
+<p><strong>backpressures</strong> never</p>
+</div>
+<div class="section" id="actorrefwithack">
+<h3>actorRefWithAck</h3>
+<p>Send the elements from the stream to an <code class="docutils literal"><span class="pre">ActorRef</span></code> which must then acknowledge reception after completing a message,
+to provide back pressure onto the sink.</p>
+<p><strong>cancels</strong> when the actor terminates</p>
+<p><strong>backpressures</strong> when the actor acknowledgement has not arrived</p>
+</div>
+<div class="section" id="actorsubscriber">
+<h3>actorSubscriber</h3>
+<p>Create an actor from a <code class="docutils literal"><span class="pre">Props</span></code> upon materialization, where the actor implements <code class="docutils literal"><span class="pre">ActorSubscriber</span></code>, which will
+receive the elements from the stream.</p>
+<p>Materializes into an <code class="docutils literal"><span class="pre">ActorRef</span></code> to the created actor.</p>
+<p><strong>cancels</strong> when the actor terminates</p>
+<p><strong>backpressures</strong> depends on the actor implementation</p>
+</div>
+<div class="section" id="aspublisher">
+<h3>asPublisher</h3>
+<p>Integration with Reactive Streams, materializes into a <code class="docutils literal"><span class="pre">org.reactivestreams.Publisher</span></code>.</p>
+</div>
+<div class="section" id="fromsubscriber">
+<h3>fromSubscriber</h3>
+<p>Integration with Reactive Streams, wraps a <code class="docutils literal"><span class="pre">org.reactivestreams.Subscriber</span></code> as a sink</p>
+</div>
+</div>
+<div class="section" id="additional-sink-and-source-converters">
+<h2>Additional Sink and Source converters</h2>
+<p>Sources and sinks for integrating with <code class="docutils literal"><span class="pre">java.io.InputStream</span></code> and <code class="docutils literal"><span class="pre">java.io.OutputStream</span></code> can be found on
+<code class="docutils literal"><span class="pre">StreamConverters</span></code>. As they are blocking APIs the implementations of these stages are run on a separate
+dispatcher configured through the <code class="docutils literal"><span class="pre">akka.stream.blocking-io-dispatcher</span></code>.</p>
+<div class="section" id="fromoutputstream">
+<h3>fromOutputStream</h3>
+<p>Create a sink that wraps an <code class="docutils literal"><span class="pre">OutputStream</span></code>. Takes a function that produces an <code class="docutils literal"><span class="pre">OutputStream</span></code>, when the sink is
+materialized the function will be called and bytes sent to the sink will be written to the returned <code class="docutils literal"><span class="pre">OutputStream</span></code>.</p>
+<p>Materializes into a <code class="docutils literal"><span class="pre">Future</span></code> which will complete with a <code class="docutils literal"><span class="pre">IOResult</span></code> when the stream
+completes.</p>
+<p>Note that a flow can be materialized multiple times, so the function producing the <code class="docutils literal"><span class="pre">OutputStream</span></code> must be able
+to handle multiple invocations.</p>
+<p>The <code class="docutils literal"><span class="pre">OutputStream</span></code> will be closed when the stream that flows into the <code class="docutils literal"><span class="pre">Sink</span></code> is completed, and the <code class="docutils literal"><span class="pre">Sink</span></code>
+will cancel its inflow when the <code class="docutils literal"><span class="pre">OutputStream</span></code> is no longer writable.</p>
+</div>
+<div class="section" id="asinputstream">
+<h3>asInputStream</h3>
+<p>Create a sink which materializes into an <code class="docutils literal"><span class="pre">InputStream</span></code> that can be read to trigger demand through the sink.
+Bytes emitted through the stream will be available for reading through the <code class="docutils literal"><span class="pre">InputStream</span></code></p>
+<p>The <code class="docutils literal"><span class="pre">InputStream</span></code> will be ended when the stream flowing into this <code class="docutils literal"><span class="pre">Sink</span></code> completes, and the closing the
+<code class="docutils literal"><span class="pre">InputStream</span></code> will cancel the inflow of this <code class="docutils literal"><span class="pre">Sink</span></code>.</p>
+</div>
+<div class="section" id="frominputstream">
+<h3>fromInputStream</h3>
+<p>Create a source that wraps an <code class="docutils literal"><span class="pre">InputStream</span></code>. Takes a function that produces an <code class="docutils literal"><span class="pre">InputStream</span></code>, when the source is
+materialized the function will be called and bytes from the <code class="docutils literal"><span class="pre">InputStream</span></code> will be emitted into the stream.</p>
+<p>Materializes into a <code class="docutils literal"><span class="pre">Future</span></code> which will complete with a <code class="docutils literal"><span class="pre">IOResult</span></code> when the stream
+completes.</p>
+<p>Note that a flow can be materialized multiple times, so the function producing the <code class="docutils literal"><span class="pre">InputStream</span></code> must be able
+to handle multiple invocations.</p>
+<p>The <code class="docutils literal"><span class="pre">InputStream</span></code> will be closed when the <code class="docutils literal"><span class="pre">Source</span></code> is canceled from its downstream, and reaching the end of the
+<code class="docutils literal"><span class="pre">InputStream</span></code> will complete the <code class="docutils literal"><span class="pre">Source</span></code>.</p>
+</div>
+<div class="section" id="asoutputstream">
+<h3>asOutputStream</h3>
+<p>Create a source that materializes into an <code class="docutils literal"><span class="pre">OutputStream</span></code>. When bytes are written to the <code class="docutils literal"><span class="pre">OutputStream</span></code> they
+are emitted from the source.</p>
+<p>The <code class="docutils literal"><span class="pre">OutputStream</span></code> will no longer be writable when the <code class="docutils literal"><span class="pre">Source</span></code> has been canceled from its downstream, and
+closing the <code class="docutils literal"><span class="pre">OutputStream</span></code> will complete the <code class="docutils literal"><span class="pre">Source</span></code>.</p>
+</div>
+<div class="section" id="asjavastream">
+<h3>asJavaStream</h3>
+<p>Create a sink which materializes into Java 8 <code class="docutils literal"><span class="pre">Stream</span></code> that can be run to trigger demand through the sink.
+Elements emitted through the stream will be available for reading through the Java 8 <code class="docutils literal"><span class="pre">Stream</span></code>.</p>
+<p>The Java 8 <code class="docutils literal"><span class="pre">Stream</span></code> will be ended when the stream flowing into this <code class="docutils literal"><span class="pre">Sink</span></code> completes, and closing the Java
+<code class="docutils literal"><span class="pre">Stream</span></code> will cancel the inflow of this <code class="docutils literal"><span class="pre">Sink</span></code>. Java <code class="docutils literal"><span class="pre">Stream</span></code> throws exception in case reactive stream failed.</p>
+<p>Be aware that Java <code class="docutils literal"><span class="pre">Stream</span></code> blocks current thread while waiting on next element from downstream.</p>
+</div>
+<div class="section" id="fromjavastream">
+<h3>fromJavaStream</h3>
+<p>Create a source that wraps a Java 8 <code class="docutils literal"><span class="pre">Stream</span></code>. <code class="docutils literal"><span class="pre">Source</span></code> uses a stream iterator to get all its elements and send them
+downstream on demand.</p>
+</div>
+<div class="section" id="javacollector">
+<h3>javaCollector</h3>
+<p>Create a sink which materializes into a <code class="docutils literal"><span class="pre">Future</span></code> which will be completed with a result of the Java 8 <code class="docutils literal"><span class="pre">Collector</span></code>
+transformation and reduction operations. This allows usage of Java 8 streams transformations for reactive streams.
+The <code class="docutils literal"><span class="pre">Collector</span></code> will trigger demand downstream. Elements emitted through the stream will be accumulated into a mutable
+result container, optionally transformed into a final representation after all input elements have been processed.
+The <code class="docutils literal"><span class="pre">Collector</span></code> can also do reduction at the end. Reduction processing is performed sequentially</p>
+<p>Note that a flow can be materialized multiple times, so the function producing the <code class="docutils literal"><span class="pre">Collector</span></code> must be able
+to handle multiple invocations.</p>
+</div>
+<div class="section" id="javacollectorparallelunordered">
+<h3>javaCollectorParallelUnordered</h3>
+<p>Create a sink which materializes into a <code class="docutils literal"><span class="pre">Future</span></code> which will be completed with a result of the Java 8 <code class="docutils literal"><span class="pre">Collector</span></code>
+transformation and reduction operations. This allows usage of Java 8 streams transformations for reactive streams.
+The <code class="docutils literal"><span class="pre">Collector</span></code> is triggering demand downstream. Elements emitted through the stream will be accumulated into a mutable
+result container, optionally transformed into a final representation after all input elements have been processed.
+The <code class="docutils literal"><span class="pre">Collector</span></code> can also do reduction at the end. Reduction processing is performed in parallel based on graph <code class="docutils literal"><span class="pre">Balance</span></code>.</p>
+<p>Note that a flow can be materialized multiple times, so the function producing the <code class="docutils literal"><span class="pre">Collector</span></code> must be able
+to handle multiple invocations.</p>
+</div>
+</div>
+<div class="section" id="file-io-sinks-and-sources">
+<h2>File IO Sinks and Sources</h2>
+<p>Sources and sinks for reading and writing files can be found on <code class="docutils literal"><span class="pre">FileIO</span></code>.</p>
+<div class="section" id="frompath">
+<h3>fromPath</h3>
+<p>Emit the contents of a file, as <code class="docutils literal"><span class="pre">ByteString</span></code> s, materializes into a <code class="docutils literal"><span class="pre">Future</span></code> which will be completed with
+a <code class="docutils literal"><span class="pre">IOResult</span></code> upon reaching the end of the file or if there is a failure.</p>
+</div>
+<div class="section" id="topath">
+<h3>toPath</h3>
+<p>Create a sink which will write incoming <code class="docutils literal"><span class="pre">ByteString</span></code> s to a given file path.</p>
+</div>
+</div>
+<div class="section" id="flow-stages">
+<h2>Flow stages</h2>
+<p>All flows by default backpressure if the computation they encapsulate is not fast enough to keep up with the rate of
+incoming elements from the preceding stage. There are differences though how the different stages handle when some of
+their downstream stages backpressure them.</p>
+<p>Most stages stop and propagate the failure downstream as soon as any of their upstreams emit a failure.
+This happens to ensure reliable teardown of streams and cleanup when failures happen. Failures are meant to
+be to model unrecoverable conditions, therefore they are always eagerly propagated.
+For in-band error handling of normal errors (dropping elements if a map fails for example) you should use the
+supervision support, or explicitly wrap your element types in a proper container that can express error or success
+states (for example <code class="docutils literal"><span class="pre">Try</span></code> in Scala).</p>
+</div>
+<div class="section" id="simple-processing-stages">
+<h2>Simple processing stages</h2>
+<p>These stages can transform the rate of incoming elements since there are stages that emit multiple elements for a
+single input (e.g. <cite>mapConcat') or consume multiple elements before emitting one output (e.g. ``filter`</cite>).
+However, these rate transformations are data-driven, i.e. it is the incoming elements that define how the
+rate is affected. This is in contrast with <a class="reference internal" href="#detached-stages-overview-scala"><span class="std std-ref">Backpressure aware stages</span></a> which can change their processing behavior
+depending on being backpressured by downstream or not.</p>
+<div class="section" id="map">
+<h3>map</h3>
+<p>Transform each element in the stream by calling a mapping function with it and passing the returned value downstream.</p>
+<p><strong>emits</strong> when the mapping function returns an element</p>
+<p><strong>backpressures</strong> when downstream backpressures</p>
+<p><strong>completes</strong> when upstream completes</p>
+</div>
+<div class="section" id="mapconcat">
+<h3>mapConcat</h3>
+<p>Transform each element into zero or more elements that are individually passed downstream.</p>
+<p><strong>emits</strong> when the mapping function returns an element or there are still remaining elements from the previously calculated collection</p>
+<p><strong>backpressures</strong> when downstream backpressures or there are still available elements from the previously calculated collection</p>
+<p><strong>completes</strong> when upstream completes and all remaining elements has been emitted</p>
+</div>
+<div class="section" id="statefulmapconcat">
+<h3>statefulMapConcat</h3>
+<p>Transform each element into zero or more elements that are individually passed downstream. The difference to <code class="docutils literal"><span class="pre">mapConcat</span></code> is that
+the transformation function is created from a factory for every materialization of the flow.</p>
+<p><strong>emits</strong> when the mapping function returns an element or there are still remaining elements from the previously calculated collection</p>
+<p><strong>backpressures</strong> when downstream backpressures or there are still available elements from the previously calculated collection</p>
+<p><strong>completes</strong> when upstream completes and all remaining elements has been emitted</p>
+</div>
+<div class="section" id="filter">
+<h3>filter</h3>
+<p>Filter the incoming elements using a predicate. If the predicate returns true the element is passed downstream, if
+it returns false the element is discarded.</p>
+<p><strong>emits</strong> when the given predicate returns true for the element</p>
+<p><strong>backpressures</strong> when the given predicate returns true for the element and downstream backpressures</p>
+<p><strong>completes</strong> when upstream completes</p>
+</div>
+<div class="section" id="filternot">
+<h3>filterNot</h3>
+<p>Filter the incoming elements using a predicate. If the predicate returns false the element is passed downstream, if
+it returns true the element is discarded.</p>
+<p><strong>emits</strong> when the given predicate returns false for the element</p>
+<p><strong>backpressures</strong> when the given predicate returns false for the element and downstream backpressures</p>
+<p><strong>completes</strong> when upstream completes</p>
+</div>
+<div class="section" id="collect">
+<h3>collect</h3>
+<p>Apply a partial function to each incoming element, if the partial function is defined for a value the returned
+value is passed downstream. Can often replace <code class="docutils literal"><span class="pre">filter</span></code> followed by <code class="docutils literal"><span class="pre">map</span></code> to achieve the same in one single stage.</p>
+<p><strong>emits</strong> when the provided partial function is defined for the element</p>
+<p><strong>backpressures</strong> the partial function is defined for the element and downstream backpressures</p>
+<p><strong>completes</strong> when upstream completes</p>
+</div>
+<div class="section" id="grouped">
+<h3>grouped</h3>
+<p>Accumulate incoming events until the specified number of elements have been accumulated and then pass the collection of
+elements downstream.</p>
+<p><strong>emits</strong> when the specified number of elements has been accumulated or upstream completed</p>
+<p><strong>backpressures</strong> when a group has been assembled and downstream backpressures</p>
+<p><strong>completes</strong> when upstream completes</p>
+</div>
+<div class="section" id="sliding">
+<h3>sliding</h3>
+<p>Provide a sliding window over the incoming stream and pass the windows as groups of elements downstream.</p>
+<p>Note: the last window might be smaller than the requested size due to end of stream.</p>
+<p><strong>emits</strong> the specified number of elements has been accumulated or upstream completed</p>
+<p><strong>backpressures</strong> when a group has been assembled and downstream backpressures</p>
+<p><strong>completes</strong> when upstream completes</p>
+</div>
+<div class="section" id="scan">
+<h3>scan</h3>
+<p>Emit its current value which starts at <code class="docutils literal"><span class="pre">zero</span></code> and then applies the current and next value to the given function
+emitting the next current value.</p>
+<p>Note that this means that scan emits one element downstream before and upstream elements will not be requested until
+the second element is required from downstream.</p>
+<p><strong>emits</strong> when the function scanning the element returns a new element</p>
+<p><strong>backpressures</strong> when downstream backpressures</p>
+<p><strong>completes</strong> when upstream completes</p>
+</div>
+<div class="section" id="scanasync">
+<h3>scanAsync</h3>
+<p>Just like <code class="docutils literal"><span class="pre">scan</span></code> but receiving a function that results in a <code class="docutils literal"><span class="pre">Future</span></code> to the next value.</p>
+<p><strong>emits</strong> when the <code class="docutils literal"><span class="pre">Future</span></code> resulting from the function scanning the element resolves to the next value</p>
+<p><strong>backpressures</strong> when downstream backpressures</p>
+<p><strong>completes</strong> when upstream completes and the last <code class="docutils literal"><span class="pre">Future</span></code> is resolved</p>
+</div>
+<div class="section" id="id4">
+<h3>fold</h3>
+<p>Start with current value <code class="docutils literal"><span class="pre">zero</span></code> and then apply the current and next value to the given function, when upstream
+complete the current value is emitted downstream.</p>
+<p><strong>emits</strong> when upstream completes</p>
+<p><strong>backpressures</strong> when downstream backpressures</p>
+<p><strong>completes</strong> when upstream completes</p>
+</div>
+<div class="section" id="foldasync">
+<h3>foldAsync</h3>
+<p>Just like <code class="docutils literal"><span class="pre">fold</span></code> but receiving a function that results in a <code class="docutils literal"><span class="pre">Future</span></code> to the next value.</p>
+<p><strong>emits</strong> when upstream completes and the last <code class="docutils literal"><span class="pre">Future</span></code> is resolved</p>
+<p><strong>backpressures</strong> when downstream backpressures</p>
+<p><strong>completes</strong> when upstream completes and the last <code class="docutils literal"><span class="pre">Future</span></code> is resolved</p>
+</div>
+<div class="section" id="id5">
+<h3>reduce</h3>
+<p>Start with first element and then apply the current and next value to the given function, when upstream
+complete the current value is emitted downstream. Similar to <code class="docutils literal"><span class="pre">fold</span></code>.</p>
+<p><strong>emits</strong> when upstream completes</p>
+<p><strong>backpressures</strong> when downstream backpressures</p>
+<p><strong>completes</strong> when upstream completes</p>
+</div>
+<div class="section" id="drop">
+<h3>drop</h3>
+<p>Drop <code class="docutils literal"><span class="pre">n</span></code> elements and then pass any subsequent element downstream.</p>
+<p><strong>emits</strong> when the specified number of elements has been dropped already</p>
+<p><strong>backpressures</strong> when the specified number of elements has been dropped and downstream backpressures</p>
+<p><strong>completes</strong> when upstream completes</p>
+</div>
+<div class="section" id="take">
+<h3>take</h3>
+<p>Pass <code class="docutils literal"><span class="pre">n</span></code> incoming elements downstream and then complete</p>
+<p><strong>emits</strong> while the specified number of elements to take has not yet been reached</p>
+<p><strong>backpressures</strong> when downstream backpressures</p>
+<p><strong>completes</strong> when the defined number of elements has been taken or upstream completes</p>
+</div>
+<div class="section" id="takewhile">
+<h3>takeWhile</h3>
+<p>Pass elements downstream as long as a predicate function return true for the element include the element
+when the predicate first return false and then complete.</p>
+<p><strong>emits</strong> while the predicate is true and until the first false result</p>
+<p><strong>backpressures</strong> when downstream backpressures</p>
+<p><strong>completes</strong> when predicate returned false or upstream completes</p>
+</div>
+<div class="section" id="dropwhile">
+<h3>dropWhile</h3>
+<p>Drop elements as long as a predicate function return true for the element</p>
+<p><strong>emits</strong> when the predicate returned false and for all following stream elements</p>
+<p><strong>backpressures</strong> predicate returned false and downstream backpressures</p>
+<p><strong>completes</strong> when upstream completes</p>
+</div>
+<div class="section" id="recover">
+<h3>recover</h3>
+<p>Allow sending of one last element downstream when a failure has happened upstream.</p>
+<p>Throwing an exception inside <code class="docutils literal"><span class="pre">recover</span></code> _will_ be logged on ERROR level automatically.</p>
+<p><strong>emits</strong> when the element is available from the upstream or upstream is failed and pf returns an element</p>
+<p><strong>backpressures</strong> when downstream backpressures, not when failure happened</p>
+<p><strong>completes</strong> when upstream completes or upstream failed with exception pf can handle</p>
+</div>
+<div class="section" id="recoverwith">
+<h3>recoverWith</h3>
+<p>Allow switching to alternative Source when a failure has happened upstream.</p>
+<p>Throwing an exception inside <code class="docutils literal"><span class="pre">recoverWith</span></code> _will_ be logged on ERROR level automatically.</p>
+<p><strong>emits</strong> the element is available from the upstream or upstream is failed and pf returns alternative Source</p>
+<p><strong>backpressures</strong> downstream backpressures, after failure happened it backprssures to alternative Source</p>
+<p><strong>completes</strong> upstream completes or upstream failed with exception pf can handle</p>
+</div>
+<div class="section" id="recoverwithretries">
+<h3>recoverWithRetries</h3>
+<p>RecoverWithRetries allows to switch to alternative Source on flow failure. It will stay in effect after
+a failure has been recovered up to <cite>attempts</cite> number of times so that each time there is a failure
+it is fed into the <cite>pf</cite> and a new Source may be materialized. Note that if you pass in 0, this won't
+attempt to recover at all. Passing -1 will behave exactly the same as  <cite>recoverWith</cite>.</p>
+<p>Since the underlying failure signal onError arrives out-of-band, it might jump over existing elements.
+This stage can recover the failure signal, but not the skipped elements, which will be dropped.</p>
+<p><strong>emits</strong> when element is available from the upstream or upstream is failed and element is available from alternative Source</p>
+<p><strong>backpressures</strong> when downstream backpressures</p>
+<p><strong>completes</strong> when upstream completes or upstream failed with exception pf can handle</p>
+</div>
+<div class="section" id="maperror">
+<h3>mapError</h3>
+<p>While similar to <code class="docutils literal"><span class="pre">recover</span></code> this stage can be used to transform an error signal to a different one <em>without</em> logging
+it as an error in the process. So in that sense it is NOT exactly equivalent to <code class="docutils literal"><span class="pre">recover(t</span> <span class="pre">=&gt;</span> <span class="pre">throw</span> <span class="pre">t2)</span></code> since recover
+would log the <code class="docutils literal"><span class="pre">t2</span></code> error.</p>
+<p>Since the underlying failure signal onError arrives out-of-band, it might jump over existing elements.
+This stage can recover the failure signal, but not the skipped elements, which will be dropped.</p>
+<p>Similarily to <code class="docutils literal"><span class="pre">recover</span></code> throwing an exception inside <code class="docutils literal"><span class="pre">mapError</span></code> _will_ be logged on ERROR level automatically.</p>
+<p><strong>emits</strong> when element is available from the upstream or upstream is failed and pf returns an element
+<strong>backpressures</strong> when downstream backpressures
+<strong>completes</strong> when upstream completes or upstream failed with exception pf can handle</p>
+</div>
+<div class="section" id="detach">
+<h3>detach</h3>
+<p>Detach upstream demand from downstream demand without detaching the stream rates.</p>
+<p><strong>emits</strong> when the upstream stage has emitted and there is demand</p>
+<p><strong>backpressures</strong> when downstream backpressures</p>
+<p><strong>completes</strong> when upstream completes</p>
+</div>
+<div class="section" id="throttle">
+<h3>throttle</h3>
+<p>Limit the throughput to a specific number of elements per time unit, or a specific total cost per time unit, where
+a function has to be provided to calculate the individual cost of each element.</p>
+<p><strong>emits</strong> when upstream emits an element and configured time per each element elapsed</p>
+<p><strong>backpressures</strong> when downstream backpressures</p>
+<p><strong>completes</strong> when upstream completes</p>
+</div>
+<div class="section" id="intersperse">
+<h3>intersperse</h3>
+<p>Intersperse stream with provided element similar to <code class="docutils literal"><span class="pre">List.mkString</span></code>. It can inject start and end marker elements to stream.</p>
+<p><strong>emits</strong> when upstream emits an element or before with the <cite>start</cite> element if provided</p>
+<p><strong>backpressures</strong> when downstream backpressures</p>
+<p><strong>completes</strong> when upstream completes</p>
+</div>
+<div class="section" id="limit">
+<h3>limit</h3>
+<p>Limit number of element from upstream to given <code class="docutils literal"><span class="pre">max</span></code> number.</p>
+<p><strong>emits</strong> when upstream emits and the number of emitted elements has not reached max</p>
+<p><strong>backpressures</strong> when downstream backpressures</p>
+<p><strong>completes</strong> when upstream completes and the number of emitted elements has not reached max</p>
+</div>
+<div class="section" id="limitweighted">
+<h3>limitWeighted</h3>
+<p>Ensure stream boundedness by evaluating the cost of incoming elements using a cost function.
+Evaluated cost of each element defines how many elements will be allowed to travel downstream.</p>
+<p><strong>emits</strong> when upstream emits and the number of emitted elements has not reached max</p>
+<p><strong>backpressures</strong> when downstream backpressures</p>
+<p><strong>completes</strong> when upstream completes and the number of emitted elements has not reached max</p>
+</div>
+<div class="section" id="log">
+<h3>log</h3>
+<p>Log elements flowing through the stream as well as completion and erroring. By default element and
+completion signals are logged on debug level, and errors are logged on Error level.
+This can be changed by calling <code class="docutils literal"><span class="pre">Attributes.logLevels(...)</span></code> on the given Flow.</p>
+<p><strong>emits</strong> when upstream emits</p>
+<p><strong>backpressures</strong> when downstream backpressures</p>
+<p><strong>completes</strong> when upstream completes</p>
+</div>
+<div class="section" id="id6">
+<h3>recoverWithRetries</h3>
+<p>Switch to alternative Source on flow failure. It stays in effect after a failure has been recovered up to <code class="docutils literal"><span class="pre">attempts</span></code>
+number of times. Each time a failure is fed into the partial function and a new Source may be materialized.</p>
+<p><strong>emits</strong> when element is available from the upstream or upstream is failed and element is available from alternative Source</p>
+<p><strong>backpressures</strong> when downstream backpressures</p>
+<p><strong>completes</strong> when upstream completes or upstream failed with exception provided partial function can handle</p>
+</div>
+</div>
+<div class="section" id="flow-stages-composed-of-sinks-and-sources">
+<h2>Flow stages composed of Sinks and Sources</h2>
+<div class="section" id="flow-fromsinkandsource">
+<h3>Flow.fromSinkAndSource</h3>
+<p>Creates a <code class="docutils literal"><span class="pre">Flow</span></code> from a <code class="docutils literal"><span class="pre">Sink</span></code> and a <code class="docutils literal"><span class="pre">Source</span></code> where the Flow's input will be sent to the <code class="docutils literal"><span class="pre">Sink</span></code>
+and the <code class="docutils literal"><span class="pre">Flow</span></code> 's output will come from the Source.</p>
+<p>Note that termination events, like completion and cancelation is not automatically propagated through to the &quot;other-side&quot;
+of the such-composed Flow. Use <code class="docutils literal"><span class="pre">CoupledTerminationFlow</span></code> if you want to couple termination of both of the ends,
+for example most useful in handling websocket connections.</p>
+</div>
+<div class="section" id="coupledterminationflow-fromsinkandsource">
+<h3>CoupledTerminationFlow.fromSinkAndSource</h3>
+<p>Allows coupling termination (cancellation, completion, erroring) of Sinks and Sources while creating a Flow them them.
+Similar to <code class="docutils literal"><span class="pre">Flow.fromSinkAndSource</span></code> however that API does not connect the completion signals of the wrapped stages.</p>
+<p>Similar to <code class="docutils literal"><span class="pre">Flow.fromSinkAndSource</span></code> however couples the termination of these two stages.</p>
+<p>E.g. if the emitted <code class="docutils literal"><span class="pre">Flow</span></code> gets a cancellation, the <code class="docutils literal"><span class="pre">Source</span></code> of course is cancelled,
+however the Sink will also be completed. The table below illustrates the effects in detail:</p>
+<p>+=================================================+=============================+=================================+
+| Returned Flow                                   | Sink (in)                   | Source (out)                    |
++=================================================+=============================+=================================+
+| cause: upstream (sink-side) receives completion | effect: receives completion | effect: receives cancel         |
++-------------------------------------------------+-----------------------------+---------------------------------+
+| cause: upstream (sink-side) receives error      | effect: receives error      | effect: receives cancel         |
++-------------------------------------------------+-----------------------------+---------------------------------+
+| cause: downstream (source-side) receives cancel | effect: completes           | effect: receives cancel         |
++-------------------------------------------------+-----------------------------+---------------------------------+
+| effect: cancels upstream, completes downstream  | effect: completes           | cause: signals complete         |
++-------------------------------------------------+-----------------------------+---------------------------------+
+| effect: cancels upstream, errors downstream     | effect: receives error      | cause: signals error or throws  |
++-------------------------------------------------+-----------------------------+---------------------------------+
+| effect: cancels upstream, completes downstream  | cause: cancels              | effect: receives cancel         |
++=================================================+=============================+=================================+</p>
+<p>The order in which the <cite>in</cite> and <cite>out</cite> sides receive their respective completion signals is not defined, do not rely on its ordering.</p>
+</div>
+</div>
+<div class="section" id="asynchronous-processing-stages">
+<h2>Asynchronous processing stages</h2>
+<p>These stages encapsulate an asynchronous computation, properly handling backpressure while taking care of the asynchronous
+operation at the same time (usually handling the completion of a Future).</p>
+<div class="section" id="mapasync">
+<h3>mapAsync</h3>
+<p>Pass incoming elements to a function that return a <code class="docutils literal"><span class="pre">Future</span></code> result. When the future arrives the result is passed
+downstream. Up to <code class="docutils literal"><span class="pre">n</span></code> elements can be processed concurrently, but regardless of their completion time the incoming
+order will be kept when results complete. For use cases where order does not mather <code class="docutils literal"><span class="pre">mapAsyncUnordered</span></code> can be used.</p>
+<p>If a Future fails, the stream also fails (unless a different supervision strategy is applied)</p>
+<p><strong>emits</strong> when the Future returned by the provided function finishes for the next element in sequence</p>
+<p><strong>backpressures</strong> when the number of futures reaches the configured parallelism and the downstream backpressures</p>
+<p><strong>completes</strong> when upstream completes and all futures has been completed and all elements has been emitted</p>
+</div>
+<div class="section" id="mapasyncunordered">
+<h3>mapAsyncUnordered</h3>
+<p>Like <code class="docutils literal"><span class="pre">mapAsync</span></code> but <code class="docutils literal"><span class="pre">Future</span></code> results are passed downstream as they arrive regardless of the order of the elements
+that triggered them.</p>
+<p>If a Future fails, the stream also fails (unless a different supervision strategy is applied)</p>
+<p><strong>emits</strong> any of the Futures returned by the provided function complete</p>
+<p><strong>backpressures</strong> when the number of futures reaches the configured parallelism and the downstream backpressures</p>
+<p><strong>completes</strong> upstream completes and all futures has been completed  and all elements has been emitted</p>
+</div>
+</div>
+<div class="section" id="timer-driven-stages">
+<h2>Timer driven stages</h2>
+<p>These stages process elements using timers, delaying, dropping or grouping elements for certain time durations.</p>
+<div class="section" id="takewithin">
+<h3>takeWithin</h3>
+<p>Pass elements downstream within a timeout and then complete.</p>
+<p><strong>emits</strong> when an upstream element arrives</p>
+<p><strong>backpressures</strong> downstream backpressures</p>
+<p><strong>completes</strong> upstream completes or timer fires</p>
+</div>
+<div class="section" id="dropwithin">
+<h3>dropWithin</h3>
+<p>Drop elements until a timeout has fired</p>
+<p><strong>emits</strong> after the timer fired and a new upstream element arrives</p>
+<p><strong>backpressures</strong> when downstream backpressures</p>
+<p><strong>completes</strong> upstream completes</p>
+</div>
+<div class="section" id="groupedwithin">
+<h3>groupedWithin</h3>
+<p>Chunk up the stream into groups of elements received within a time window, or limited by the given number of elements,
+whichever happens first.</p>
+<p><strong>emits</strong> when the configured time elapses since the last group has been emitted</p>
+<p><strong>backpressures</strong> when the group has been assembled (the duration elapsed) and downstream backpressures</p>
+<p><strong>completes</strong> when upstream completes</p>
+</div>
+<div class="section" id="initialdelay">
+<h3>initialDelay</h3>
+<p>Delay the initial element by a user specified duration from stream materialization.</p>
+<p><strong>emits</strong> upstream emits an element if the initial delay already elapsed</p>
+<p><strong>backpressures</strong> downstream backpressures or initial delay not yet elapsed</p>
+<p><strong>completes</strong> when upstream completes</p>
+</div>
+<div class="section" id="delay">
+<h3>delay</h3>
+<p>Delay every element passed through with a specific duration.</p>
+<p><strong>emits</strong> there is a pending element in the buffer and configured time for this element elapsed</p>
+<p><strong>backpressures</strong> differs, depends on <code class="docutils literal"><span class="pre">OverflowStrategy</span></code> set</p>
+<p><strong>completes</strong> when upstream completes and buffered elements has been drained</p>
+</div>
+</div>
+<div class="section" id="backpressure-aware-stages">
+<span id="detached-stages-overview-scala"></span><h2>Backpressure aware stages</h2>
+<p>These stages are aware of the backpressure provided by their downstreams and able to adapt their behavior to that signal.</p>
+<div class="section" id="conflate">
+<h3>conflate</h3>
+<p>Allow for a slower downstream by passing incoming elements and a summary into an aggregate function as long as
+there is backpressure. The summary value must be of the same type as the incoming elements, for example the sum or
+average of incoming numbers, if aggregation should lead to a different type <code class="docutils literal"><span class="pre">conflateWithSeed</span></code> can be used:</p>
+<p><strong>emits</strong> when downstream stops backpressuring and there is a conflated element available</p>
+<p><strong>backpressures</strong> when the aggregate function cannot keep up with incoming elements</p>
+<p><strong>completes</strong> when upstream completes</p>
+</div>
+<div class="section" id="conflatewithseed">
+<h3>conflateWithSeed</h3>
+<p>Allow for a slower downstream by passing incoming elements and a summary into an aggregate function as long as there
+is backpressure. When backpressure starts or there is no backpressure element is passed into a <code class="docutils literal"><span class="pre">seed</span></code> function to
+transform it to the summary type.</p>
+<p><strong>emits</strong> when downstream stops backpressuring and there is a conflated element available</p>
+<p><strong>backpressures</strong> when the aggregate or seed functions cannot keep up with incoming elements</p>
+<p><strong>completes</strong> when upstream completes</p>
+</div>
+<div class="section" id="batch">
+<h3>batch</h3>
+<p>Allow for a slower downstream by passing incoming elements and a summary into an aggregate function as long as there
+is backpressure and a maximum number of batched elements is not yet reached. When the maximum number is reached and
+downstream still backpressures batch will also backpressure.</p>
+<p>When backpressure starts or there is no backpressure element is passed into a <code class="docutils literal"><span class="pre">seed</span></code> function to transform it
+to the summary type.</p>
+<p>Will eagerly pull elements, this behavior may result in a single pending (i.e. buffered) element which cannot be
+aggregated to the batched value.</p>
+<p><strong>emits</strong> when downstream stops backpressuring and there is a batched element available</p>
+<p><strong>backpressures</strong> when batched elements reached the max limit of allowed batched elements &amp; downstream backpressures</p>
+<p><strong>completes</strong> when upstream completes and a &quot;possibly pending&quot; element was drained</p>
+</div>
+<div class="section" id="batchweighted">
+<h3>batchWeighted</h3>
+<p>Allow for a slower downstream by passing incoming elements and a summary into an aggregate function as long as there
+is backpressure and a maximum weight batched elements is not yet reached. The weight of each element is determined by
+applying <code class="docutils literal"><span class="pre">costFn</span></code>. When the maximum total weight is reached and downstream still backpressures batch will also
+backpressure.</p>
+<p>Will eagerly pull elements, this behavior may result in a single pending (i.e. buffered) element which cannot be
+aggregated to the batched value.</p>
+<p><strong>emits</strong> downstream stops backpressuring and there is a batched element available</p>
+<p><strong>backpressures</strong> batched elements reached the max weight limit of allowed batched elements &amp; downstream backpressures</p>
+<p><strong>completes</strong> upstream completes and a &quot;possibly pending&quot; element was drained</p>
+</div>
+<div class="section" id="expand">
+<h3>expand</h3>
+<p>Allow for a faster downstream by expanding the last incoming element to an <code class="docutils literal"><span class="pre">Iterator</span></code>. For example
+<code class="docutils literal"><span class="pre">Iterator.continually(element)</span></code> to keep repeating the last incoming element.</p>
+<p><strong>emits</strong> when downstream stops backpressuring</p>
+<p><strong>backpressures</strong> when downstream backpressures</p>
+<p><strong>completes</strong> when upstream completes</p>
+</div>
+<div class="section" id="buffer-backpressure">
+<h3>buffer (Backpressure)</h3>
+<p>Allow for a temporarily faster upstream events by buffering <code class="docutils literal"><span class="pre">size</span></code> elements. When the buffer is full backpressure
+is applied.</p>
+<p><strong>emits</strong> when downstream stops backpressuring and there is a pending element in the buffer</p>
+<p><strong>backpressures</strong> when buffer is full</p>
+<p><strong>completes</strong> when upstream completes and buffered elements has been drained</p>
+</div>
+<div class="section" id="buffer-drop">
+<h3>buffer (Drop)</h3>
+<p>Allow for a temporarily faster upstream events by buffering <code class="docutils literal"><span class="pre">size</span></code> elements. When the buffer is full elements are
+dropped according to the specified <code class="docutils literal"><span class="pre">OverflowStrategy</span></code>:</p>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">dropHead</span></code> drops the oldest element in the buffer to make space for the new element</li>
+<li><code class="docutils literal"><span class="pre">dropTail</span></code> drops the youngest element in the buffer to make space for the new element</li>
+<li><code class="docutils literal"><span class="pre">dropBuffer</span></code> drops the entire buffer and buffers the new element</li>
+<li><code class="docutils literal"><span class="pre">dropNew</span></code> drops the new element</li>
+</ul>
+<p><strong>emits</strong> when downstream stops backpressuring and there is a pending element in the buffer</p>
+<p><strong>backpressures</strong> never (when dropping cannot keep up with incoming elements)</p>
+<p><strong>completes</strong> upstream completes and buffered elements has been drained</p>
+</div>
+<div class="section" id="buffer-fail">
+<h3>buffer (Fail)</h3>
+<p>Allow for a temporarily faster upstream events by buffering <code class="docutils literal"><span class="pre">size</span></code> elements. When the buffer is full the stage fails
+the flow with a <code class="docutils literal"><span class="pre">BufferOverflowException</span></code>.</p>
+<p><strong>emits</strong> when downstream stops backpressuring and there is a pending element in the buffer</p>
+<p><strong>backpressures</strong> never, fails the stream instead of backpressuring when buffer is full</p>
+<p><strong>completes</strong> when upstream completes and buffered elements has been drained</p>
+</div>
+</div>
+<div class="section" id="nesting-and-flattening-stages">
+<h2>Nesting and flattening stages</h2>
+<p>These stages either take a stream and turn it into a stream of streams (nesting) or they take a stream that contains
+nested streams and turn them into a stream of elements instead (flattening).</p>
+<div class="section" id="prefixandtail">
+<h3>prefixAndTail</h3>
+<p>Take up to <cite>n</cite> elements from the stream (less than <cite>n</cite> only if the upstream completes before emitting <cite>n</cite> elements)
+and returns a pair containing a strict sequence of the taken element and a stream representing the remaining elements.</p>
+<p><strong>emits</strong> when the configured number of prefix elements are available. Emits this prefix, and the rest as a substream</p>
+<p><strong>backpressures</strong> when downstream backpressures or substream backpressures</p>
+<p><strong>completes</strong> when prefix elements has been consumed and substream has been consumed</p>
+</div>
+<div class="section" id="groupby">
+<h3>groupBy</h3>
+<p>Demultiplex the incoming stream into separate output streams.</p>
+<p><strong>emits</strong> an element for which the grouping function returns a group that has not yet been created. Emits the new group
+there is an element pending for a group whose substream backpressures</p>
+<p><strong>completes</strong> when upstream completes (Until the end of stream it is not possible to know whether new substreams will be needed or not)</p>
+</div>
+<div class="section" id="splitwhen">
+<h3>splitWhen</h3>
+<p>Split off elements into a new substream whenever a predicate function return <code class="docutils literal"><span class="pre">true</span></code>.</p>
+<p><strong>emits</strong> an element for which the provided predicate is true, opening and emitting a new substream for subsequent elements</p>
+<p><strong>backpressures</strong> when there is an element pending for the next substream, but the previous is not fully consumed yet, or the substream backpressures</p>
+<p><strong>completes</strong> when upstream completes (Until the end of stream it is not possible to know whether new substreams will be needed or not)</p>
+</div>
+<div class="section" id="splitafter">
+<h3>splitAfter</h3>
+<p>End the current substream whenever a predicate returns <code class="docutils literal"><span class="pre">true</span></code>, starting a new substream for the next element.</p>
+<p><strong>emits</strong> when an element passes through. When the provided predicate is true it emits the element * and opens a new substream for subsequent element</p>
+<p><strong>backpressures</strong> when there is an element pending for the next substream, but the previous is not fully consumed yet, or the substream backpressures</p>
+<p><strong>completes</strong> when upstream completes (Until the end of stream it is not possible to know whether new substreams will be needed or not)</p>
+</div>
+<div class="section" id="flatmapconcat">
+<h3>flatMapConcat</h3>
+<p>Transform each input element into a <code class="docutils literal"><span class="pre">Source</span></code> whose elements are then flattened into the output stream through
+concatenation. This means each source is fully consumed before consumption of the next source starts.</p>
+<p><strong>emits</strong> when the current consumed substream has an element available</p>
+<p><strong>backpressures</strong> when downstream backpressures</p>
+<p><strong>completes</strong> when upstream completes and all consumed substreams complete</p>
+</div>
+<div class="section" id="flatmapmerge">
+<h3>flatMapMerge</h3>
+<p>Transform each input element into a <code class="docutils literal"><span class="pre">Source</span></code> whose elements are then flattened into the output stream through
+merging. The maximum number of merged sources has to be specified.</p>
+<p><strong>emits</strong> when one of the currently consumed substreams has an element available</p>
+<p><strong>backpressures</strong> when downstream backpressures</p>
+<p><strong>completes</strong> when upstream completes and all consumed substreams complete</p>
+</div>
+</div>
+<div class="section" id="time-aware-stages">
+<h2>Time aware stages</h2>
+<p>Those stages operate taking time into consideration.</p>
+<div class="section" id="initialtimeout">
+<h3>initialTimeout</h3>
+<p>If the first element has not passed through this stage before the provided timeout, the stream is failed
+with a <code class="docutils literal"><span class="pre">TimeoutException</span></code>.</p>
+<p><strong>emits</strong> when upstream emits an element</p>
+<p><strong>backpressures</strong> when downstream backpressures</p>
+<p><strong>completes</strong> when upstream completes or fails if timeout elapses before first element arrives</p>
+<p><strong>cancels</strong> when downstream cancels</p>
+</div>
+<div class="section" id="completiontimeout">
+<h3>completionTimeout</h3>
+<p>If the completion of the stream does not happen until the provided timeout, the stream is failed
+with a <code class="docutils literal"><span class="pre">TimeoutException</span></code>.</p>
+<p><strong>emits</strong> when upstream emits an element</p>
+<p><strong>backpressures</strong> when downstream backpressures</p>
+<p><strong>completes</strong> when upstream completes or fails if timeout elapses before upstream completes</p>
+<p><strong>cancels</strong> when downstream cancels</p>
+</div>
+<div class="section" id="idletimeout">
+<h3>idleTimeout</h3>
+<p>If the time between two processed elements exceeds the provided timeout, the stream is failed
+with a <code class="docutils literal"><span class="pre">TimeoutException</span></code>. The timeout is checked periodically, so the resolution of the
+check is one period (equals to timeout value).</p>
+<p><strong>emits</strong> when upstream emits an element</p>
+<p><strong>backpressures</strong> when downstream backpressures</p>
+<p><strong>completes</strong> when upstream completes or fails if timeout elapses between two emitted elements</p>
+<p><strong>cancels</strong> when downstream cancels</p>
+</div>
+<div class="section" id="backpressuretimeout">
+<h3>backpressureTimeout</h3>
+<p>If the time between the emission of an element and the following downstream demand exceeds the provided timeout,
+the stream is failed with a <code class="docutils literal"><span class="pre">TimeoutException</span></code>. The timeout is checked periodically, so the resolution of the
+check is one period (equals to timeout value).</p>
+<p><strong>emits</strong> when upstream emits an element</p>
+<p><strong>backpressures</strong> when downstream backpressures</p>
+<p><strong>completes</strong> when upstream completes or fails if timeout elapses between element emission and downstream demand.</p>
+<p><strong>cancels</strong> when downstream cancels</p>
+</div>
+<div class="section" id="keepalive">
+<h3>keepAlive</h3>
+<p>Injects additional (configured) elements if upstream does not emit for a configured amount of time.</p>
+<p><strong>emits</strong> when upstream emits an element or if the upstream was idle for the configured period</p>
+<p><strong>backpressures</strong> when downstream backpressures</p>
+<p><strong>completes</strong> when upstream completes</p>
+<p><strong>cancels</strong> when downstream cancels</p>
+</div>
+<div class="section" id="id7">
+<h3>initialDelay</h3>
+<p>Delays the initial element by the specified duration.</p>
+<p><strong>emits</strong> when upstream emits an element if the initial delay is already elapsed</p>
+<p><strong>backpressures</strong> when downstream backpressures or initial delay is not yet elapsed</p>
+<p><strong>completes</strong> when upstream completes</p>
+<p><strong>cancels</strong> when downstream cancels</p>
+</div>
+</div>
+<div class="section" id="fan-in-stages">
+<h2>Fan-in stages</h2>
+<p>These stages take multiple streams as their input and provide a single output combining the elements from all of
+the inputs in different ways.</p>
+<div class="section" id="merge">
+<h3>merge</h3>
+<p>Merge multiple sources. Picks elements randomly if all sources has elements ready.</p>
+<p><strong>emits</strong> when one of the inputs has an element available</p>
+<p><strong>backpressures</strong> when downstream backpressures</p>
+<p><strong>completes</strong> when all upstreams complete (This behavior is changeable to completing when any upstream completes by setting <code class="docutils literal"><span class="pre">eagerComplete=true</span></code>.)</p>
+</div>
+<div class="section" id="mergesorted">
+<h3>mergeSorted</h3>
+<p>Merge multiple sources. Waits for one element to be ready from each input stream and emits the
+smallest element.</p>
+<p><strong>emits</strong> when all of the inputs have an element available</p>
+<p><strong>backpressures</strong> when downstream backpressures</p>
+<p><strong>completes</strong> when all upstreams complete</p>
+</div>
+<div class="section" id="mergepreferred">
+<h3>mergePreferred</h3>
+<p>Merge multiple sources. Prefer one source if all sources has elements ready.</p>
+<p><strong>emits</strong> when one of the inputs has an element available, preferring a defined input if multiple have elements available</p>
+<p><strong>backpressures</strong> when downstream backpressures</p>
+<p><strong>completes</strong> when all upstreams complete (This behavior is changeable to completing when any upstream completes by setting <code class="docutils literal"><span class="pre">eagerComplete=true</span></code>.)</p>
+</div>
+<div class="section" id="zip">
+<h3>zip</h3>
+<p>Combines elements from each of multiple sources into tuples and passes the tuples downstream.</p>
+<p><strong>emits</strong> when all of the inputs have an element available</p>
+<p><strong>backpressures</strong> when downstream backpressures</p>
+<p><strong>completes</strong> when any upstream completes</p>
+</div>
+<div class="section" id="zipwith">
+<h3>zipWith</h3>
+<p>Combines elements from multiple sources through a <code class="docutils literal"><span class="pre">combine</span></code> function and passes the
+returned value downstream.</p>
+<p><strong>emits</strong> when all of the inputs have an element available</p>
+<p><strong>backpressures</strong> when downstream backpressures</p>
+<p><strong>completes</strong> when any upstream completes</p>
+</div>
+<div class="section" id="zipwithindex">
+<h3>zipWithIndex</h3>
+<p>Zips elements of current flow with its indices.</p>
+<p><strong>emits</strong> upstream emits an element and is paired with their index</p>
+<p><strong>backpressures</strong> when downstream backpressures</p>
+<p><strong>completes</strong> when upstream completes</p>
+</div>
+<div class="section" id="concat">
+<h3>concat</h3>
+<p>After completion of the original upstream the elements of the given source will be emitted.</p>
+<p><strong>emits</strong> when the current stream has an element available; if the current input completes, it tries the next one</p>
+<p><strong>backpressures</strong> when downstream backpressures</p>
+<p><strong>completes</strong> when all upstreams complete</p>
+</div>
+<div class="section" id="id8">
+<h3>++</h3>
+<p>Just a shorthand for concat</p>
+<p><strong>emits</strong> when the current stream has an element available; if the current input completes, it tries the next one</p>
+<p><strong>backpressures</strong> when downstream backpressures</p>
+<p><strong>completes</strong> when all upstreams complete</p>
+</div>
+<div class="section" id="prepend">
+<h3>prepend</h3>
+<p>Prepends the given source to the flow, consuming it until completion before the original source is consumed.</p>
+<p>If materialized values needs to be collected <code class="docutils literal"><span class="pre">prependMat</span></code> is available.</p>
+<p><strong>emits</strong> when the given stream has an element available; if the given input completes, it tries the current one</p>
+<p><strong>backpressures</strong> when downstream backpressures</p>
+<p><strong>completes</strong> when all upstreams complete</p>
+</div>
+<div class="section" id="orelse">
+<h3>orElse</h3>
+<p>If the primary source completes without emitting any elements, the elements from the secondary source
+are emitted. If the primary source emits any elements the secondary source is cancelled.</p>
+<p>Note that both sources are materialized directly and the secondary source is backpressured until it becomes
+the source of elements or is cancelled.</p>
+<p>Signal errors downstream, regardless which of the two sources emitted the error.</p>
+<p><strong>emits</strong> when an element is available from first stream or first stream closed without emitting any elements and an element
+is available from the second stream</p>
+<p><strong>backpressures</strong> when downstream backpressures</p>
+<p><strong>completes</strong> the primary stream completes after emitting at least one element, when the primary stream completes
+without emitting and the secondary stream already has completed or when the secondary stream completes</p>
+</div>
+<div class="section" id="interleave">
+<h3>interleave</h3>
+<p>Emits a specifiable number of elements from the original source, then from the provided source and repeats. If one
+source completes the rest of the other stream will be emitted.</p>
+<p><strong>emits</strong> when element is available from the currently consumed upstream</p>
+<p><strong>backpressures</strong> when upstream backpressures</p>
+<p><strong>completes</strong> when both upstreams have completed</p>
+</div>
+</div>
+<div class="section" id="fan-out-stages">
+<h2>Fan-out stages</h2>
+<p>These have one input and multiple outputs. They might route the elements between different outputs, or emit elements on
+multiple outputs at the same time.</p>
+<div class="section" id="unzip">
+<h3>unzip</h3>
+<p>Takes a stream of two element tuples and unzips the two elements ino two different downstreams.</p>
+<p><strong>emits</strong> when all of the outputs stops backpressuring and there is an input element available</p>
+<p><strong>backpressures</strong> when any of the outputs backpressures</p>
+<p><strong>completes</strong> when upstream completes</p>
+</div>
+<div class="section" id="unzipwith">
+<h3>unzipWith</h3>
+<p>Splits each element of input into multiple downstreams using a function</p>
+<p><strong>emits</strong> when all of the outputs stops backpressuring and there is an input element available</p>
+<p><strong>backpressures</strong> when any of the outputs backpressures</p>
+<p><strong>completes</strong> when upstream completes</p>
+</div>
+<div class="section" id="broadcast">
+<h3>broadcast</h3>
+<p>Emit each incoming element each of <code class="docutils literal"><span class="pre">n</span></code> outputs.</p>
+<p><strong>emits</strong> when all of the outputs stops backpressuring and there is an input element available</p>
+<p><strong>backpressures</strong> when any of the outputs backpressures</p>
+<p><strong>completes</strong> when upstream completes</p>
+</div>
+<div class="section" id="balance">
+<h3>balance</h3>
+<p>Fan-out the stream to several streams. Each upstream element is emitted to the first available downstream consumer.</p>
+<p><strong>emits</strong> when any of the outputs stops backpressuring; emits the element to the first available output</p>
+<p><strong>backpressures</strong> when all of the outputs backpressure</p>
+<p><strong>completes</strong> when upstream completes</p>
+</div>
+<div class="section" id="partition">
+<h3>partition</h3>
+<p>Fan-out the stream to several streams. Each upstream element is emitted to one downstream consumer according to the
+partitioner function applied to the element.</p>
+<p><strong>emits</strong> when the chosen output stops backpressuring and there is an input element available</p>
+<p><strong>backpressures</strong> when the chosen output backpressures</p>
+<p><strong>completes</strong> when upstream completes and no output is pending</p>
+</div>
+</div>
+<div class="section" id="watching-status-stages">
+<h2>Watching status stages</h2>
+<div class="section" id="watchtermination">
+<h3>watchTermination</h3>
+<p>Materializes to a <code class="docutils literal"><span class="pre">Future</span></code> that will be completed with Done or failed depending whether the upstream of the stage has been completed or failed.
+The stage otherwise passes through elements unchanged.</p>
+<p><strong>emits</strong> when input has an element available</p>
+<p><strong>backpressures</strong> when output backpressures</p>
+<p><strong>completes</strong> when upstream completes</p>
+</div>
+<div class="section" id="monitor">
+<h3>monitor</h3>
+<p>Materializes to a <code class="docutils literal"><span class="pre">FlowMonitor</span></code> that monitors messages flowing through or completion of the stage. The stage otherwise
+passes through elements unchanged. Note that the <code class="docutils literal"><span class="pre">FlowMonitor</span></code> inserts a memory barrier every time it processes an
+event, and may therefore affect performance.</p>
+<p><strong>emits</strong> when upstream emits an element</p>
+<p><strong>backpressures</strong> when downstream <strong>backpressures</strong></p>
+<p><strong>completes</strong> when upstream completes</p>
+</div>
+</div>
+</div>
+
+
+          </div>
+          <div class="span3"><p class="contents-title">Contents</p>
+              <div id="scroller-anchor">
+                <div id="scroller">
+                  <div id="toc"></div>
+                </div>
+              </div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="footer">
+  <div class="container">
+    <ul>
+      <li><h5>Akka</h5></li>
+      <li><a href="https://akka.io/docs">Documentation</a></li>
+      <li><a href="https://doc.akka.io/docs/akka/current/additional/faq.html">FAQ</a></li>
+      <li><a href="https://akka.io/downloads">Downloads</a></li>
+      <li><a href="https://akka.io/news">News</a></li>
+      <li><a href="http://letitcrash.com">Blog</a></li>
+    </ul>
+    <ul>
+      <li><h5>Contribute</h5></li>
+      <li><a href="https://akka.io/community">Community Projects</a></li>
+      <li><a href="http://github.com/akka/akka">Source Code</a></li>
+      <li><a href="http://groups.google.com/group/akka-user">Mailing List</a></li>
+      <li><a href="https://doc.akka.io/docs/akka/current/project/issue-tracking.html">Report a Bug</a></li>
+    </ul>
+    <ul>
+      <li><h5>Company</h5></li>
+      <li><a href="http://www.lightbend.com/how/subscription">Commercial Support</a></li>
+      <li><a href="https://akka.io/team">Team</a></li>
+      <li><a href="mailto:info@lightbend.com">Contact</a></li>
+    </ul>
+    <ul>
+      <li><img src="../../_static/akka_icon_reverse.svg" align="center"/></li>
+    </ul>
+  </div>
+  <div class="container copyright">
+    <p style="float: left;">
+      © 2015 <a href="http://www.lightbend.com/">Lightbend Inc.</a> <span class="license">Akka is Open Source and available under the Apache 2 License.</span>
+    </p>
+    <p style="float: right; font-size: 12px;">
+      Last updated: Apr 12, 2017
+    </p>
+  </div>
+</div>
+<script type="text/javascript">
+  var $toc = $('#toc');
+  $toc.toc();
+
+  // show clickable section sign when section header hovered:
+  $('.section h2,.section h3,.section h4,.section h5').each(function(i, el) {
+      var $el = $(el);
+      $el.prepend($("<a class='section-marker' href='#" + $el.attr("id") + "'>&sect;</a>"))
+  });
+</script>
+
+<!-- Algolia docs search -->
+<script type="text/javascript">
+  var version = DOCUMENTATION_OPTIONS.VERSION;
+
+  var lang = "scala";
+  var path = window.location.pathname;
+  if (path.includes("/java/") || path.includes("java.html")) lang = "java";
+
+  console.log("Search configured for:", lang, "@", version);
+
+  docsearch({
+    apiKey: '543bad5ad786495d9ccd445ed34ed082',
+    indexName: 'akka_io',
+    inputSelector: '#search',
+    algoliaOptions: {
+      hitsPerPage: 5,
+      facetFilters: '[' + '["language:' + lang + '","language:general"]' + ',"version:' + version + '"]'
+    }
+  });
+
+  // set up "/" as global shortcut for focusing on search
+  $(document).keypress(function (event) {
+    if (event.keyCode == 47) {
+      $("#q").focus();
+      return false; // swallow key event, otherwise the / char would be input into the search box
+    }
+  });
+</script>
+
+  
+
+  </body>
+</html>

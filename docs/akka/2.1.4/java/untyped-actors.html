@@ -1,0 +1,1284 @@
+
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" /><meta name="description" content="Akka is a toolkit for building highly concurrent, distributed, and resilient message-driven applications for Java and Scala."/><link rel="canonical" href="https://doc.akka.io/docs/akka/2.1/java/untyped-actors.html"/>
+    
+    <title>Actors (Java) &mdash; Akka Documentation</title>
+    
+    <link rel="stylesheet" href="../_static/style.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/prettify.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/base.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
+    <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Exo:300,400,600,700" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '2.1.4',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+<script type="text/javascript" src="https://doc.akka.io/docs/akka/2.1.4/_static/warnOldDocs.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="../_static/toc.js"></script>
+    <script type="text/javascript" src="../_static/prettify.js"></script>
+    <script type="text/javascript" src="../_static/highlightCode.js"></script>
+    <script type="text/javascript" src="../_static/effects.core.js"></script>
+    <script type="text/javascript" src="../_static/effects.highlight.js"></script>
+    <script type="text/javascript" src="../_static/scrollTo.js"></script>
+    <script type="text/javascript" src="../_static/contentsFix.js"></script>
+    <script type="text/javascript" src="../_static/ga.js"></script>
+    <link rel="shortcut icon" href="../_static/favicon.ico"/>
+    <link rel="top" title="Akka Documentation" href="../index.html" />
+    <link rel="up" title="Java API" href="index.html" />
+    <link rel="next" title="Typed Actors (Java)" href="typed-actors.html" />
+    <link rel="prev" title="Java API" href="index.html" />
+    <!--Google Analytics-->
+    <script type="text/javascript">
+      var _gaq = _gaq || [];
+      _gaq.push(['_setAccount', 'UA-21117439-1']);
+      _gaq.push(['_setDomainName', 'akka.io']);
+      _gaq.push(['_trackPageview']);
+      (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+      })()
+    </script>
+
+  </head>
+  <body>
+  <div class="navbar">
+    <div class="navbar-inner">
+      <div class="container">
+        <div class="navbar-logo">
+          <a href="https://akka.io"><img src="../_static/logo-small.png" /></a>
+        </div>    
+        <ul class="nav">
+          <li><a href="https://akka.io/docs">Documentation</a></li>
+          <li><a href="https://akka.io/faq">FAQ</a></li>
+          <li><a href="http://typesafe.com/stack/downloads/akka">Download</a></li>
+          <li><a href="http://groups.google.com/group/akka-user">Mailing List</a></li>
+          <li><a href="http://github.com/akka/akka">Code</a></li>           
+          <li><a href="http://typesafe.com/products/typesafe-subscription">Commercial Support</a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="main">
+    <div class="container">
+      <div class="page-title">Actors (Java)</div>
+      <div class="pdf-link"><a href="../Akka.pdf"><img src="../_static/pdf-icon.png" style="height: 40px;" /></a></div>
+    </div>
+    <div class="main-container">
+      <div class="container">
+        <div class="row">
+          <div class="span12">
+            <ul class="breadcrumb">           
+              <li>
+                 <span class="divider">|</span> <a href="typed-actors.html">Typed Actors (Java)</a> <span class="divider">»</span>
+              </li>
+              <li>
+                <a href="../index.html">Contents</a>
+              </li>
+              <li>
+                <span class="divider">«</span> <a href="index.html">Java API</a> <span class="divider">|</span>
+              </li>
+              <li>
+                Version 2.1.4
+              </li>
+            </ul>
+          </div>
+        </div>
+        <div class="row">
+          <div class="span9">
+            <div id="cse">Loading</div>
+          </div><div class="span9">
+            
+  <div class="section" id="actors-java">
+<span id="untyped-actors-java"></span><h1>Actors (Java)</h1>
+<p>The <a class="reference external" href="http://en.wikipedia.org/wiki/Actor_model">Actor Model</a> provides a higher level of abstraction for writing concurrent
+and distributed systems. It alleviates the developer from having to deal with
+explicit locking and thread management, making it easier to write correct
+concurrent and parallel systems. Actors were defined in the 1973 paper by Carl
+Hewitt but have been popularized by the Erlang language, and used for example at
+Ericsson with great success to build highly concurrent and reliable telecom
+systems.</p>
+<p>The API of Akka’s Actors is similar to Scala Actors which has borrowed some of
+its syntax from Erlang.</p>
+<div class="section" id="creating-actors">
+<h2>Creating Actors</h2>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Since Akka enforces parental supervision every actor is supervised and
+(potentially) the supervisor of its children, it is advisable that you
+familiarize yourself with <a class="reference internal" href="../general/actor-systems.html#actor-systems"><em>Actor Systems</em></a> and <a class="reference internal" href="../general/supervision.html#supervision"><em>Supervision and Monitoring</em></a> and it
+may also help to read <a class="reference internal" href="../general/addressing.html#actorof-vs-actorfor"><em>Summary: actorOf vs. actorFor</em></a> (the whole of
+<a class="reference internal" href="../general/addressing.html#addressing"><em>Actor References, Paths and Addresses</em></a> is recommended reading in any case).</p>
+</div>
+<div class="section" id="defining-an-actor-class">
+<h3>Defining an Actor class</h3>
+<p>Actor in Java are implemented by extending the <tt class="docutils literal"><span class="pre">UntypedActor</span></tt> class and implementing the
+<tt class="xref py py-meth docutils literal"><span class="pre">onReceive</span></tt> method. This method takes the message as a parameter.</p>
+<p>Here is an example:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">import</span> <span class="nn">akka.actor.UntypedActor</span><span class="o">;</span>
+<span class="k">import</span> <span class="nn">akka.event.Logging</span><span class="o">;</span>
+<span class="k">import</span> <span class="nn">akka.event.LoggingAdapter</span><span class="o">;</span>
+
+<span class="n">public</span> <span class="k">class</span> <span class="nc">MyUntypedActor</span> <span class="k">extends</span> <span class="nc">UntypedActor</span> <span class="o">{</span>
+  <span class="nc">LoggingAdapter</span> <span class="n">log</span> <span class="k">=</span> <span class="nc">Logging</span><span class="o">.</span><span class="n">getLogger</span><span class="o">(</span><span class="n">getContext</span><span class="o">().</span><span class="n">system</span><span class="o">(),</span> <span class="k">this</span><span class="o">);</span>
+
+  <span class="n">public</span> <span class="n">void</span> <span class="n">onReceive</span><span class="o">(</span><span class="nc">Object</span> <span class="n">message</span><span class="o">)</span> <span class="n">throws</span> <span class="nc">Exception</span> <span class="o">{</span>
+    <span class="k">if</span> <span class="o">(</span><span class="n">message</span> <span class="n">instanceof</span> <span class="nc">String</span><span class="o">)</span>
+      <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="o">(</span><span class="s">&quot;Received String message: {}&quot;</span><span class="o">,</span> <span class="n">message</span><span class="o">);</span>
+    <span class="k">else</span>
+      <span class="n">unhandled</span><span class="o">(</span><span class="n">message</span><span class="o">);</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="props">
+<h3>Props</h3>
+<p><tt class="docutils literal"><span class="pre">Props</span></tt> is a configuration class to specify options for the creation
+of actors. Here are some examples on how to create a <tt class="docutils literal"><span class="pre">Props</span></tt> instance.</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="nc">Props</span> <span class="n">props1</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">Props</span><span class="o">();</span>
+<span class="nc">Props</span> <span class="n">props2</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">Props</span><span class="o">(</span><span class="nc">MyUntypedActor</span><span class="o">.</span><span class="n">class</span><span class="o">);</span>
+<span class="nc">Props</span> <span class="n">props3</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">Props</span><span class="o">(</span><span class="k">new</span> <span class="nc">UntypedActorFactory</span><span class="o">()</span> <span class="o">{</span>
+  <span class="n">public</span> <span class="nc">UntypedActor</span> <span class="n">create</span><span class="o">()</span> <span class="o">{</span>
+    <span class="k">return</span> <span class="k">new</span> <span class="nc">MyUntypedActor</span><span class="o">();</span>
+  <span class="o">}</span>
+<span class="o">});</span>
+<span class="nc">Props</span> <span class="n">props4</span> <span class="k">=</span> <span class="n">props1</span><span class="o">.</span><span class="n">withCreator</span><span class="o">(</span><span class="k">new</span> <span class="nc">UntypedActorFactory</span><span class="o">()</span> <span class="o">{</span>
+  <span class="n">public</span> <span class="nc">UntypedActor</span> <span class="n">create</span><span class="o">()</span> <span class="o">{</span>
+    <span class="k">return</span> <span class="k">new</span> <span class="nc">MyUntypedActor</span><span class="o">();</span>
+  <span class="o">}</span>
+<span class="o">});</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="creating-actors-with-props">
+<h3>Creating Actors with Props</h3>
+<p>Actors are created by passing in a <tt class="docutils literal"><span class="pre">Props</span></tt> instance into the <tt class="docutils literal"><span class="pre">actorOf</span></tt> factory method.</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="nc">ActorRef</span> <span class="n">myActor</span> <span class="k">=</span> <span class="n">system</span><span class="o">.</span><span class="n">actorOf</span><span class="o">(</span>
+  <span class="k">new</span> <span class="nc">Props</span><span class="o">(</span><span class="nc">MyUntypedActor</span><span class="o">.</span><span class="n">class</span><span class="o">).</span><span class="n">withDispatcher</span><span class="o">(</span><span class="s">&quot;my-dispatcher&quot;</span><span class="o">),</span> <span class="s">&quot;myactor&quot;</span><span class="o">);</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="creating-actors-with-default-constructor">
+<h3>Creating Actors with default constructor</h3>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">import</span> <span class="nn">akka.actor.ActorRef</span><span class="o">;</span>
+<span class="k">import</span> <span class="nn">akka.actor.ActorSystem</span><span class="o">;</span>
+<span class="k">import</span> <span class="nn">akka.actor.Props</span><span class="o">;</span>
+</pre></div>
+</div>
+<div class="highlight-scala"><div class="highlight"><pre><span class="nc">ActorSystem</span> <span class="n">system</span> <span class="k">=</span> <span class="nc">ActorSystem</span><span class="o">.</span><span class="n">create</span><span class="o">(</span><span class="s">&quot;MySystem&quot;</span><span class="o">);</span>
+<span class="nc">ActorRef</span> <span class="n">myActor</span> <span class="k">=</span> <span class="n">system</span><span class="o">.</span><span class="n">actorOf</span><span class="o">(</span><span class="k">new</span> <span class="nc">Props</span><span class="o">(</span><span class="nc">MyUntypedActor</span><span class="o">.</span><span class="n">class</span><span class="o">),</span> <span class="s">&quot;myactor&quot;</span><span class="o">);</span>
+</pre></div>
+</div>
+<p>The call to <tt class="xref py py-meth docutils literal"><span class="pre">actorOf</span></tt> returns an instance of <tt class="docutils literal"><span class="pre">ActorRef</span></tt>. This is a handle to
+the <tt class="docutils literal"><span class="pre">UntypedActor</span></tt> instance which you can use to interact with the <tt class="docutils literal"><span class="pre">UntypedActor</span></tt>. The
+<tt class="docutils literal"><span class="pre">ActorRef</span></tt> is immutable and has a one to one relationship with the Actor it
+represents. The <tt class="docutils literal"><span class="pre">ActorRef</span></tt> is also serializable and network-aware. This means
+that you can serialize it, send it over the wire and use it on a remote host and
+it will still be representing the same Actor on the original node, across the
+network.</p>
+<p>In the above example the actor was created from the system. It is also possible
+to create actors from other actors with the actor <tt class="docutils literal"><span class="pre">context</span></tt>. The difference is
+how the supervisor hierarchy is arranged. When using the context the current actor
+will be supervisor of the created child actor. When using the system it will be
+a top level actor, that is supervised by the system (internal guardian actor).</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="n">public</span> <span class="k">class</span> <span class="nc">FirstUntypedActor</span> <span class="k">extends</span> <span class="nc">UntypedActor</span> <span class="o">{</span>
+  <span class="nc">ActorRef</span> <span class="n">myActor</span> <span class="k">=</span> <span class="n">getContext</span><span class="o">().</span><span class="n">actorOf</span><span class="o">(</span><span class="k">new</span> <span class="nc">Props</span><span class="o">(</span><span class="nc">MyActor</span><span class="o">.</span><span class="n">class</span><span class="o">),</span> <span class="s">&quot;myactor&quot;</span><span class="o">);</span>
+</pre></div>
+</div>
+<p>The name parameter is optional, but you should preferably name your actors, since
+that is used in log messages and for identifying actors. The name must not be empty
+or start with <tt class="docutils literal"><span class="pre">$</span></tt>, but it may contain URL encoded characters (eg. <tt class="docutils literal"><span class="pre">%20</span></tt> for a blank space).
+If the given name is already in use by another child to the
+same parent actor an <cite>InvalidActorNameException</cite> is thrown.</p>
+<p>Actors are automatically started asynchronously when created.
+When you create the <tt class="docutils literal"><span class="pre">UntypedActor</span></tt> then it will automatically call the <tt class="docutils literal"><span class="pre">preStart</span></tt>
+callback method on the <tt class="docutils literal"><span class="pre">UntypedActor</span></tt> class. This is an excellent place to
+add initialization code for the actor.</p>
+<div class="highlight-java"><div class="highlight"><pre><span class="nd">@Override</span>
+<span class="kd">public</span> <span class="kt">void</span> <span class="nf">preStart</span><span class="o">()</span> <span class="o">{</span>
+  <span class="o">...</span> <span class="c1">// initialization code</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="creating-actors-with-non-default-constructor">
+<h3>Creating Actors with non-default constructor</h3>
+<p>If your UntypedActor has a constructor that takes parameters then you can't create it using
+'actorOf(new Props(clazz))'. Then you can instead pass in 'new Props(new UntypedActorFactory() {..})'
+in which you can create the Actor in any way you like.</p>
+<p>Here is an example:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="c1">// allows passing in arguments to the MyActor constructor</span>
+<span class="nc">ActorRef</span> <span class="n">myActor</span> <span class="k">=</span> <span class="n">system</span><span class="o">.</span><span class="n">actorOf</span><span class="o">(</span><span class="k">new</span> <span class="nc">Props</span><span class="o">(</span><span class="k">new</span> <span class="nc">UntypedActorFactory</span><span class="o">()</span> <span class="o">{</span>
+  <span class="n">public</span> <span class="nc">UntypedActor</span> <span class="n">create</span><span class="o">()</span> <span class="o">{</span>
+    <span class="k">return</span> <span class="k">new</span> <span class="nc">MyActor</span><span class="o">(</span><span class="s">&quot;...&quot;</span><span class="o">);</span>
+  <span class="o">}</span>
+<span class="o">}),</span> <span class="s">&quot;myactor&quot;</span><span class="o">);</span>
+</pre></div>
+</div>
+<p>This way of creating the Actor is also great for integrating with Dependency Injection
+(DI) frameworks like Guice or Spring.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">You might be tempted at times to offer an <tt class="docutils literal"><span class="pre">UntypedActor</span></tt> factory which
+always returns the same instance, e.g. by using a static field. This is not
+supported, as it goes against the meaning of an actor restart, which is
+described here: <a class="reference internal" href="../general/supervision.html#supervision-restart"><em>What Restarting Means</em></a>.</p>
+</div>
+</div>
+</div>
+<div class="section" id="untypedactor-api">
+<h2>UntypedActor API</h2>
+<p>The <tt class="xref py py-class docutils literal"><span class="pre">UntypedActor</span></tt> class defines only one abstract method, the above mentioned
+<tt class="xref py py-meth docutils literal"><span class="pre">onReceive(Object</span> <span class="pre">message)</span></tt>, which implements the behavior of the actor.</p>
+<p>If the current actor behavior does not match a received message, it's recommended that
+you call the <tt class="xref py py-meth docutils literal"><span class="pre">unhandled</span></tt> method, which by default publishes a <tt class="docutils literal"><span class="pre">new</span>
+<span class="pre">akka.actor.UnhandledMessage(message,</span> <span class="pre">sender,</span> <span class="pre">recipient)</span></tt> on the actor system’s
+event stream (set configuration item <tt class="docutils literal"><span class="pre">akka.actor.debug.unhandled</span></tt> to <tt class="docutils literal"><span class="pre">on</span></tt>
+to have them converted into actual Debug messages).</p>
+<p>In addition, it offers:</p>
+<ul>
+<li><p class="first"><tt class="xref py py-obj docutils literal"><span class="pre">getSelf()</span></tt> reference to the <tt class="xref py py-class docutils literal"><span class="pre">ActorRef</span></tt> of the actor</p>
+</li>
+<li><p class="first"><tt class="xref py py-obj docutils literal"><span class="pre">getSender()</span></tt> reference sender Actor of the last received message, typically used as described in <a class="reference internal" href="#untypedactor-reply"><em>Reply to messages</em></a></p>
+</li>
+<li><p class="first"><tt class="xref py py-obj docutils literal"><span class="pre">supervisorStrategy()</span></tt> user overridable definition the strategy to use for supervising child actors</p>
+<p>This strategy is typically declared inside the actor in order to have access
+to the actor’s internal state within the decider function: since failure is
+communicated as a message sent to the supervisor and processed like other
+messages (albeit outside of the normal behavior), all values and variables
+within the actor are available, as is the <tt class="docutils literal"><span class="pre">getSender()</span></tt> reference (which will
+be the immediate child reporting the failure; if the original failure
+occurred within a distant descendant it is still reported one level up at a
+time).</p>
+</li>
+<li><p class="first"><tt class="xref py py-obj docutils literal"><span class="pre">getContext()</span></tt> exposes contextual information for the actor and the current message, such as:</p>
+<ul class="simple">
+<li>factory methods to create child actors (<tt class="xref py py-meth docutils literal"><span class="pre">actorOf</span></tt>)</li>
+<li>system that the actor belongs to</li>
+<li>parent supervisor</li>
+<li>supervised children</li>
+<li>lifecycle monitoring</li>
+<li>hotswap behavior stack as described in <a class="reference internal" href="#untypedactor-hotswap"><em>HotSwap</em></a></li>
+</ul>
+</li>
+</ul>
+<p>The remaining visible methods are user-overridable life-cycle hooks which are
+described in the following:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="n">public</span> <span class="n">void</span> <span class="n">preStart</span><span class="o">()</span> <span class="o">{</span>
+<span class="o">}</span>
+
+<span class="n">public</span> <span class="n">void</span> <span class="n">preRestart</span><span class="o">(</span><span class="nc">Throwable</span> <span class="n">reason</span><span class="o">,</span> <span class="nc">Option</span><span class="o">&lt;</span><span class="nc">Object</span><span class="o">&gt;</span> <span class="n">message</span><span class="o">)</span> <span class="o">{</span>
+  <span class="k">for</span> <span class="o">(</span><span class="nc">ActorRef</span> <span class="n">each</span> <span class="k">:</span> <span class="kt">getContext</span><span class="o">()</span><span class="kt">.getChildren</span><span class="o">())</span>
+    <span class="n">getContext</span><span class="o">().</span><span class="n">stop</span><span class="o">(</span><span class="n">each</span><span class="o">);</span>
+  <span class="n">postStop</span><span class="o">();</span>
+<span class="o">}</span>
+
+<span class="n">public</span> <span class="n">void</span> <span class="n">postRestart</span><span class="o">(</span><span class="nc">Throwable</span> <span class="n">reason</span><span class="o">)</span> <span class="o">{</span>
+  <span class="n">preStart</span><span class="o">();</span>
+<span class="o">}</span>
+
+<span class="n">public</span> <span class="n">void</span> <span class="n">postStop</span><span class="o">()</span> <span class="o">{</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<p>The implementations shown above are the defaults provided by the <tt class="xref py py-class docutils literal"><span class="pre">UntypedActor</span></tt>
+class.</p>
+<div class="section" id="lifecycle-monitoring-aka-deathwatch">
+<span id="deathwatch-java"></span><h3>Lifecycle Monitoring aka DeathWatch</h3>
+<p>In order to be notified when another actor terminates (i.e. stops permanently,
+not temporary failure and restart), an actor may register itself for reception
+of the <tt class="xref py py-class docutils literal"><span class="pre">Terminated</span></tt> message dispatched by the other actor upon
+termination (see <a class="reference internal" href="#stopping-actors">Stopping Actors</a>). This service is provided by the
+<tt class="xref py py-class docutils literal"><span class="pre">DeathWatch</span></tt> component of the actor system.</p>
+<p>Registering a monitor is easy (see fourth line, the rest is for demonstrating
+the whole functionality):</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="n">public</span> <span class="k">class</span> <span class="nc">WatchActor</span> <span class="k">extends</span> <span class="nc">UntypedActor</span> <span class="o">{</span>
+  <span class="k">final</span> <span class="nc">ActorRef</span> <span class="n">child</span> <span class="k">=</span> <span class="k">this</span><span class="o">.</span><span class="n">getContext</span><span class="o">().</span><span class="n">actorOf</span><span class="o">(</span><span class="nc">Props</span><span class="o">.</span><span class="n">empty</span><span class="o">(),</span> <span class="s">&quot;child&quot;</span><span class="o">);</span>
+  <span class="o">{</span>
+    <span class="k">this</span><span class="o">.</span><span class="n">getContext</span><span class="o">().</span><span class="n">watch</span><span class="o">(</span><span class="n">child</span><span class="o">);</span> <span class="c1">// &lt;-- the only call needed for registration</span>
+  <span class="o">}</span>
+  <span class="nc">ActorRef</span> <span class="n">lastSender</span> <span class="k">=</span> <span class="n">getContext</span><span class="o">().</span><span class="n">system</span><span class="o">().</span><span class="n">deadLetters</span><span class="o">();</span>
+
+  <span class="nd">@Override</span>
+  <span class="n">public</span> <span class="n">void</span> <span class="n">onReceive</span><span class="o">(</span><span class="nc">Object</span> <span class="n">message</span><span class="o">)</span> <span class="o">{</span>
+    <span class="k">if</span> <span class="o">(</span><span class="n">message</span><span class="o">.</span><span class="n">equals</span><span class="o">(</span><span class="s">&quot;kill&quot;</span><span class="o">))</span> <span class="o">{</span>
+      <span class="n">getContext</span><span class="o">().</span><span class="n">stop</span><span class="o">(</span><span class="n">child</span><span class="o">);</span>
+      <span class="n">lastSender</span> <span class="k">=</span> <span class="n">getSender</span><span class="o">();</span>
+    <span class="o">}</span> <span class="k">else</span> <span class="k">if</span> <span class="o">(</span><span class="n">message</span> <span class="n">instanceof</span> <span class="nc">Terminated</span><span class="o">)</span> <span class="o">{</span>
+      <span class="k">final</span> <span class="nc">Terminated</span> <span class="n">t</span> <span class="k">=</span> <span class="o">(</span><span class="nc">Terminated</span><span class="o">)</span> <span class="n">message</span><span class="o">;</span>
+      <span class="k">if</span> <span class="o">(</span><span class="n">t</span><span class="o">.</span><span class="n">getActor</span><span class="o">()</span> <span class="o">==</span> <span class="n">child</span><span class="o">)</span> <span class="o">{</span>
+        <span class="n">lastSender</span><span class="o">.</span><span class="n">tell</span><span class="o">(</span><span class="s">&quot;finished&quot;</span><span class="o">,</span> <span class="n">getSelf</span><span class="o">());</span>
+      <span class="o">}</span>
+    <span class="o">}</span> <span class="k">else</span> <span class="o">{</span>
+      <span class="n">unhandled</span><span class="o">(</span><span class="n">message</span><span class="o">);</span>
+    <span class="o">}</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<p>It should be noted that the <tt class="xref py py-class docutils literal"><span class="pre">Terminated</span></tt> message is generated
+independent of the order in which registration and termination occur.
+Registering multiple times does not necessarily lead to multiple messages being
+generated, but there is no guarantee that only exactly one such message is
+received: if termination of the watched actor has generated and queued the
+message, and another registration is done before this message has been
+processed, then a second message will be queued, because registering for
+monitoring of an already terminated actor leads to the immediate generation of
+the <tt class="xref py py-class docutils literal"><span class="pre">Terminated</span></tt> message.</p>
+<p>It is also possible to deregister from watching another actor’s liveliness
+using <tt class="docutils literal"><span class="pre">context.unwatch(target)</span></tt>, but obviously this cannot guarantee
+non-reception of the <tt class="xref py py-class docutils literal"><span class="pre">Terminated</span></tt> message because that may already have
+been queued.</p>
+</div>
+<div class="section" id="start-hook">
+<h3>Start Hook</h3>
+<p>Right after starting the actor, its <tt class="xref py py-meth docutils literal"><span class="pre">preStart</span></tt> method is invoked.</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="nd">@Override</span>
+<span class="n">public</span> <span class="n">void</span> <span class="n">preStart</span><span class="o">()</span> <span class="o">{</span>
+  <span class="c1">// registering with other actors</span>
+  <span class="n">someService</span><span class="o">.</span><span class="n">tell</span><span class="o">(</span><span class="nc">Register</span><span class="o">(</span><span class="n">getSelf</span><span class="o">());</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="restart-hooks">
+<h3>Restart Hooks</h3>
+<p>All actors are supervised, i.e. linked to another actor with a fault
+handling strategy. Actors may be restarted in case an exception is thrown while
+processing a message (see <a class="reference internal" href="../general/supervision.html#supervision"><em>Supervision and Monitoring</em></a>). This restart involves the hooks
+mentioned above:</p>
+<ol class="arabic">
+<li><p class="first">The old actor is informed by calling <tt class="xref py py-meth docutils literal"><span class="pre">preRestart</span></tt> with the exception
+which caused the restart and the message which triggered that exception; the
+latter may be <tt class="docutils literal"><span class="pre">None</span></tt> if the restart was not caused by processing a
+message, e.g. when a supervisor does not trap the exception and is restarted
+in turn by its supervisor, or if an actor is restarted due to a sibling’s
+failure. If the message is available, then that message’s sender is also
+accessible in the usual way (i.e. by calling <tt class="docutils literal"><span class="pre">getSender()</span></tt>).</p>
+<p>This method is the best place for cleaning up, preparing hand-over to the
+fresh actor instance, etc.  By default it stops all children and calls
+<tt class="xref py py-meth docutils literal"><span class="pre">postStop</span></tt>.</p>
+</li>
+<li><p class="first">The initial factory from the <tt class="docutils literal"><span class="pre">actorOf</span></tt> call is used
+to produce the fresh instance.</p>
+</li>
+<li><p class="first">The new actor’s <tt class="xref py py-meth docutils literal"><span class="pre">postRestart</span></tt> method is invoked with the exception
+which caused the restart. By default the <tt class="xref py py-meth docutils literal"><span class="pre">preStart</span></tt>
+is called, just as in the normal start-up case.</p>
+</li>
+</ol>
+<p>An actor restart replaces only the actual actor object; the contents of the
+mailbox is unaffected by the restart, so processing of messages will resume
+after the <tt class="xref py py-meth docutils literal"><span class="pre">postRestart</span></tt> hook returns. The message
+that triggered the exception will not be received again. Any message
+sent to an actor while it is being restarted will be queued to its mailbox as
+usual.</p>
+</div>
+<div class="section" id="stop-hook">
+<h3>Stop Hook</h3>
+<p>After stopping an actor, its <tt class="xref py py-meth docutils literal"><span class="pre">postStop</span></tt> hook is called, which may be used
+e.g. for deregistering this actor from other services. This hook is guaranteed
+to run after message queuing has been disabled for this actor, i.e. messages
+sent to a stopped actor will be redirected to the <tt class="xref py py-obj docutils literal"><span class="pre">deadLetters</span></tt> of the
+<tt class="xref py py-obj docutils literal"><span class="pre">ActorSystem</span></tt>.</p>
+</div>
+</div>
+<div class="section" id="identifying-actors">
+<h2>Identifying Actors</h2>
+<p>As described in <a class="reference internal" href="../general/addressing.html#addressing"><em>Actor References, Paths and Addresses</em></a>, each actor has a unique logical path, which
+is obtained by following the chain of actors from child to parent until
+reaching the root of the actor system, and it has a physical path, which may
+differ if the supervision chain includes any remote supervisors. These paths
+are used by the system to look up actors, e.g. when a remote message is
+received and the recipient is searched, but they are also useful more directly:
+actors may look up other actors by specifying absolute or relative
+paths—logical or physical—and receive back an <tt class="xref py py-class docutils literal"><span class="pre">ActorRef</span></tt> with the
+result:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="n">getContext</span><span class="o">().</span><span class="n">actorFor</span><span class="o">(</span><span class="s">&quot;/user/serviceA/actor&quot;</span><span class="o">)</span> <span class="c1">// will look up this absolute path</span>
+<span class="n">getContext</span><span class="o">().</span><span class="n">actorFor</span><span class="o">(</span><span class="s">&quot;../joe&quot;</span><span class="o">)</span> <span class="c1">// will look up sibling beneath same supervisor</span>
+</pre></div>
+</div>
+<p>The supplied path is parsed as a <tt class="xref py py-class docutils literal"><span class="pre">java.net.URI</span></tt>, which basically means
+that it is split on <tt class="docutils literal"><span class="pre">/</span></tt> into path elements. If the path starts with <tt class="docutils literal"><span class="pre">/</span></tt>, it
+is absolute and the look-up starts at the root guardian (which is the parent of
+<tt class="docutils literal"><span class="pre">&quot;/user&quot;</span></tt>); otherwise it starts at the current actor. If a path element equals
+<tt class="docutils literal"><span class="pre">..</span></tt>, the look-up will take a step “up” towards the supervisor of the
+currently traversed actor, otherwise it will step “down” to the named child.
+It should be noted that the <tt class="docutils literal"><span class="pre">..</span></tt> in actor paths here always means the logical
+structure, i.e. the supervisor.</p>
+<p>If the path being looked up does not exist, a special actor reference is
+returned which behaves like the actor system’s dead letter queue but retains
+its identity (i.e. the path which was looked up).</p>
+<p>Remote actor addresses may also be looked up, if remoting is enabled:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="n">getContext</span><span class="o">().</span><span class="n">actorFor</span><span class="o">(</span><span class="s">&quot;akka://app@otherhost:1234/user/serviceB&quot;</span><span class="o">)</span>
+</pre></div>
+</div>
+<p>These look-ups return a (possibly remote) actor reference immediately, so you
+will have to send to it and await a reply in order to verify that <tt class="docutils literal"><span class="pre">serviceB</span></tt>
+is actually reachable and running. An example demonstrating actor look-up is
+given in <a class="reference internal" href="remoting.html#remote-lookup-sample-java"><em>Remote Lookup</em></a>.</p>
+</div>
+<div class="section" id="messages-and-immutability">
+<h2>Messages and immutability</h2>
+<p><strong>IMPORTANT</strong>: Messages can be any kind of object but have to be
+immutable. Akka can’t enforce immutability (yet) so this has to be by
+convention.</p>
+<p>Here is an example of an immutable message:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="n">public</span> <span class="k">class</span> <span class="nc">ImmutableMessage</span> <span class="o">{</span>
+  <span class="k">private</span> <span class="k">final</span> <span class="n">int</span> <span class="n">sequenceNumber</span><span class="o">;</span>
+  <span class="k">private</span> <span class="k">final</span> <span class="nc">List</span><span class="o">&lt;</span><span class="nc">String</span><span class="o">&gt;</span> <span class="n">values</span><span class="o">;</span>
+
+  <span class="n">public</span> <span class="nc">ImmutableMessage</span><span class="o">(</span><span class="n">int</span> <span class="n">sequenceNumber</span><span class="o">,</span> <span class="nc">List</span><span class="o">&lt;</span><span class="nc">String</span><span class="o">&gt;</span> <span class="n">values</span><span class="o">)</span> <span class="o">{</span>
+    <span class="k">this</span><span class="o">.</span><span class="n">sequenceNumber</span> <span class="k">=</span> <span class="n">sequenceNumber</span><span class="o">;</span>
+    <span class="k">this</span><span class="o">.</span><span class="n">values</span> <span class="k">=</span> <span class="nc">Collections</span><span class="o">.</span><span class="n">unmodifiableList</span><span class="o">(</span><span class="k">new</span> <span class="nc">ArrayList</span><span class="o">&lt;</span><span class="nc">String</span><span class="o">&gt;(</span><span class="n">values</span><span class="o">));</span>
+  <span class="o">}</span>
+
+  <span class="n">public</span> <span class="n">int</span> <span class="n">getSequenceNumber</span><span class="o">()</span> <span class="o">{</span>
+    <span class="k">return</span> <span class="n">sequenceNumber</span><span class="o">;</span>
+  <span class="o">}</span>
+
+  <span class="n">public</span> <span class="nc">List</span><span class="o">&lt;</span><span class="nc">String</span><span class="o">&gt;</span> <span class="n">getValues</span><span class="o">()</span> <span class="o">{</span>
+    <span class="k">return</span> <span class="n">values</span><span class="o">;</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="send-messages">
+<h2>Send messages</h2>
+<p>Messages are sent to an Actor through one of the following methods.</p>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">tell</span></tt> means “fire-and-forget”, e.g. send a message asynchronously and return
+immediately.</li>
+<li><tt class="docutils literal"><span class="pre">ask</span></tt> sends a message asynchronously and returns a <tt class="xref py py-class docutils literal"><span class="pre">Future</span></tt>
+representing a possible reply.</li>
+</ul>
+<p>Message ordering is guaranteed on a per-sender basis.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">There are performance implications of using <tt class="docutils literal"><span class="pre">ask</span></tt> since something needs to
+keep track of when it times out, there needs to be something that bridges
+a <tt class="docutils literal"><span class="pre">Promise</span></tt> into an <tt class="docutils literal"><span class="pre">ActorRef</span></tt> and it also needs to be reachable through
+remoting. So always prefer <tt class="docutils literal"><span class="pre">tell</span></tt> for performance, and only <tt class="docutils literal"><span class="pre">ask</span></tt> if you must.</p>
+</div>
+<p>In all these methods you have the option of passing along your own <tt class="docutils literal"><span class="pre">ActorRef</span></tt>.
+Make it a practice of doing so because it will allow the receiver actors to be able to respond
+to your message, since the sender reference is sent along with the message.</p>
+<div class="section" id="tell-fire-forget">
+<h3>Tell: Fire-forget</h3>
+<p>This is the preferred way of sending messages. No blocking waiting for a
+message. This gives the best concurrency and scalability characteristics.</p>
+<div class="highlight-java"><div class="highlight"><pre><span class="n">actor</span><span class="o">.</span><span class="na">tell</span><span class="o">(</span><span class="s">&quot;Hello&quot;</span><span class="o">);</span>
+</pre></div>
+</div>
+<p>Or with the sender reference passed along with the message and available to the receiving Actor
+in its <tt class="docutils literal"><span class="pre">getSender:</span> <span class="pre">ActorRef</span></tt> member field. The target actor can use this
+to reply to the original sender, by using <tt class="docutils literal"><span class="pre">getSender().tell(replyMsg)</span></tt>.</p>
+<div class="highlight-java"><div class="highlight"><pre><span class="n">actor</span><span class="o">.</span><span class="na">tell</span><span class="o">(</span><span class="s">&quot;Hello&quot;</span><span class="o">,</span> <span class="n">getSelf</span><span class="o">());</span>
+</pre></div>
+</div>
+<p>If invoked without the sender parameter the sender will be
+<tt class="xref py py-obj docutils literal"><span class="pre">deadLetters</span></tt> actor reference in the target actor.</p>
+</div>
+<div class="section" id="ask-send-and-receive-future">
+<h3>Ask: Send-And-Receive-Future</h3>
+<p>The <tt class="docutils literal"><span class="pre">ask</span></tt> pattern involves actors as well as futures, hence it is offered as
+a use pattern rather than a method on <tt class="xref py py-class docutils literal"><span class="pre">ActorRef</span></tt>:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">import</span> <span class="nn">static</span> <span class="n">akka</span><span class="o">.</span><span class="n">pattern</span><span class="o">.</span><span class="nc">Patterns</span><span class="o">.</span><span class="n">ask</span><span class="o">;</span>
+<span class="k">import</span> <span class="nn">static</span> <span class="n">akka</span><span class="o">.</span><span class="n">pattern</span><span class="o">.</span><span class="nc">Patterns</span><span class="o">.</span><span class="n">pipe</span><span class="o">;</span>
+<span class="k">import</span> <span class="nn">scala.concurrent.Future</span><span class="o">;</span>
+<span class="k">import</span> <span class="nn">akka.dispatch.Futures</span><span class="o">;</span>
+<span class="k">import</span> <span class="nn">scala.concurrent.duration.Duration</span><span class="o">;</span>
+<span class="k">import</span> <span class="nn">akka.util.Timeout</span><span class="o">;</span>
+<span class="k">import</span> <span class="nn">java.util.concurrent.TimeUnit</span><span class="o">;</span>
+<span class="k">import</span> <span class="nn">java.util.ArrayList</span><span class="o">;</span>
+</pre></div>
+</div>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">final</span> <span class="nc">Timeout</span> <span class="n">t</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">Timeout</span><span class="o">(</span><span class="nc">Duration</span><span class="o">.</span><span class="n">create</span><span class="o">(</span><span class="mi">5</span><span class="o">,</span> <span class="nc">TimeUnit</span><span class="o">.</span><span class="nc">SECONDS</span><span class="o">));</span>
+
+<span class="k">final</span> <span class="nc">ArrayList</span><span class="o">&lt;</span><span class="nc">Future</span><span class="o">&lt;</span><span class="nc">Object</span><span class="o">&gt;&gt;</span> <span class="n">futures</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">ArrayList</span><span class="o">&lt;</span><span class="nc">Future</span><span class="o">&lt;</span><span class="nc">Object</span><span class="o">&gt;&gt;();</span>
+<span class="n">futures</span><span class="o">.</span><span class="n">add</span><span class="o">(</span><span class="n">ask</span><span class="o">(</span><span class="n">actorA</span><span class="o">,</span> <span class="s">&quot;request&quot;</span><span class="o">,</span> <span class="mi">1000</span><span class="o">));</span> <span class="c1">// using 1000ms timeout</span>
+<span class="n">futures</span><span class="o">.</span><span class="n">add</span><span class="o">(</span><span class="n">ask</span><span class="o">(</span><span class="n">actorB</span><span class="o">,</span> <span class="s">&quot;another request&quot;</span><span class="o">,</span> <span class="n">t</span><span class="o">));</span> <span class="c1">// using timeout from above</span>
+
+<span class="k">final</span> <span class="nc">Future</span><span class="o">&lt;</span><span class="nc">Iterable</span><span class="o">&lt;</span><span class="nc">Object</span><span class="o">&gt;&gt;</span> <span class="n">aggregate</span> <span class="k">=</span>
+  <span class="nc">Futures</span><span class="o">.</span><span class="n">sequence</span><span class="o">(</span><span class="n">futures</span><span class="o">,</span> <span class="n">system</span><span class="o">.</span><span class="n">dispatcher</span><span class="o">());</span>
+
+<span class="k">final</span> <span class="nc">Future</span><span class="o">&lt;</span><span class="nc">Result</span><span class="o">&gt;</span> <span class="n">transformed</span> <span class="k">=</span> <span class="n">aggregate</span><span class="o">.</span><span class="n">map</span><span class="o">(</span>
+  <span class="k">new</span> <span class="nc">Mapper</span><span class="o">&lt;</span><span class="nc">Iterable</span><span class="o">&lt;</span><span class="nc">Object</span><span class="o">&gt;,</span> <span class="nc">Result</span><span class="o">&gt;()</span> <span class="o">{</span>
+    <span class="n">public</span> <span class="nc">Result</span> <span class="n">apply</span><span class="o">(</span><span class="nc">Iterable</span><span class="o">&lt;</span><span class="nc">Object</span><span class="o">&gt;</span> <span class="n">coll</span><span class="o">)</span> <span class="o">{</span>
+      <span class="k">final</span> <span class="nc">Iterator</span><span class="o">&lt;</span><span class="nc">Object</span><span class="o">&gt;</span> <span class="n">it</span> <span class="k">=</span> <span class="n">coll</span><span class="o">.</span><span class="n">iterator</span><span class="o">();</span>
+      <span class="k">final</span> <span class="nc">String</span> <span class="n">s</span> <span class="k">=</span> <span class="o">(</span><span class="nc">String</span><span class="o">)</span> <span class="n">it</span><span class="o">.</span><span class="n">next</span><span class="o">();</span>
+      <span class="k">final</span> <span class="n">int</span> <span class="n">x</span> <span class="k">=</span> <span class="o">(</span><span class="nc">Integer</span><span class="o">)</span> <span class="n">it</span><span class="o">.</span><span class="n">next</span><span class="o">();</span>
+      <span class="k">return</span> <span class="k">new</span> <span class="nc">Result</span><span class="o">(</span><span class="n">x</span><span class="o">,</span> <span class="n">s</span><span class="o">);</span>
+    <span class="o">}</span>
+  <span class="o">},</span> <span class="n">system</span><span class="o">.</span><span class="n">dispatcher</span><span class="o">());</span>
+
+<span class="n">pipe</span><span class="o">(</span><span class="n">transformed</span><span class="o">,</span> <span class="n">system</span><span class="o">.</span><span class="n">dispatcher</span><span class="o">()).</span><span class="n">to</span><span class="o">(</span><span class="n">actorC</span><span class="o">);</span>
+</pre></div>
+</div>
+<p>This example demonstrates <tt class="docutils literal"><span class="pre">ask</span></tt> together with the <tt class="docutils literal"><span class="pre">pipe</span></tt> pattern on
+futures, because this is likely to be a common combination. Please note that
+all of the above is completely non-blocking and asynchronous: <tt class="docutils literal"><span class="pre">ask</span></tt> produces
+a <tt class="xref py py-class docutils literal"><span class="pre">Future</span></tt>, two of which are composed into a new future using the
+<tt class="xref py py-meth docutils literal"><span class="pre">Futures.sequence</span></tt> and <tt class="xref py py-meth docutils literal"><span class="pre">map</span></tt> methods and then <tt class="docutils literal"><span class="pre">pipe</span></tt> installs
+an <tt class="docutils literal"><span class="pre">onComplete</span></tt>-handler on the future to effect the submission of the
+aggregated <tt class="xref py py-class docutils literal"><span class="pre">Result</span></tt> to another actor.</p>
+<p>Using <tt class="docutils literal"><span class="pre">ask</span></tt> will send a message to the receiving Actor as with <tt class="docutils literal"><span class="pre">tell</span></tt>, and
+the receiving actor must reply with <tt class="docutils literal"><span class="pre">getSender().tell(reply)</span></tt> in order to
+complete the returned <tt class="xref py py-class docutils literal"><span class="pre">Future</span></tt> with a value. The <tt class="docutils literal"><span class="pre">ask</span></tt> operation
+involves creating an internal actor for handling this reply, which needs to
+have a timeout after which it is destroyed in order not to leak resources; see
+more below.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">To complete the future with an exception you need send a Failure message to the sender.
+This is <em>not done automatically</em> when an actor throws an exception while processing a message.</p>
+</div>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">try</span> <span class="o">{</span>
+  <span class="nc">String</span> <span class="n">result</span> <span class="k">=</span> <span class="n">operation</span><span class="o">();</span>
+  <span class="n">getSender</span><span class="o">().</span><span class="n">tell</span><span class="o">(</span><span class="n">result</span><span class="o">,</span> <span class="n">getSelf</span><span class="o">());</span>
+<span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="nc">Exception</span> <span class="n">e</span><span class="o">)</span> <span class="o">{</span>
+  <span class="n">getSender</span><span class="o">().</span><span class="n">tell</span><span class="o">(</span><span class="k">new</span> <span class="n">akka</span><span class="o">.</span><span class="n">actor</span><span class="o">.</span><span class="nc">Status</span><span class="o">.</span><span class="nc">Failure</span><span class="o">(</span><span class="n">e</span><span class="o">),</span> <span class="n">getSelf</span><span class="o">());</span>
+  <span class="k">throw</span> <span class="n">e</span><span class="o">;</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<p>If the actor does not complete the future, it will expire after the timeout period,
+specified as parameter to the <tt class="docutils literal"><span class="pre">ask</span></tt> method; this will complete the
+<tt class="xref py py-class docutils literal"><span class="pre">Future</span></tt> with an <tt class="xref py py-class docutils literal"><span class="pre">AskTimeoutException</span></tt>.</p>
+<p>See <a class="reference internal" href="futures.html#futures-java"><em>Futures (Java)</em></a> for more information on how to await or query a
+future.</p>
+<p>The <tt class="docutils literal"><span class="pre">onComplete</span></tt>, <tt class="docutils literal"><span class="pre">onSuccess</span></tt>, or <tt class="docutils literal"><span class="pre">onFailure</span></tt> methods of the <tt class="docutils literal"><span class="pre">Future</span></tt> can be
+used to register a callback to get a notification when the Future completes.
+Gives you a way to avoid blocking.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">When using future callbacks, inside actors you need to carefully avoid closing over
+the containing actor’s reference, i.e. do not call methods or access mutable state
+on the enclosing actor from within the callback. This would break the actor
+encapsulation and may introduce synchronization bugs and race conditions because
+the callback will be scheduled concurrently to the enclosing actor. Unfortunately
+there is not yet a way to detect these illegal accesses at compile time. See also:
+<a class="reference internal" href="../general/jmm.html#jmm-shared-state"><em>Actors and shared mutable state</em></a></p>
+</div>
+</div>
+<div class="section" id="forward-message">
+<h3>Forward message</h3>
+<p>You can forward a message from one actor to another. This means that the
+original sender address/reference is maintained even though the message is going
+through a 'mediator'. This can be useful when writing actors that work as
+routers, load-balancers, replicators etc.
+You need to pass along your context variable as well.</p>
+<div class="highlight-java"><div class="highlight"><pre><span class="n">myActor</span><span class="o">.</span><span class="na">forward</span><span class="o">(</span><span class="n">message</span><span class="o">,</span> <span class="n">getContext</span><span class="o">());</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="receive-messages">
+<h2>Receive messages</h2>
+<p>When an actor receives a message it is passed into the <tt class="docutils literal"><span class="pre">onReceive</span></tt> method, this is
+an abstract method on the <tt class="docutils literal"><span class="pre">UntypedActor</span></tt> base class that needs to be defined.</p>
+<p>Here is an example:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">import</span> <span class="nn">akka.actor.UntypedActor</span><span class="o">;</span>
+<span class="k">import</span> <span class="nn">akka.event.Logging</span><span class="o">;</span>
+<span class="k">import</span> <span class="nn">akka.event.LoggingAdapter</span><span class="o">;</span>
+
+<span class="n">public</span> <span class="k">class</span> <span class="nc">MyUntypedActor</span> <span class="k">extends</span> <span class="nc">UntypedActor</span> <span class="o">{</span>
+  <span class="nc">LoggingAdapter</span> <span class="n">log</span> <span class="k">=</span> <span class="nc">Logging</span><span class="o">.</span><span class="n">getLogger</span><span class="o">(</span><span class="n">getContext</span><span class="o">().</span><span class="n">system</span><span class="o">(),</span> <span class="k">this</span><span class="o">);</span>
+
+  <span class="n">public</span> <span class="n">void</span> <span class="n">onReceive</span><span class="o">(</span><span class="nc">Object</span> <span class="n">message</span><span class="o">)</span> <span class="n">throws</span> <span class="nc">Exception</span> <span class="o">{</span>
+    <span class="k">if</span> <span class="o">(</span><span class="n">message</span> <span class="n">instanceof</span> <span class="nc">String</span><span class="o">)</span>
+      <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="o">(</span><span class="s">&quot;Received String message: {}&quot;</span><span class="o">,</span> <span class="n">message</span><span class="o">);</span>
+    <span class="k">else</span>
+      <span class="n">unhandled</span><span class="o">(</span><span class="n">message</span><span class="o">);</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<p>An alternative to using if-instanceof checks is to use <a class="reference external" href="http://commons.apache.org/beanutils/api/org/apache/commons/beanutils/MethodUtils.html#invokeMethod(java.lang.Object,%20java.lang.String,%20java.lang.Object)">Apache Commons MethodUtils</a>
+to invoke a named method whose parameter type matches the message type.</p>
+</div>
+<div class="section" id="reply-to-messages">
+<span id="untypedactor-reply"></span><h2>Reply to messages</h2>
+<p>If you want to have a handle for replying to a message, you can use
+<tt class="docutils literal"><span class="pre">getSender()</span></tt>, which gives you an ActorRef. You can reply by sending to
+that ActorRef with <tt class="docutils literal"><span class="pre">getSender().tell(replyMsg)</span></tt>. You can also store the ActorRef
+for replying later, or passing on to other actors. If there is no sender (a
+message was sent without an actor or future context) then the sender
+defaults to a 'dead-letter' actor ref.</p>
+<div class="highlight-java"><div class="highlight"><pre><span class="kd">public</span> <span class="kt">void</span> <span class="nf">onReceive</span><span class="o">(</span><span class="n">Object</span> <span class="n">request</span><span class="o">)</span> <span class="o">{</span>
+  <span class="n">String</span> <span class="n">result</span> <span class="o">=</span> <span class="n">process</span><span class="o">(</span><span class="n">request</span><span class="o">);</span>
+  <span class="n">getSender</span><span class="o">().</span><span class="na">tell</span><span class="o">(</span><span class="n">result</span><span class="o">);</span>       <span class="c1">// will have dead-letter actor as default</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="receive-timeout">
+<h2>Receive timeout</h2>
+<p>The <cite>UntypedActorContext</cite> <tt class="xref py py-meth docutils literal"><span class="pre">setReceiveTimeout</span></tt> defines the inactivity timeout after which
+the sending of a <cite>ReceiveTimeout</cite> message is triggered.
+When specified, the receive function should be able to handle an <cite>akka.actor.ReceiveTimeout</cite> message.
+1 millisecond is the minimum supported timeout.</p>
+<p>Please note that the receive timeout might fire and enqueue the <cite>ReceiveTimeout</cite> message right after
+another message was enqueued; hence it is <strong>not guaranteed</strong> that upon reception of the receive
+timeout there must have been an idle period beforehand as configured via this method.</p>
+<p>Once set, the receive timeout stays in effect (i.e. continues firing repeatedly after inactivity
+periods). Pass in <cite>Duration.Undefined</cite> to switch off this feature.</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">import</span> <span class="nn">akka.actor.ReceiveTimeout</span><span class="o">;</span>
+<span class="k">import</span> <span class="nn">akka.actor.UntypedActor</span><span class="o">;</span>
+<span class="k">import</span> <span class="nn">scala.concurrent.duration.Duration</span><span class="o">;</span>
+
+<span class="n">public</span> <span class="k">class</span> <span class="nc">MyReceivedTimeoutUntypedActor</span> <span class="k">extends</span> <span class="nc">UntypedActor</span> <span class="o">{</span>
+
+  <span class="n">public</span> <span class="nc">MyReceivedTimeoutUntypedActor</span><span class="o">()</span> <span class="o">{</span>
+    <span class="c1">// To set an initial delay</span>
+    <span class="n">getContext</span><span class="o">().</span><span class="n">setReceiveTimeout</span><span class="o">(</span><span class="nc">Duration</span><span class="o">.</span><span class="n">create</span><span class="o">(</span><span class="s">&quot;30 seconds&quot;</span><span class="o">));</span>
+  <span class="o">}</span>
+
+  <span class="n">public</span> <span class="n">void</span> <span class="n">onReceive</span><span class="o">(</span><span class="nc">Object</span> <span class="n">message</span><span class="o">)</span> <span class="o">{</span>
+    <span class="k">if</span> <span class="o">(</span><span class="n">message</span><span class="o">.</span><span class="n">equals</span><span class="o">(</span><span class="s">&quot;Hello&quot;</span><span class="o">))</span> <span class="o">{</span>
+      <span class="c1">// To set in a response to a message</span>
+      <span class="n">getContext</span><span class="o">().</span><span class="n">setReceiveTimeout</span><span class="o">(</span><span class="nc">Duration</span><span class="o">.</span><span class="n">create</span><span class="o">(</span><span class="s">&quot;10 seconds&quot;</span><span class="o">));</span>
+      <span class="n">getSender</span><span class="o">().</span><span class="n">tell</span><span class="o">(</span><span class="s">&quot;Hello world&quot;</span><span class="o">,</span> <span class="n">getSelf</span><span class="o">());</span>
+    <span class="o">}</span> <span class="k">else</span> <span class="k">if</span> <span class="o">(</span><span class="n">message</span> <span class="o">==</span> <span class="nc">ReceiveTimeout</span><span class="o">.</span><span class="n">getInstance</span><span class="o">())</span> <span class="o">{</span>
+      <span class="c1">// To turn it off</span>
+      <span class="n">getContext</span><span class="o">().</span><span class="n">setReceiveTimeout</span><span class="o">(</span><span class="nc">Duration</span><span class="o">.</span><span class="nc">Undefined</span><span class="o">());</span>
+      <span class="k">throw</span> <span class="k">new</span> <span class="nc">RuntimeException</span><span class="o">(</span><span class="s">&quot;received timeout&quot;</span><span class="o">);</span>
+    <span class="o">}</span> <span class="k">else</span> <span class="o">{</span>
+      <span class="n">unhandled</span><span class="o">(</span><span class="n">message</span><span class="o">);</span>
+    <span class="o">}</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="stopping-actors">
+<span id="stopping-actors-java"></span><h2>Stopping actors</h2>
+<p>Actors are stopped by invoking the <tt class="xref py py-meth docutils literal"><span class="pre">stop</span></tt> method of a <tt class="docutils literal"><span class="pre">ActorRefFactory</span></tt>,
+i.e. <tt class="docutils literal"><span class="pre">ActorContext</span></tt> or <tt class="docutils literal"><span class="pre">ActorSystem</span></tt>. Typically the context is used for stopping
+child actors and the system for stopping top level actors. The actual termination of
+the actor is performed asynchronously, i.e. <tt class="xref py py-meth docutils literal"><span class="pre">stop</span></tt> may return before the actor is
+stopped.</p>
+<p>Processing of the current message, if any, will continue before the actor is stopped,
+but additional messages in the mailbox will not be processed. By default these
+messages are sent to the <tt class="xref py py-obj docutils literal"><span class="pre">deadLetters</span></tt> of the <tt class="xref py py-obj docutils literal"><span class="pre">ActorSystem</span></tt>, but that
+depends on the mailbox implementation.</p>
+<p>Termination of an actor proceeds in two steps: first the actor suspends its
+mailbox processing and sends a stop command to all its children, then it keeps
+processing the termination messages from its children until the last one is
+gone, finally terminating itself (invoking <tt class="xref py py-meth docutils literal"><span class="pre">postStop</span></tt>, dumping mailbox,
+publishing <tt class="xref py py-class docutils literal"><span class="pre">Terminated</span></tt> on the <a class="reference internal" href="#deathwatch-java"><em>DeathWatch</em></a>, telling
+its supervisor). This procedure ensures that actor system sub-trees terminate
+in an orderly fashion, propagating the stop command to the leaves and
+collecting their confirmation back to the stopped supervisor. If one of the
+actors does not respond (i.e. processing a message for extended periods of time
+and therefore not receiving the stop command), this whole process will be
+stuck.</p>
+<p>Upon <tt class="xref py py-meth docutils literal"><span class="pre">ActorSystem.shutdown</span></tt>, the system guardian actors will be
+stopped, and the aforementioned process will ensure proper termination of the
+whole system.</p>
+<p>The <tt class="xref py py-meth docutils literal"><span class="pre">postStop</span></tt> hook is invoked after an actor is fully stopped. This
+enables cleaning up of resources:</p>
+<div class="highlight-java"><div class="highlight"><pre><span class="nd">@Override</span>
+<span class="kd">public</span> <span class="kt">void</span> <span class="nf">postStop</span><span class="o">()</span> <span class="o">{</span>
+  <span class="c1">// close some file or database connection</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Since stopping an actor is asynchronous, you cannot immediately reuse the
+name of the child you just stopped; this will result in an
+<tt class="xref py py-class docutils literal"><span class="pre">InvalidActorNameException</span></tt>. Instead, <tt class="xref py py-meth docutils literal"><span class="pre">watch</span></tt> the terminating
+actor and create its replacement in response to the <tt class="xref py py-class docutils literal"><span class="pre">Terminated</span></tt>
+message which will eventually arrive.</p>
+</div>
+<div class="section" id="poisonpill">
+<h3>PoisonPill</h3>
+<p>You can also send an actor the <tt class="docutils literal"><span class="pre">akka.actor.PoisonPill</span></tt> message, which will
+stop the actor when the message is processed. <tt class="docutils literal"><span class="pre">PoisonPill</span></tt> is enqueued as
+ordinary messages and will be handled after messages that were already queued
+in the mailbox.</p>
+<p>Use it like this:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">import</span> <span class="nn">akka.actor.PoisonPill</span><span class="o">;</span>
+<span class="k">import</span> <span class="nn">akka.actor.Kill</span><span class="o">;</span>
+</pre></div>
+</div>
+<div class="highlight-scala"><div class="highlight"><pre><span class="n">myActor</span><span class="o">.</span><span class="n">tell</span><span class="o">(</span><span class="nc">PoisonPill</span><span class="o">.</span><span class="n">getInstance</span><span class="o">(),</span> <span class="kc">null</span><span class="o">);</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="graceful-stop">
+<h3>Graceful Stop</h3>
+<p><tt class="xref py py-meth docutils literal"><span class="pre">gracefulStop</span></tt> is useful if you need to wait for termination or compose ordered
+termination of several actors:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">import</span> <span class="nn">static</span> <span class="n">akka</span><span class="o">.</span><span class="n">pattern</span><span class="o">.</span><span class="nc">Patterns</span><span class="o">.</span><span class="n">gracefulStop</span><span class="o">;</span>
+<span class="k">import</span> <span class="nn">scala.concurrent.Future</span><span class="o">;</span>
+<span class="k">import</span> <span class="nn">scala.concurrent.Await</span><span class="o">;</span>
+<span class="k">import</span> <span class="nn">scala.concurrent.duration.Duration</span><span class="o">;</span>
+<span class="k">import</span> <span class="nn">akka.pattern.AskTimeoutException</span><span class="o">;</span>
+</pre></div>
+</div>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">try</span> <span class="o">{</span>
+  <span class="nc">Future</span><span class="o">&lt;</span><span class="nc">Boolean</span><span class="o">&gt;</span> <span class="n">stopped</span> <span class="k">=</span>
+    <span class="n">gracefulStop</span><span class="o">(</span><span class="n">actorRef</span><span class="o">,</span> <span class="nc">Duration</span><span class="o">.</span><span class="n">create</span><span class="o">(</span><span class="mi">5</span><span class="o">,</span> <span class="nc">TimeUnit</span><span class="o">.</span><span class="nc">SECONDS</span><span class="o">),</span> <span class="n">system</span><span class="o">);</span>
+  <span class="nc">Await</span><span class="o">.</span><span class="n">result</span><span class="o">(</span><span class="n">stopped</span><span class="o">,</span> <span class="nc">Duration</span><span class="o">.</span><span class="n">create</span><span class="o">(</span><span class="mi">6</span><span class="o">,</span> <span class="nc">TimeUnit</span><span class="o">.</span><span class="nc">SECONDS</span><span class="o">));</span>
+  <span class="c1">// the actor has been stopped</span>
+<span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="nc">AskTimeoutException</span> <span class="n">e</span><span class="o">)</span> <span class="o">{</span>
+  <span class="c1">// the actor wasn&#39;t stopped within 5 seconds</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<p>When <tt class="docutils literal"><span class="pre">gracefulStop()</span></tt> returns successfully, the actor’s <tt class="docutils literal"><span class="pre">postStop()</span></tt> hook
+will have been executed: there exists a happens-before edge between the end of
+<tt class="docutils literal"><span class="pre">postStop()</span></tt> and the return of <tt class="docutils literal"><span class="pre">gracefulStop()</span></tt>.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">Keep in mind that an actor stopping and its name being deregistered are
+separate events which happen asynchronously from each other. Therefore it may
+be that you will find the name still in use after <tt class="docutils literal"><span class="pre">gracefulStop()</span></tt>
+returned. In order to guarantee proper deregistration, only reuse names from
+within a supervisor you control and only in response to a <tt class="xref py py-class docutils literal"><span class="pre">Terminated</span></tt>
+message, i.e. not for top-level actors.</p>
+</div>
+</div>
+</div>
+<div class="section" id="hotswap">
+<span id="untypedactor-hotswap"></span><h2>HotSwap</h2>
+<div class="section" id="upgrade">
+<h3>Upgrade</h3>
+<p>Akka supports hotswapping the Actor’s message loop (e.g. its implementation) at
+runtime. Use the <tt class="docutils literal"><span class="pre">getContext().become</span></tt> method from within the Actor.
+The hotswapped code is kept in a Stack which can be pushed (replacing or adding
+at the top) and popped.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">Please note that the actor will revert to its original behavior when restarted by its Supervisor.</p>
+</div>
+<p>To hotswap the Actor using <tt class="docutils literal"><span class="pre">getContext().become</span></tt>:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">import</span> <span class="nn">akka.japi.Procedure</span><span class="o">;</span>
+</pre></div>
+</div>
+<div class="highlight-scala"><div class="highlight"><pre><span class="n">public</span> <span class="k">class</span> <span class="nc">HotSwapActor</span> <span class="k">extends</span> <span class="nc">UntypedActor</span> <span class="o">{</span>
+
+  <span class="nc">Procedure</span><span class="o">&lt;</span><span class="nc">Object</span><span class="o">&gt;</span> <span class="n">angry</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">Procedure</span><span class="o">&lt;</span><span class="nc">Object</span><span class="o">&gt;()</span> <span class="o">{</span>
+    <span class="nd">@Override</span>
+    <span class="n">public</span> <span class="n">void</span> <span class="n">apply</span><span class="o">(</span><span class="nc">Object</span> <span class="n">message</span><span class="o">)</span> <span class="o">{</span>
+      <span class="k">if</span> <span class="o">(</span><span class="n">message</span><span class="o">.</span><span class="n">equals</span><span class="o">(</span><span class="s">&quot;bar&quot;</span><span class="o">))</span> <span class="o">{</span>
+        <span class="n">getSender</span><span class="o">().</span><span class="n">tell</span><span class="o">(</span><span class="s">&quot;I am already angry?&quot;</span><span class="o">,</span> <span class="n">getSelf</span><span class="o">());</span>
+      <span class="o">}</span> <span class="k">else</span> <span class="k">if</span> <span class="o">(</span><span class="n">message</span><span class="o">.</span><span class="n">equals</span><span class="o">(</span><span class="s">&quot;foo&quot;</span><span class="o">))</span> <span class="o">{</span>
+        <span class="n">getContext</span><span class="o">().</span><span class="n">become</span><span class="o">(</span><span class="n">happy</span><span class="o">);</span>
+      <span class="o">}</span>
+    <span class="o">}</span>
+  <span class="o">};</span>
+
+  <span class="nc">Procedure</span><span class="o">&lt;</span><span class="nc">Object</span><span class="o">&gt;</span> <span class="n">happy</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">Procedure</span><span class="o">&lt;</span><span class="nc">Object</span><span class="o">&gt;()</span> <span class="o">{</span>
+    <span class="nd">@Override</span>
+    <span class="n">public</span> <span class="n">void</span> <span class="n">apply</span><span class="o">(</span><span class="nc">Object</span> <span class="n">message</span><span class="o">)</span> <span class="o">{</span>
+      <span class="k">if</span> <span class="o">(</span><span class="n">message</span><span class="o">.</span><span class="n">equals</span><span class="o">(</span><span class="s">&quot;bar&quot;</span><span class="o">))</span> <span class="o">{</span>
+        <span class="n">getSender</span><span class="o">().</span><span class="n">tell</span><span class="o">(</span><span class="s">&quot;I am already happy :-)&quot;</span><span class="o">,</span> <span class="n">getSelf</span><span class="o">());</span>
+      <span class="o">}</span> <span class="k">else</span> <span class="k">if</span> <span class="o">(</span><span class="n">message</span><span class="o">.</span><span class="n">equals</span><span class="o">(</span><span class="s">&quot;foo&quot;</span><span class="o">))</span> <span class="o">{</span>
+        <span class="n">getContext</span><span class="o">().</span><span class="n">become</span><span class="o">(</span><span class="n">angry</span><span class="o">);</span>
+      <span class="o">}</span>
+    <span class="o">}</span>
+  <span class="o">};</span>
+
+  <span class="n">public</span> <span class="n">void</span> <span class="n">onReceive</span><span class="o">(</span><span class="nc">Object</span> <span class="n">message</span><span class="o">)</span> <span class="o">{</span>
+    <span class="k">if</span> <span class="o">(</span><span class="n">message</span><span class="o">.</span><span class="n">equals</span><span class="o">(</span><span class="s">&quot;bar&quot;</span><span class="o">))</span> <span class="o">{</span>
+      <span class="n">getContext</span><span class="o">().</span><span class="n">become</span><span class="o">(</span><span class="n">angry</span><span class="o">);</span>
+    <span class="o">}</span> <span class="k">else</span> <span class="k">if</span> <span class="o">(</span><span class="n">message</span><span class="o">.</span><span class="n">equals</span><span class="o">(</span><span class="s">&quot;foo&quot;</span><span class="o">))</span> <span class="o">{</span>
+      <span class="n">getContext</span><span class="o">().</span><span class="n">become</span><span class="o">(</span><span class="n">happy</span><span class="o">);</span>
+    <span class="o">}</span> <span class="k">else</span> <span class="o">{</span>
+      <span class="n">unhandled</span><span class="o">(</span><span class="n">message</span><span class="o">);</span>
+    <span class="o">}</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<p>This variant of the <tt class="xref py py-meth docutils literal"><span class="pre">become</span></tt> method is useful for many different things,
+such as to implement a Finite State Machine (FSM). It will replace the current
+behavior (i.e. the top of the behavior stack), which means that you do not use
+<tt class="xref py py-meth docutils literal"><span class="pre">unbecome</span></tt>, instead always the next behavior is explicitly installed.</p>
+<p>The other way of using <tt class="xref py py-meth docutils literal"><span class="pre">become</span></tt> does not replace but add to the top of
+the behavior stack. In this case care must be taken to ensure that the number
+of “pop” operations (i.e. <tt class="xref py py-meth docutils literal"><span class="pre">unbecome</span></tt>) matches the number of “push” ones
+in the long run, otherwise this amounts to a memory leak (which is why this
+behavior is not the default).</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="n">public</span> <span class="k">class</span> <span class="nc">UntypedActorSwapper</span> <span class="o">{</span>
+
+  <span class="n">public</span> <span class="n">static</span> <span class="k">class</span> <span class="nc">Swap</span> <span class="o">{</span>
+    <span class="n">public</span> <span class="n">static</span> <span class="nc">Swap</span> <span class="nc">SWAP</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">Swap</span><span class="o">();</span>
+
+    <span class="k">private</span> <span class="nc">Swap</span><span class="o">()</span> <span class="o">{</span>
+    <span class="o">}</span>
+  <span class="o">}</span>
+
+  <span class="n">public</span> <span class="n">static</span> <span class="k">class</span> <span class="nc">Swapper</span> <span class="k">extends</span> <span class="nc">UntypedActor</span> <span class="o">{</span>
+    <span class="nc">LoggingAdapter</span> <span class="n">log</span> <span class="k">=</span> <span class="nc">Logging</span><span class="o">.</span><span class="n">getLogger</span><span class="o">(</span><span class="n">getContext</span><span class="o">().</span><span class="n">system</span><span class="o">(),</span> <span class="k">this</span><span class="o">);</span>
+
+    <span class="n">public</span> <span class="n">void</span> <span class="n">onReceive</span><span class="o">(</span><span class="nc">Object</span> <span class="n">message</span><span class="o">)</span> <span class="o">{</span>
+      <span class="k">if</span> <span class="o">(</span><span class="n">message</span> <span class="o">==</span> <span class="nc">SWAP</span><span class="o">)</span> <span class="o">{</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="o">(</span><span class="s">&quot;Hi&quot;</span><span class="o">);</span>
+        <span class="n">getContext</span><span class="o">().</span><span class="n">become</span><span class="o">(</span><span class="k">new</span> <span class="nc">Procedure</span><span class="o">&lt;</span><span class="nc">Object</span><span class="o">&gt;()</span> <span class="o">{</span>
+          <span class="nd">@Override</span>
+          <span class="n">public</span> <span class="n">void</span> <span class="n">apply</span><span class="o">(</span><span class="nc">Object</span> <span class="n">message</span><span class="o">)</span> <span class="o">{</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="o">(</span><span class="s">&quot;Ho&quot;</span><span class="o">);</span>
+            <span class="n">getContext</span><span class="o">().</span><span class="n">unbecome</span><span class="o">();</span> <span class="c1">// resets the latest &#39;become&#39;</span>
+          <span class="o">}</span>
+        <span class="o">},</span> <span class="kc">false</span><span class="o">);</span> <span class="c1">// this signals stacking of the new behavior</span>
+      <span class="o">}</span> <span class="k">else</span> <span class="o">{</span>
+        <span class="n">unhandled</span><span class="o">(</span><span class="n">message</span><span class="o">);</span>
+      <span class="o">}</span>
+    <span class="o">}</span>
+  <span class="o">}</span>
+
+  <span class="n">public</span> <span class="n">static</span> <span class="n">void</span> <span class="n">main</span><span class="o">(</span><span class="nc">String</span><span class="o">...</span> <span class="n">args</span><span class="o">)</span> <span class="o">{</span>
+    <span class="nc">ActorSystem</span> <span class="n">system</span> <span class="k">=</span> <span class="nc">ActorSystem</span><span class="o">.</span><span class="n">create</span><span class="o">(</span><span class="s">&quot;MySystem&quot;</span><span class="o">);</span>
+    <span class="nc">ActorRef</span> <span class="n">swap</span> <span class="k">=</span> <span class="n">system</span><span class="o">.</span><span class="n">actorOf</span><span class="o">(</span><span class="k">new</span> <span class="nc">Props</span><span class="o">(</span><span class="nc">Swapper</span><span class="o">.</span><span class="n">class</span><span class="o">));</span>
+    <span class="n">swap</span><span class="o">.</span><span class="n">tell</span><span class="o">(</span><span class="nc">SWAP</span><span class="o">,</span> <span class="kc">null</span><span class="o">);</span> <span class="c1">// logs Hi</span>
+    <span class="n">swap</span><span class="o">.</span><span class="n">tell</span><span class="o">(</span><span class="nc">SWAP</span><span class="o">,</span> <span class="kc">null</span><span class="o">);</span> <span class="c1">// logs Ho</span>
+    <span class="n">swap</span><span class="o">.</span><span class="n">tell</span><span class="o">(</span><span class="nc">SWAP</span><span class="o">,</span> <span class="kc">null</span><span class="o">);</span> <span class="c1">// logs Hi</span>
+    <span class="n">swap</span><span class="o">.</span><span class="n">tell</span><span class="o">(</span><span class="nc">SWAP</span><span class="o">,</span> <span class="kc">null</span><span class="o">);</span> <span class="c1">// logs Ho</span>
+    <span class="n">swap</span><span class="o">.</span><span class="n">tell</span><span class="o">(</span><span class="nc">SWAP</span><span class="o">,</span> <span class="kc">null</span><span class="o">);</span> <span class="c1">// logs Hi</span>
+    <span class="n">swap</span><span class="o">.</span><span class="n">tell</span><span class="o">(</span><span class="nc">SWAP</span><span class="o">,</span> <span class="kc">null</span><span class="o">);</span> <span class="c1">// logs Ho</span>
+  <span class="o">}</span>
+
+<span class="o">}</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="stash">
+<h2>Stash</h2>
+<p>The <tt class="docutils literal"><span class="pre">UntypedActorWithStash</span></tt> class enables an actor to temporarily stash away messages
+that can not or should not be handled using the actor's current
+behavior. Upon changing the actor's message handler, i.e., right
+before invoking <tt class="docutils literal"><span class="pre">getContext().become()</span></tt> or <tt class="docutils literal"><span class="pre">getContext().unbecome()</span></tt>, all
+stashed messages can be &quot;unstashed&quot;, thereby prepending them to the actor's
+mailbox. This way, the stashed messages can be processed in the same
+order as they have been received originally.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">Please note that the stash can only be used together with actors
+that have a deque-based mailbox. For this, configure the
+<tt class="docutils literal"><span class="pre">mailbox-type</span></tt> of the dispatcher to be a deque-based mailbox, such as
+<tt class="docutils literal"><span class="pre">akka.dispatch.UnboundedDequeBasedMailbox</span></tt> (see <a class="reference internal" href="dispatchers.html#dispatchers-java"><em>Dispatchers (Java)</em></a>).</p>
+</div>
+<p>Here is an example of the <tt class="docutils literal"><span class="pre">UntypedActorWithStash</span></tt> class in action:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="n">public</span> <span class="k">class</span> <span class="nc">ActorWithProtocol</span> <span class="k">extends</span> <span class="nc">UntypedActorWithStash</span> <span class="o">{</span>
+  <span class="n">public</span> <span class="n">void</span> <span class="n">onReceive</span><span class="o">(</span><span class="nc">Object</span> <span class="n">msg</span><span class="o">)</span> <span class="o">{</span>
+    <span class="k">if</span> <span class="o">(</span><span class="n">msg</span><span class="o">.</span><span class="n">equals</span><span class="o">(</span><span class="s">&quot;open&quot;</span><span class="o">))</span> <span class="o">{</span>
+      <span class="n">unstashAll</span><span class="o">();</span>
+      <span class="n">getContext</span><span class="o">().</span><span class="n">become</span><span class="o">(</span><span class="k">new</span> <span class="nc">Procedure</span><span class="o">&lt;</span><span class="nc">Object</span><span class="o">&gt;()</span> <span class="o">{</span>
+        <span class="n">public</span> <span class="n">void</span> <span class="n">apply</span><span class="o">(</span><span class="nc">Object</span> <span class="n">msg</span><span class="o">)</span> <span class="n">throws</span> <span class="nc">Exception</span> <span class="o">{</span>
+          <span class="k">if</span> <span class="o">(</span><span class="n">msg</span><span class="o">.</span><span class="n">equals</span><span class="o">(</span><span class="s">&quot;write&quot;</span><span class="o">))</span> <span class="o">{</span>
+            <span class="c1">// do writing...</span>
+          <span class="o">}</span> <span class="k">else</span> <span class="k">if</span> <span class="o">(</span><span class="n">msg</span><span class="o">.</span><span class="n">equals</span><span class="o">(</span><span class="s">&quot;close&quot;</span><span class="o">))</span> <span class="o">{</span>
+            <span class="n">unstashAll</span><span class="o">();</span>
+            <span class="n">getContext</span><span class="o">().</span><span class="n">unbecome</span><span class="o">();</span>
+          <span class="o">}</span> <span class="k">else</span> <span class="o">{</span>
+            <span class="n">stash</span><span class="o">();</span>
+          <span class="o">}</span>
+        <span class="o">}</span>
+      <span class="o">},</span> <span class="kc">false</span><span class="o">);</span> <span class="c1">// add behavior on top instead of replacing</span>
+    <span class="o">}</span> <span class="k">else</span> <span class="o">{</span>
+      <span class="n">stash</span><span class="o">();</span>
+    <span class="o">}</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<p>Invoking <tt class="docutils literal"><span class="pre">stash()</span></tt> adds the current message (the message that the
+actor received last) to the actor's stash. It is typically invoked
+when handling the default case in the actor's message handler to stash
+messages that aren't handled by the other cases. It is illegal to
+stash the same message twice; to do so results in an
+<tt class="docutils literal"><span class="pre">IllegalStateException</span></tt> being thrown. The stash may also be bounded
+in which case invoking <tt class="docutils literal"><span class="pre">stash()</span></tt> may lead to a capacity violation,
+which results in a <tt class="docutils literal"><span class="pre">StashOverflowException</span></tt>. The capacity of the
+stash can be configured using the <tt class="docutils literal"><span class="pre">stash-capacity</span></tt> setting (an <tt class="docutils literal"><span class="pre">Int</span></tt>) of the
+dispatcher's configuration.</p>
+<p>Invoking <tt class="docutils literal"><span class="pre">unstashAll()</span></tt> enqueues messages from the stash to the
+actor's mailbox until the capacity of the mailbox (if any) has been
+reached (note that messages from the stash are prepended to the
+mailbox). In case a bounded mailbox overflows, a
+<tt class="docutils literal"><span class="pre">MessageQueueAppendFailedException</span></tt> is thrown.
+The stash is guaranteed to be empty after calling <tt class="docutils literal"><span class="pre">unstashAll()</span></tt>.</p>
+<p>The stash is backed by a <tt class="docutils literal"><span class="pre">scala.collection.immutable.Vector</span></tt>. As a
+result, even a very large number of messages may be stashed without a
+major impact on performance.</p>
+<p>Note that the stash is part of the ephemeral actor state, unlike the
+mailbox. Therefore, it should be managed like other parts of the
+actor's state which have the same property. The <tt class="xref py py-class docutils literal"><span class="pre">Stash</span></tt> trait’s
+implementation of <tt class="xref py py-meth docutils literal"><span class="pre">preRestart</span></tt> will call <tt class="docutils literal"><span class="pre">unstashAll()</span></tt>, which is
+usually the desired behavior.</p>
+</div>
+<div class="section" id="killing-an-actor">
+<h2>Killing an Actor</h2>
+<p>You can kill an actor by sending a <tt class="docutils literal"><span class="pre">Kill</span></tt> message. This will restart the actor
+through regular supervisor semantics.</p>
+<p>Use it like this:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">import</span> <span class="nn">akka.actor.PoisonPill</span><span class="o">;</span>
+<span class="k">import</span> <span class="nn">akka.actor.Kill</span><span class="o">;</span>
+</pre></div>
+</div>
+<div class="highlight-scala"><div class="highlight"><pre><span class="n">victim</span><span class="o">.</span><span class="n">tell</span><span class="o">(</span><span class="nc">Kill</span><span class="o">.</span><span class="n">getInstance</span><span class="o">(),</span> <span class="kc">null</span><span class="o">);</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="actors-and-exceptions">
+<h2>Actors and exceptions</h2>
+<p>It can happen that while a message is being processed by an actor, that some
+kind of exception is thrown, e.g. a database exception.</p>
+<div class="section" id="what-happens-to-the-message">
+<h3>What happens to the Message</h3>
+<p>If an exception is thrown while a message is being processed (i.e. taken out of
+its mailbox and handed over to the current behavior), then this message will be
+lost. It is important to understand that it is not put back on the mailbox. So
+if you want to retry processing of a message, you need to deal with it yourself
+by catching the exception and retry your flow. Make sure that you put a bound
+on the number of retries since you don't want a system to livelock (so
+consuming a lot of cpu cycles without making progress). Another possibility
+would be to have a look at the <a class="reference internal" href="../contrib/peek-mailbox.html#mailbox-acking"><em>PeekMailbox pattern</em></a>.</p>
+</div>
+<div class="section" id="what-happens-to-the-mailbox">
+<h3>What happens to the mailbox</h3>
+<p>If an exception is thrown while a message is being processed, nothing happens to
+the mailbox. If the actor is restarted, the same mailbox will be there. So all
+messages on that mailbox will be there as well.</p>
+</div>
+<div class="section" id="what-happens-to-the-actor">
+<h3>What happens to the actor</h3>
+<p>If code within an actor throws an exception, that actor is suspended and the
+supervision process is started (see <a class="reference internal" href="../general/supervision.html#supervision"><em>Supervision and Monitoring</em></a>). Depending on the
+supervisor’s decision the actor is resumed (as if nothing happened), restarted
+(wiping out its internal state and starting from scratch) or terminated.</p>
+</div>
+</div>
+<div class="section" id="initialization-patterns">
+<h2>Initialization patterns</h2>
+<p>The rich lifecycle hooks of Actors provide a useful toolkit to implement various initialization patterns. During the
+lifetime of an <tt class="docutils literal"><span class="pre">ActorRef</span></tt>, an actor can potentially go through several restarts, where the old instance is replaced by
+a fresh one, invisibly to the outside observer who only sees the <tt class="docutils literal"><span class="pre">ActorRef</span></tt>.</p>
+<p>One may think about the new instances as &quot;incarnations&quot;. Initialization might be necessary for every incarnation
+of an actor, but sometimes one needs initialization to happen only at the birth of the first instance when the
+<tt class="docutils literal"><span class="pre">ActorRef</span></tt> is created. The following sections provide patterns for different initialization needs.</p>
+<div class="section" id="initialization-via-constructor">
+<h3>Initialization via constructor</h3>
+<p>Using the constructor for initialization has various benefits. First of all, it makes it possible to use <tt class="docutils literal"><span class="pre">val</span></tt> fields to store
+any state that does not change during the life of the actor instance, making the implementation of the actor more robust.
+The constructor is invoked for every incarnation of the actor, therefore the internals of the actor can always assume
+that proper initialization happened. This is also the drawback of this approach, as there are cases when one would
+like to avoid reinitializing internals on restart. For example, it is often useful to preserve child actors across
+restarts. The following section provides a pattern for this case.</p>
+</div>
+<div class="section" id="initialization-via-prestart">
+<h3>Initialization via preStart</h3>
+<p>The method <tt class="docutils literal"><span class="pre">preStart()</span></tt> of an actor is only called once directly during the initialization of the first instance, that
+is, at creation of its <tt class="docutils literal"><span class="pre">ActorRef</span></tt>. In the case of restarts, <tt class="docutils literal"><span class="pre">preStart()</span></tt> is called from <tt class="docutils literal"><span class="pre">postRestart()</span></tt>, therefore
+if not overridden, <tt class="docutils literal"><span class="pre">preStart()</span></tt> is called on every incarnation. However, overriding <tt class="docutils literal"><span class="pre">postRestart()</span></tt> one can disable
+this behavior, and ensure that there is only one call to <tt class="docutils literal"><span class="pre">preStart()</span></tt>.</p>
+<p>One useful usage of this pattern is to disable creation of new <tt class="docutils literal"><span class="pre">ActorRefs</span></tt> for children during restarts. This can be
+achieved by overriding <tt class="docutils literal"><span class="pre">preRestart()</span></tt>:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="nd">@Override</span>
+<span class="n">public</span> <span class="n">void</span> <span class="n">preStart</span><span class="o">()</span> <span class="o">{</span>
+    <span class="c1">// Initialize children here</span>
+<span class="o">}</span>
+
+<span class="c1">// Overriding postRestart to disable the call to preStart()</span>
+<span class="c1">// after restarts</span>
+<span class="nd">@Override</span>
+<span class="n">public</span> <span class="n">void</span> <span class="n">postRestart</span><span class="o">(</span><span class="nc">Throwable</span> <span class="n">reason</span><span class="o">)</span> <span class="o">{</span>
+<span class="o">}</span>
+
+<span class="c1">// The default implementation of preRestart() stops all the children</span>
+<span class="c1">// of the actor. To opt-out from stopping the children, we</span>
+<span class="c1">// have to override preRestart()</span>
+<span class="nd">@Override</span>
+<span class="n">public</span> <span class="n">void</span> <span class="n">preRestart</span><span class="o">(</span><span class="nc">Throwable</span> <span class="n">reason</span><span class="o">,</span> <span class="nc">Option</span><span class="o">&lt;</span><span class="nc">Object</span><span class="o">&gt;</span> <span class="n">message</span><span class="o">)</span> <span class="o">{</span>
+    <span class="c1">// Keep the call to postStop(), but no stopping of children</span>
+    <span class="n">postStop</span><span class="o">();</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<p>Please note, that the child actors are <em>still restarted</em>, but no new <tt class="docutils literal"><span class="pre">ActorRef</span></tt> is created. One can recursively apply
+the same principles for the children, ensuring that their <tt class="docutils literal"><span class="pre">preStart()</span></tt> method is called only at the creation of their
+refs.</p>
+<p>For more information see <a class="reference internal" href="../general/supervision.html#supervision-restart"><em>What Restarting Means</em></a>.</p>
+</div>
+<div class="section" id="initialization-via-message-passing">
+<h3>Initialization via message passing</h3>
+<p>There are cases when it is impossible to pass all the information needed for actor initialization in the constructor,
+for example in the presence of circular dependencies. In this case the actor should listen for an initialization message,
+and use <tt class="docutils literal"><span class="pre">become()</span></tt> or a finite state-machine state transition to encode the initialized and uninitialized states
+of the actor.</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">private</span> <span class="nc">String</span> <span class="n">initializeMe</span> <span class="k">=</span> <span class="kc">null</span><span class="o">;</span>
+
+<span class="nd">@Override</span>
+<span class="n">public</span> <span class="n">void</span> <span class="n">onReceive</span><span class="o">(</span><span class="nc">Object</span> <span class="n">message</span><span class="o">)</span> <span class="n">throws</span> <span class="nc">Exception</span> <span class="o">{</span>
+    <span class="k">if</span> <span class="o">(</span><span class="n">message</span><span class="o">.</span><span class="n">equals</span><span class="o">(</span><span class="s">&quot;init&quot;</span><span class="o">))</span> <span class="o">{</span>
+        <span class="n">initializeMe</span> <span class="k">=</span> <span class="s">&quot;Up and running&quot;</span><span class="o">;</span>
+        <span class="n">getContext</span><span class="o">().</span><span class="n">become</span><span class="o">(</span><span class="k">new</span> <span class="nc">Procedure</span><span class="o">&lt;</span><span class="nc">Object</span><span class="o">&gt;()</span> <span class="o">{</span>
+            <span class="nd">@Override</span>
+            <span class="n">public</span> <span class="n">void</span> <span class="n">apply</span><span class="o">(</span><span class="nc">Object</span> <span class="n">message</span><span class="o">)</span> <span class="n">throws</span> <span class="nc">Exception</span> <span class="o">{</span>
+                <span class="k">if</span> <span class="o">(</span><span class="n">message</span><span class="o">.</span><span class="n">equals</span><span class="o">(</span><span class="s">&quot;U OK?&quot;</span><span class="o">))</span>
+                <span class="n">getSender</span><span class="o">().</span><span class="n">tell</span><span class="o">(</span><span class="n">initializeMe</span><span class="o">,</span> <span class="n">getSelf</span><span class="o">());</span>
+            <span class="o">}</span>
+        <span class="o">});</span>
+    <span class="o">}</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<p>If the actor may receive messages before it has been initialized, a useful tool can be the <tt class="docutils literal"><span class="pre">Stash</span></tt> to save messages
+until the initialization finishes, and replaying them after the actor became initialized.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">This pattern should be used with care, and applied only when none of the patterns above are applicable. One of
+the potential issues is that messages might be lost when sent to remote actors. Also, publishing an <tt class="docutils literal"><span class="pre">ActorRef</span></tt> in
+an uninitialized state might lead to the condition that it receives a user message before the initialization has been
+done.</p>
+</div>
+</div>
+</div>
+</div>
+
+
+          </div>
+          <div class="span3"><p class="contents-title">Contents</p>
+              <div id="scroller-anchor">
+                <div id="scroller">
+                  <div id="toc"></div>
+                </div>
+              </div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="footer">
+  <div class="container">
+    <ul>
+      <li><h5>Akka</h5></li>
+      <li><a href="https://akka.io/docs">Documentation</a></li>
+      <li><a href="https://akka.io/faq">FAQ</a></li>
+      <li><a href="http://typesafe.com/stack/downloads/akka">Downloads</a></li>
+      <li><a href="https://akka.io/news">News</a></li>
+      <li><a href="http://letitcrash.com">Blog</a></li>
+    </ul>
+    <ul>
+      <li><h5>Contribute</h5></li>
+      <li><a href="https://akka.io/community">Community Projects</a></li>
+      <li><a href="http://github.com/akka/akka">Source Code</a></li>
+      <li><a href="http://groups.google.com/group/akka-user">Mailing List</a></li>      
+      <li><a href="https://doc.akka.io/docs/akka/current/project/issue-tracking.html">Report a Bug</a></li>      
+    </ul>
+    <ul>
+      <li><h5>Company</h5></li>
+      <li><a href="http://typesafe.com/products/typesafe-subscription">Commercial Support</a></li>
+      <li><a href="https://akka.io/team">Team</a></li>
+      <li><a href="mailto:info@typesafe.com">Contact</a></li>
+    </ul>
+    <ul>
+      <li><img src="../_static/watermark.png" align="center"/></li>
+    </ul>
+  </div>
+  <div class="container copyright">
+    <p style="float: left;">
+      © 2012 <a href="http://typesafe.com/">Typesafe Inc.</a> <span class="license">Akka is Open Source and available under the Apache 2 License.</span>
+    </p>
+    <p style="float: right; font-size: 12px;">
+      Last updated: May 14, 2013
+    </p>          
+  </div>
+</div>
+<script src="http://www.google.com/jsapi" type="text/javascript"></script>
+<script type="text/javascript">
+    google.load('search', '1', {language : 'en', style : google.loader.themes.MINIMALIST});
+    google.setOnLoadCallback(function() {
+    var customSearchOptions = {};  var customSearchControl = new google.search.CustomSearchControl(
+    '003065520604945464838:izzukx8-qba', customSearchOptions);
+    customSearchControl.setResultSetSize(google.search.Search.FILTERED_CSE_RESULTSET);
+    customSearchControl.draw('cse');
+    var path = window.location.pathname.split('/').slice(0,4);
+    if(window.location.hostname && path.length >= 4) {
+    var site = "site:" + window.location.hostname + path.join('/').toString();
+    customSearchControl.setSearchStartingCallback(this, function(c, s, q) { s.setQueryAddition(site); });
+    }
+    }, true);
+</script>
+<style type="text/css">
+    .gsc-control-cse {
+    font-family: Arial, sans-serif;
+    border-color: rgb(242, 242, 235);
+    background-color: rgb(242, 242, 235);
+    }
+    .gsc-control-cse .gsc-table-result {
+      font-family: Arial, sans-serif;
+      display: block;
+    }
+    input.gsc-input {
+    border-color: #BBBBBB;
+    }
+    input.gsc-search-button {
+    border-color: rgb(34, 57, 64);
+    background-color: rgb(68, 114, 129);
+    color: #FFFFFF;
+    }
+    .gsc-tabHeader.gsc-tabhInactive {
+    border-color: #777777;
+    background-color: #777777;
+    }
+    .gsc-tabHeader.gsc-tabhActive {
+    border-color: #333333;
+    background-color: #333333;
+    }
+    .gsc-tabsArea {
+    border-color: #333333;
+    }
+    .gsc-webResult.gsc-result,
+    .gsc-results .gsc-imageResult {
+      border-color: #666666;
+      background-color: #FFFFFF;
+      padding: 0.5em 0.5em;
+    }
+    .gsc-webResult.gsc-result:hover,
+    .gsc-imageResult:hover {
+      border-color: #AAAAAA;
+      background-color: #FFFFFF;
+      padding: 0.5em 0.5em;
+    }
+    .gsc-webResult.gsc-result.gsc-promotion:hover {
+    border-color: #AAAAAA;
+    background-color: #FFFFFF;
+    }
+    .gs-webResult.gs-result a.gs-title:link,
+    .gs-webResult.gs-result a.gs-title:link b,
+    .gs-imageResult a.gs-title:link,
+    .gs-imageResult a.gs-title:link b {
+    color: #444444;
+    }
+    .gs-webResult.gs-result a.gs-title:visited,
+    .gs-webResult.gs-result a.gs-title:visited b,
+    .gs-imageResult a.gs-title:visited,
+    .gs-imageResult a.gs-title:visited b {
+    color: #444444;
+    }
+    .gs-webResult.gs-result a.gs-title:hover,
+    .gs-webResult.gs-result a.gs-title:hover b,
+    .gs-imageResult a.gs-title:hover,
+    .gs-imageResult a.gs-title:hover b {
+    color: #444444;
+    }
+    .gs-webResult.gs-result a.gs-title:active,
+    .gs-webResult.gs-result a.gs-title:active b,
+    .gs-imageResult a.gs-title:active,
+    .gs-imageResult a.gs-title:active b {
+    color: #777777;
+    }
+    .gsc-cursor-page {
+    color: #444444;
+    }
+    a.gsc-trailing-more-results:link {
+    color: #444444;
+    }
+    .gs-webResult .gs-snippet,
+    .gs-imageResult .gs-snippet,
+    .gs-fileFormatType {
+    color: #333333;
+    }
+    .gs-webResult div.gs-visibleUrl,
+    .gs-imageResult div.gs-visibleUrl {
+    color: #000000;
+    }
+    .gs-webResult div.gs-visibleUrl-short {
+    color: #000000;
+    }
+    .gs-webResult div.gs-visibleUrl-short {
+    display: none;
+    }
+    .gs-webResult div.gs-visibleUrl-long {
+    display: block;
+    }
+    .gs-promotion div.gs-visibleUrl-short {
+    display: none;
+    }
+    .gs-promotion div.gs-visibleUrl-long {
+    display: block;
+    }
+    .gsc-cursor-box {
+    border-color: #FFFFFF;
+    }
+    .gsc-results .gsc-cursor-box .gsc-cursor-page {
+    border-color: #777777;
+    background-color: #FFFFFF;
+    color: #444444;
+    }
+    .gsc-results .gsc-cursor-box .gsc-cursor-current-page {
+    border-color: #333333;
+    background-color: #333333;
+    color: #444444;
+    }
+    .gsc-webResult.gsc-result.gsc-promotion {
+    border-color: #CCCCCC;
+    background-color: #E6E6E6;
+    }
+    .gsc-completion-title {
+    color: #444444;
+    }
+    .gsc-completion-snippet {
+    color: #333333;
+    }
+    .gs-promotion a.gs-title:link,
+    .gs-promotion a.gs-title:link *,
+    .gs-promotion .gs-snippet a:link {
+    color: #0000CC;
+    }
+    .gs-promotion a.gs-title:visited,
+    .gs-promotion a.gs-title:visited *,
+    .gs-promotion .gs-snippet a:visited {
+    color: #0000CC;
+    }
+    .gs-promotion a.gs-title:hover,
+    .gs-promotion a.gs-title:hover *,
+    .gs-promotion .gs-snippet a:hover {
+    color: #444444;
+    }
+    .gs-promotion a.gs-title:active,
+    .gs-promotion a.gs-title:active *,
+    .gs-promotion .gs-snippet a:active {
+    color: #00CC00;
+    }
+    .gs-promotion .gs-snippet,
+    .gs-promotion .gs-title .gs-promotion-title-right,
+    .gs-promotion .gs-title .gs-promotion-title-right *  {
+    color: #333333;
+    }
+    .gs-promotion .gs-visibleUrl,
+    .gs-promotion .gs-visibleUrl-short {
+    color: #00CC00;
+    }
+</style>
+<script type="text/javascript">
+  $('#toc').toc();
+</script>
+  
+
+  </body>
+</html>

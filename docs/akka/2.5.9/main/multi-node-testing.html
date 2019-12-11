@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html class="no-js" lang="en">
+
+<head>
+<title>Multi Node Testing</title>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta name="description" content="Akka is a toolkit for building highly concurrent, distributed, and resilient message-driven applications for Java and Scala."/>
+<link rel="canonical" href="https://doc.akka.io/docs/akka/current/multi-node-testing.html"/>
+<script type="text/javascript" src="lib/jquery/jquery.min.js"></script>
+<script type="text/javascript" src="lib/foundation/dist/js/foundation.min.js"></script>
+<link rel="stylesheet" type="text/css" href="lib/normalize.css/normalize.css"/>
+<link rel="stylesheet" type="text/css" href="lib/foundation/dist/css/foundation.min.css"/>
+<link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/docsearch.js/2/docsearch.min.css" />
+<link rel="stylesheet" type="text/css" href="css/icons.css"/>
+<link rel="stylesheet" type="text/css" href="css/page.css"/>
+<link rel="shortcut icon" href="images/favicon.ico" />
+<link rel="apple-touch-icon" sizes="180x180" href="images/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="images/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="images/favicon-16x16.png">
+<link rel="manifest" href="images/manifest.json">
+<meta name="msapplication-TileImage" content="images/mstile-150x150.png">
+<meta name="msapplication-TileColor" content="#15a9ce">
+<meta name="theme-color" content="#15a9ce">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<!--Google Analytics-->
+<script type="text/javascript">
+var _gaq = _gaq || [];
+_gaq.push(['_setAccount', 'UA-21117439-1']);
+_gaq.push(['_setDomainName', 'akka.io']);
+_gaq.push(['_trackPageview']);
+(function() {
+var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+})()
+</script>
+<!--Google Analytics & Marketo-->
+<script type="text/javascript">
+(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+ga('create', 'UA-23127719-1', 'lightbend.com', {'allowLinker': true, 'name': 'tsTracker'});
+ga('tsTracker.require', 'linker');
+ga('tsTracker.linker:autoLink', ['lightbend.com','playframework.com','scala-lang.org','scaladays.org','spray.io','akka.io','scala-sbt.org','scala-ide.org']);
+ga('tsTracker.send', 'pageview');
+(function() {
+var didInit = false;
+function initMunchkin() {
+if(didInit === false) {
+didInit = true;
+Munchkin.init('558-NCX-702');
+}
+}
+var s = document.createElement('script');
+s.type = 'text/javascript';
+s.async = true;
+s.src = '//munchkin.marketo.net/munchkin.js';
+s.onreadystatechange = function() {
+if (this.readyState == 'complete' || this.readyState == 'loaded') {
+initMunchkin();
+}
+};
+s.onload = initMunchkin;
+document.getElementsByTagName('head')[0].appendChild(s);
+})();
+</script>
+
+</head>
+
+<body id="underlay" data-toggler="nav-open">
+
+<header class="site-header hide-for-large">
+<div class="sticky-header clearfix">
+<a href="https://akka.io"><img class="logo" src="images/akka-logo-reverse.svg"></a>
+
+<button class="menu-icon float-right" type="button" data-toggle="underlay overlay"></button>
+</div>
+<div id="overlay" class="overlay-nav" data-toggler="nav-open">
+<header class="nav-header">
+<div class="nav-header-title">
+<h1><a href="multi-node-testing.html">Multi Node Testing</a></h1>
+</div>
+<div class="nav-header-version">
+Version 2.5.9
+</div>
+<div class="nav-header-groups">
+<select class="supergroup" name="Language"><option class="group" value="group-scala">Scala</option><option class="group" value="group-java">Java</option></select>
+</div>
+<div id="overlay-search-container" class="nav-header-search">
+<input id="overlay-search" type="search" class="search" placeholder="Search"/>
+</div>
+</header>
+<nav class="nav-toc">
+<ul>
+  <li><a href="multi-node-testing.html#multi-node-testing-concepts" class="header">Multi Node Testing Concepts</a></li>
+  <li><a href="multi-node-testing.html#the-test-conductor" class="header">The Test Conductor</a></li>
+  <li><a href="multi-node-testing.html#the-multi-node-spec" class="header">The Multi Node Spec</a></li>
+  <li><a href="multi-node-testing.html#the-sbtmultijvm-plugin" class="header">The SbtMultiJvm Plugin</a></li>
+  <li><a href="multi-node-testing.html#preparing-your-project-for-multi-node-testing" class="header">Preparing Your Project for Multi Node Testing</a></li>
+  <li><a href="multi-node-testing.html#a-multi-node-testing-example" class="header">A Multi Node Testing Example</a></li>
+  <li><a href="multi-node-testing.html#things-to-keep-in-mind" class="header">Things to Keep in Mind</a></li>
+  <li><a href="multi-node-testing.html#configuration" class="header">Configuration</a></li>
+</ul>
+</nav>
+</div>
+</header>
+
+<aside class="show-for-large">
+<header class="nav-header fixed-sidebar-header">
+<div class="nav-header-title">
+<h1><a href="multi-node-testing.html">Multi Node Testing</a></h1>
+</div>
+<div class="nav-header-version">
+Version 2.5.9
+</div>
+<div class="nav-header-groups">
+<select class="supergroup" name="Language"><option class="group" value="group-scala">Scala</option><option class="group" value="group-java">Java</option></select>
+</div>
+<div class="nav-header-search">
+<input id="search" type="search" class="search" placeholder="Search"/>
+</div>
+</header>
+<nav class="site-nav fixed-sidebar-contents">
+<div class="nav-toc">
+<ul>
+  <li><a href="multi-node-testing.html#multi-node-testing-concepts" class="header">Multi Node Testing Concepts</a></li>
+  <li><a href="multi-node-testing.html#the-test-conductor" class="header">The Test Conductor</a></li>
+  <li><a href="multi-node-testing.html#the-multi-node-spec" class="header">The Multi Node Spec</a></li>
+  <li><a href="multi-node-testing.html#the-sbtmultijvm-plugin" class="header">The SbtMultiJvm Plugin</a></li>
+  <li><a href="multi-node-testing.html#preparing-your-project-for-multi-node-testing" class="header">Preparing Your Project for Multi Node Testing</a></li>
+  <li><a href="multi-node-testing.html#a-multi-node-testing-example" class="header">A Multi Node Testing Example</a></li>
+  <li><a href="multi-node-testing.html#things-to-keep-in-mind" class="header">Things to Keep in Mind</a></li>
+  <li><a href="multi-node-testing.html#configuration" class="header">Configuration</a></li>
+</ul>
+</div>
+</nav>
+<footer class="nav-footer fixed-sidebar-footer">
+<a href="https://akka.io"><img class="logo" src="images/akka-logo-reverse.svg"></a>
+
+</footer>
+</aside>
+
+<main class="fixed-shift-for-large expanded row">
+<section class="site-content small-12 column">
+
+<article class="page-content row">
+<div class="small-12 large-9 column" id="docs">
+<h1><a href="#multi-node-testing" name="multi-node-testing" class="anchor"><span class="anchor-link"></span></a>Multi Node Testing</h1>
+<h2><a href="#multi-node-testing-concepts" name="multi-node-testing-concepts" class="anchor"><span class="anchor-link"></span></a>Multi Node Testing Concepts</h2>
+<p>When we talk about multi node testing in Akka we mean the process of running coordinated tests on multiple actor systems in different JVMs. The multi node testing kit consist of three main parts.</p>
+<ul>
+  <li><a href="#the-test-conductor">The Test Conductor</a>. that coordinates and controls the nodes under test.</li>
+  <li><a href="#the-multi-node-spec">The Multi Node Spec</a>. that is a convenience wrapper for starting the <code>TestConductor</code> and letting all nodes connect to it.</li>
+  <li><a href="#the-sbtmultijvm-plugin">The SbtMultiJvm Plugin</a>. that starts tests in multiple JVMs possibly on multiple machines.</li>
+</ul>
+<h2><a href="#the-test-conductor" name="the-test-conductor" class="anchor"><span class="anchor-link"></span></a>The Test Conductor</h2>
+<p>The basis for the multi node testing is the <code>TestConductor</code>. It is an Akka Extension that plugs in to the network stack and it is used to coordinate the nodes participating in the test and provides several features including:</p>
+<ul>
+  <li>Node Address Lookup: Finding out the full path to another test node (No need to share configuration between test nodes)</li>
+  <li>Node Barrier Coordination: Waiting for other nodes at named barriers.</li>
+  <li>Network Failure Injection: Throttling traffic, dropping packets, unplugging and plugging nodes back in.</li>
+</ul>
+<p>This is a schematic overview of the test conductor.</p>
+<p><img src="./images/akka-remote-testconductor.png" alt="akka-remote-testconductor.png" /></p>
+<p>The test conductor server is responsible for coordinating barriers and sending commands to the test conductor clients that act upon them, e.g. throttling network traffic to/from another client. More information on the possible operations is available in the <code>akka.remote.testconductor.Conductor</code> API documentation.</p>
+<h2><a href="#the-multi-node-spec" name="the-multi-node-spec" class="anchor"><span class="anchor-link"></span></a>The Multi Node Spec</h2>
+<p>The Multi Node Spec consists of two parts. The <code>MultiNodeConfig</code> that is responsible for common configuration and enumerating and naming the nodes under test. The <code>MultiNodeSpec</code> that contains a number of convenience functions for making the test nodes interact with each other. More information on the possible operations is available in the <code>akka.remote.testkit.MultiNodeSpec</code> API documentation.</p>
+<p>The setup of the <code>MultiNodeSpec</code> is configured through java system properties that you set on all JVMs that&rsquo;s going to run a node under test. These can easily be set on the JVM command line with <code>-Dproperty=value</code>.</p>
+<dl>
+  <dt>These are the available properties</dt>
+  <dd></dd>
+</dl>
+<ul>
+  <li> <code>multinode.max-nodes</code>  The maximum number of nodes that a test can have.</li>
+  <li> <code>multinode.host</code>  The host name or IP for this node. Must be resolvable using InetAddress.getByName.</li>
+  <li> <code>multinode.port</code>  The port number for this node. Defaults to 0 which will use a random port.</li>
+  <li> <code>multinode.server-host</code>  The host name or IP for the server node. Must be resolvable using InetAddress.getByName.</li>
+  <li> <code>multinode.server-port</code>  The port number for the server node. Defaults to 4711.</li>
+  <li> <code>multinode.index</code>  The index of this node in the sequence of roles defined for the test. The index 0 is special and that machine will be the server. All failure injection and throttling must be done from this node.</li>
+</ul>
+<h2><a href="#the-sbtmultijvm-plugin" name="the-sbtmultijvm-plugin" class="anchor"><span class="anchor-link"></span></a>The SbtMultiJvm Plugin</h2>
+<p>The <a href="multi-jvm-testing.html">SbtMultiJvm Plugin</a> has been updated to be able to run multi node tests, by automatically generating the relevant <code>multinode.*</code> properties. This means that you can easily run multi node tests on a single machine without any special configuration by just running them as normal multi-jvm tests. These tests can then be run distributed over multiple machines without any changes simply by using the multi-node additions to the plugin.</p>
+<h3><a href="#multi-node-specific-additions" name="multi-node-specific-additions" class="anchor"><span class="anchor-link"></span></a>Multi Node Specific Additions</h3>
+<p>The plugin also has a number of new <code>multi-node-*</code> sbt tasks and settings to support running tests on multiple machines. The necessary test classes and dependencies are packaged for distribution to other machines with <a href="https://github.com/sbt/sbt-assembly">SbtAssembly</a> into a jar file with a name on the format <code>&lt;projectName&gt;_&lt;scalaVersion&gt;-&lt;projectVersion&gt;-multi-jvm-assembly.jar</code></p><div class="callout note "><div class="callout-title">Note</div>
+<p>To be able to distribute and kick off the tests on multiple machines, it is assumed that both host and target systems are POSIX like systems with <code>ssh</code> and <code>rsync</code> available.</p></div>
+<dl>
+  <dt>These are the available sbt multi-node settings
+  </dt>
+  <dd></dd>
+</dl>
+<ul>
+  <li> <code>multiNodeHosts</code>  A sequence of hosts to use for running the test, on the form <code>user@host:java</code> where host is the only required part. Will override settings from file.</li>
+  <li> <code>multiNodeHostsFileName</code>  A file to use for reading in the hosts to use for running the test. One per line on the same format as above. Defaults to <code>multi-node-test.hosts</code> in the base project directory.</li>
+  <li> <code>multiNodeTargetDirName</code>  A name for the directory on the target machine, where to copy the jar file. Defaults to <code>multi-node-test</code> in the base directory of the ssh user used to rsync the jar file.</li>
+  <li> <code>multiNodeJavaName</code>  The name of the default Java executable on the target machines. Defaults to <code>java</code>.</li>
+</ul>
+<dl>
+  <dt>Here are some examples of how you define hosts</dt>
+  <dd></dd>
+</dl>
+<ul>
+  <li> <code>localhost</code>  The current user on localhost using the default java.</li>
+  <li> <code>user1@host1</code>  User <code>user1</code> on host <code>host1</code> with the default java.</li>
+  <li> <code>user2@host2:/usr/lib/jvm/java-7-openjdk-amd64/bin/java</code>  User <code>user2</code> on host <code>host2</code> using java 7.</li>
+  <li> <code>host3:/usr/lib/jvm/java-6-openjdk-amd64/bin/java</code>  The current user on host <code>host3</code> using java 6.</li>
+</ul>
+<h3><a href="#running-the-multi-node-tests" name="running-the-multi-node-tests" class="anchor"><span class="anchor-link"></span></a>Running the Multi Node Tests</h3>
+<p>To run all the multi node test in multi-node mode (i.e. distributing the jar files and kicking off the tests remotely) from inside sbt, use the <code>multiNodeTest</code> task:</p>
+<pre class="prettyprint"><code class="language-none">multiNodeTest
+</code></pre>
+<p>To run all of them in multi-jvm mode (i.e. all JVMs on the local machine) do:</p>
+<pre class="prettyprint"><code class="language-none">multi-jvm:test
+</code></pre>
+<p>To run individual tests use the <code>multiNodeTestOnly</code> task:</p>
+<pre class="prettyprint"><code class="language-none">multiNodeTestOnly your.MultiNodeTest
+</code></pre>
+<p>To run individual tests in the multi-jvm mode do:</p>
+<pre class="prettyprint"><code class="language-none">multi-jvm:testOnly your.MultiNodeTest
+</code></pre>
+<p>More than one test name can be listed to run multiple specific tests. Tab completion in sbt makes it easy to complete the test names.</p>
+<h2><a href="#preparing-your-project-for-multi-node-testing" name="preparing-your-project-for-multi-node-testing" class="anchor"><span class="anchor-link"></span></a>Preparing Your Project for Multi Node Testing</h2>
+<p>The multi node testing kit is a separate jar file. Make sure that you have the following dependency in your project:</p>
+<pre><code>&quot;com.typesafe.akka&quot; %% &quot;akka-multi-node-testkit&quot; % &quot;2.5.9&quot;
+</code></pre>
+<p>If you are using the latest nightly build you should pick a timestamped Akka version from <a href="https://repo.akka.io/snapshots/com/typesafe/akka/akka-multi-node-testkit_2.11/">https://repo.akka.io/snapshots/com/typesafe/akka/akka-multi-node-testkit_2.11/</a>. We recommend against using <code>SNAPSHOT</code> in order to obtain stable builds.</p>
+<h2><a href="#a-multi-node-testing-example" name="a-multi-node-testing-example" class="anchor"><span class="anchor-link"></span></a>A Multi Node Testing Example</h2>
+<p>First we need some scaffolding to hook up the <code>MultiNodeSpec</code> with your favorite test framework. Lets define a trait <code>STMultiNodeSpec</code> that uses ScalaTest to start and stop <code>MultiNodeSpec</code>.</p>
+<pre class="prettyprint"><code class="language-scala">package akka.remote.testkit
+
+import scala.language.implicitConversions
+
+import org.scalatest.{ BeforeAndAfterAll, WordSpecLike }
+import org.scalatest.Matchers
+
+/**
+ * Hooks up MultiNodeSpec with ScalaTest
+ */
+trait STMultiNodeSpec extends MultiNodeSpecCallbacks
+  with WordSpecLike with Matchers with BeforeAndAfterAll { self: MultiNodeSpec ⇒
+
+  override def beforeAll() = multiNodeSpecBeforeAll()
+
+  override def afterAll() = multiNodeSpecAfterAll()
+
+  // Might not be needed anymore if we find a nice way to tag all logging from a node
+  override implicit def convertToWordSpecStringWrapper(s: String): WordSpecStringWrapper = new WordSpecStringWrapper(s&quot;$s (on node &#39;${self.myself.name}&#39;, $getClass)&quot;)
+}</code></pre>
+<p>Then we need to define a configuration. Lets use two nodes <code>&quot;node1</code> and <code>&quot;node2&quot;</code> and call it <code>MultiNodeSampleConfig</code>.</p>
+<pre class="prettyprint"><code class="language-scala">package akka.remote.sample
+
+import akka.remote.testkit.{ MultiNodeConfig, STMultiNodeSpec }
+
+object MultiNodeSampleConfig extends MultiNodeConfig {
+  val node1 = role(&quot;node1&quot;)
+  val node2 = role(&quot;node2&quot;)
+}</code></pre>
+<p>And then finally to the node test code. That starts the two nodes, and demonstrates a barrier, and a remote actor message send/receive.</p>
+<pre class="prettyprint"><code class="language-scala">package akka.remote.sample
+
+import akka.actor.{ Actor, Props }
+import akka.remote.testkit.MultiNodeSpec
+import akka.testkit.ImplicitSender
+
+class MultiNodeSampleSpecMultiJvmNode1 extends MultiNodeSample
+class MultiNodeSampleSpecMultiJvmNode2 extends MultiNodeSample
+
+object MultiNodeSample {
+  class Ponger extends Actor {
+    def receive = {
+      case &quot;ping&quot; ⇒ sender() ! &quot;pong&quot;
+    }
+  }
+}
+
+class MultiNodeSample extends MultiNodeSpec(MultiNodeSampleConfig)
+  with STMultiNodeSpec with ImplicitSender {
+
+  import MultiNodeSample._
+  import MultiNodeSampleConfig._
+
+  def initialParticipants = roles.size
+
+  &quot;A MultiNodeSample&quot; must {
+
+    &quot;wait for all nodes to enter a barrier&quot; in {
+      enterBarrier(&quot;startup&quot;)
+    }
+
+    &quot;send to and receive from a remote node&quot; in {
+      runOn(node1) {
+        enterBarrier(&quot;deployed&quot;)
+        val ponger = system.actorSelection(node(node2) / &quot;user&quot; / &quot;ponger&quot;)
+        ponger ! &quot;ping&quot;
+        import scala.concurrent.duration._
+        expectMsg(10.seconds, &quot;pong&quot;)
+      }
+
+      runOn(node2) {
+        system.actorOf(Props[Ponger], &quot;ponger&quot;)
+        enterBarrier(&quot;deployed&quot;)
+      }
+
+      enterBarrier(&quot;finished&quot;)
+    }
+  }
+}</code></pre>
+<p>The easiest way to run this example yourself is to download the ready to run <a href="https://example.lightbend.com/v1/download/akka-samples-multi-node-scala">Akka Multi-Node Testing Sample with Scala</a> together with the tutorial. The source code of this sample can be found in the <a href="https://github.com/akka/akka-samples/tree/2.5/akka-sample-multi-node-scala">Akka Samples Repository</a>.</p>
+<h2><a href="#things-to-keep-in-mind" name="things-to-keep-in-mind" class="anchor"><span class="anchor-link"></span></a>Things to Keep in Mind</h2>
+<p>There are a couple of things to keep in mind when writing multi node tests or else your tests might behave in surprising ways.</p>
+<ul>
+  <li>Don&rsquo;t issue a shutdown of the first node. The first node is the controller and if it shuts down your test will break.</li>
+  <li>To be able to use <code>blackhole</code>, <code>passThrough</code>, and <code>throttle</code> you must activate the failure injector and throttler transport adapters by specifying <code>testTransport(on = true)</code> in your MultiNodeConfig.</li>
+  <li>Throttling, shutdown and other failure injections can only be done from the first node, which again is the controller.</li>
+  <li>Don&rsquo;t ask for the address of a node using <code>node(address)</code> after the node has been shut down. Grab the address before shutting down the node.</li>
+  <li>Don&rsquo;t use MultiNodeSpec methods like address lookup, barrier entry et.c. from other threads than the main test thread. This also means that you shouldn&rsquo;t use them from inside an actor, a future, or a scheduled task.</li>
+</ul>
+<h2><a href="#configuration" name="configuration" class="anchor"><span class="anchor-link"></span></a>Configuration</h2>
+<p>There are several configuration properties for the Multi-Node Testing module, please refer to the <a href="general/configuration.html#config-akka-multi-node-testkit">reference configuration</a>.</p>
+</div>
+</article>
+
+<div class="row">
+<div class="small-12 large-9 column">
+<section class="nav-prev-next row">
+<div class="nav-prev small-6 column">
+</div>
+<div class="nav-next small-6 column clearfix">
+</div>
+</section>
+</div>
+</div>
+
+<div class="source-github row">
+Found an error in this documentation? The source code for this page can be found <a href="https://github.com/johanandren/akka/tree/master/akka-docs/src/main/paradox/multi-node-testing.md">here</a>.
+Please feel free to edit and contribute a pull request.
+</div>
+
+
+<footer class="page-footer row clearfix">
+<img class="akka-icon float-left show-for-medium" src="images/akka-icon.svg">
+<section class="copyright">
+<div>&copy; 2011-2018 <a href="https://www.lightbend.com">Lightbend</a></div>
+<div>Akka is Open Source and available under the Apache 2 License.</div>
+</section>
+</footer>
+
+</section>
+</main>
+
+<script type="text/javascript" src="js/scrollsneak.js"></script>
+<script type="text/javascript">jQuery(document).foundation();</script>
+<script type="text/javascript" src="js/groups.js"></script>
+<script type="text/javascript" src="js/page.js"></script>
+<script type="text/javascript" src="js/magellan.js"></script>
+
+<style type="text/css">@import "lib/prettify/prettify.css";</style>
+<script type="text/javascript" src="lib/prettify/prettify.js"></script>
+<script type="text/javascript" src="lib/prettify/lang-scala.js"></script>
+<script type="text/javascript">jQuery(function(){window.prettyPrint && prettyPrint()});</script>
+
+<!-- Algolia docs search -->
+<script type="text/javascript" src="https://cdn.jsdelivr.net/docsearch.js/2/docsearch.min.js"></script>
+<style>.algolia-autocomplete { display: block !important }</style>
+<script type="text/javascript">
+var lang = "scala";
+var path = window.location.pathname;
+if (path.includes("/java/") || path.includes("java.html")) {
+lang = "java";
+}
+
+docsearch({
+apiKey: '543bad5ad786495d9ccd445ed34ed082',
+indexName: 'akka_io',
+inputSelector: '#search',
+algoliaOptions: {
+hitsPerPage: 5,
+facetFilters: ["language:" + lang]
+}
+});
+
+docsearch({
+apiKey: '543bad5ad786495d9ccd445ed34ed082',
+indexName: 'akka_io',
+inputSelector: '#overlay-search',
+algoliaOptions: {
+hitsPerPage: 5,
+facetFilters: ["language:" + lang]
+}
+});
+
+// set up "/" as global shortcut for focusing on search
+jQuery(document).keypress(function (event) {
+if (event.keyCode == 47) {
+jQuery("#search").focus();
+return false; // swallow key event, otherwise the / char would be input into the search box
+}
+});
+</script>
+
+
+</body>
+</html>

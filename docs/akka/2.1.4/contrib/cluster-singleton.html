@@ -1,0 +1,455 @@
+
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" /><meta name="description" content="Akka is a toolkit for building highly concurrent, distributed, and resilient message-driven applications for Java and Scala."/><link rel="canonical" href="https://doc.akka.io/docs/akka/2.1/contrib/cluster-singleton.html"/>
+    
+    <title>Cluster Singleton Pattern &mdash; Akka Documentation</title>
+    
+    <link rel="stylesheet" href="../_static/style.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/prettify.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/base.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
+    <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Exo:300,400,600,700" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '2.1.4',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+<script type="text/javascript" src="https://doc.akka.io/docs/akka/2.1.4/_static/warnOldDocs.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="../_static/toc.js"></script>
+    <script type="text/javascript" src="../_static/prettify.js"></script>
+    <script type="text/javascript" src="../_static/highlightCode.js"></script>
+    <script type="text/javascript" src="../_static/effects.core.js"></script>
+    <script type="text/javascript" src="../_static/effects.highlight.js"></script>
+    <script type="text/javascript" src="../_static/scrollTo.js"></script>
+    <script type="text/javascript" src="../_static/contentsFix.js"></script>
+    <script type="text/javascript" src="../_static/ga.js"></script>
+    <link rel="shortcut icon" href="../_static/favicon.ico"/>
+    <link rel="top" title="Akka Documentation" href="../index.html" />
+    <link rel="up" title="External Contributions" href="index.html" />
+    <link rel="next" title="Information for Developers" href="../dev/index.html" />
+    <link rel="prev" title="Mailbox with Explicit Acknowledgement" href="peek-mailbox.html" />
+    <!--Google Analytics-->
+    <script type="text/javascript">
+      var _gaq = _gaq || [];
+      _gaq.push(['_setAccount', 'UA-21117439-1']);
+      _gaq.push(['_setDomainName', 'akka.io']);
+      _gaq.push(['_trackPageview']);
+      (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+      })()
+    </script>
+
+  </head>
+  <body>
+  <div class="navbar">
+    <div class="navbar-inner">
+      <div class="container">
+        <div class="navbar-logo">
+          <a href="https://akka.io"><img src="../_static/logo-small.png" /></a>
+        </div>    
+        <ul class="nav">
+          <li><a href="https://akka.io/docs">Documentation</a></li>
+          <li><a href="https://akka.io/faq">FAQ</a></li>
+          <li><a href="http://typesafe.com/stack/downloads/akka">Download</a></li>
+          <li><a href="http://groups.google.com/group/akka-user">Mailing List</a></li>
+          <li><a href="http://github.com/akka/akka">Code</a></li>           
+          <li><a href="http://typesafe.com/products/typesafe-subscription">Commercial Support</a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="main">
+    <div class="container">
+      <div class="page-title">Cluster Singleton Pattern</div>
+      <div class="pdf-link"><a href="../Akka.pdf"><img src="../_static/pdf-icon.png" style="height: 40px;" /></a></div>
+    </div>
+    <div class="main-container">
+      <div class="container">
+        <div class="row">
+          <div class="span12">
+            <ul class="breadcrumb">           
+              <li>
+                 <span class="divider">|</span> <a href="../dev/index.html">Information for Developers</a> <span class="divider">»</span>
+              </li>
+              <li>
+                <a href="../index.html">Contents</a>
+              </li>
+              <li>
+                <span class="divider">«</span> <a href="peek-mailbox.html">Mailbox with Explicit Acknowledgement</a> <span class="divider">|</span>
+              </li>
+              <li>
+                Version 2.1.4
+              </li>
+            </ul>
+          </div>
+        </div>
+        <div class="row">
+          <div class="span9">
+            <div id="cse">Loading</div>
+          </div><div class="span9">
+            
+  <div class="section" id="cluster-singleton-pattern">
+<span id="cluster-singleton"></span><h1>Cluster Singleton Pattern</h1>
+<p>For some use cases it is convenient and sometimes also mandatory to ensure that
+you have exactly one actor of a certain type running somewhere in the cluster.</p>
+<p>Some examples:</p>
+<ul class="simple">
+<li>single point of responsibility for certain cluster-wide consistent decisions, or
+coordination of actions across the cluster system</li>
+<li>single entry point to an external system</li>
+<li>single master, many workers</li>
+<li>centralized naming service, or routing logic</li>
+</ul>
+<p>Using a singleton should not be the first design choice. It has several drawbacks,
+such as single-point of bottleneck. Single-point of failure is also a relevant concern,
+but for some cases this feature takes care of that by making sure that another singleton
+instance will eventually be started.</p>
+<p>The cluster singleton pattern is implemented by <tt class="docutils literal"><span class="pre">akka.contrib.pattern.ClusterSingletonManager</span></tt>,
+which is an actor that is supposed to be started on all nodes in the cluster.
+The actual singleton actor is started by the <tt class="docutils literal"><span class="pre">ClusterSingletonManager</span></tt> on the
+leader node of the cluster by creating a child actor from supplied <tt class="docutils literal"><span class="pre">Props</span></tt>.
+<tt class="docutils literal"><span class="pre">ClusterSingletonManager</span></tt> makes sure that at most one singleton instance is
+running at any point in time.</p>
+<p>The singleton actor is always running on the leader member, which is nothing more than
+the address currently sorted first in the member ring. This can change when adding
+or removing members. A graceful hand over can normally be performed when joining a new
+node that becomes leader or removing current leader node. Be aware that there is a short
+time period when there is no active singleton during the hand over process.</p>
+<p>The cluster failure detector will notice when a leader node becomes unreachable due to
+things like JVM crash, hard shut down, or network failure. Then a new leader node will
+take over and a new singleton actor is created. For these failure scenarios there will
+not be a graceful hand-over, but more than one active singletons is prevented by all
+reasonable means. Some corner cases are eventually resolved by configurable timeouts.</p>
+<p>You access the singleton actor with <tt class="docutils literal"><span class="pre">actorFor</span></tt> using the names you have specified when
+creating the ClusterSingletonManager. You can subscribe to cluster <tt class="docutils literal"><span class="pre">LeaderChanged</span></tt> events
+to keep track of which node it is supposed to be running on. Alternatively the singleton
+actor may broadcast its existence when it is started.</p>
+<div class="section" id="an-example">
+<h2>An Example</h2>
+<p>Assume that we need one single entry point to an external system. An actor that
+receives messages from a JMS queue with the strict requirement that only one
+JMS consumer must exist to be make sure that the messages are processed in order.
+That is perhaps not how one would like to design things, but a typical real-world
+scenario when integrating with external systems.</p>
+<p>On each node in the cluster you need to start the <tt class="docutils literal"><span class="pre">ClusterSingletonManager</span></tt> and
+supply the <tt class="docutils literal"><span class="pre">Props</span></tt> of the singleton actor, in this case the JMS queue consumer.</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="n">system</span><span class="o">.</span><span class="n">actorOf</span><span class="o">(</span><span class="nc">Props</span><span class="o">(</span><span class="k">new</span> <span class="nc">ClusterSingletonManager</span><span class="o">(</span>
+  <span class="n">singletonProps</span> <span class="k">=</span> <span class="n">handOverData</span> <span class="k">⇒</span>
+    <span class="nc">Props</span><span class="o">(</span><span class="k">new</span> <span class="nc">Consumer</span><span class="o">(</span><span class="n">handOverData</span><span class="o">,</span> <span class="n">queue</span><span class="o">,</span> <span class="n">testActor</span><span class="o">)),</span>
+  <span class="n">singletonName</span> <span class="k">=</span> <span class="s">&quot;consumer&quot;</span><span class="o">,</span>
+  <span class="n">terminationMessage</span> <span class="k">=</span> <span class="nc">End</span><span class="o">)),</span>
+  <span class="n">name</span> <span class="k">=</span> <span class="s">&quot;singleton&quot;</span><span class="o">)</span>
+</pre></div>
+</div>
+<p>The corresponding Java API for the <tt class="docutils literal"><span class="pre">singeltonProps</span></tt> function is <tt class="docutils literal"><span class="pre">akka.contrib.pattern.ClusterSingletonPropsFactory</span></tt>.</p>
+<p>Here we use an application specific <tt class="docutils literal"><span class="pre">terminationMessage</span></tt> to be able to close the
+resources before actually stopping the singleton actor. Note that <tt class="docutils literal"><span class="pre">PoisonPill</span></tt> is a
+perfectly fine <tt class="docutils literal"><span class="pre">terminationMessage</span></tt> if you only need to stop the actor.</p>
+<p>Here is how the singleton actor handles the <tt class="docutils literal"><span class="pre">terminationMessage</span></tt> in this example.</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">case</span> <span class="nc">End</span> <span class="k">⇒</span>
+  <span class="n">queue</span> <span class="o">!</span> <span class="nc">UnregisterConsumer</span>
+<span class="k">case</span> <span class="nc">UnregistrationOk</span> <span class="k">⇒</span>
+  <span class="c1">// reply to ClusterSingletonManager with hand over data,</span>
+  <span class="c1">// which will be passed as parameter to new leader consumer</span>
+  <span class="n">context</span><span class="o">.</span><span class="n">parent</span> <span class="o">!</span> <span class="n">current</span>
+  <span class="n">context</span> <span class="n">stop</span> <span class="n">self</span>
+</pre></div>
+</div>
+<p>Note that you can send back current state to the <tt class="docutils literal"><span class="pre">ClusterSingletonManager</span></tt> before terminating.
+This message will be sent over to the <tt class="docutils literal"><span class="pre">ClusterSingletonManager</span></tt> at the new leader node and it
+will be passed to the <tt class="docutils literal"><span class="pre">singletonProps</span></tt> factory when creating the new singleton instance.</p>
+<p>With the names given above the path of singleton actor can be constructed by subscribing to
+<tt class="docutils literal"><span class="pre">LeaderChanged</span></tt> cluster event and the actor reference is then looked up using <tt class="docutils literal"><span class="pre">actorFor</span></tt>:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">class</span> <span class="nc">ConsumerProxy</span> <span class="k">extends</span> <span class="nc">Actor</span> <span class="o">{</span>
+  <span class="c1">// subscribe to LeaderChanged, re-subscribe when restart</span>
+  <span class="k">override</span> <span class="k">def</span> <span class="n">preStart</span><span class="o">()</span><span class="k">:</span> <span class="kt">Unit</span> <span class="o">=</span>
+    <span class="nc">Cluster</span><span class="o">(</span><span class="n">context</span><span class="o">.</span><span class="n">system</span><span class="o">).</span><span class="n">subscribe</span><span class="o">(</span><span class="n">self</span><span class="o">,</span> <span class="n">classOf</span><span class="o">[</span><span class="kt">LeaderChanged</span><span class="o">])</span>
+  <span class="k">override</span> <span class="k">def</span> <span class="n">postStop</span><span class="o">()</span><span class="k">:</span> <span class="kt">Unit</span> <span class="o">=</span>
+    <span class="nc">Cluster</span><span class="o">(</span><span class="n">context</span><span class="o">.</span><span class="n">system</span><span class="o">).</span><span class="n">unsubscribe</span><span class="o">(</span><span class="n">self</span><span class="o">)</span>
+
+  <span class="k">var</span> <span class="n">leaderAddress</span><span class="k">:</span> <span class="kt">Option</span><span class="o">[</span><span class="kt">Address</span><span class="o">]</span> <span class="k">=</span> <span class="nc">None</span>
+
+  <span class="k">def</span> <span class="n">receive</span> <span class="k">=</span> <span class="o">{</span>
+    <span class="k">case</span> <span class="n">state</span><span class="k">:</span> <span class="kt">CurrentClusterState</span> <span class="k">⇒</span> <span class="kt">leaderAddress</span> <span class="o">=</span> <span class="n">state</span><span class="o">.</span><span class="n">leader</span>
+    <span class="k">case</span> <span class="nc">LeaderChanged</span><span class="o">(</span><span class="n">leader</span><span class="o">)</span>      <span class="k">⇒</span> <span class="n">leaderAddress</span> <span class="k">=</span> <span class="n">leader</span>
+    <span class="k">case</span> <span class="n">other</span>                      <span class="k">⇒</span> <span class="n">consumer</span> <span class="n">foreach</span> <span class="o">{</span> <span class="k">_</span> <span class="n">forward</span> <span class="n">other</span> <span class="o">}</span>
+  <span class="o">}</span>
+
+  <span class="k">def</span> <span class="n">consumer</span><span class="k">:</span> <span class="kt">Option</span><span class="o">[</span><span class="kt">ActorRef</span><span class="o">]</span> <span class="k">=</span>
+    <span class="n">leaderAddress</span> <span class="n">map</span> <span class="o">(</span><span class="n">a</span> <span class="k">⇒</span> <span class="n">context</span><span class="o">.</span><span class="n">actorFor</span><span class="o">(</span><span class="nc">RootActorPath</span><span class="o">(</span><span class="n">a</span><span class="o">)</span> <span class="o">/</span>
+      <span class="s">&quot;user&quot;</span> <span class="o">/</span> <span class="s">&quot;singleton&quot;</span> <span class="o">/</span> <span class="s">&quot;consumer&quot;</span><span class="o">))</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<p>Note that the hand-over might still be in progress and the singleton actor might not be started yet
+when you receive the <tt class="docutils literal"><span class="pre">LeaderChanged</span></tt> event.</p>
+<p>To test scenarios where the cluster leader node is removed or shut down you can use <a class="reference internal" href="../dev/multi-node-testing.html#multi-node-testing"><em>Multi Node Testing</em></a> and
+utilize the fact that the leader is supposed to be the first member when sorted by member address.</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="c1">// Sort the roles in the order used by the cluster.</span>
+<span class="k">lazy</span> <span class="k">val</span> <span class="n">sortedClusterRoles</span><span class="k">:</span> <span class="kt">immutable.IndexedSeq</span><span class="o">[</span><span class="kt">RoleName</span><span class="o">]</span> <span class="k">=</span> <span class="o">{</span>
+  <span class="k">implicit</span> <span class="k">val</span> <span class="n">clusterOrdering</span><span class="k">:</span> <span class="kt">Ordering</span><span class="o">[</span><span class="kt">RoleName</span><span class="o">]</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">Ordering</span><span class="o">[</span><span class="kt">RoleName</span><span class="o">]</span> <span class="o">{</span>
+    <span class="k">import</span> <span class="nn">Member.addressOrdering</span>
+    <span class="k">def</span> <span class="n">compare</span><span class="o">(</span><span class="n">x</span><span class="k">:</span> <span class="kt">RoleName</span><span class="o">,</span> <span class="n">y</span><span class="k">:</span> <span class="kt">RoleName</span><span class="o">)</span> <span class="k">=</span>
+      <span class="n">addressOrdering</span><span class="o">.</span><span class="n">compare</span><span class="o">(</span><span class="n">node</span><span class="o">(</span><span class="n">x</span><span class="o">).</span><span class="n">address</span><span class="o">,</span> <span class="n">node</span><span class="o">(</span><span class="n">y</span><span class="o">).</span><span class="n">address</span><span class="o">)</span>
+  <span class="o">}</span>
+  <span class="n">roles</span><span class="o">.</span><span class="n">filterNot</span><span class="o">(</span><span class="k">_</span> <span class="o">==</span> <span class="n">controller</span><span class="o">).</span><span class="n">toVector</span><span class="o">.</span><span class="n">sorted</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">val</span> <span class="n">leaveRole</span> <span class="k">=</span> <span class="n">sortedClusterRoles</span><span class="o">(</span><span class="mi">0</span><span class="o">)</span>
+<span class="k">val</span> <span class="n">newLeaderRole</span> <span class="k">=</span> <span class="n">sortedClusterRoles</span><span class="o">(</span><span class="mi">1</span><span class="o">)</span>
+
+<span class="n">runOn</span><span class="o">(</span><span class="n">leaveRole</span><span class="o">)</span> <span class="o">{</span>
+  <span class="nc">Cluster</span><span class="o">(</span><span class="n">system</span><span class="o">)</span> <span class="n">leave</span> <span class="n">node</span><span class="o">(</span><span class="n">leaveRole</span><span class="o">).</span><span class="n">address</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<p>Also, make sure that you don't shut down the first role, which is running the test conductor controller.
+Use a dedicated role for the controller, which is not a cluster member.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The singleton pattern will be simplified, perhaps provided out-of-the-box, when the cluster handles automatic actor partitioning.</p>
+</div>
+</div>
+</div>
+
+
+          </div>
+          <div class="span3"><p class="contents-title">Contents</p>
+              <div id="scroller-anchor">
+                <div id="scroller">
+                  <div id="toc"></div>
+                </div>
+              </div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="footer">
+  <div class="container">
+    <ul>
+      <li><h5>Akka</h5></li>
+      <li><a href="https://akka.io/docs">Documentation</a></li>
+      <li><a href="https://akka.io/faq">FAQ</a></li>
+      <li><a href="http://typesafe.com/stack/downloads/akka">Downloads</a></li>
+      <li><a href="https://akka.io/news">News</a></li>
+      <li><a href="http://letitcrash.com">Blog</a></li>
+    </ul>
+    <ul>
+      <li><h5>Contribute</h5></li>
+      <li><a href="https://akka.io/community">Community Projects</a></li>
+      <li><a href="http://github.com/akka/akka">Source Code</a></li>
+      <li><a href="http://groups.google.com/group/akka-user">Mailing List</a></li>      
+      <li><a href="https://doc.akka.io/docs/akka/current/project/issue-tracking.html">Report a Bug</a></li>      
+    </ul>
+    <ul>
+      <li><h5>Company</h5></li>
+      <li><a href="http://typesafe.com/products/typesafe-subscription">Commercial Support</a></li>
+      <li><a href="https://akka.io/team">Team</a></li>
+      <li><a href="mailto:info@typesafe.com">Contact</a></li>
+    </ul>
+    <ul>
+      <li><img src="../_static/watermark.png" align="center"/></li>
+    </ul>
+  </div>
+  <div class="container copyright">
+    <p style="float: left;">
+      © 2012 <a href="http://typesafe.com/">Typesafe Inc.</a> <span class="license">Akka is Open Source and available under the Apache 2 License.</span>
+    </p>
+    <p style="float: right; font-size: 12px;">
+      Last updated: May 14, 2013
+    </p>          
+  </div>
+</div>
+<script src="http://www.google.com/jsapi" type="text/javascript"></script>
+<script type="text/javascript">
+    google.load('search', '1', {language : 'en', style : google.loader.themes.MINIMALIST});
+    google.setOnLoadCallback(function() {
+    var customSearchOptions = {};  var customSearchControl = new google.search.CustomSearchControl(
+    '003065520604945464838:izzukx8-qba', customSearchOptions);
+    customSearchControl.setResultSetSize(google.search.Search.FILTERED_CSE_RESULTSET);
+    customSearchControl.draw('cse');
+    var path = window.location.pathname.split('/').slice(0,4);
+    if(window.location.hostname && path.length >= 4) {
+    var site = "site:" + window.location.hostname + path.join('/').toString();
+    customSearchControl.setSearchStartingCallback(this, function(c, s, q) { s.setQueryAddition(site); });
+    }
+    }, true);
+</script>
+<style type="text/css">
+    .gsc-control-cse {
+    font-family: Arial, sans-serif;
+    border-color: rgb(242, 242, 235);
+    background-color: rgb(242, 242, 235);
+    }
+    .gsc-control-cse .gsc-table-result {
+      font-family: Arial, sans-serif;
+      display: block;
+    }
+    input.gsc-input {
+    border-color: #BBBBBB;
+    }
+    input.gsc-search-button {
+    border-color: rgb(34, 57, 64);
+    background-color: rgb(68, 114, 129);
+    color: #FFFFFF;
+    }
+    .gsc-tabHeader.gsc-tabhInactive {
+    border-color: #777777;
+    background-color: #777777;
+    }
+    .gsc-tabHeader.gsc-tabhActive {
+    border-color: #333333;
+    background-color: #333333;
+    }
+    .gsc-tabsArea {
+    border-color: #333333;
+    }
+    .gsc-webResult.gsc-result,
+    .gsc-results .gsc-imageResult {
+      border-color: #666666;
+      background-color: #FFFFFF;
+      padding: 0.5em 0.5em;
+    }
+    .gsc-webResult.gsc-result:hover,
+    .gsc-imageResult:hover {
+      border-color: #AAAAAA;
+      background-color: #FFFFFF;
+      padding: 0.5em 0.5em;
+    }
+    .gsc-webResult.gsc-result.gsc-promotion:hover {
+    border-color: #AAAAAA;
+    background-color: #FFFFFF;
+    }
+    .gs-webResult.gs-result a.gs-title:link,
+    .gs-webResult.gs-result a.gs-title:link b,
+    .gs-imageResult a.gs-title:link,
+    .gs-imageResult a.gs-title:link b {
+    color: #444444;
+    }
+    .gs-webResult.gs-result a.gs-title:visited,
+    .gs-webResult.gs-result a.gs-title:visited b,
+    .gs-imageResult a.gs-title:visited,
+    .gs-imageResult a.gs-title:visited b {
+    color: #444444;
+    }
+    .gs-webResult.gs-result a.gs-title:hover,
+    .gs-webResult.gs-result a.gs-title:hover b,
+    .gs-imageResult a.gs-title:hover,
+    .gs-imageResult a.gs-title:hover b {
+    color: #444444;
+    }
+    .gs-webResult.gs-result a.gs-title:active,
+    .gs-webResult.gs-result a.gs-title:active b,
+    .gs-imageResult a.gs-title:active,
+    .gs-imageResult a.gs-title:active b {
+    color: #777777;
+    }
+    .gsc-cursor-page {
+    color: #444444;
+    }
+    a.gsc-trailing-more-results:link {
+    color: #444444;
+    }
+    .gs-webResult .gs-snippet,
+    .gs-imageResult .gs-snippet,
+    .gs-fileFormatType {
+    color: #333333;
+    }
+    .gs-webResult div.gs-visibleUrl,
+    .gs-imageResult div.gs-visibleUrl {
+    color: #000000;
+    }
+    .gs-webResult div.gs-visibleUrl-short {
+    color: #000000;
+    }
+    .gs-webResult div.gs-visibleUrl-short {
+    display: none;
+    }
+    .gs-webResult div.gs-visibleUrl-long {
+    display: block;
+    }
+    .gs-promotion div.gs-visibleUrl-short {
+    display: none;
+    }
+    .gs-promotion div.gs-visibleUrl-long {
+    display: block;
+    }
+    .gsc-cursor-box {
+    border-color: #FFFFFF;
+    }
+    .gsc-results .gsc-cursor-box .gsc-cursor-page {
+    border-color: #777777;
+    background-color: #FFFFFF;
+    color: #444444;
+    }
+    .gsc-results .gsc-cursor-box .gsc-cursor-current-page {
+    border-color: #333333;
+    background-color: #333333;
+    color: #444444;
+    }
+    .gsc-webResult.gsc-result.gsc-promotion {
+    border-color: #CCCCCC;
+    background-color: #E6E6E6;
+    }
+    .gsc-completion-title {
+    color: #444444;
+    }
+    .gsc-completion-snippet {
+    color: #333333;
+    }
+    .gs-promotion a.gs-title:link,
+    .gs-promotion a.gs-title:link *,
+    .gs-promotion .gs-snippet a:link {
+    color: #0000CC;
+    }
+    .gs-promotion a.gs-title:visited,
+    .gs-promotion a.gs-title:visited *,
+    .gs-promotion .gs-snippet a:visited {
+    color: #0000CC;
+    }
+    .gs-promotion a.gs-title:hover,
+    .gs-promotion a.gs-title:hover *,
+    .gs-promotion .gs-snippet a:hover {
+    color: #444444;
+    }
+    .gs-promotion a.gs-title:active,
+    .gs-promotion a.gs-title:active *,
+    .gs-promotion .gs-snippet a:active {
+    color: #00CC00;
+    }
+    .gs-promotion .gs-snippet,
+    .gs-promotion .gs-title .gs-promotion-title-right,
+    .gs-promotion .gs-title .gs-promotion-title-right *  {
+    color: #333333;
+    }
+    .gs-promotion .gs-visibleUrl,
+    .gs-promotion .gs-visibleUrl-short {
+    color: #00CC00;
+    }
+</style>
+<script type="text/javascript">
+  $('#toc').toc();
+</script>
+  
+
+  </body>
+</html>

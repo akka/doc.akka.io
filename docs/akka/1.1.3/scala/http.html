@@ -1,0 +1,587 @@
+
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>HTTP &mdash; Akka Documentation</title>
+    <link rel="stylesheet" href="../_static/akka.css" type="text/css" />
+<link rel="stylesheet" href="https://doc.akka.io/docs/akka/1.1.3/_static/docs.css" type="text/css"/>
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/print.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '1.1.3',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+<script type="text/javascript" src="https://doc.akka.io/docs/akka/1.1.3/_static/warnOldDocs.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="../_static/theme_extras.js"></script>
+    <link rel="top" title="Akka Documentation" href="../index.html" />
+    <link rel="up" title="Scala API" href="index.html" />
+    <link rel="next" title="HTTP Security" href="security.html" />
+    <link rel="prev" title="FSM" href="fsm.html" /> 
+  </head>
+  <body>
+      <div class="header"><a href="../index.html"><img class="leftlogo" src="../_static/logo.png" alt="Logo"/></a><h1 class="heading"><a href="../index.html"><span>Akka Documentation</span></a></h1>
+       <h2 class="heading"><a href="../index.html"><span>Version 1.1.3</span></a></h2>
+       <h2 class="rightheading"><span><a href="https://akka.io/docs/akka/1.1.3/Akka.pdf">PDF</a></span></h2>
+      </div>
+      <div class="topnav">
+      
+        <p>
+        «&#160;&#160;<a href="fsm.html">FSM</a>
+        &#160;&#160;::&#160;&#160;
+        <a class="uplink" href="../index.html">Contents</a>
+        &#160;&#160;::&#160;&#160;
+        <a href="security.html">HTTP Security</a>&#160;&#160;»
+        </p>
+
+      </div>
+      <div class="content">
+        
+        
+  <div class="section" id="http">
+<span id="http-module"></span><h1>HTTP<a class="headerlink" href="#http" title="Permalink to this headline">¶</a></h1>
+<div class="sidebar">
+<p class="first sidebar-title">Contents</p>
+<div class="contents local last topic" id="contents">
+<ul class="simple">
+<li><a class="reference internal" href="#when-using-akkas-embedded-servlet-container" id="id1">When using Akkas embedded servlet container</a></li>
+<li><a class="reference internal" href="#boot-configuration-class" id="id2">Boot configuration class</a></li>
+<li><a class="reference internal" href="#when-deploying-in-another-servlet-container" id="id3">When deploying in another servlet container:</a></li>
+<li><a class="reference internal" href="#adapting-your-own-akka-initializer-for-the-servlet-container" id="id4">Adapting your own Akka Initializer for the Servlet Container</a></li>
+<li><a class="reference internal" href="#java-api-typed-actors" id="id5">Java API: Typed Actors</a></li>
+<li><a class="reference internal" href="#scala-api-actors" id="id6">Scala API: Actors</a></li>
+<li><a class="reference internal" href="#using-akka-with-the-pinky-rest-mvc-framework" id="id7">Using Akka with the Pinky REST/MVC framework</a></li>
+<li><a class="reference internal" href="#jetty-run-in-sbt" id="id8">jetty-run in SBT</a></li>
+<li><a class="reference internal" href="#mist-lightweight-asynchronous-http" id="id9">Mist - Lightweight Asynchronous HTTP</a><ul>
+<li><a class="reference internal" href="#endpoints" id="id10">Endpoints</a></li>
+<li><a class="reference internal" href="#preparations" id="id11">Preparations</a></li>
+<li><a class="reference internal" href="#an-example" id="id12">An Example</a><ul>
+<li><a class="reference internal" href="#startup" id="id13">Startup</a></li>
+<li><a class="reference internal" href="#uri-handling" id="id14">URI Handling</a></li>
+<li><a class="reference internal" href="#plumbing" id="id15">Plumbing</a></li>
+<li><a class="reference internal" href="#handling-requests" id="id16">Handling requests</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#another-example-multiplexing-handlers" id="id17">Another Example - multiplexing handlers</a></li>
+<li><a class="reference internal" href="#examples" id="id18">Examples</a><ul>
+<li><a class="reference internal" href="#using-the-akka-mist-module-with-oauth" id="id19">Using the Akka Mist module with OAuth</a></li>
+<li><a class="reference internal" href="#using-the-akka-mist-module-with-the-facebook-graph-api-and-webgl" id="id20">Using the Akka Mist module with the Facebook Graph API and WebGL</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<p>Module stability: <strong>SOLID</strong></p>
+<div class="section" id="when-using-akkas-embedded-servlet-container">
+<h2><a class="toc-backref" href="#id1">When using Akkas embedded servlet container</a><a class="headerlink" href="#when-using-akkas-embedded-servlet-container" title="Permalink to this headline">¶</a></h2>
+<p>Akka supports the JSR for REST called JAX-RS (JSR-311). It allows you to create interaction with your actors through HTTP + REST</p>
+<p>You can deploy your REST services directly into the Akka kernel. All you have to do is to drop the JAR with your application containing the REST services into the ‘$AKKA_HOME/deploy’ directory and specify in your akka.conf what resource packages to scan for (more on that below) and optionally define a “boot class” (if you need to create any actors or do any config). WAR deployment is coming soon.</p>
+</div>
+<div class="section" id="boot-configuration-class">
+<h2><a class="toc-backref" href="#id2">Boot configuration class</a><a class="headerlink" href="#boot-configuration-class" title="Permalink to this headline">¶</a></h2>
+<p>The boot class is needed for Akka to bootstrap the application and should contain the initial supervisor configuration of any actors in the module.</p>
+<p>The boot class should be a regular POJO with a default constructor in which the initial configuration is done. The boot class then needs to be defined in the ‘$AKKA_HOME/config/akka.conf’ config file like this:</p>
+<div class="highlight-ruby"><div class="highlight"><pre><span class="n">akka</span> <span class="p">{</span>
+  <span class="n">boot</span> <span class="o">=</span> <span class="o">[</span><span class="s2">&quot;sample.java.Boot&quot;</span><span class="p">,</span> <span class="s2">&quot;sample.scala.Boot&quot;</span><span class="o">]</span>   <span class="c1"># FQN to the class doing initial actor</span>
+                                                     <span class="c1"># supervisor bootstrap, should be defined in default constructor</span>
+  <span class="o">.</span><span class="n">.</span><span class="o">.</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>After you&#8217;ve placed your service-jar into the $AKKA_HOME/deploy directory, you&#8217;ll need to tell Akka where to look for your services, and you do that by specifying what packages you want Akka to scan for services, and that&#8217;s done in akka.conf in the http-section:</p>
+<div class="highlight-ruby"><div class="highlight"><pre><span class="n">akka</span> <span class="p">{</span>
+  <span class="n">http</span> <span class="p">{</span>
+    <span class="o">.</span><span class="n">.</span><span class="o">.</span>
+    <span class="n">resource</span><span class="o">-</span><span class="n">packages</span> <span class="o">=</span> <span class="o">[</span><span class="s2">&quot;com.bar&quot;</span><span class="p">,</span><span class="s2">&quot;com.foo.bar&quot;</span><span class="o">]</span> <span class="c1"># List with all resource packages for your Jersey services</span>
+    <span class="o">.</span><span class="n">.</span><span class="o">.</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="when-deploying-in-another-servlet-container">
+<h2><a class="toc-backref" href="#id3">When deploying in another servlet container:</a><a class="headerlink" href="#when-deploying-in-another-servlet-container" title="Permalink to this headline">¶</a></h2>
+<p>If you deploy Akka in another JEE container, don&#8217;t forget to create an Akka initialization and cleanup hook:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">package</span> <span class="nn">com.my</span> <span class="c1">//&lt;--- your own package</span>
+<span class="k">import</span> <span class="nn">akka.util.AkkaLoader</span>
+<span class="k">import</span> <span class="nn">akka.remote.BootableRemoteActorService</span>
+<span class="k">import</span> <span class="nn">akka.actor.BootableActorLoaderService</span>
+<span class="k">import</span> <span class="nn">javax.servlet.</span><span class="o">{</span><span class="nc">ServletContextListener</span><span class="o">,</span> <span class="nc">ServletContextEvent</span><span class="o">}</span>
+
+ <span class="cm">/**</span>
+<span class="cm">  * This class can be added to web.xml mappings as a listener to start and postStop Akka.</span>
+<span class="cm">  *&lt;web-app&gt;</span>
+<span class="cm">  * ...</span>
+<span class="cm">  *  &lt;listener&gt;</span>
+<span class="cm">  *    &lt;listener-class&gt;com.my.Initializer&lt;/listener-class&gt;</span>
+<span class="cm">  *  &lt;/listener&gt;</span>
+<span class="cm">  * ...</span>
+<span class="cm">  *&lt;/web-app&gt;</span>
+<span class="cm">  */</span>
+<span class="k">class</span> <span class="nc">Initializer</span> <span class="k">extends</span> <span class="nc">ServletContextListener</span> <span class="o">{</span>
+   <span class="k">lazy</span> <span class="k">val</span> <span class="n">loader</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">AkkaLoader</span>
+   <span class="k">def</span> <span class="n">contextDestroyed</span><span class="o">(</span><span class="n">e</span><span class="k">:</span> <span class="kt">ServletContextEvent</span><span class="o">)</span><span class="k">:</span> <span class="kt">Unit</span> <span class="o">=</span> <span class="n">loader</span><span class="o">.</span><span class="n">shutdown</span>
+   <span class="k">def</span> <span class="n">contextInitialized</span><span class="o">(</span><span class="n">e</span><span class="k">:</span> <span class="kt">ServletContextEvent</span><span class="o">)</span><span class="k">:</span> <span class="kt">Unit</span> <span class="o">=</span>
+     <span class="n">loader</span><span class="o">.</span><span class="n">boot</span><span class="o">(</span><span class="kc">true</span><span class="o">,</span> <span class="k">new</span> <span class="nc">BootableActorLoaderService</span> <span class="k">with</span> <span class="nc">BootableRemoteActorService</span><span class="o">)</span> <span class="c1">//&lt;--- Important</span>
+<span class="c1">//     loader.boot(true, new BootableActorLoaderService {}) // If you don&#39;t need akka-remote</span>
+ <span class="o">}</span>
+</pre></div>
+</div>
+<p>Then you just declare it in your web.xml:</p>
+<div class="highlight-xml"><div class="highlight"><pre><span class="nt">&lt;web-app&gt;</span>
+...
+  <span class="nt">&lt;listener&gt;</span>
+    <span class="nt">&lt;listener-class&gt;</span>your.package.Initializer<span class="nt">&lt;/listener-class&gt;</span>
+  <span class="nt">&lt;/listener&gt;</span>
+...
+<span class="nt">&lt;/web-app&gt;</span>
+</pre></div>
+</div>
+<p>Also, you need to map the servlet that will handle your Jersey/JAX-RS calls, you use Jerseys ServletContainer servlet.</p>
+<div class="highlight-xml"><div class="highlight"><pre><span class="nt">&lt;web-app&gt;</span>
+...
+  <span class="nt">&lt;servlet&gt;</span>
+    <span class="nt">&lt;servlet-name&gt;</span>Akka<span class="nt">&lt;/servlet-name&gt;</span>
+    <span class="nt">&lt;servlet-class&gt;</span>com.sun.jersey.spi.container.servlet.ServletContainer<span class="nt">&lt;/servlet-class&gt;</span>
+    <span class="c">&lt;!-- And you want to configure your services --&gt;</span>
+    <span class="nt">&lt;init-param&gt;</span>
+      <span class="nt">&lt;param-name&gt;</span>com.sun.jersey.config.property.resourceConfigClass<span class="nt">&lt;/param-name&gt;</span>
+      <span class="nt">&lt;param-value&gt;</span>com.sun.jersey.api.core.PackagesResourceConfig<span class="nt">&lt;/param-value&gt;</span>
+    <span class="nt">&lt;/init-param&gt;</span>
+    <span class="nt">&lt;init-param&gt;</span>
+       <span class="nt">&lt;param-name&gt;</span>com.sun.jersey.config.property.packages<span class="nt">&lt;/param-name&gt;</span>
+       <span class="nt">&lt;param-value&gt;</span>your.resource.package.here;and.another.here;and.so.on<span class="nt">&lt;/param-value&gt;</span>
+    <span class="nt">&lt;/init-param&gt;</span>
+  <span class="nt">&lt;/servlet&gt;</span>
+  <span class="nt">&lt;servlet-mapping&gt;</span>
+    <span class="nt">&lt;url-pattern&gt;</span>*<span class="nt">&lt;/url-pattern&gt;</span>
+    <span class="nt">&lt;servlet-name&gt;</span>Akka<span class="nt">&lt;/servlet-name&gt;</span>
+  <span class="nt">&lt;/servlet-mapping&gt;</span>
+...
+<span class="nt">&lt;/web-app&gt;</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="adapting-your-own-akka-initializer-for-the-servlet-container">
+<h2><a class="toc-backref" href="#id4">Adapting your own Akka Initializer for the Servlet Container</a><a class="headerlink" href="#adapting-your-own-akka-initializer-for-the-servlet-container" title="Permalink to this headline">¶</a></h2>
+<p>If you want to use akka-camel or any other modules that have their own &#8220;Bootable&#8220;&#8216;s you&#8217;ll need to write your own Initializer, which is _ultra_ simple, see below for an example on how to include Akka-camel.</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">package</span> <span class="nn">com.my</span> <span class="c1">//&lt;--- your own package</span>
+<span class="k">import</span> <span class="nn">akka.remote.BootableRemoteActorService</span>
+<span class="k">import</span> <span class="nn">akka.actor.BootableActorLoaderService</span>
+<span class="k">import</span> <span class="nn">akka.camel.CamelService</span>
+<span class="k">import</span> <span class="nn">javax.servlet.</span><span class="o">{</span><span class="nc">ServletContextListener</span><span class="o">,</span> <span class="nc">ServletContextEvent</span><span class="o">}</span>
+
+ <span class="cm">/**</span>
+<span class="cm">  * This class can be added to web.xml mappings as a listener to start and postStop Akka.</span>
+<span class="cm">  *&lt;web-app&gt;</span>
+<span class="cm">  * ...</span>
+<span class="cm">  *  &lt;listener&gt;</span>
+<span class="cm">  *    &lt;listener-class&gt;com.my.Initializer&lt;/listener-class&gt;</span>
+<span class="cm">  *  &lt;/listener&gt;</span>
+<span class="cm">  * ...</span>
+<span class="cm">  *&lt;/web-app&gt;</span>
+<span class="cm">  */</span>
+<span class="k">class</span> <span class="nc">Initializer</span> <span class="k">extends</span> <span class="nc">ServletContextListener</span> <span class="o">{</span>
+   <span class="k">lazy</span> <span class="k">val</span> <span class="n">loader</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">AkkaLoader</span>
+   <span class="k">def</span> <span class="n">contextDestroyed</span><span class="o">(</span><span class="n">e</span><span class="k">:</span> <span class="kt">ServletContextEvent</span><span class="o">)</span><span class="k">:</span> <span class="kt">Unit</span> <span class="o">=</span> <span class="n">loader</span><span class="o">.</span><span class="n">shutdown</span>
+   <span class="k">def</span> <span class="n">contextInitialized</span><span class="o">(</span><span class="n">e</span><span class="k">:</span> <span class="kt">ServletContextEvent</span><span class="o">)</span><span class="k">:</span> <span class="kt">Unit</span> <span class="o">=</span>
+     <span class="n">loader</span><span class="o">.</span><span class="n">boot</span><span class="o">(</span><span class="kc">true</span><span class="o">,</span> <span class="k">new</span> <span class="nc">BootableActorLoaderService</span> <span class="k">with</span> <span class="nc">BootableRemoteActorService</span> <span class="k">with</span> <span class="nc">CamelService</span><span class="o">)</span> <span class="c1">//&lt;--- Important</span>
+ <span class="o">}</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="java-api-typed-actors">
+<h2><a class="toc-backref" href="#id5">Java API: Typed Actors</a><a class="headerlink" href="#java-api-typed-actors" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference external" href="https://github.com/akka/akka-modules/tree/v1.0/akka-samples/akka-sample-rest-java/src/main/java/sample/rest/java">Sample module for REST services with Actors in Java</a></p>
+</div>
+<div class="section" id="scala-api-actors">
+<h2><a class="toc-backref" href="#id6">Scala API: Actors</a><a class="headerlink" href="#scala-api-actors" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference external" href="https://github.com/akka/akka-modules/blob/v1.0/akka-samples/akka-sample-rest-scala/src/main/scala/SimpleService.scala">Sample module for REST services with Actors in Scala</a></p>
+</div>
+<div class="section" id="using-akka-with-the-pinky-rest-mvc-framework">
+<h2><a class="toc-backref" href="#id7">Using Akka with the Pinky REST/MVC framework</a><a class="headerlink" href="#using-akka-with-the-pinky-rest-mvc-framework" title="Permalink to this headline">¶</a></h2>
+<p>Pinky has a slick Akka integration. Read more <a class="reference external" href="http://wiki.github.com/pk11/pinky/release-13">here</a></p>
+</div>
+<div class="section" id="jetty-run-in-sbt">
+<h2><a class="toc-backref" href="#id8">jetty-run in SBT</a><a class="headerlink" href="#jetty-run-in-sbt" title="Permalink to this headline">¶</a></h2>
+<p>If you want to use jetty-run in SBT you need to exclude the version of Jetty that is bundled in akka-http:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">override</span> <span class="k">def</span> <span class="n">ivyXML</span> <span class="k">=</span>
+  <span class="o">&lt;</span><span class="n">dependencies</span><span class="o">&gt;</span>
+    <span class="o">&lt;</span><span class="n">dependency</span> <span class="n">org</span><span class="o">=</span><span class="s">&quot;se.scalablesolutions.akka&quot;</span> <span class="n">name</span><span class="o">=</span><span class="s">&quot;akka-http&quot;</span> <span class="n">rev</span><span class="o">=</span><span class="s">&quot;AKKA_VERSION_GOES_HERE&quot;</span><span class="o">&gt;</span>
+      <span class="o">&lt;</span><span class="n">exclude</span> <span class="n">module</span><span class="o">=</span><span class="s">&quot;jetty&quot;</span><span class="o">/&gt;</span>
+    <span class="o">&lt;/</span><span class="n">dependency</span><span class="o">&gt;</span>
+  <span class="o">&lt;/</span><span class="n">dependencies</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="mist-lightweight-asynchronous-http">
+<h2><a class="toc-backref" href="#id9">Mist - Lightweight Asynchronous HTTP</a><a class="headerlink" href="#mist-lightweight-asynchronous-http" title="Permalink to this headline">¶</a></h2>
+<p>The <em>Mist</em> layer was developed to provide a direct connection between the servlet container and Akka actors with the goal of handling the incoming HTTP request as quickly as possible in an asynchronous manner. The motivation came from the simple desire to treat REST calls as completable futures, that is, effectively passing the request along an actor message chain to be resumed at the earliest possible time. The primary constraint was to not block any existing threads and secondarily, not create additional ones. Mist is very simple and works both with Jetty Continuations as well as with Servlet API 3.0 (tested using Jetty-8.0.0.M1). When the servlet handles a request, a message is created typed to represent the method (e.g. Get, Post, etc.), the request is suspended and the message is sent (fire-and-forget) to the <em>root endpoint</em> actor. That&#8217;s it. There are no POJOs required to host the service endpoints and the request is treated as any other. The message can be resumed (completed) using a number of helper methods that set the proper HTTP response status code.</p>
+<p>Complete runnable example can be found here: <a class="reference external" href="https://github.com/buka/akka-mist-sample">https://github.com/buka/akka-mist-sample</a></p>
+<div class="section" id="endpoints">
+<h3><a class="toc-backref" href="#id10">Endpoints</a><a class="headerlink" href="#endpoints" title="Permalink to this headline">¶</a></h3>
+<p>Endpoints are actors that handle request messages. Minimally there must be an instance of the <em>RootEndpoint</em> and then at least one more (to implement your services).</p>
+</div>
+<div class="section" id="preparations">
+<h3><a class="toc-backref" href="#id11">Preparations</a><a class="headerlink" href="#preparations" title="Permalink to this headline">¶</a></h3>
+<p>In order to use Mist you have to register the MistServlet in <em>web.xml</em> or do the analogous for the embedded server if running in Akka Microkernel:</p>
+<div class="highlight-xml"><div class="highlight"><pre><span class="nt">&lt;servlet&gt;</span>
+  <span class="nt">&lt;servlet-name&gt;</span>akkaMistServlet<span class="nt">&lt;/servlet-name&gt;</span>
+  <span class="nt">&lt;servlet-class&gt;</span>akka.http.AkkaMistServlet<span class="nt">&lt;/servlet-class&gt;</span>
+  <span class="c">&lt;!-- &lt;async-supported&gt;true&lt;/async-supported&gt; Enable this for Servlet 3.0 support --&gt;</span>
+<span class="nt">&lt;/servlet&gt;</span>
+
+<span class="nt">&lt;servlet-mapping&gt;</span>
+  <span class="nt">&lt;servlet-name&gt;</span>akkaMistServlet<span class="nt">&lt;/servlet-name&gt;</span>
+  <span class="nt">&lt;url-pattern&gt;</span>/*<span class="nt">&lt;/url-pattern&gt;</span>
+<span class="nt">&lt;/servlet-mapping&gt;</span>
+</pre></div>
+</div>
+<p>Then you also have to add the following dependencies to your SBT build definition:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">val</span> <span class="n">jettyWebapp</span> <span class="k">=</span> <span class="s">&quot;org.eclipse.jetty&quot;</span> <span class="o">%</span> <span class="s">&quot;jetty-webapp&quot;</span> <span class="o">%</span> <span class="s">&quot;8.0.0.M2&quot;</span> <span class="o">%</span> <span class="s">&quot;test&quot;</span>
+<span class="k">val</span> <span class="n">javaxServlet30</span> <span class="k">=</span> <span class="s">&quot;org.mortbay.jetty&quot;</span> <span class="o">%</span> <span class="s">&quot;servlet-api&quot;</span> <span class="o">%</span> <span class="s">&quot;3.0.20100224&quot;</span> <span class="o">%</span> <span class="s">&quot;provided&quot;</span>
+</pre></div>
+</div>
+<p>Attention: You have to use SBT 0.7.5.RC0 or higher in order to be able to work with that Jetty version.</p>
+</div>
+<div class="section" id="an-example">
+<h3><a class="toc-backref" href="#id12">An Example</a><a class="headerlink" href="#an-example" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="startup">
+<h4><a class="toc-backref" href="#id13">Startup</a><a class="headerlink" href="#startup" title="Permalink to this headline">¶</a></h4>
+<p>In this example, we&#8217;ll use the built-in <em>RootEndpoint</em> class and implement our own service from that. Here the services are started in the boot loader and attached to the top level supervisor.</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">class</span> <span class="nc">Boot</span> <span class="o">{</span>
+  <span class="k">val</span> <span class="n">factory</span> <span class="k">=</span> <span class="nc">SupervisorFactory</span><span class="o">(</span>
+    <span class="nc">SupervisorConfig</span><span class="o">(</span>
+      <span class="nc">OneForOneStrategy</span><span class="o">(</span><span class="nc">List</span><span class="o">(</span><span class="n">classOf</span><span class="o">[</span><span class="kt">Exception</span><span class="o">]),</span> <span class="mi">3</span><span class="o">,</span> <span class="mi">100</span><span class="o">),</span>
+        <span class="c1">//</span>
+        <span class="c1">// in this particular case, just boot the built-in default root endpoint</span>
+        <span class="c1">//</span>
+      <span class="nc">Supervise</span><span class="o">(</span>
+        <span class="n">actorOf</span><span class="o">[</span><span class="kt">RootEndpoint</span><span class="o">],</span>
+        <span class="nc">Permanent</span><span class="o">)</span> <span class="o">::</span>
+      <span class="nc">Supervise</span><span class="o">(</span>
+        <span class="n">actorOf</span><span class="o">[</span><span class="kt">SimpleAkkaAsyncHttpService</span><span class="o">],</span>
+        <span class="nc">Permanent</span><span class="o">)</span>
+      <span class="o">::</span> <span class="nc">Nil</span><span class="o">))</span>
+  <span class="n">factory</span><span class="o">.</span><span class="n">newInstance</span><span class="o">.</span><span class="n">start</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<p><strong>Defining the Endpoint</strong>
+The service is an actor that mixes in the <em>Endpoint</em> trait. Here the dispatcher is taken from the Akka configuration file which allows for custom tuning of these actors, though naturally, any dispatcher can be used.</p>
+</div>
+<div class="section" id="uri-handling">
+<h4><a class="toc-backref" href="#id14">URI Handling</a><a class="headerlink" href="#uri-handling" title="Permalink to this headline">¶</a></h4>
+<p>Rather than use traditional annotations to pair HTTP request and class methods, Mist uses hook and provide functions. This offers a great deal of flexibility in how a given endpoint responds to a URI. A hook function is simply a filter, returning a Boolean to indicate whether or not the endpoint will handle the URI. This can be as simple as a straight match or as fancy as you need. If a hook for a given URI returns true, the matching provide function is called to obtain an actor to which the message can be delivered. Notice in the example below, in one case, the same actor is returned and in the other, a new actor is created and returned. Note that URI hooking is non-exclusive and a message can be delivered to multiple actors (see next example).</p>
+</div>
+<div class="section" id="plumbing">
+<h4><a class="toc-backref" href="#id15">Plumbing</a><a class="headerlink" href="#plumbing" title="Permalink to this headline">¶</a></h4>
+<p>Hook and provider functions are attached to a parent endpoint, in this case the root, by sending it the <strong>Endpoint.Attach</strong> message.
+Finally, bind the <em>handleHttpRequest</em> function of the <em>Endpoint</em> trait to the actor&#8217;s <em>receive</em> function and we&#8217;re done.</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">class</span> <span class="nc">SimpleAkkaAsyncHttpService</span> <span class="k">extends</span> <span class="nc">Actor</span> <span class="k">with</span> <span class="nc">Endpoint</span> <span class="o">{</span>
+  <span class="k">final</span> <span class="k">val</span> <span class="nc">ServiceRoot</span> <span class="k">=</span> <span class="s">&quot;/simple/&quot;</span>
+  <span class="k">final</span> <span class="k">val</span> <span class="nc">ProvideSameActor</span> <span class="k">=</span> <span class="nc">ServiceRoot</span> <span class="o">+</span> <span class="s">&quot;same&quot;</span>
+  <span class="k">final</span> <span class="k">val</span> <span class="nc">ProvideNewActor</span> <span class="k">=</span> <span class="nc">ServiceRoot</span> <span class="o">+</span> <span class="s">&quot;new&quot;</span>
+
+    <span class="c1">//</span>
+    <span class="c1">// use the configurable dispatcher</span>
+    <span class="c1">//</span>
+  <span class="n">self</span><span class="o">.</span><span class="n">dispatcher</span> <span class="k">=</span> <span class="nc">Endpoint</span><span class="o">.</span><span class="nc">Dispatcher</span>
+
+    <span class="c1">//</span>
+    <span class="c1">// there are different ways of doing this - in this case, we&#39;ll use a single hook function</span>
+    <span class="c1">//  and discriminate in the provider; alternatively we can pair hooks &amp; providers</span>
+    <span class="c1">//</span>
+  <span class="k">def</span> <span class="n">hook</span><span class="o">(</span><span class="n">uri</span><span class="k">:</span> <span class="kt">String</span><span class="o">)</span><span class="k">:</span> <span class="kt">Boolean</span> <span class="o">=</span> <span class="o">((</span><span class="n">uri</span> <span class="o">==</span> <span class="nc">ProvideSameActor</span><span class="o">)</span> <span class="o">||</span> <span class="o">(</span><span class="n">uri</span> <span class="o">==</span> <span class="nc">ProvideNewActor</span><span class="o">))</span>
+  <span class="k">def</span> <span class="n">provide</span><span class="o">(</span><span class="n">uri</span><span class="k">:</span> <span class="kt">String</span><span class="o">)</span><span class="k">:</span> <span class="kt">ActorRef</span> <span class="o">=</span> <span class="o">{</span>
+    <span class="k">if</span> <span class="o">(</span><span class="n">uri</span> <span class="o">==</span> <span class="nc">ProvideSameActor</span><span class="o">)</span> <span class="n">same</span>
+    <span class="k">else</span> <span class="n">actorOf</span><span class="o">[</span><span class="kt">BoringActor</span><span class="o">].</span><span class="n">start</span><span class="o">()</span>
+  <span class="o">}</span>
+
+    <span class="c1">//</span>
+    <span class="c1">// this is where you want attach your endpoint hooks</span>
+    <span class="c1">//</span>
+  <span class="k">override</span> <span class="k">def</span> <span class="n">preStart</span><span class="o">()</span> <span class="k">=</span> <span class="o">{</span>
+      <span class="c1">//</span>
+      <span class="c1">// we expect there to be one root and that it&#39;s already been started up</span>
+      <span class="c1">// obviously there are plenty of other ways to obtaining this actor</span>
+      <span class="c1">//  the point is that we need to attach something (for starters anyway)</span>
+      <span class="c1">//  to the root</span>
+      <span class="c1">//</span>
+      <span class="k">val</span> <span class="n">root</span> <span class="k">=</span> <span class="nc">Actor</span><span class="o">.</span><span class="n">registry</span><span class="o">.</span><span class="n">actorsFor</span><span class="o">(</span><span class="n">classOf</span><span class="o">[</span><span class="kt">RootEndpoint</span><span class="o">]).</span><span class="n">head</span>
+      <span class="n">root</span> <span class="o">!</span> <span class="nc">Endpoint</span><span class="o">.</span><span class="nc">Attach</span><span class="o">(</span><span class="n">hook</span><span class="o">,</span> <span class="n">provide</span><span class="o">)</span>
+    <span class="o">}</span>
+
+    <span class="c1">//</span>
+    <span class="c1">// since this actor isn&#39;t doing anything else (i.e. not handling other messages)</span>
+    <span class="c1">//  just assign the receive func like so...</span>
+    <span class="c1">// otherwise you could do something like:</span>
+    <span class="c1">//  def myrecv = {...}</span>
+    <span class="c1">//  def receive = myrecv orElse _recv</span>
+    <span class="c1">//</span>
+  <span class="k">def</span> <span class="n">receive</span> <span class="k">=</span> <span class="n">handleHttpRequest</span>
+
+  <span class="c1">//</span>
+  <span class="c1">// this will be our &quot;same&quot; actor provided with ProvideSameActor endpoint is hit</span>
+  <span class="c1">//</span>
+  <span class="k">lazy</span> <span class="k">val</span> <span class="n">same</span> <span class="k">=</span> <span class="n">actorOf</span><span class="o">[</span><span class="kt">BoringActor</span><span class="o">].</span><span class="n">start</span><span class="o">()</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="handling-requests">
+<h4><a class="toc-backref" href="#id16">Handling requests</a><a class="headerlink" href="#handling-requests" title="Permalink to this headline">¶</a></h4>
+<p>Messages are handled just as any other that are received by your actor. The servlet requests and response are not hidden and can be accessed directly as shown below.</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="cm">/**</span>
+<span class="cm"> * Define a service handler to respond to some HTTP requests</span>
+<span class="cm"> */</span>
+<span class="k">class</span> <span class="nc">BoringActor</span> <span class="k">extends</span> <span class="nc">Actor</span> <span class="o">{</span>
+  <span class="k">import</span> <span class="nn">java.util.Date</span>
+  <span class="k">import</span> <span class="nn">javax.ws.rs.core.MediaType</span>
+
+  <span class="k">var</span> <span class="n">gets</span> <span class="k">=</span> <span class="mi">0</span>
+  <span class="k">var</span> <span class="n">posts</span> <span class="k">=</span> <span class="mi">0</span>
+  <span class="k">var</span> <span class="n">lastget</span><span class="k">:</span> <span class="kt">Option</span><span class="o">[</span><span class="kt">Date</span><span class="o">]</span> <span class="k">=</span> <span class="nc">None</span>
+  <span class="k">var</span> <span class="n">lastpost</span><span class="k">:</span> <span class="kt">Option</span><span class="o">[</span><span class="kt">Date</span><span class="o">]</span> <span class="k">=</span> <span class="nc">None</span>
+
+  <span class="k">def</span> <span class="n">receive</span> <span class="k">=</span> <span class="o">{</span>
+    <span class="c1">// handle a get request</span>
+    <span class="k">case</span> <span class="n">get</span><span class="k">:</span> <span class="kt">Get</span> <span class="o">=&gt;</span>
+      <span class="c1">// the content type of the response.</span>
+      <span class="c1">// similar to @Produces annotation</span>
+      <span class="n">get</span><span class="o">.</span><span class="n">response</span><span class="o">.</span><span class="n">setContentType</span><span class="o">(</span><span class="nc">MediaType</span><span class="o">.</span><span class="nc">TEXT_HTML</span><span class="o">)</span>
+
+      <span class="c1">//</span>
+      <span class="c1">// &quot;work&quot;</span>
+      <span class="c1">//</span>
+      <span class="n">gets</span> <span class="o">+=</span> <span class="mi">1</span>
+      <span class="n">lastget</span> <span class="k">=</span> <span class="nc">Some</span><span class="o">(</span><span class="k">new</span> <span class="nc">Date</span><span class="o">)</span>
+
+      <span class="c1">//</span>
+      <span class="c1">// respond</span>
+      <span class="c1">//</span>
+      <span class="k">val</span> <span class="n">res</span> <span class="k">=</span> <span class="s">&quot;&lt;p&gt;Gets: &quot;</span><span class="o">+</span><span class="n">gets</span><span class="o">+</span><span class="s">&quot; Posts: &quot;</span><span class="o">+</span><span class="n">posts</span><span class="o">+</span><span class="s">&quot;&lt;/p&gt;&lt;p&gt;Last Get: &quot;</span><span class="o">+</span><span class="n">lastget</span><span class="o">.</span><span class="n">getOrElse</span><span class="o">(</span><span class="s">&quot;Never&quot;</span><span class="o">).</span><span class="n">toString</span><span class="o">+</span><span class="s">&quot; Last Post: &quot;</span><span class="o">+</span><span class="n">lastpost</span><span class="o">.</span><span class="n">getOrElse</span><span class="o">(</span><span class="s">&quot;Never&quot;</span><span class="o">).</span><span class="n">toString</span><span class="o">+</span><span class="s">&quot;&lt;/p&gt;&quot;</span>
+      <span class="n">get</span><span class="o">.</span><span class="nc">OK</span><span class="o">(</span><span class="n">res</span><span class="o">)</span>
+
+    <span class="c1">// handle a post request</span>
+    <span class="k">case</span> <span class="n">post</span><span class="k">:</span><span class="kt">Post</span> <span class="o">=&gt;</span>
+      <span class="c1">// the expected content type of the request</span>
+      <span class="c1">// similar to @Consumes</span>
+      <span class="k">if</span> <span class="o">(</span><span class="n">post</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">getContentType</span> <span class="n">startsWith</span> <span class="nc">MediaType</span><span class="o">.</span><span class="nc">APPLICATION_FORM_URLENCODED</span><span class="o">)</span> <span class="o">{</span>
+        <span class="c1">// the content type of the response.</span>
+        <span class="c1">// similar to @Produces annotation</span>
+        <span class="n">post</span><span class="o">.</span><span class="n">response</span><span class="o">.</span><span class="n">setContentType</span><span class="o">(</span><span class="nc">MediaType</span><span class="o">.</span><span class="nc">TEXT_HTML</span><span class="o">)</span>
+
+        <span class="c1">// &quot;work&quot;</span>
+        <span class="n">posts</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="n">lastpost</span> <span class="k">=</span> <span class="nc">Some</span><span class="o">(</span><span class="k">new</span> <span class="nc">Date</span><span class="o">)</span>
+
+        <span class="c1">// respond</span>
+        <span class="k">val</span> <span class="n">res</span> <span class="k">=</span> <span class="s">&quot;&lt;p&gt;Gets: &quot;</span><span class="o">+</span><span class="n">gets</span><span class="o">+</span><span class="s">&quot; Posts: &quot;</span><span class="o">+</span><span class="n">posts</span><span class="o">+</span><span class="s">&quot;&lt;/p&gt;&lt;p&gt;Last Get: &quot;</span><span class="o">+</span><span class="n">lastget</span><span class="o">.</span><span class="n">getOrElse</span><span class="o">(</span><span class="s">&quot;Never&quot;</span><span class="o">).</span><span class="n">toString</span><span class="o">+</span><span class="s">&quot; Last Post: &quot;</span><span class="o">+</span><span class="n">lastpost</span><span class="o">.</span><span class="n">getOrElse</span><span class="o">(</span><span class="s">&quot;Never&quot;</span><span class="o">).</span><span class="n">toString</span><span class="o">+</span><span class="s">&quot;&lt;/p&gt;&quot;</span>
+        <span class="n">post</span><span class="o">.</span><span class="nc">OK</span><span class="o">(</span><span class="n">res</span><span class="o">)</span>
+      <span class="o">}</span> <span class="k">else</span> <span class="o">{</span>
+        <span class="n">post</span><span class="o">.</span><span class="nc">UnsupportedMediaType</span><span class="o">(</span><span class="s">&quot;Content-Type request header missing or incorrect (was &#39;&quot;</span> <span class="o">+</span> <span class="n">post</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">getContentType</span> <span class="o">+</span> <span class="s">&quot;&#39; should be &#39;&quot;</span> <span class="o">+</span> <span class="nc">MediaType</span><span class="o">.</span><span class="nc">APPLICATION_FORM_URLENCODED</span> <span class="o">+</span> <span class="s">&quot;&#39;)&quot;</span><span class="o">)</span>
+      <span class="o">}</span>
+    <span class="o">}</span>
+
+    <span class="k">case</span> <span class="n">other</span><span class="k">:</span> <span class="kt">RequestMethod</span> <span class="o">=&gt;</span>
+      <span class="n">other</span><span class="o">.</span><span class="nc">NotAllowed</span><span class="o">(</span><span class="s">&quot;Invalid method for this endpoint&quot;</span><span class="o">)</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<p><strong>Timeouts</strong>
+Messages will expire according to the default timeout (specified in akka.conf). Individual messages can also be updated using the <em>timeout</em> method. One thing that may seem unexpected is that when an expired request returns to the caller, it will have a status code of OK (200). Mist will add an HTTP header to such responses to help clients, if applicable. By default, the header will be named &#8220;Async-Timeout&#8221; with a value of &#8220;expired&#8221; - both of which are configurable.</p>
+</div>
+</div>
+<div class="section" id="another-example-multiplexing-handlers">
+<h3><a class="toc-backref" href="#id17">Another Example - multiplexing handlers</a><a class="headerlink" href="#another-example-multiplexing-handlers" title="Permalink to this headline">¶</a></h3>
+<p>As noted above, hook functions are non-exclusive. This means multiple actors can handle the same request if desired. In this next example, the hook functions are identical (yes, the same one could have been reused) and new instances of both A and B actors will be created to handle the Post. A third mediator is inserted to coordinate the results of these actions and respond to the caller.</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">package</span> <span class="nn">sample.mist</span>
+
+<span class="k">import</span> <span class="nn">akka.actor._</span>
+<span class="k">import</span> <span class="nn">akka.actor.Actor._</span>
+<span class="k">import</span> <span class="nn">akka.http._</span>
+
+<span class="k">import</span> <span class="nn">javax.servlet.http.HttpServletResponse</span>
+
+<span class="k">class</span> <span class="nc">InterestingService</span> <span class="k">extends</span> <span class="nc">Actor</span> <span class="k">with</span> <span class="nc">Endpoint</span> <span class="o">{</span>
+  <span class="k">final</span> <span class="k">val</span> <span class="nc">ServiceRoot</span> <span class="k">=</span> <span class="s">&quot;/interesting/&quot;</span>
+  <span class="k">final</span> <span class="k">val</span> <span class="nc">Multi</span> <span class="k">=</span> <span class="nc">ServiceRoot</span> <span class="o">+</span> <span class="s">&quot;multi/&quot;</span>
+  <span class="c1">// use the configurable dispatcher</span>
+  <span class="n">self</span><span class="o">.</span><span class="n">dispatcher</span> <span class="k">=</span> <span class="nc">Endpoint</span><span class="o">.</span><span class="nc">Dispatcher</span>
+
+  <span class="c1">//</span>
+  <span class="c1">// The &quot;multi&quot; endpoint shows forking off multiple actions per request</span>
+  <span class="c1">// It is triggered by POSTing to http://localhost:9998/interesting/multi/{foo}</span>
+  <span class="c1">//  Try with/without a header named &quot;Test-Token&quot;</span>
+  <span class="c1">//  Try with/without a form parameter named &quot;Data&quot;</span>
+  <span class="k">def</span> <span class="n">hookMultiActionA</span><span class="o">(</span><span class="n">uri</span><span class="k">:</span> <span class="kt">String</span><span class="o">)</span><span class="k">:</span> <span class="kt">Boolean</span> <span class="o">=</span> <span class="n">uri</span> <span class="n">startsWith</span> <span class="nc">Multi</span>
+  <span class="k">def</span> <span class="n">provideMultiActionA</span><span class="o">(</span><span class="n">uri</span><span class="k">:</span> <span class="kt">String</span><span class="o">)</span><span class="k">:</span> <span class="kt">ActorRef</span> <span class="o">=</span> <span class="n">actorOf</span><span class="o">(</span><span class="k">new</span> <span class="nc">ActionAActor</span><span class="o">(</span><span class="n">complete</span><span class="o">)).</span><span class="n">start</span><span class="o">()</span>
+
+  <span class="k">def</span> <span class="n">hookMultiActionB</span><span class="o">(</span><span class="n">uri</span><span class="k">:</span> <span class="kt">String</span><span class="o">)</span><span class="k">:</span> <span class="kt">Boolean</span> <span class="o">=</span> <span class="n">uri</span> <span class="n">startsWith</span> <span class="nc">Multi</span>
+  <span class="k">def</span> <span class="n">provideMultiActionB</span><span class="o">(</span><span class="n">uri</span><span class="k">:</span> <span class="kt">String</span><span class="o">)</span><span class="k">:</span> <span class="kt">ActorRef</span> <span class="o">=</span> <span class="n">actorOf</span><span class="o">(</span><span class="k">new</span> <span class="nc">ActionBActor</span><span class="o">(</span><span class="n">complete</span><span class="o">)).</span><span class="n">start</span><span class="o">()</span>
+
+    <span class="c1">//</span>
+    <span class="c1">// this is where you want attach your endpoint hooks</span>
+    <span class="c1">//</span>
+  <span class="k">override</span> <span class="k">def</span> <span class="n">preStart</span><span class="o">()</span> <span class="k">=</span> <span class="o">{</span>
+    <span class="c1">//</span>
+    <span class="c1">// we expect there to be one root and that it&#39;s already been started up</span>
+    <span class="c1">// obviously there are plenty of other ways to obtaining this actor</span>
+    <span class="c1">//  the point is that we need to attach something (for starters anyway)</span>
+    <span class="c1">//  to the root</span>
+    <span class="c1">//</span>
+    <span class="k">val</span> <span class="n">root</span> <span class="k">=</span> <span class="nc">Actor</span><span class="o">.</span><span class="n">registry</span><span class="o">.</span><span class="n">actorsFor</span><span class="o">(</span><span class="n">classOf</span><span class="o">[</span><span class="kt">RootEndpoint</span><span class="o">]).</span><span class="n">head</span>
+    <span class="n">root</span> <span class="o">!</span> <span class="nc">Endpoint</span><span class="o">.</span><span class="nc">Attach</span><span class="o">(</span><span class="n">hookMultiActionA</span><span class="o">,</span> <span class="n">provideMultiActionA</span><span class="o">)</span>
+    <span class="n">root</span> <span class="o">!</span> <span class="nc">Endpoint</span><span class="o">.</span><span class="nc">Attach</span><span class="o">(</span><span class="n">hookMultiActionB</span><span class="o">,</span> <span class="n">provideMultiActionB</span><span class="o">)</span>
+  <span class="o">}</span>
+
+  <span class="c1">//</span>
+  <span class="c1">// since this actor isn&#39;t doing anything else (i.e. not handling other messages)</span>
+  <span class="c1">//  just assign the receive func like so...</span>
+  <span class="c1">// otherwise you could do something like:</span>
+  <span class="c1">//  def myrecv = {...}</span>
+  <span class="c1">//  def receive = myrecv orElse handleHttpRequest</span>
+  <span class="c1">//</span>
+  <span class="k">def</span> <span class="n">receive</span> <span class="k">=</span> <span class="n">handleHttpRequest</span>
+
+  <span class="c1">//</span>
+  <span class="c1">// this guy completes requests after other actions have occurred</span>
+  <span class="c1">//</span>
+  <span class="k">lazy</span> <span class="k">val</span> <span class="n">complete</span> <span class="k">=</span> <span class="n">actorOf</span><span class="o">[</span><span class="kt">ActionCompleteActor</span><span class="o">].</span><span class="n">start</span><span class="o">()</span>
+<span class="o">}</span>
+
+<span class="k">class</span> <span class="nc">ActionAActor</span><span class="o">(</span><span class="n">complete</span><span class="k">:</span><span class="kt">ActorRef</span><span class="o">)</span> <span class="k">extends</span> <span class="nc">Actor</span> <span class="o">{</span>
+  <span class="k">import</span> <span class="nn">javax.ws.rs.core.MediaType</span>
+
+  <span class="k">def</span> <span class="n">receive</span> <span class="k">=</span> <span class="o">{</span>
+    <span class="c1">// handle a post request</span>
+    <span class="k">case</span> <span class="n">post</span><span class="k">:</span> <span class="kt">Post</span> <span class="o">=&gt;</span>
+      <span class="c1">// the expected content type of the request</span>
+      <span class="c1">// similar to @Consumes</span>
+      <span class="k">if</span> <span class="o">(</span><span class="n">post</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">getContentType</span> <span class="n">startsWith</span> <span class="nc">MediaType</span><span class="o">.</span><span class="nc">APPLICATION_FORM_URLENCODED</span><span class="o">)</span> <span class="o">{</span>
+        <span class="c1">// the content type of the response.</span>
+        <span class="c1">// similar to @Produces annotation</span>
+        <span class="n">post</span><span class="o">.</span><span class="n">response</span><span class="o">.</span><span class="n">setContentType</span><span class="o">(</span><span class="nc">MediaType</span><span class="o">.</span><span class="nc">TEXT_HTML</span><span class="o">)</span>
+
+        <span class="c1">// get the resource name</span>
+        <span class="k">val</span> <span class="n">name</span> <span class="k">=</span> <span class="n">post</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">getRequestURI</span><span class="o">.</span><span class="n">substring</span><span class="o">(</span><span class="s">&quot;/interesting/multi/&quot;</span><span class="o">.</span><span class="n">length</span><span class="o">)</span>
+        <span class="k">if</span> <span class="o">(</span><span class="n">name</span><span class="o">.</span><span class="n">length</span> <span class="o">%</span> <span class="mi">2</span> <span class="o">==</span> <span class="mi">0</span><span class="o">)</span> <span class="n">post</span><span class="o">.</span><span class="n">response</span><span class="o">.</span><span class="n">getWriter</span><span class="o">.</span><span class="n">write</span><span class="o">(</span><span class="s">&quot;&lt;p&gt;Action A verified request.&lt;/p&gt;&quot;</span><span class="o">)</span>
+        <span class="k">else</span> <span class="n">post</span><span class="o">.</span><span class="n">response</span><span class="o">.</span><span class="n">getWriter</span><span class="o">.</span><span class="n">write</span><span class="o">(</span><span class="s">&quot;&lt;p&gt;Action A could not verify request.&lt;/p&gt;&quot;</span><span class="o">)</span>
+
+        <span class="c1">// notify the next actor to coordinate the response</span>
+        <span class="n">complete</span> <span class="o">!</span> <span class="n">post</span>
+      <span class="o">}</span> <span class="k">else</span> <span class="n">post</span><span class="o">.</span><span class="nc">UnsupportedMediaType</span><span class="o">(</span><span class="s">&quot;Content-Type request header missing or incorrect (was &#39;&quot;</span> <span class="o">+</span> <span class="n">post</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">getContentType</span> <span class="o">+</span> <span class="s">&quot;&#39; should be &#39;&quot;</span> <span class="o">+</span> <span class="nc">MediaType</span><span class="o">.</span><span class="nc">APPLICATION_FORM_URLENCODED</span> <span class="o">+</span> <span class="s">&quot;&#39;)&quot;</span><span class="o">)</span>
+    <span class="o">}</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+
+<span class="k">class</span> <span class="nc">ActionBActor</span><span class="o">(</span><span class="n">complete</span><span class="k">:</span><span class="kt">ActorRef</span><span class="o">)</span> <span class="k">extends</span> <span class="nc">Actor</span> <span class="o">{</span>
+  <span class="k">import</span> <span class="nn">javax.ws.rs.core.MediaType</span>
+
+  <span class="k">def</span> <span class="n">receive</span> <span class="k">=</span> <span class="o">{</span>
+    <span class="c1">// handle a post request</span>
+    <span class="k">case</span> <span class="n">post</span><span class="k">:</span> <span class="kt">Post</span> <span class="o">=&gt;</span>
+      <span class="c1">// the expected content type of the request</span>
+      <span class="c1">// similar to @Consumes</span>
+      <span class="k">if</span> <span class="o">(</span><span class="n">post</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">getContentType</span> <span class="n">startsWith</span> <span class="nc">MediaType</span><span class="o">.</span><span class="nc">APPLICATION_FORM_URLENCODED</span><span class="o">)</span> <span class="o">{</span>
+        <span class="c1">// pull some headers and form params</span>
+        <span class="k">def</span> <span class="n">default</span><span class="o">(</span><span class="n">any</span><span class="k">:</span> <span class="kt">Any</span><span class="o">)</span><span class="k">:</span> <span class="kt">String</span> <span class="o">=</span> <span class="s">&quot;&quot;</span>
+
+        <span class="k">val</span> <span class="n">token</span> <span class="k">=</span> <span class="n">post</span><span class="o">.</span><span class="n">getHeaderOrElse</span><span class="o">(</span><span class="s">&quot;Test-Token&quot;</span><span class="o">,</span> <span class="n">default</span><span class="o">)</span>
+        <span class="k">val</span> <span class="n">data</span> <span class="k">=</span> <span class="n">post</span><span class="o">.</span><span class="n">getParameterOrElse</span><span class="o">(</span><span class="s">&quot;Data&quot;</span><span class="o">,</span> <span class="n">default</span><span class="o">)</span>
+
+        <span class="k">val</span> <span class="o">(</span><span class="n">resp</span><span class="o">,</span> <span class="n">status</span><span class="o">)</span> <span class="k">=</span> <span class="o">(</span><span class="n">token</span><span class="o">,</span> <span class="n">data</span><span class="o">)</span> <span class="k">match</span> <span class="o">{</span>
+          <span class="k">case</span> <span class="o">(</span><span class="s">&quot;&quot;</span><span class="o">,</span> <span class="n">_</span><span class="o">)</span> <span class="k">=&gt;</span> <span class="o">(</span><span class="s">&quot;No token provided&quot;</span><span class="o">,</span> <span class="nc">HttpServletResponse</span><span class="o">.</span><span class="nc">SC_FORBIDDEN</span><span class="o">)</span>
+          <span class="k">case</span> <span class="o">(</span><span class="n">_</span><span class="o">,</span> <span class="s">&quot;&quot;</span><span class="o">)</span> <span class="k">=&gt;</span> <span class="o">(</span><span class="s">&quot;No data&quot;</span><span class="o">,</span> <span class="nc">HttpServletResponse</span><span class="o">.</span><span class="nc">SC_ACCEPTED</span><span class="o">)</span>
+          <span class="k">case</span> <span class="k">_</span> <span class="k">=&gt;</span> <span class="o">(</span><span class="s">&quot;Data accepted&quot;</span><span class="o">,</span> <span class="nc">HttpServletResponse</span><span class="o">.</span><span class="nc">SC_OK</span><span class="o">)</span>
+        <span class="o">}</span>
+
+        <span class="c1">// update the response body</span>
+        <span class="n">post</span><span class="o">.</span><span class="n">response</span><span class="o">.</span><span class="n">getWriter</span><span class="o">.</span><span class="n">write</span><span class="o">(</span><span class="n">resp</span><span class="o">)</span>
+
+        <span class="c1">// notify the next actor to coordinate the response</span>
+        <span class="n">complete</span> <span class="o">!</span> <span class="o">(</span><span class="n">post</span><span class="o">,</span> <span class="n">status</span><span class="o">)</span>
+      <span class="o">}</span> <span class="k">else</span> <span class="n">post</span><span class="o">.</span><span class="nc">UnsupportedMediaType</span><span class="o">(</span><span class="s">&quot;Content-Type request header missing or incorrect (was &#39;&quot;</span> <span class="o">+</span> <span class="n">post</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">getContentType</span> <span class="o">+</span> <span class="s">&quot;&#39; should be &#39;&quot;</span> <span class="o">+</span> <span class="nc">MediaType</span><span class="o">.</span><span class="nc">APPLICATION_FORM_URLENCODED</span> <span class="o">+</span> <span class="s">&quot;&#39;)&quot;</span><span class="o">)</span>
+    <span class="o">}</span>
+
+    <span class="k">case</span> <span class="n">other</span><span class="k">:</span> <span class="kt">RequestMethod</span> <span class="o">=&gt;</span>
+      <span class="n">other</span><span class="o">.</span><span class="nc">NotAllowed</span><span class="o">(</span><span class="s">&quot;Invalid method for this endpoint&quot;</span><span class="o">)</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+
+<span class="k">class</span> <span class="nc">ActionCompleteActor</span> <span class="k">extends</span> <span class="nc">Actor</span> <span class="o">{</span>
+  <span class="k">import</span> <span class="nn">collection.mutable.HashMap</span>
+
+  <span class="k">val</span> <span class="n">requests</span> <span class="k">=</span> <span class="nc">HashMap</span><span class="o">.</span><span class="n">empty</span><span class="o">[</span><span class="kt">Int</span>, <span class="kt">Int</span><span class="o">]</span>
+
+  <span class="k">def</span> <span class="n">receive</span> <span class="k">=</span> <span class="o">{</span>
+    <span class="k">case</span> <span class="n">req</span><span class="k">:</span> <span class="kt">RequestMethod</span> <span class="o">=&gt;</span>
+      <span class="k">if</span> <span class="o">(</span><span class="n">requests</span> <span class="n">contains</span> <span class="n">req</span><span class="o">.</span><span class="n">hashCode</span><span class="o">)</span> <span class="n">complete</span><span class="o">(</span><span class="n">req</span><span class="o">)</span>
+      <span class="k">else</span> <span class="n">requests</span> <span class="o">+=</span> <span class="o">(</span><span class="n">req</span><span class="o">.</span><span class="n">hashCode</span> <span class="o">-&gt;</span> <span class="mi">0</span><span class="o">)</span>
+
+    <span class="k">case</span> <span class="n">t</span><span class="k">:</span> <span class="kt">Tuple2</span><span class="o">[</span><span class="kt">RequestMethod</span>, <span class="kt">Int</span><span class="o">]</span> <span class="k">=&gt;</span>
+      <span class="k">if</span> <span class="o">(</span><span class="n">requests</span> <span class="n">contains</span> <span class="n">t</span><span class="o">.</span><span class="n">_1</span><span class="o">.</span><span class="n">hashCode</span><span class="o">)</span> <span class="n">complete</span><span class="o">(</span><span class="n">t</span><span class="o">.</span><span class="n">_1</span><span class="o">)</span>
+      <span class="k">else</span> <span class="n">requests</span> <span class="o">+=</span> <span class="o">(</span><span class="n">t</span><span class="o">.</span><span class="n">_1</span><span class="o">.</span><span class="n">hashCode</span> <span class="o">-&gt;</span> <span class="n">t</span><span class="o">.</span><span class="n">_2</span><span class="o">)</span>
+  <span class="o">}</span>
+
+  <span class="k">def</span> <span class="n">complete</span><span class="o">(</span><span class="n">req</span><span class="k">:</span> <span class="kt">RequestMethod</span><span class="o">)</span> <span class="k">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">remove</span><span class="o">(</span><span class="n">req</span><span class="o">.</span><span class="n">hashCode</span><span class="o">)</span> <span class="k">match</span> <span class="o">{</span>
+      <span class="k">case</span> <span class="nc">Some</span><span class="o">(</span><span class="nc">HttpServletResponse</span><span class="o">.</span><span class="nc">SC_FORBIDDEN</span><span class="o">)</span> <span class="k">=&gt;</span> <span class="n">req</span><span class="o">.</span><span class="nc">Forbidden</span><span class="o">(</span><span class="s">&quot;&quot;</span><span class="o">)</span>
+      <span class="k">case</span> <span class="nc">Some</span><span class="o">(</span><span class="nc">HttpServletResponse</span><span class="o">.</span><span class="nc">SC_ACCEPTED</span><span class="o">)</span> <span class="k">=&gt;</span> <span class="n">req</span><span class="o">.</span><span class="nc">Accepted</span><span class="o">(</span><span class="s">&quot;&quot;</span><span class="o">)</span>
+      <span class="k">case</span> <span class="nc">Some</span><span class="o">(</span><span class="n">_</span><span class="o">)</span> <span class="k">=&gt;</span> <span class="n">req</span><span class="o">.</span><span class="nc">OK</span><span class="o">(</span><span class="s">&quot;&quot;</span><span class="o">)</span>
+      <span class="k">case</span> <span class="k">_</span> <span class="k">=&gt;</span> <span class="o">{}</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="examples">
+<h3><a class="toc-backref" href="#id18">Examples</a><a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="using-the-akka-mist-module-with-oauth">
+<h4><a class="toc-backref" href="#id19">Using the Akka Mist module with OAuth</a><a class="headerlink" href="#using-the-akka-mist-module-with-oauth" title="Permalink to this headline">¶</a></h4>
+<p><a class="reference external" href="https://gist.github.com/759501">https://gist.github.com/759501</a></p>
+</div>
+<div class="section" id="using-the-akka-mist-module-with-the-facebook-graph-api-and-webgl">
+<h4><a class="toc-backref" href="#id20">Using the Akka Mist module with the Facebook Graph API and WebGL</a><a class="headerlink" href="#using-the-akka-mist-module-with-the-facebook-graph-api-and-webgl" title="Permalink to this headline">¶</a></h4>
+<p>Example project using Akka Mist with the Facebook Graph API and WebGL
+<a class="reference external" href="https://github.com/buka/fbgl1">https://github.com/buka/fbgl1</a></p>
+</div>
+</div>
+</div>
+</div>
+
+
+      </div>
+      <div class="bottomnav">
+      
+        <p>
+        «&#160;&#160;<a href="fsm.html">FSM</a>
+        &#160;&#160;::&#160;&#160;
+        <a class="uplink" href="../index.html">Contents</a>
+        &#160;&#160;::&#160;&#160;
+        <a href="security.html">HTTP Security</a>&#160;&#160;»
+        </p>
+
+      </div>
+
+    <div class="footer">
+        &copy; Copyright 2011, Typesafe Inc.
+      Last updated on Jun 29, 2011.
+    </div>
+  </body>
+</html>

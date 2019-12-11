@@ -1,0 +1,583 @@
+
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Tutorial: write a scalable, fault-tolerant, network chat server and client (Scala) &mdash; Akka Documentation</title>
+    <link rel="stylesheet" href="../_static/akka.css" type="text/css" />
+<link rel="stylesheet" href="https://doc.akka.io/docs/akka/1.2/_static/akka.css" type="text/css"/>
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/print.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '1.2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+<script type="text/javascript" src="https://doc.akka.io/docs/akka/1.2/_static/warnOldDocs.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="../_static/theme_extras.js"></script>
+    <link rel="top" title="Akka Documentation" href="../index.html" />
+    <link rel="up" title="Scala API" href="index.html" />
+    <link rel="next" title="Java API" href="../java/index.html" />
+    <link rel="prev" title="TestKit Example" href="testkit-example.html" /> 
+  </head>
+  <body>
+      <div class="header"><a href="../index.html"><img class="leftlogo" src="../_static/logo.png" alt="Logo"/></a><h1 class="heading"><a href="../index.html"><span>Akka Documentation</span></a></h1>
+       <h2 class="heading"><a href="../index.html"><span>Version 1.2</span></a></h2>
+       <h2 class="rightheading"><span><a href="https://akka.io/docs/akka/1.2/Akka.pdf">PDF</a></span></h2>
+      </div>
+      <div class="topnav">
+      
+        <p>
+        «&#160;&#160;<a href="testkit-example.html">TestKit Example</a>
+        &#160;&#160;::&#160;&#160;
+        <a class="uplink" href="../index.html">Contents</a>
+        &#160;&#160;::&#160;&#160;
+        <a href="../java/index.html">Java API</a>&#160;&#160;»
+        </p>
+
+      </div>
+      <div class="content">
+        
+        
+  <div class="section" id="tutorial-write-a-scalable-fault-tolerant-network-chat-server-and-client-scala">
+<h1>Tutorial: write a scalable, fault-tolerant, network chat server and client (Scala)<a class="headerlink" href="#tutorial-write-a-scalable-fault-tolerant-network-chat-server-and-client-scala" title="Permalink to this headline">¶</a></h1>
+<div class="sidebar">
+<p class="first sidebar-title">Contents</p>
+<div class="contents local last topic" id="contents">
+<ul class="simple">
+<li><a class="reference internal" href="#introduction" id="id1">Introduction</a></li>
+<li><a class="reference internal" href="#actors" id="id2">Actors</a></li>
+<li><a class="reference internal" href="#creating-actors" id="id3">Creating Actors</a></li>
+<li><a class="reference internal" href="#sample-application" id="id4">Sample application</a></li>
+<li><a class="reference internal" href="#creating-an-akka-sbt-project" id="id5">Creating an Akka SBT project</a></li>
+<li><a class="reference internal" href="#creating-messages" id="id6">Creating messages</a></li>
+<li><a class="reference internal" href="#client-sending-messages" id="id7">Client: Sending messages</a></li>
+<li><a class="reference internal" href="#session-receiving-messages" id="id8">Session: Receiving messages</a></li>
+<li><a class="reference internal" href="#let-it-crash-implementing-fault-tolerance" id="id9">Let it crash: Implementing fault-tolerance</a></li>
+<li><a class="reference internal" href="#supervisor-hierarchies" id="id10">Supervisor hierarchies</a></li>
+<li><a class="reference internal" href="#chat-server-supervision-traits-and-more" id="id11">Chat server: Supervision, Traits and more</a></li>
+<li><a class="reference internal" href="#session-management" id="id12">Session management</a></li>
+<li><a class="reference internal" href="#chat-message-management" id="id13">Chat message management</a></li>
+<li><a class="reference internal" href="#stm-and-transactors" id="id14">STM and Transactors</a></li>
+<li><a class="reference internal" href="#chat-storage-backed-with-simple-in-memory" id="id15">Chat storage: Backed with simple in-memory</a></li>
+<li><a class="reference internal" href="#composing-the-full-chat-service" id="id16">Composing the full Chat Service</a></li>
+<li><a class="reference internal" href="#creating-a-remote-server-service" id="id17">Creating a remote server service</a></li>
+<li><a class="reference internal" href="#sample-client-chat-session" id="id18">Sample client chat session</a></li>
+<li><a class="reference internal" href="#sample-code" id="id19">Sample code</a></li>
+<li><a class="reference internal" href="#run-it" id="id20">Run it</a></li>
+</ul>
+</div>
+</div>
+<div class="section" id="introduction">
+<h2><a class="toc-backref" href="#id1">Introduction</a><a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference external" href="https://github.com/akka/akka/blob/master/akka-samples/akka-sample-chat/src/main/scala/ChatServer.scala">Tutorial source code</a>.</p>
+<p>Writing correct concurrent, fault-tolerant and scalable applications is too hard. Most of the time it&#8217;s because we are using the wrong tools and the wrong level of abstraction.</p>
+<p><a class="reference external" href="https://akka.io">Akka</a> is an attempt to change that.</p>
+<p>Akka uses the Actor Model together with Software Transactional Memory to raise the abstraction level and provide a better platform to build correct concurrent and scalable applications.</p>
+<p>For fault-tolerance Akka adopts the &#8220;Let it crash&#8221;, also called &#8220;Embrace failure&#8221;, model which has been used with great success in the telecom industry to build applications that self-heal, systems that never stop.</p>
+<p>Actors also provides the abstraction for transparent distribution and the basis for truly scalable and fault-tolerant applications.</p>
+<p>Akka is Open Source and available under the Apache 2 License.</p>
+<p>In this article we will introduce you to Akka and see how we can utilize it to build a highly concurrent, scalable and fault-tolerant network server.</p>
+<p>But first let&#8217;s take a step back and discuss what Actors really are and what they are useful for.</p>
+</div>
+<div class="section" id="actors">
+<h2><a class="toc-backref" href="#id2">Actors</a><a class="headerlink" href="#actors" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference external" href="http://en.wikipedia.org/wiki/Actor_model">The Actor Model</a> provides a higher level of abstraction for writing concurrent and distributed systems. It alleviates the developer from having to deal with explicit locking and thread management. It makes it easier to write correct concurrent and parallel systems. Actors are really nothing new, they were defined in the 1963 paper by Carl Hewitt and have been popularized by the Erlang language which emerged in the mid 80s. It has been used by for example at Ericsson with great success to build highly concurrent and extremely reliable (99.9999999 % availability - 31 ms/year downtime) telecom systems.</p>
+<p>Actors encapsulate state and behavior into a lightweight process/thread. In a sense they are like OO objects but with a major semantic difference; they <em>do not</em> share state with any other Actor. Each Actor has its own view of the world and can only have impact on other Actors by sending messages to them. Messages are sent asynchronously and non-blocking in a so-called &#8220;fire-and-forget&#8221; manner where the Actor sends off a message to some other Actor and then do not wait for a reply but goes off doing other things or are suspended by the runtime. Each Actor has a mailbox (ordered message queue) in which incoming messages are processed one by one. Since all processing is done asynchronously and Actors do not block and consume any resources while waiting for messages, Actors tend to give very good concurrency and scalability characteristics and are excellent for building event-based systems.</p>
+</div>
+<div class="section" id="creating-actors">
+<h2><a class="toc-backref" href="#id3">Creating Actors</a><a class="headerlink" href="#creating-actors" title="Permalink to this headline">¶</a></h2>
+<p>Akka has both a Scala API (<a class="reference internal" href="actors.html#actors-scala"><em>Actors (Scala)</em></a>) and a Java API (<a class="reference internal" href="../java/untyped-actors.html#untyped-actors-java"><em>Actors (Java)</em></a>). In this article we will only look at the Scala API since that is the most expressive one. The article assumes some basic Scala knowledge, but even if you don&#8217;t know Scala I don&#8217;t think it will not be too hard to follow along anyway.</p>
+<p>Akka has adopted the same style of writing Actors as Erlang in which each Actor has an explicit message handler which does pattern matching to match on the incoming messages.</p>
+<p>Actors can be created either by:
+* Extending the &#8216;Actor&#8217; class and implementing the &#8216;receive&#8217; method.
+* Create an anonymous Actor using one of the &#8216;actor&#8217; methods.</p>
+<p>Here is a little example before we dive into a more interesting one.</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">import</span> <span class="nn">akka.actor.Actor</span>
+
+<span class="k">class</span> <span class="nc">MyActor</span> <span class="k">extends</span> <span class="nc">Actor</span> <span class="o">{</span>
+  <span class="k">def</span> <span class="n">receive</span> <span class="k">=</span> <span class="o">{</span>
+    <span class="k">case</span> <span class="s">&quot;test&quot;</span> <span class="k">=&gt;</span> <span class="n">println</span><span class="o">(</span><span class="s">&quot;received test&quot;</span><span class="o">)</span>
+    <span class="k">case</span> <span class="k">_</span> <span class="k">=&gt;</span>      <span class="n">println</span><span class="o">(</span><span class="s">&quot;received unknown message&quot;</span><span class="o">)</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+
+<span class="k">val</span> <span class="n">myActor</span> <span class="k">=</span> <span class="nc">Actor</span><span class="o">.</span><span class="n">actorOf</span><span class="o">[</span><span class="kt">MyActor</span><span class="o">]</span>
+<span class="n">myActor</span><span class="o">.</span><span class="n">start</span><span class="o">()</span>
+</pre></div>
+</div>
+<p>From this call we get a handle to the &#8216;Actor&#8217; called &#8216;ActorRef&#8217;, which we can use to interact with the Actor</p>
+<p>The &#8216;actorOf&#8217; factory method can be imported like this:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">import</span> <span class="nn">akka.actor.Actor.actorOf</span>
+
+<span class="k">val</span> <span class="n">a</span> <span class="k">=</span> <span class="n">actorOf</span><span class="o">[</span><span class="kt">MyActor</span><span class="o">]</span>
+</pre></div>
+</div>
+<p>From now on we will assume that it is imported like this and can use it directly.</p>
+<p>Akka Actors are extremely lightweight. Each Actor consume ~600 bytes, which means that you can create 6.5 million on 4 GB RAM.</p>
+<p>Messages are sent using the &#8216;!&#8217; operator:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="n">myActor</span> <span class="o">!</span> <span class="s">&quot;test&quot;</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="sample-application">
+<h2><a class="toc-backref" href="#id4">Sample application</a><a class="headerlink" href="#sample-application" title="Permalink to this headline">¶</a></h2>
+<p>We will try to write a simple chat/IM system. It is client-server based and uses remote Actors to implement remote clients. Even if it is not likely that you will ever write a chat system I think that it can be a useful exercise since it uses patterns and idioms found in many other use-cases and domains.</p>
+<p>We will use many of the features of Akka along the way. In particular; Actors, fault-tolerance using Actor supervision, remote Actors, Software Transactional Memory (STM) and persistence.</p>
+</div>
+<div class="section" id="creating-an-akka-sbt-project">
+<h2><a class="toc-backref" href="#id5">Creating an Akka SBT project</a><a class="headerlink" href="#creating-an-akka-sbt-project" title="Permalink to this headline">¶</a></h2>
+<p>First we need to create an SBT project for our tutorial. You do that by stepping into the directory you want to create your project in and invoking the <tt class="docutils literal"><span class="pre">sbt</span></tt> command answering the questions for setting up your project:</p>
+<div class="highlight-scala"><pre>$ sbt
+Project does not exist, create new project? (y/N/s) y
+Name: Chat
+Organization: Hakkers Inc
+Version [1.0]:
+Scala version [2.9.1]:
+sbt version [0.7.6.RC0]:</pre>
+</div>
+<p>Add the Akka SBT plugin definition to your SBT project by creating a <tt class="docutils literal"><span class="pre">Plugins.scala</span></tt> file in the <tt class="docutils literal"><span class="pre">project/plugins</span></tt> directory containing:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">import</span> <span class="nn">sbt._</span>
+
+<span class="k">class</span> <span class="nc">Plugins</span><span class="o">(</span><span class="n">info</span><span class="k">:</span> <span class="kt">ProjectInfo</span><span class="o">)</span> <span class="k">extends</span> <span class="nc">PluginDefinition</span><span class="o">(</span><span class="n">info</span><span class="o">)</span> <span class="o">{</span>
+  <span class="k">val</span> <span class="n">akkaRepo</span>   <span class="k">=</span> <span class="s">&quot;Akka Repo&quot;</span> <span class="n">at</span> <span class="s">&quot;https://akka.io/repository&quot;</span>
+  <span class="k">val</span> <span class="n">akkaPlugin</span> <span class="k">=</span> <span class="s">&quot;se.scalablesolutions.akka&quot;</span> <span class="o">%</span> <span class="s">&quot;akka-sbt-plugin&quot;</span> <span class="o">%</span> <span class="s">&quot;1.2&quot;</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<p>Create a project definition <tt class="docutils literal"><span class="pre">project/build/Project.scala</span></tt> file containing:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">import</span> <span class="nn">sbt._</span>
+
+<span class="k">class</span> <span class="nc">ChatProject</span><span class="o">(</span><span class="n">info</span><span class="k">:</span> <span class="kt">ProjectInfo</span><span class="o">)</span> <span class="k">extends</span> <span class="nc">DefaultProject</span><span class="o">(</span><span class="n">info</span><span class="o">)</span> <span class="k">with</span> <span class="nc">AkkaProject</span> <span class="o">{</span>
+  <span class="k">val</span> <span class="n">akkaRepo</span> <span class="k">=</span> <span class="s">&quot;Akka Repo&quot;</span> <span class="n">at</span> <span class="s">&quot;https://akka.io/repository&quot;</span>
+  <span class="k">val</span> <span class="n">akkaSTM</span>    <span class="k">=</span> <span class="n">akkaModule</span><span class="o">(</span><span class="s">&quot;stm&quot;</span><span class="o">)</span>
+  <span class="k">val</span> <span class="n">akkaRemote</span> <span class="k">=</span> <span class="n">akkaModule</span><span class="o">(</span><span class="s">&quot;remote&quot;</span><span class="o">)</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<p>Make SBT download the dependencies it needs. That is done by invoking:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="o">&gt;</span> <span class="n">reload</span>
+<span class="o">&gt;</span> <span class="n">update</span>
+</pre></div>
+</div>
+<p>From the SBT project you can generate files for your IDE:</p>
+<ul class="simple">
+<li><a class="reference external" href="https://github.com/musk/SbtEclipsify">SbtEclipsify</a> to generate Eclipse project. Detailed instructions are available in <a class="reference internal" href="../intro/getting-started-first-scala-eclipse.html#getting-started-first-scala-eclipse"><em>Getting Started Tutorial (Scala with Eclipse): First Chapter</em></a>.</li>
+<li><a class="reference external" href="https://github.com/mpeltonen/sbt-idea">sbt-idea</a> to generate IntelliJ IDEA project.</li>
+</ul>
+</div>
+<div class="section" id="creating-messages">
+<h2><a class="toc-backref" href="#id6">Creating messages</a><a class="headerlink" href="#creating-messages" title="Permalink to this headline">¶</a></h2>
+<p>Let&#8217;s start by defining the messages that will flow in our system. It is very important that all messages that will be sent around in the system are immutable. The Actor model relies on the simple fact that no state is shared between Actors and the only way to guarantee that is to make sure we don&#8217;t pass mutable state around as part of the messages.</p>
+<p>In Scala we have something called <a class="reference external" href="http://www.scala-lang.org/node/107">case classes</a>. These make excellent messages since they are both immutable and great to pattern match on.</p>
+<p>Let&#8217;s now start by creating the messages that will flow in our system.</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">sealed</span> <span class="k">trait</span> <span class="nc">Event</span>
+<span class="k">case</span> <span class="k">class</span> <span class="nc">Login</span><span class="o">(</span><span class="n">user</span><span class="k">:</span> <span class="kt">String</span><span class="o">)</span> <span class="k">extends</span> <span class="nc">Event</span>
+<span class="k">case</span> <span class="k">class</span> <span class="nc">Logout</span><span class="o">(</span><span class="n">user</span><span class="k">:</span> <span class="kt">String</span><span class="o">)</span> <span class="k">extends</span> <span class="nc">Event</span>
+<span class="k">case</span> <span class="k">class</span> <span class="nc">GetChatLog</span><span class="o">(</span><span class="n">from</span><span class="k">:</span> <span class="kt">String</span><span class="o">)</span> <span class="k">extends</span> <span class="nc">Event</span>
+<span class="k">case</span> <span class="k">class</span> <span class="nc">ChatLog</span><span class="o">(</span><span class="n">log</span><span class="k">:</span> <span class="kt">List</span><span class="o">[</span><span class="kt">String</span><span class="o">])</span> <span class="k">extends</span> <span class="nc">Event</span>
+<span class="k">case</span> <span class="k">class</span> <span class="nc">ChatMessage</span><span class="o">(</span><span class="n">from</span><span class="k">:</span> <span class="kt">String</span><span class="o">,</span> <span class="n">message</span><span class="k">:</span> <span class="kt">String</span><span class="o">)</span> <span class="k">extends</span> <span class="nc">Event</span>
+</pre></div>
+</div>
+<p>As you can see with these messages we can log in and out, send a chat message and ask for and get a reply with all the messages in the chat log so far.</p>
+</div>
+<div class="section" id="client-sending-messages">
+<h2><a class="toc-backref" href="#id7">Client: Sending messages</a><a class="headerlink" href="#client-sending-messages" title="Permalink to this headline">¶</a></h2>
+<p>Our client wraps each message send in a function, making it a bit easier to use. Here we assume that we have a reference to the chat service so we can communicate with it by sending messages. Messages are sent with the &#8216;!&#8217; operator (pronounced &#8220;bang&#8221;). This sends a message of asynchronously and do not wait for a reply.</p>
+<p>Sometimes however, there is a need for sequential logic, sending a message and
+wait for the reply before doing anything else. In Akka we can achieve that
+using the &#8216;?&#8217; operator. When sending a message with &#8216;?&#8217; we get back a <a class="reference external" href="http://en.wikipedia.org/wiki/Futures_and_promises">Future</a>. A &#8216;Future&#8217; is a promise
+that we will get a result later but with the difference from regular method
+dispatch that the OS thread we are running on is put to sleep while waiting and
+that we can set a time-out for how long we wait before bailing out, retrying or
+doing something else. This waiting is achieved with the <tt class="xref py py-meth docutils literal"><span class="pre">Future.as[T]</span></tt>
+method, which returns a <a class="reference external" href="http://www.codecommit.com/blog/scala/the-option-pattern">scala.Option</a> which implements
+the <a class="reference external" href="http://en.wikipedia.org/wiki/Null_Object_pattern">Null Object pattern</a>.
+It has two subclasses; &#8216;None&#8217; which means no result and &#8216;Some(value)&#8217; which
+means that we got a reply. The &#8216;Option&#8217; class has a lot of great methods to
+work with the case of not getting a defined result. F.e. as you can see below
+we are using the &#8216;getOrElse&#8217; method which will try to return the result and if
+there is no result defined invoke the &#8221;...OrElse&#8221; statement.</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">class</span> <span class="nc">ChatClient</span><span class="o">(</span><span class="k">val</span> <span class="n">name</span><span class="k">:</span> <span class="kt">String</span><span class="o">)</span> <span class="o">{</span>
+  <span class="k">val</span> <span class="n">chat</span> <span class="k">=</span> <span class="nc">Actor</span><span class="o">.</span><span class="n">remote</span><span class="o">.</span><span class="n">actorFor</span><span class="o">(</span><span class="s">&quot;chat:service&quot;</span><span class="o">,</span> <span class="s">&quot;localhost&quot;</span><span class="o">,</span> <span class="mi">2552</span><span class="o">)</span>
+
+  <span class="k">def</span> <span class="n">login</span>                 <span class="k">=</span> <span class="n">chat</span> <span class="o">!</span> <span class="nc">Login</span><span class="o">(</span><span class="n">name</span><span class="o">)</span>
+  <span class="k">def</span> <span class="n">logout</span>                <span class="k">=</span> <span class="n">chat</span> <span class="o">!</span> <span class="nc">Logout</span><span class="o">(</span><span class="n">name</span><span class="o">)</span>
+  <span class="k">def</span> <span class="n">post</span><span class="o">(</span><span class="n">message</span><span class="k">:</span> <span class="kt">String</span><span class="o">)</span> <span class="k">=</span> <span class="n">chat</span> <span class="o">!</span> <span class="nc">ChatMessage</span><span class="o">(</span><span class="n">name</span><span class="o">,</span> <span class="n">name</span> <span class="o">+</span> <span class="s">&quot;: &quot;</span> <span class="o">+</span> <span class="n">message</span><span class="o">)</span>
+  <span class="k">def</span> <span class="n">chatLog</span>               <span class="k">=</span> <span class="o">(</span><span class="n">chat</span> <span class="o">?</span> <span class="nc">GetChatLog</span><span class="o">(</span><span class="n">name</span><span class="o">)).</span><span class="n">as</span><span class="o">[</span><span class="kt">ChatLog</span><span class="o">]</span>
+                                <span class="o">.</span><span class="n">getOrElse</span><span class="o">(</span><span class="k">throw</span> <span class="k">new</span> <span class="nc">Exception</span><span class="o">(</span><span class="s">&quot;Couldn&#39;t get the chat log from ChatServer&quot;</span><span class="o">))</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<p>As you can see, we are using the &#8216;Actor.remote.actorFor&#8217; to lookup the chat server on the remote node. From this call we will get a handle to the remote instance and can use it as it is local.</p>
+</div>
+<div class="section" id="session-receiving-messages">
+<h2><a class="toc-backref" href="#id8">Session: Receiving messages</a><a class="headerlink" href="#session-receiving-messages" title="Permalink to this headline">¶</a></h2>
+<p>Now we are done with the client side and let&#8217;s dig into the server code. We start by creating a user session. The session is an Actor and is defined by extending the &#8216;Actor&#8217; trait. This trait has one abstract method that we have to define; &#8216;receive&#8217; which implements the message handler for the Actor.</p>
+<p>In our example the session has state in the form of a &#8216;List&#8217; with all the messages sent by the user during the session. In takes two parameters in its constructor; the user name and a reference to an Actor implementing the persistent message storage. For both of the messages it responds to, &#8216;ChatMessage&#8217; and &#8216;GetChatLog&#8217;, it passes them on to the storage Actor.</p>
+<p>If you look closely (in the code below) you will see that when passing on the &#8216;GetChatLog&#8217; message we are not using &#8216;!&#8217; but &#8216;forward&#8217;. This is similar to &#8216;!&#8217; but with the important difference that it passes the original sender reference, in this case to the storage Actor. This means that the storage can use this reference to reply to the original sender (our client) directly.</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">class</span> <span class="nc">Session</span><span class="o">(</span><span class="n">user</span><span class="k">:</span> <span class="kt">String</span><span class="o">,</span> <span class="n">storage</span><span class="k">:</span> <span class="kt">ActorRef</span><span class="o">)</span> <span class="k">extends</span> <span class="nc">Actor</span> <span class="o">{</span>
+  <span class="k">private</span> <span class="k">val</span> <span class="n">loginTime</span> <span class="k">=</span> <span class="nc">System</span><span class="o">.</span><span class="n">currentTimeMillis</span>
+  <span class="k">private</span> <span class="k">var</span> <span class="n">userLog</span><span class="k">:</span> <span class="kt">List</span><span class="o">[</span><span class="kt">String</span><span class="o">]</span> <span class="k">=</span> <span class="nc">Nil</span>
+
+  <span class="nc">EventHandler</span><span class="o">.</span><span class="n">info</span><span class="o">(</span><span class="k">this</span><span class="o">,</span> <span class="s">&quot;New session for user [%s] has been created at [%s]&quot;</span><span class="o">.</span><span class="n">format</span><span class="o">(</span><span class="n">user</span><span class="o">,</span> <span class="n">loginTime</span><span class="o">))</span>
+
+  <span class="k">def</span> <span class="n">receive</span> <span class="k">=</span> <span class="o">{</span>
+    <span class="k">case</span> <span class="n">msg</span> <span class="k">@</span> <span class="nc">ChatMessage</span><span class="o">(</span><span class="n">from</span><span class="o">,</span> <span class="n">message</span><span class="o">)</span> <span class="k">=&gt;</span>
+      <span class="n">userLog</span> <span class="o">::=</span> <span class="n">message</span>
+      <span class="n">storage</span> <span class="o">!</span> <span class="n">msg</span>
+
+    <span class="k">case</span> <span class="n">msg</span> <span class="k">@</span> <span class="nc">GetChatLog</span><span class="o">(</span><span class="n">_</span><span class="o">)</span> <span class="k">=&gt;</span>
+      <span class="n">storage</span> <span class="n">forward</span> <span class="n">msg</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="let-it-crash-implementing-fault-tolerance">
+<h2><a class="toc-backref" href="#id9">Let it crash: Implementing fault-tolerance</a><a class="headerlink" href="#let-it-crash-implementing-fault-tolerance" title="Permalink to this headline">¶</a></h2>
+<p>Akka&#8217;s <a class="reference external" href="fault-tolerance">approach to fault-tolerance</a>; the &#8220;let it crash&#8221; model, is implemented by linking Actors. It is very different to what Java and most non-concurrency oriented languages/frameworks have adopted. It’s a way of dealing with failure that is designed for concurrent and distributed systems.</p>
+<p>If we look at concurrency first. Now let’s assume we are using non-linked Actors. Throwing an exception in concurrent code, will just simply blow up the thread that currently executes the Actor. There is no way to find out that things went wrong (apart from see the stack trace in the log). There is nothing you can do about it. Here linked Actors provide a clean way of both getting notification of the error so you know what happened, as well as the Actor that crashed, so you can do something about it.</p>
+<p>Linking Actors allow you to create sets of Actors where you can be sure that either:</p>
+<ul class="simple">
+<li>All are dead</li>
+<li>All are alive</li>
+</ul>
+<p>This is very useful when you have hundreds of thousands of concurrent Actors. Some Actors might have implicit dependencies and together implement a service, computation, user session etc. for these being able to group them is very nice.</p>
+<p>Akka encourages non-defensive programming. Don’t try to prevent things from go wrong, because they will, whether you want it or not. Instead; expect failure as a natural state in the life-cycle of your app, crash early and let someone else (that sees the whole picture), deal with it.</p>
+<p>Now let’s look at distributed Actors. As you probably know, you can’t build a fault-tolerant system with just one single node, but you need at least two. Also, you (usually) need to know if one node is down and/or the service you are talking to on the other node is down. Here Actor supervision/linking is a critical tool for not only monitoring the health of remote services, but to actually manage the service, do something about the problem if the Actor or node is down. This could be restarting him on the same node or on another node.</p>
+<p>To sum things up, it is a very different way of thinking but a way that is very useful (if not critical) to building fault-tolerant highly concurrent and distributed applications.</p>
+</div>
+<div class="section" id="supervisor-hierarchies">
+<h2><a class="toc-backref" href="#id10">Supervisor hierarchies</a><a class="headerlink" href="#supervisor-hierarchies" title="Permalink to this headline">¶</a></h2>
+<p>A supervisor is a regular Actor that is responsible for starting, stopping and monitoring its child Actors. The basic idea of a supervisor is that it should keep its child Actors alive by restarting them when necessary. This makes for a completely different view on how to write fault-tolerant servers. Instead of trying all things possible to prevent an error from happening, this approach embraces failure. It shifts the view to look at errors as something natural and something that will happen and instead of trying to prevent it; embrace it. Just &#8220;let it crash&#8221; and reset the service to a stable state through restart.</p>
+<p>Akka has two different restart strategies; All-For-One and One-For-One.</p>
+<ul class="simple">
+<li>OneForOne: Restart only the component that has crashed.</li>
+<li>AllForOne: Restart all the components that the supervisor is managing, including the one that have crashed.</li>
+</ul>
+<p>The latter strategy should be used when you have a certain set of components that are coupled in some way that if one is crashing they all need to be reset to a stable state before continuing.</p>
+</div>
+<div class="section" id="chat-server-supervision-traits-and-more">
+<h2><a class="toc-backref" href="#id11">Chat server: Supervision, Traits and more</a><a class="headerlink" href="#chat-server-supervision-traits-and-more" title="Permalink to this headline">¶</a></h2>
+<p>There are two ways you can define an Actor to be a supervisor; declaratively and dynamically. In this example we use the dynamic approach. There are two things we have to do:</p>
+<ul class="simple">
+<li>Define the fault handler by setting the &#8216;faultHandler&#8217; member field to the strategy we want.</li>
+<li>Define the exceptions we want to &#8220;trap&#8221;, e.g. which exceptions should be handled according to the fault handling strategy we have defined. This in done by setting the &#8216;trapExit&#8217; member field to a &#8216;List&#8217; with all exceptions we want to trap.</li>
+</ul>
+<p>The last thing we have to do to supervise Actors (in our example the storage Actor) is to &#8216;link&#8217; the Actor. Invoking &#8216;link(actor)&#8217; will create a link between the Actor passed as argument into &#8216;link&#8217; and ourselves. This means that we will now get a notification if the linked Actor is crashing and if the cause of the crash, the exception, matches one of the exceptions in our &#8216;trapExit&#8217; list then the crashed Actor is restarted according the the fault handling strategy defined in our &#8216;faultHandler&#8217;. We also have the &#8216;unlink(actor)&#8217; function which disconnects the linked Actor from the supervisor.</p>
+<p>In our example we are using a method called &#8216;spawnLink(actor)&#8217; which creates, starts and links the Actor in an atomic operation. The linking and unlinking is done in &#8216;preStart&#8217; and &#8216;postStop&#8217; callback methods which are invoked by the runtime when the Actor is started and shut down (shutting down is done by invoking &#8216;actor.stop()&#8217;). In these methods we initialize our Actor, by starting and linking the storage Actor and clean up after ourselves by shutting down all the user session Actors and the storage Actor.</p>
+<p>That is it. Now we have implemented the supervising part of the fault-tolerance for the storage Actor. But before we dive into the &#8216;ChatServer&#8217; code there are some more things worth mentioning about its implementation.</p>
+<p>It defines an abstract member field holding the &#8216;ChatStorage&#8217; implementation the server wants to use. We do not define that in the &#8216;ChatServer&#8217; directly since we want to decouple it from the actual storage implementation.</p>
+<p>The &#8216;ChatServer&#8217; is a &#8216;trait&#8217;, which is Scala&#8217;s version of mixins. A mixin can be seen as an interface with an implementation and is a very powerful tool in Object-Oriented design that makes it possible to design the system into small, reusable, highly cohesive, loosely coupled parts that can be composed into larger object and components structures.</p>
+<p>I&#8217;ll try to show you how we can make use Scala&#8217;s mixins to decouple the Actor implementation from the business logic of managing the user sessions, routing the chat messages and storing them in the persistent storage. Each of these separate parts of the server logic will be represented by its own trait; giving us four different isolated mixins; &#8216;Actor&#8217;, &#8216;SessionManagement&#8217;, &#8216;ChatManagement&#8217; and &#8216;ChatStorageFactory&#8217; This will give us as loosely coupled system with high cohesion and reusability. At the end of the article I&#8217;ll show you how you can compose these mixins into a the complete runtime component we like.</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="cm">/**</span>
+<span class="cm"> * Chat server. Manages sessions and redirects all other messages to the Session for the client.</span>
+<span class="cm"> */</span>
+<span class="k">trait</span> <span class="nc">ChatServer</span> <span class="k">extends</span> <span class="nc">Actor</span> <span class="o">{</span>
+  <span class="n">self</span><span class="o">.</span><span class="n">faultHandler</span> <span class="k">=</span> <span class="nc">OneForOneStrategy</span><span class="o">(</span><span class="nc">List</span><span class="o">(</span><span class="n">classOf</span><span class="o">[</span><span class="kt">Exception</span><span class="o">]),</span><span class="mi">5</span><span class="o">,</span> <span class="mi">5000</span><span class="o">)</span>
+  <span class="k">val</span> <span class="n">storage</span><span class="k">:</span> <span class="kt">ActorRef</span>
+
+  <span class="nc">EventHandler</span><span class="o">.</span><span class="n">info</span><span class="o">(</span><span class="k">this</span><span class="o">,</span> <span class="s">&quot;Chat server is starting up...&quot;</span><span class="o">)</span>
+
+  <span class="c1">// actor message handler</span>
+  <span class="k">def</span> <span class="n">receive</span><span class="k">:</span> <span class="kt">Receive</span> <span class="o">=</span> <span class="n">sessionManagement</span> <span class="n">orElse</span> <span class="n">chatManagement</span>
+
+  <span class="c1">// abstract methods to be defined somewhere else</span>
+  <span class="k">protected</span> <span class="k">def</span> <span class="n">chatManagement</span><span class="k">:</span> <span class="kt">Receive</span>
+  <span class="k">protected</span> <span class="k">def</span> <span class="n">sessionManagement</span><span class="k">:</span> <span class="kt">Receive</span>
+  <span class="k">protected</span> <span class="k">def</span> <span class="n">shutdownSessions</span><span class="o">()</span><span class="k">:</span> <span class="kt">Unit</span>
+
+  <span class="k">override</span> <span class="k">def</span> <span class="n">postStop</span><span class="o">()</span> <span class="k">=</span> <span class="o">{</span>
+    <span class="nc">EventHandler</span><span class="o">.</span><span class="n">info</span><span class="o">(</span><span class="k">this</span><span class="o">,</span> <span class="s">&quot;Chat server is shutting down...&quot;</span><span class="o">)</span>
+    <span class="n">shutdownSessions</span>
+    <span class="n">self</span><span class="o">.</span><span class="n">unlink</span><span class="o">(</span><span class="n">storage</span><span class="o">)</span>
+    <span class="n">storage</span><span class="o">.</span><span class="n">stop</span><span class="o">()</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<p>If you look at the &#8216;receive&#8217; message handler function you can see that we have defined it but instead of adding our logic there we are delegating to two different functions; &#8216;sessionManagement&#8217; and &#8216;chatManagement&#8217;, chaining them with &#8216;orElse&#8217;. These two functions are defined as abstract in our &#8216;ChatServer&#8217; which means that they have to be provided by some another mixin or class when we instantiate our &#8216;ChatServer&#8217;. Naturally we will put the &#8216;sessionManagement&#8217; implementation in the &#8216;SessionManagement&#8217; trait and the &#8216;chatManagement&#8217; implementation in the &#8216;ChatManagement&#8217; trait. First let&#8217;s create the &#8216;SessionManagement&#8217; trait.</p>
+<p>Chaining partial functions like this is a great way of composing functionality in Actors. You can for example put define one default message handle handling generic messages in the base Actor and then let deriving Actors extend that functionality by defining additional message handlers. There is a section on how that is done <a class="reference external" href="actors">here</a>.</p>
+</div>
+<div class="section" id="session-management">
+<h2><a class="toc-backref" href="#id12">Session management</a><a class="headerlink" href="#session-management" title="Permalink to this headline">¶</a></h2>
+<p>The session management is defined in the &#8216;SessionManagement&#8217; trait in which we implement the two abstract methods in the &#8216;ChatServer&#8217;; &#8216;sessionManagement&#8217; and &#8216;shutdownSessions&#8217;.</p>
+<p>The &#8216;SessionManagement&#8217; trait holds a &#8216;HashMap&#8217; with all the session Actors mapped by user name as well as a reference to the storage (to be able to pass it in to each newly created &#8216;Session&#8217;).</p>
+<p>The &#8216;sessionManagement&#8217; function performs session management by responding to the &#8216;Login&#8217; and &#8216;Logout&#8217; messages. For each &#8216;Login&#8217; message it creates a new &#8216;Session&#8217; Actor, starts it and puts it in the &#8216;sessions&#8217; Map and for each &#8216;Logout&#8217; message it does the opposite; shuts down the user&#8217;s session and removes it from the &#8216;sessions&#8217; Map.</p>
+<p>The &#8216;shutdownSessions&#8217; function simply shuts all the sessions Actors down. That completes the user session management.</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="cm">/**</span>
+<span class="cm"> * Implements user session management.</span>
+<span class="cm"> * &lt;p/&gt;</span>
+<span class="cm"> * Uses self-type annotation (this: Actor =&gt;) to declare that it needs to be mixed in with an Actor.</span>
+<span class="cm"> */</span>
+<span class="k">trait</span> <span class="nc">SessionManagement</span> <span class="o">{</span> <span class="k">this:</span> <span class="kt">Actor</span> <span class="o">=&gt;</span>
+
+  <span class="k">val</span> <span class="n">storage</span><span class="k">:</span> <span class="kt">ActorRef</span> <span class="kt">//</span> <span class="kt">needs</span> <span class="kt">someone</span> <span class="kt">to</span> <span class="kt">provide</span> <span class="kt">the</span> <span class="kt">ChatStorage</span>
+  <span class="k">val</span> <span class="n">sessions</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">HashMap</span><span class="o">[</span><span class="kt">String</span>, <span class="kt">ActorRef</span><span class="o">]</span>
+
+  <span class="k">protected</span> <span class="k">def</span> <span class="n">sessionManagement</span><span class="k">:</span> <span class="kt">Receive</span> <span class="o">=</span> <span class="o">{</span>
+    <span class="k">case</span> <span class="nc">Login</span><span class="o">(</span><span class="n">username</span><span class="o">)</span> <span class="k">=&gt;</span>
+      <span class="nc">EventHandler</span><span class="o">.</span><span class="n">info</span><span class="o">(</span><span class="k">this</span><span class="o">,</span> <span class="s">&quot;User [%s] has logged in&quot;</span><span class="o">.</span><span class="n">format</span><span class="o">(</span><span class="n">username</span><span class="o">))</span>
+      <span class="k">val</span> <span class="n">session</span> <span class="k">=</span> <span class="n">actorOf</span><span class="o">(</span><span class="k">new</span> <span class="nc">Session</span><span class="o">(</span><span class="n">username</span><span class="o">,</span> <span class="n">storage</span><span class="o">))</span>
+      <span class="n">session</span><span class="o">.</span><span class="n">start</span><span class="o">()</span>
+      <span class="n">sessions</span> <span class="o">+=</span> <span class="o">(</span><span class="n">username</span> <span class="o">-&gt;</span> <span class="n">session</span><span class="o">)</span>
+
+    <span class="k">case</span> <span class="nc">Logout</span><span class="o">(</span><span class="n">username</span><span class="o">)</span> <span class="k">=&gt;</span>
+      <span class="nc">EventHandler</span><span class="o">.</span><span class="n">info</span><span class="o">(</span><span class="k">this</span><span class="o">,</span> <span class="s">&quot;User [%s] has logged out&quot;</span><span class="o">.</span><span class="n">format</span><span class="o">(</span><span class="n">username</span><span class="o">))</span>
+      <span class="k">val</span> <span class="n">session</span> <span class="k">=</span> <span class="n">sessions</span><span class="o">(</span><span class="n">username</span><span class="o">)</span>
+      <span class="n">session</span><span class="o">.</span><span class="n">stop</span><span class="o">()</span>
+      <span class="n">sessions</span> <span class="o">-=</span> <span class="n">username</span>
+  <span class="o">}</span>
+
+  <span class="k">protected</span> <span class="k">def</span> <span class="n">shutdownSessions</span> <span class="k">=</span>
+    <span class="n">sessions</span><span class="o">.</span><span class="n">foreach</span> <span class="o">{</span> <span class="k">case</span> <span class="o">(</span><span class="n">_</span><span class="o">,</span> <span class="n">session</span><span class="o">)</span> <span class="k">=&gt;</span> <span class="n">session</span><span class="o">.</span><span class="n">stop</span><span class="o">()</span> <span class="o">}</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="chat-message-management">
+<h2><a class="toc-backref" href="#id13">Chat message management</a><a class="headerlink" href="#chat-message-management" title="Permalink to this headline">¶</a></h2>
+<p>Chat message management is implemented by the &#8216;ChatManagement&#8217; trait. It has an abstract &#8216;HashMap&#8217; session member field with all the sessions. Since it is abstract it needs to be mixed in with someone that can provide this reference. If this dependency is not resolved when composing the final component, you will get a compilation error.</p>
+<p>It implements the &#8216;chatManagement&#8217; function which responds to two different messages; &#8216;ChatMessage&#8217; and &#8216;GetChatLog&#8217;. It simply gets the session for the user (the sender of the message) and routes the message to this session. Here we also use the &#8216;forward&#8217; function to make sure the original sender reference is passed along to allow the end receiver to reply back directly.</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="cm">/**</span>
+<span class="cm"> * Implements chat management, e.g. chat message dispatch.</span>
+<span class="cm"> * &lt;p/&gt;</span>
+<span class="cm"> * Uses self-type annotation (this: Actor =&gt;) to declare that it needs to be mixed in with an Actor.</span>
+<span class="cm"> */</span>
+<span class="k">trait</span> <span class="nc">ChatManagement</span> <span class="o">{</span> <span class="k">this:</span> <span class="kt">Actor</span> <span class="o">=&gt;</span>
+  <span class="k">val</span> <span class="n">sessions</span><span class="k">:</span> <span class="kt">HashMap</span><span class="o">[</span><span class="kt">String</span>, <span class="kt">ActorRef</span><span class="o">]</span> <span class="c1">// needs someone to provide the Session map</span>
+
+  <span class="k">protected</span> <span class="k">def</span> <span class="n">chatManagement</span><span class="k">:</span> <span class="kt">Receive</span> <span class="o">=</span> <span class="o">{</span>
+    <span class="k">case</span> <span class="n">msg</span> <span class="k">@</span> <span class="nc">ChatMessage</span><span class="o">(</span><span class="n">from</span><span class="o">,</span> <span class="n">_</span><span class="o">)</span> <span class="k">=&gt;</span> <span class="n">getSession</span><span class="o">(</span><span class="n">from</span><span class="o">).</span><span class="n">foreach</span><span class="o">(</span><span class="k">_</span> <span class="o">!</span> <span class="n">msg</span><span class="o">)</span>
+    <span class="k">case</span> <span class="n">msg</span> <span class="k">@</span> <span class="nc">GetChatLog</span><span class="o">(</span><span class="n">from</span><span class="o">)</span> <span class="k">=&gt;</span>     <span class="n">getSession</span><span class="o">(</span><span class="n">from</span><span class="o">).</span><span class="n">foreach</span><span class="o">(</span><span class="k">_</span> <span class="n">forward</span> <span class="n">msg</span><span class="o">)</span>
+  <span class="o">}</span>
+
+  <span class="k">private</span> <span class="k">def</span> <span class="n">getSession</span><span class="o">(</span><span class="n">from</span><span class="k">:</span> <span class="kt">String</span><span class="o">)</span> <span class="k">:</span> <span class="kt">Option</span><span class="o">[</span><span class="kt">ActorRef</span><span class="o">]</span> <span class="k">=</span> <span class="o">{</span>
+    <span class="k">if</span> <span class="o">(</span><span class="n">sessions</span><span class="o">.</span><span class="n">contains</span><span class="o">(</span><span class="n">from</span><span class="o">))</span>
+      <span class="nc">Some</span><span class="o">(</span><span class="n">sessions</span><span class="o">(</span><span class="n">from</span><span class="o">))</span>
+    <span class="k">else</span> <span class="o">{</span>
+      <span class="nc">EventHandler</span><span class="o">.</span><span class="n">info</span><span class="o">(</span><span class="k">this</span><span class="o">,</span> <span class="s">&quot;Session expired for %s&quot;</span><span class="o">.</span><span class="n">format</span><span class="o">(</span><span class="n">from</span><span class="o">))</span>
+      <span class="nc">None</span>
+    <span class="o">}</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<p>Using an Actor as a message broker, as in this example, is a very common pattern with many variations; load-balancing, master/worker, map/reduce, replication, logging etc. It becomes even more useful with remote Actors when we can use it to route messages to different nodes.</p>
+</div>
+<div class="section" id="stm-and-transactors">
+<h2><a class="toc-backref" href="#id14">STM and Transactors</a><a class="headerlink" href="#stm-and-transactors" title="Permalink to this headline">¶</a></h2>
+<p>Actors are excellent for solving problems where you have many independent processes that can work in isolation and only interact with other Actors through message passing. This model fits many problems. But the Actor model is unfortunately a terrible model for implementing truly shared state. E.g. when you need to have consensus and a stable view of state across many components. The classic example is the bank account where clients can deposit and withdraw, in which each operation needs to be atomic. For detailed discussion on the topic see this <a class="reference external" href="http://www.slideshare.net/jboner/state-youre-doing-it-wrong-javaone-2009">presentation</a>.</p>
+<p><a class="reference external" href="http://en.wikipedia.org/wiki/Software_transactional_memory">Software Transactional Memory</a> (STM) on the other hand is excellent for problems where you need consensus and a stable view of the state by providing compositional transactional shared state. Some of the really nice traits of STM are that transactions compose and that it raises the abstraction level from lock-based concurrency.</p>
+<p>Akka has a <a class="reference external" href="stm">STM implementation</a> that is based on the same ideas as found in the <a class="reference external" href="http://clojure.org/">Clojure language</a>; Managed References working with immutable data.</p>
+<p>Akka allows you to combine Actors and STM into what we call <a class="reference external" href="transactors">Transactors</a> (short for Transactional Actors), these allow you to optionally combine Actors and STM provides IMHO the best of the Actor model (simple concurrency and asynchronous event-based programming) and STM (compositional transactional shared state) by providing transactional, compositional, asynchronous, event-based message flows. You don&#8217;t need Transactors all the time but when you do need them then you <em>really need</em> them.</p>
+<p>Akka currently provides three different transactional abstractions; &#8216;Map&#8217;, &#8216;Vector&#8217; and &#8216;Ref&#8217;. They can be shared between multiple Actors and they are managed by the STM. You are not allowed to modify them outside a transaction, if you do so, an exception will be thrown.</p>
+<p>What you get is transactional memory in which multiple Actors are allowed to read and write to the same memory concurrently and if there is a clash between two transactions then both of them are aborted and retried. Aborting a transaction means that the memory is rolled back to the state it were in when the transaction was started.</p>
+<p>In database terms STM gives you &#8216;ACI&#8217; semantics; &#8216;Atomicity&#8217;, &#8216;Consistency&#8217; and &#8216;Isolation&#8217;. The &#8216;D&#8217; in &#8216;ACID&#8217;; &#8216;Durability&#8217;, you can&#8217;t get with an STM since it is in memory.
+It possible to implement durable persistence for the transactional data structures, but in this sample we keep them in memory.</p>
+</div>
+<div class="section" id="chat-storage-backed-with-simple-in-memory">
+<h2><a class="toc-backref" href="#id15">Chat storage: Backed with simple in-memory</a><a class="headerlink" href="#chat-storage-backed-with-simple-in-memory" title="Permalink to this headline">¶</a></h2>
+<p>To keep it simple we implement the persistent storage, with a in-memory Vector, i.e. it will not be persistent. We start by creating a &#8216;ChatStorage&#8217; trait allowing us to have multiple different storage backend. For example one in-memory and one persistent.</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="cm">/**</span>
+<span class="cm"> * Abstraction of chat storage holding the chat log.</span>
+<span class="cm"> */</span>
+<span class="k">trait</span> <span class="nc">ChatStorage</span> <span class="k">extends</span> <span class="nc">Actor</span>
+</pre></div>
+</div>
+<p>Our &#8216;MemoryChatStorage&#8217; extends the &#8216;ChatStorage&#8217; trait. The only state it holds is the &#8216;chatLog&#8217; which is a transactional &#8216;Vector&#8217;.</p>
+<p>It responds to two different messages; &#8216;ChatMessage&#8217; and &#8216;GetChatLog&#8217;. The &#8216;ChatMessage&#8217; message handler takes the &#8216;message&#8217; attribute and appends it to the &#8216;chatLog&#8217; vector. Here you can see that we are using the &#8216;atomic { ... }&#8217; block to run the vector operation in a transaction. For this in-memory storage it is not important to use a transactional Vector, since it is not shared between actors, but it illustrates the concept.</p>
+<p>The &#8216;GetChatLog&#8217; message handler retrieves all the messages in the chat log storage inside an atomic block, iterates over them using the &#8216;map&#8217; combinator transforming them from &#8216;Array[Byte] to &#8216;String&#8217;. Then it invokes the &#8216;reply(message)&#8217; function that will send the chat log to the original sender; the &#8216;ChatClient&#8217;.</p>
+<p>You might remember that the &#8216;ChatServer&#8217; was supervising the &#8216;ChatStorage&#8217; actor. When we discussed that we showed you the supervising Actor&#8217;s view. Now is the time for the supervised Actor&#8217;s side of things. First, a supervised Actor need to define a life-cycle in which it declares if it should be seen as a:</p>
+<ul class="simple">
+<li>&#8216;Permanent&#8217;: which means that the actor will always be restarted.</li>
+<li>&#8216;Temporary&#8217;: which means that the actor will not be restarted, but it will be shut down through the regular shutdown process so the &#8216;postStop&#8217; callback function will called.</li>
+</ul>
+<p>We define the &#8216;MemoryChatStorage&#8217; as &#8216;Permanent&#8217; by setting the &#8216;lifeCycle&#8217; member field to &#8216;Permanent&#8217;.</p>
+<p>The idea with this crash early style of designing your system is that the services should just crash and then they should be restarted and reset into a stable state and continue from there. The definition of &#8220;stable state&#8221; is domain specific and up to the application developer to define. Akka provides two callback functions; &#8216;preRestart&#8217; and &#8216;postRestart&#8217; that are called right <em>before</em> and right <em>after</em> the Actor is restarted. Both of these functions take a &#8216;Throwable&#8217;, the reason for the crash, as argument. In our case we just need to implement the &#8216;postRestart&#8217; hook and there re-initialize the &#8216;chatLog&#8217; member field with a fresh &#8216;Vector&#8217;.</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="cm">/**</span>
+<span class="cm"> * Memory-backed chat storage implementation.</span>
+<span class="cm"> */</span>
+<span class="k">class</span> <span class="nc">MemoryChatStorage</span> <span class="k">extends</span> <span class="nc">ChatStorage</span> <span class="o">{</span>
+  <span class="n">self</span><span class="o">.</span><span class="n">lifeCycle</span> <span class="k">=</span> <span class="nc">Permanent</span>
+
+  <span class="k">private</span> <span class="k">var</span> <span class="n">chatLog</span> <span class="k">=</span> <span class="nc">TransactionalVector</span><span class="o">[</span><span class="kt">Array</span><span class="o">[</span><span class="kt">Byte</span><span class="o">]]()</span>
+
+  <span class="nc">EventHandler</span><span class="o">.</span><span class="n">info</span><span class="o">(</span><span class="k">this</span><span class="o">,</span> <span class="s">&quot;Memory-based chat storage is starting up...&quot;</span><span class="o">)</span>
+
+  <span class="k">def</span> <span class="n">receive</span> <span class="k">=</span> <span class="o">{</span>
+    <span class="k">case</span> <span class="n">msg</span> <span class="k">@</span> <span class="nc">ChatMessage</span><span class="o">(</span><span class="n">from</span><span class="o">,</span> <span class="n">message</span><span class="o">)</span> <span class="k">=&gt;</span>
+      <span class="nc">EventHandler</span><span class="o">.</span><span class="n">debug</span><span class="o">(</span><span class="k">this</span><span class="o">,</span> <span class="s">&quot;New chat message [%s]&quot;</span><span class="o">.</span><span class="n">format</span><span class="o">(</span><span class="n">message</span><span class="o">))</span>
+      <span class="n">atomic</span> <span class="o">{</span> <span class="n">chatLog</span> <span class="o">+</span> <span class="n">message</span><span class="o">.</span><span class="n">getBytes</span><span class="o">(</span><span class="s">&quot;UTF-8&quot;</span><span class="o">)</span> <span class="o">}</span>
+
+    <span class="k">case</span> <span class="nc">GetChatLog</span><span class="o">(</span><span class="n">_</span><span class="o">)</span> <span class="k">=&gt;</span>
+      <span class="k">val</span> <span class="n">messageList</span> <span class="k">=</span> <span class="n">atomic</span> <span class="o">{</span> <span class="n">chatLog</span><span class="o">.</span><span class="n">map</span><span class="o">(</span><span class="n">bytes</span> <span class="k">=&gt;</span> <span class="k">new</span> <span class="nc">String</span><span class="o">(</span><span class="n">bytes</span><span class="o">,</span> <span class="s">&quot;UTF-8&quot;</span><span class="o">)).</span><span class="n">toList</span> <span class="o">}</span>
+      <span class="n">self</span><span class="o">.</span><span class="n">reply</span><span class="o">(</span><span class="nc">ChatLog</span><span class="o">(</span><span class="n">messageList</span><span class="o">))</span>
+  <span class="o">}</span>
+
+  <span class="k">override</span> <span class="k">def</span> <span class="n">postRestart</span><span class="o">(</span><span class="n">reason</span><span class="k">:</span> <span class="kt">Throwable</span><span class="o">)</span> <span class="k">=</span> <span class="n">chatLog</span> <span class="k">=</span> <span class="nc">TransactionalVector</span><span class="o">()</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<p>The last thing we need to do in terms of persistence is to create a &#8216;MemoryChatStorageFactory&#8217; that will take care of instantiating and resolving the &#8216;val storage: ChatStorage&#8217; field in the &#8216;ChatServer&#8217; with a concrete implementation of our persistence Actor.</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="cm">/**</span>
+<span class="cm"> * Creates and links a MemoryChatStorage.</span>
+<span class="cm"> */</span>
+<span class="k">trait</span> <span class="nc">MemoryChatStorageFactory</span> <span class="o">{</span> <span class="k">this:</span> <span class="kt">Actor</span> <span class="o">=&gt;</span>
+  <span class="k">val</span> <span class="n">storage</span> <span class="k">=</span> <span class="k">this</span><span class="o">.</span><span class="n">self</span><span class="o">.</span><span class="n">spawnLink</span><span class="o">[</span><span class="kt">MemoryChatStorage</span><span class="o">]</span> <span class="c1">// starts and links ChatStorage</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="composing-the-full-chat-service">
+<h2><a class="toc-backref" href="#id16">Composing the full Chat Service</a><a class="headerlink" href="#composing-the-full-chat-service" title="Permalink to this headline">¶</a></h2>
+<p>We have now created the full functionality for the chat server, all nicely decoupled into isolated and well-defined traits. Now let&#8217;s bring all these traits together and compose the complete concrete &#8216;ChatService&#8217;.</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="cm">/**</span>
+<span class="cm"> * Class encapsulating the full Chat Service.</span>
+<span class="cm"> * Start service by invoking:</span>
+<span class="cm"> * &lt;pre&gt;</span>
+<span class="cm"> * val chatService = Actor.actorOf[ChatService].start()</span>
+<span class="cm"> * &lt;/pre&gt;</span>
+<span class="cm"> */</span>
+<span class="k">class</span> <span class="nc">ChatService</span> <span class="k">extends</span>
+  <span class="nc">ChatServer</span> <span class="k">with</span>
+  <span class="nc">SessionManagement</span> <span class="k">with</span>
+  <span class="nc">ChatManagement</span> <span class="k">with</span>
+  <span class="nc">MemoryChatStorageFactory</span> <span class="o">{</span>
+  <span class="k">override</span> <span class="k">def</span> <span class="n">preStart</span><span class="o">()</span> <span class="k">=</span> <span class="o">{</span>
+    <span class="n">remote</span><span class="o">.</span><span class="n">start</span><span class="o">(</span><span class="s">&quot;localhost&quot;</span><span class="o">,</span> <span class="mi">2552</span><span class="o">);</span>
+    <span class="n">remote</span><span class="o">.</span><span class="n">register</span><span class="o">(</span><span class="s">&quot;chat:service&quot;</span><span class="o">,</span> <span class="n">self</span><span class="o">)</span> <span class="c1">//Register the actor with the specified service id</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="creating-a-remote-server-service">
+<h2><a class="toc-backref" href="#id17">Creating a remote server service</a><a class="headerlink" href="#creating-a-remote-server-service" title="Permalink to this headline">¶</a></h2>
+<p>As you can see in the section above, we are overriding the Actor&#8217;s &#8216;start&#8217; method and are starting up a remote server node by invoking &#8216;remote.start(&#8220;localhost&#8221;, 2552)&#8217;. This starts up the remote node on address &#8220;localhost&#8221; and port 2552 which means that it accepts incoming messages on this address. Then we register the ChatService actor in the remote node by invoking &#8216;remote.register(&#8220;chat:service&#8221;, self)&#8217;. This means that the ChatService will be available to other actors on this specific id, address and port.</p>
+<p>That&#8217;s it. Were done. Now we have a, very simple, but scalable, fault-tolerant, event-driven, persistent chat server that can without problem serve a million concurrent users on a regular workstation.</p>
+<p>Let&#8217;s use it.</p>
+</div>
+<div class="section" id="sample-client-chat-session">
+<h2><a class="toc-backref" href="#id18">Sample client chat session</a><a class="headerlink" href="#sample-client-chat-session" title="Permalink to this headline">¶</a></h2>
+<p>Now let&#8217;s create a simple test runner that logs in posts some messages and logs out.</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="cm">/**</span>
+<span class="cm"> * Test runner emulating a chat session.</span>
+<span class="cm"> */</span>
+<span class="k">object</span> <span class="nc">ClientRunner</span> <span class="o">{</span>
+
+  <span class="k">def</span> <span class="n">run</span> <span class="k">=</span> <span class="o">{</span>
+    <span class="k">val</span> <span class="n">client1</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">ChatClient</span><span class="o">(</span><span class="s">&quot;jonas&quot;</span><span class="o">)</span>
+    <span class="n">client1</span><span class="o">.</span><span class="n">login</span>
+    <span class="k">val</span> <span class="n">client2</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">ChatClient</span><span class="o">(</span><span class="s">&quot;patrik&quot;</span><span class="o">)</span>
+    <span class="n">client2</span><span class="o">.</span><span class="n">login</span>
+
+    <span class="n">client1</span><span class="o">.</span><span class="n">post</span><span class="o">(</span><span class="s">&quot;Hi there&quot;</span><span class="o">)</span>
+    <span class="n">println</span><span class="o">(</span><span class="s">&quot;CHAT LOG:\n\t&quot;</span> <span class="o">+</span> <span class="n">client1</span><span class="o">.</span><span class="n">chatLog</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">mkString</span><span class="o">(</span><span class="s">&quot;\n\t&quot;</span><span class="o">))</span>
+
+    <span class="n">client2</span><span class="o">.</span><span class="n">post</span><span class="o">(</span><span class="s">&quot;Hello&quot;</span><span class="o">)</span>
+    <span class="n">println</span><span class="o">(</span><span class="s">&quot;CHAT LOG:\n\t&quot;</span> <span class="o">+</span> <span class="n">client2</span><span class="o">.</span><span class="n">chatLog</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">mkString</span><span class="o">(</span><span class="s">&quot;\n\t&quot;</span><span class="o">))</span>
+
+    <span class="n">client1</span><span class="o">.</span><span class="n">post</span><span class="o">(</span><span class="s">&quot;Hi again&quot;</span><span class="o">)</span>
+    <span class="n">println</span><span class="o">(</span><span class="s">&quot;CHAT LOG:\n\t&quot;</span> <span class="o">+</span> <span class="n">client1</span><span class="o">.</span><span class="n">chatLog</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">mkString</span><span class="o">(</span><span class="s">&quot;\n\t&quot;</span><span class="o">))</span>
+
+    <span class="n">client1</span><span class="o">.</span><span class="n">logout</span>
+    <span class="n">client2</span><span class="o">.</span><span class="n">logout</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="sample-code">
+<h2><a class="toc-backref" href="#id19">Sample code</a><a class="headerlink" href="#sample-code" title="Permalink to this headline">¶</a></h2>
+<p>All this code is available as part of the Akka distribution. It resides in the &#8216;./akka-samples/akka-sample-chat&#8217; module and have a &#8216;README&#8217; file explaining how to run it.</p>
+<p>Or if you rather browse it <a class="reference external" href="https://github.com/akka/akka/blob/master/akka-samples/akka-sample-chat/">online</a>.</p>
+</div>
+<div class="section" id="run-it">
+<h2><a class="toc-backref" href="#id20">Run it</a><a class="headerlink" href="#run-it" title="Permalink to this headline">¶</a></h2>
+<p>Download and build Akka</p>
+<ol class="arabic simple">
+<li>Check out Akka from <a class="reference external" href="http://github.com/akka/akka">http://github.com/akka/akka</a></li>
+<li>Set &#8216;AKKA_HOME&#8217; environment variable to the root of the Akka distribution.</li>
+<li>Open up a shell and step into the Akka distribution root folder.</li>
+<li>Build Akka by invoking:</li>
+</ol>
+<div class="highlight-scala"><div class="highlight"><pre><span class="o">%</span> <span class="n">sbt</span> <span class="n">update</span>
+<span class="o">%</span> <span class="n">sbt</span> <span class="n">dist</span>
+</pre></div>
+</div>
+<p>Run a sample chat session</p>
+<ol class="arabic simple">
+<li>Fire up two shells. For each of them:</li>
+</ol>
+<blockquote>
+<div><ul class="simple">
+<li>Step down into to the root of the Akka distribution.</li>
+<li>Set &#8216;export AKKA_HOME=&lt;root of distribution&gt;.</li>
+<li>Run &#8216;sbt console&#8217; to start up a REPL (interpreter).</li>
+</ul>
+</div></blockquote>
+<ol class="arabic simple" start="2">
+<li>In the first REPL you get execute:</li>
+</ol>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">import</span> <span class="nn">sample.chat._</span>
+<span class="k">import</span> <span class="nn">akka.actor.Actor._</span>
+<span class="k">val</span> <span class="n">chatService</span> <span class="k">=</span> <span class="n">actorOf</span><span class="o">[</span><span class="kt">ChatService</span><span class="o">].</span><span class="n">start</span><span class="o">()</span>
+</pre></div>
+</div>
+<ol class="arabic simple" start="3">
+<li>In the second REPL you get execute:</li>
+</ol>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">import</span> <span class="nn">sample.chat._</span>
+<span class="nc">ClientRunner</span><span class="o">.</span><span class="n">run</span>
+</pre></div>
+</div>
+<ol class="arabic simple" start="4">
+<li>See the chat simulation run.</li>
+<li>Run it again to see full speed after first initialization.</li>
+<li>In the client REPL, or in a new REPL, you can also create your own client</li>
+</ol>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">import</span> <span class="nn">sample.chat._</span>
+<span class="k">val</span> <span class="n">myClient</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">ChatClient</span><span class="o">(</span><span class="s">&quot;&lt;your name&gt;&quot;</span><span class="o">)</span>
+<span class="n">myClient</span><span class="o">.</span><span class="n">login</span>
+<span class="n">myClient</span><span class="o">.</span><span class="n">post</span><span class="o">(</span><span class="s">&quot;Can I join?&quot;</span><span class="o">)</span>
+<span class="n">println</span><span class="o">(</span><span class="s">&quot;CHAT LOG:\n\t&quot;</span> <span class="o">+</span> <span class="n">myClient</span><span class="o">.</span><span class="n">chatLog</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">mkString</span><span class="o">(</span><span class="s">&quot;\n\t&quot;</span><span class="o">))</span>
+</pre></div>
+</div>
+<p>That&#8217;s it. Have fun.</p>
+</div>
+</div>
+
+
+      </div>
+      <div class="bottomnav">
+      
+        <p>
+        «&#160;&#160;<a href="testkit-example.html">TestKit Example</a>
+        &#160;&#160;::&#160;&#160;
+        <a class="uplink" href="../index.html">Contents</a>
+        &#160;&#160;::&#160;&#160;
+        <a href="../java/index.html">Java API</a>&#160;&#160;»
+        </p>
+
+      </div>
+
+    <div class="footer">
+        &copy; Copyright 2011, Typesafe Inc.
+      Last updated on Sep 19, 2011.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,801 @@
+
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Getting Started Tutorial (Java): First Chapter &mdash; Akka Documentation</title>
+    <link rel="stylesheet" href="../_static/akka.css" type="text/css" />
+<link rel="stylesheet" href="https://doc.akka.io/docs/akka/1.2/_static/akka.css" type="text/css"/>
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/print.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '1.2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+<script type="text/javascript" src="https://doc.akka.io/docs/akka/1.2/_static/warnOldDocs.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="../_static/theme_extras.js"></script>
+    <link rel="top" title="Akka Documentation" href="../index.html" />
+    <link rel="up" title="Introduction" href="index.html" />
+    <link rel="next" title="Use-case and Deployment Scenarios" href="deployment-scenarios.html" />
+    <link rel="prev" title="Getting Started Tutorial (Scala with Eclipse): First Chapter" href="getting-started-first-scala-eclipse.html" /> 
+  </head>
+  <body>
+      <div class="header"><a href="../index.html"><img class="leftlogo" src="../_static/logo.png" alt="Logo"/></a><h1 class="heading"><a href="../index.html"><span>Akka Documentation</span></a></h1>
+       <h2 class="heading"><a href="../index.html"><span>Version 1.2</span></a></h2>
+       <h2 class="rightheading"><span><a href="https://akka.io/docs/akka/1.2/Akka.pdf">PDF</a></span></h2>
+      </div>
+      <div class="topnav">
+      
+        <p>
+        «&#160;&#160;<a href="getting-started-first-scala-eclipse.html">Getting Started Tutorial (Scala with Eclipse): First Chapter</a>
+        &#160;&#160;::&#160;&#160;
+        <a class="uplink" href="../index.html">Contents</a>
+        &#160;&#160;::&#160;&#160;
+        <a href="deployment-scenarios.html">Use-case and Deployment Scenarios</a>&#160;&#160;»
+        </p>
+
+      </div>
+      <div class="content">
+        
+        
+  <div class="section" id="getting-started-tutorial-java-first-chapter">
+<span id="getting-started-first-java"></span><h1>Getting Started Tutorial (Java): First Chapter<a class="headerlink" href="#getting-started-tutorial-java-first-chapter" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="introduction">
+<h2>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
+<p>Welcome to the first tutorial on how to get started with <a class="reference external" href="https://akka.io">Akka</a> and Java. We assume that you already know what Akka and Java are and will now focus on the steps necessary to start your first project.</p>
+<p>There are two variations of this first tutorial:</p>
+<ul class="simple">
+<li>creating a standalone project and run it from the command line</li>
+<li>creating a Maven project and running it from within Maven</li>
+</ul>
+<p>Since they are so similar we will present them both.</p>
+<p>The sample application that we will create is using actors to calculate the value of Pi. Calculating Pi is a CPU intensive operation and we will utilize Akka Actors to write a concurrent solution that scales out to multi-core processors. This sample will be extended in future tutorials to use Akka Remote Actors to scale out on multiple machines in a cluster.</p>
+<p>We will be using an algorithm that is called &#8220;embarrassingly parallel&#8221; which just means that each job is completely isolated and not coupled with any other job. Since this algorithm is so parallelizable it suits the actor model very well.</p>
+<p>Here is the formula for the algorithm we will use:</p>
+<img alt="../_images/pi-formula.png" src="../_images/pi-formula.png" />
+<p>In this particular algorithm the master splits the series into chunks which are sent out to each worker actor to be processed. When each worker has processed its chunk it sends a result back to the master which aggregates the total result.</p>
+</div>
+<div class="section" id="tutorial-source-code">
+<h2>Tutorial source code<a class="headerlink" href="#tutorial-source-code" title="Permalink to this headline">¶</a></h2>
+<p>If you want don&#8217;t want to type in the code and/or set up a Maven project then you can check out the full tutorial from the Akka GitHub repository. It is in the <tt class="docutils literal"><span class="pre">akka-tutorials/akka-tutorial-first</span></tt> module. You can also browse it online <a class="reference external" href="https://github.com/akka/akka/tree/master/akka-tutorials/akka-tutorial-first">here</a>, with the actual source code <a class="reference external" href="https://github.com/akka/akka/blob/master/akka-tutorials/akka-tutorial-first/src/main/java/akka/tutorial/first/java/Pi.java">here</a>.</p>
+<p>To check out the code using Git invoke the following:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="n">$</span> <span class="n">git</span> <span class="n">clone</span> <span class="n">git</span><span class="o">://</span><span class="n">github</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">jboner</span><span class="o">/</span><span class="n">akka</span><span class="o">.</span><span class="n">git</span>
+</pre></div>
+</div>
+<p>Then you can navigate down to the tutorial:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="n">$</span> <span class="n">cd</span> <span class="n">akka</span><span class="o">/</span><span class="n">akka</span><span class="o">-</span><span class="n">tutorials</span><span class="o">/</span><span class="n">akka</span><span class="o">-</span><span class="n">tutorial</span><span class="o">-</span><span class="n">first</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="prerequisites">
+<h2>Prerequisites<a class="headerlink" href="#prerequisites" title="Permalink to this headline">¶</a></h2>
+<p>This tutorial assumes that you have Java 1.6 or later installed on you machine and <tt class="docutils literal"><span class="pre">java</span></tt> on your <tt class="docutils literal"><span class="pre">PATH</span></tt>. You also need to know how to run commands in a shell (ZSH, Bash, DOS etc.) and a decent text editor or IDE to type in the Java code.</p>
+<p>You need to make sure that <tt class="docutils literal"><span class="pre">$JAVA_HOME</span></tt> environment variable is set to the root of the Java distribution. You also need to make sure that the <tt class="docutils literal"><span class="pre">$JAVA_HOME/bin</span></tt> is on your <tt class="docutils literal"><span class="pre">PATH</span></tt>:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="n">$</span> <span class="n">export</span> <span class="nc">JAVA_HOME</span><span class="o">=..</span><span class="n">root</span> <span class="n">of</span> <span class="n">java</span> <span class="n">distribution</span><span class="o">..</span>
+<span class="n">$</span> <span class="n">export</span> <span class="nc">PATH</span><span class="o">=</span><span class="nc">$PATH</span><span class="k">:</span><span class="kt">$JAVA_HOME/bin</span>
+</pre></div>
+</div>
+<p>You can test your installation by invoking <tt class="docutils literal"><span class="pre">java</span></tt>:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="n">$</span> <span class="n">java</span> <span class="o">-</span><span class="n">version</span>
+<span class="n">java</span> <span class="n">version</span> <span class="s">&quot;1.6.0_24&quot;</span>
+<span class="nc">Java</span><span class="o">(</span><span class="nc">TM</span><span class="o">)</span> <span class="nc">SE</span> <span class="nc">Runtime</span> <span class="nc">Environment</span> <span class="o">(</span><span class="n">build</span> <span class="mf">1.6</span><span class="o">.</span><span class="mi">0</span><span class="n">_24</span><span class="o">-</span><span class="n">b07</span><span class="o">-</span><span class="mi">334</span><span class="o">-</span><span class="mi">10</span><span class="n">M3326</span><span class="o">)</span>
+<span class="nc">Java</span> <span class="nc">HotSpot</span><span class="o">(</span><span class="nc">TM</span><span class="o">)</span> <span class="mi">64</span><span class="o">-</span><span class="nc">Bit</span> <span class="nc">Server</span> <span class="nc">VM</span> <span class="o">(</span><span class="n">build</span> <span class="mf">19.1</span><span class="o">-</span><span class="n">b02</span><span class="o">-</span><span class="mi">334</span><span class="o">,</span> <span class="n">mixed</span> <span class="n">mode</span><span class="o">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="downloading-and-installing-akka">
+<h2>Downloading and installing Akka<a class="headerlink" href="#downloading-and-installing-akka" title="Permalink to this headline">¶</a></h2>
+<p>To build and run the tutorial sample from the command line, you have to download
+Akka. If you prefer to use SBT to build and run the sample then you can skip
+this section and jump to the next one.</p>
+<p>Let&#8217;s get the <tt class="docutils literal"><span class="pre">akka-actors-1.2.zip</span></tt> distribution of Akka from
+<a class="reference external" href="https://akka.io/downloads/">https://akka.io/downloads/</a> which includes everything we need for this
+tutorial. Once you have downloaded the distribution unzip it in the folder you
+would like to have Akka installed in. In my case I choose to install it in
+<tt class="docutils literal"><span class="pre">/Users/jboner/tools/</span></tt>, simply by unzipping it to this directory.</p>
+<p>You need to do one more thing in order to install Akka properly: set the
+<tt class="docutils literal"><span class="pre">AKKA_HOME</span></tt> environment variable to the root of the distribution. In my case
+I&#8217;m opening up a shell, navigating down to the distribution, and setting the
+<tt class="docutils literal"><span class="pre">AKKA_HOME</span></tt> variable:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="n">$</span> <span class="n">cd</span> <span class="o">/</span><span class="nc">Users</span><span class="o">/</span><span class="n">jboner</span><span class="o">/</span><span class="n">tools</span><span class="o">/</span><span class="n">akka</span><span class="o">-</span><span class="n">actors</span><span class="o">-</span><span class="mf">1.2</span>
+<span class="n">$</span> <span class="n">export</span> <span class="nc">AKKA_HOME</span><span class="o">=</span><span class="n">`pwd`</span>
+<span class="n">$</span> <span class="n">echo</span> <span class="nc">$AKKA_HOME</span>
+<span class="o">/</span><span class="nc">Users</span><span class="o">/</span><span class="n">jboner</span><span class="o">/</span><span class="n">tools</span><span class="o">/</span><span class="n">akka</span><span class="o">-</span><span class="n">actors</span><span class="o">-</span><span class="mf">1.2</span>
+</pre></div>
+</div>
+<p>The distribution looks like this:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="n">$</span> <span class="n">ls</span> <span class="o">-</span><span class="mi">1</span>
+<span class="n">config</span>
+<span class="n">doc</span>
+<span class="n">lib</span>
+<span class="n">src</span>
+</pre></div>
+</div>
+<ul class="simple">
+<li>In the <tt class="docutils literal"><span class="pre">config</span></tt> directory we have the Akka conf files.</li>
+<li>In the <tt class="docutils literal"><span class="pre">doc</span></tt> directory we have the documentation, API, doc JARs, and also
+the source files for the tutorials.</li>
+<li>In the <tt class="docutils literal"><span class="pre">lib</span></tt> directory we have the Scala and Akka JARs.</li>
+<li>In the <tt class="docutils literal"><span class="pre">src</span></tt> directory we have the source JARs for Akka.</li>
+</ul>
+<p>The only JAR we will need for this tutorial (apart from the
+<tt class="docutils literal"><span class="pre">scala-library.jar</span></tt> JAR) is the <tt class="docutils literal"><span class="pre">akka-actor-1.2.jar</span></tt> JAR in the <tt class="docutils literal"><span class="pre">lib/akka</span></tt>
+directory. This is a self-contained JAR with zero dependencies and contains
+everything we need to write a system using Actors.</p>
+<p>Akka is very modular and has many JARs for containing different features. The core distribution has seven modules:</p>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">akka-actor-1.2.jar</span></tt> &#8211; Standard Actors</li>
+<li><tt class="docutils literal"><span class="pre">akka-typed-actor-1.2.jar</span></tt> &#8211; Typed Actors</li>
+<li><tt class="docutils literal"><span class="pre">akka-remote-1.2.jar</span></tt> &#8211; Remote Actors</li>
+<li><tt class="docutils literal"><span class="pre">akka-stm-1.2.jar</span></tt> &#8211; STM (Software Transactional Memory), transactors and transactional datastructures</li>
+<li><tt class="docutils literal"><span class="pre">akka-http-1.2.jar</span></tt> &#8211; Akka Mist for continuation-based asynchronous HTTP and also Jersey integration</li>
+<li><tt class="docutils literal"><span class="pre">akka-slf4j-1.2.jar</span></tt> &#8211; SLF4J Event Handler Listener for logging with SLF4J</li>
+<li><tt class="docutils literal"><span class="pre">akka-testkit-1.2.jar</span></tt> &#8211; Toolkit for testing Actors</li>
+</ul>
+<p>We also have Akka Modules containing add-on modules outside the core of
+Akka. You can download the Akka Modules distribution from <a class="reference external" href="https://akka.io/downloads/">https://akka.io/downloads/</a>. It contains Akka
+core as well. We will not be needing any modules there today, but for your
+information the module JARs are these:</p>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">akka-kernel-1.2.jar</span></tt> &#8211; Akka microkernel for running a bare-bones mini application server (embeds Jetty etc.)</li>
+<li><tt class="docutils literal"><span class="pre">akka-amqp-1.2.jar</span></tt> &#8211; AMQP integration</li>
+<li><tt class="docutils literal"><span class="pre">akka-camel-1.2.jar</span></tt> &#8211; Apache Camel Actors integration (it&#8217;s the best way to have your Akka application communicate with the rest of the world)</li>
+<li><tt class="docutils literal"><span class="pre">akka-camel-typed-1.2.jar</span></tt> &#8211; Apache Camel Typed Actors integration</li>
+<li><tt class="docutils literal"><span class="pre">akka-scalaz-1.2.jar</span></tt> &#8211; Support for the Scalaz library</li>
+<li><tt class="docutils literal"><span class="pre">akka-spring-1.2.jar</span></tt> &#8211; Spring framework integration</li>
+<li><tt class="docutils literal"><span class="pre">akka-osgi-dependencies-bundle-1.2.jar</span></tt> &#8211; OSGi support</li>
+</ul>
+</div>
+<div class="section" id="downloading-and-installing-maven">
+<h2>Downloading and installing Maven<a class="headerlink" href="#downloading-and-installing-maven" title="Permalink to this headline">¶</a></h2>
+<p>Maven is an excellent build system that can be used to build both Java and Scala projects. If you want to use Maven for this tutorial then follow the following instructions, if not you can skip this section and the next.</p>
+<p>First browse to <a class="reference external" href="http://maven.apache.org/download.html">http://maven.apache.org/download.html</a> and download the <tt class="docutils literal"><span class="pre">3.0.3</span></tt> distribution.</p>
+<p>To install Maven it is easiest to follow the instructions on <a class="reference external" href="http://maven.apache.org/download.html#Installation">http://maven.apache.org/download.html#Installation</a>.</p>
+</div>
+<div class="section" id="creating-an-akka-maven-project">
+<h2>Creating an Akka Maven project<a class="headerlink" href="#creating-an-akka-maven-project" title="Permalink to this headline">¶</a></h2>
+<p>If you have not already done so, now is the time to create a Maven project for our tutorial. You do that by stepping into the directory you want to create your project in and invoking the <tt class="docutils literal"><span class="pre">mvn</span></tt> command:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="n">$</span> <span class="n">mvn</span> <span class="n">archetype</span><span class="k">:</span><span class="kt">generate</span> <span class="kt">\</span>
+    <span class="o">-</span><span class="nc">DgroupId</span><span class="o">=</span><span class="n">akka</span><span class="o">.</span><span class="n">tutorial</span><span class="o">.</span><span class="n">first</span><span class="o">.</span><span class="n">java</span> <span class="o">\</span>
+    <span class="o">-</span><span class="nc">DartifactId</span><span class="o">=</span><span class="n">akka</span><span class="o">-</span><span class="n">tutorial</span><span class="o">-</span><span class="n">first</span><span class="o">-</span><span class="n">java</span> <span class="o">\</span>
+    <span class="o">-</span><span class="nc">DarchetypeArtifactId</span><span class="o">=</span><span class="n">maven</span><span class="o">-</span><span class="n">archetype</span><span class="o">-</span><span class="n">quickstart</span> <span class="o">\</span>
+    <span class="o">-</span><span class="nc">DinteractiveMode</span><span class="o">=</span><span class="kc">false</span>
+</pre></div>
+</div>
+<p>Now we have the basis for our Maven-based Akka project. Let&#8217;s step into the project directory:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="n">$</span> <span class="n">cd</span> <span class="n">akka</span><span class="o">-</span><span class="n">tutorial</span><span class="o">-</span><span class="n">first</span><span class="o">-</span><span class="n">java</span>
+</pre></div>
+</div>
+<p>Here is the layout that Maven created:</p>
+<div class="highlight-scala"><pre>akka-tutorial-first-jboner
+|-- pom.xml
+`-- src
+    |-- main
+    |   `-- java
+    |       `-- akka
+    |           `-- tutorial
+    |               `-- first
+    |                   `-- java
+    |                       `-- App.java</pre>
+</div>
+<p>As you can see we already have a Java source file called <tt class="docutils literal"><span class="pre">App.java</span></tt>, let&#8217;s now rename it to <tt class="docutils literal"><span class="pre">Pi.java</span></tt>.</p>
+<p>We also need to edit the <tt class="docutils literal"><span class="pre">pom.xml</span></tt> build file. Let&#8217;s add the dependency we need as well as the Maven repository it should download it from. The Akka Maven repository can be found at <a class="reference external" href="https://akka.io/repository">https://akka.io/repository</a>
+and Typesafe provides <a class="reference external" href="http://repo.typesafe.com/typesafe/releases/">http://repo.typesafe.com/typesafe/releases/</a> that proxies several other repositories, including akka.io.
+It should now look something like this:</p>
+<div class="highlight-xml"><div class="highlight"><pre><span class="cp">&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;</span>
+<span class="nt">&lt;project</span> <span class="na">xmlns=</span><span class="s">&quot;http://maven.apache.org/POM/4.0.0&quot;</span>
+         <span class="na">xmlns:xsi=</span><span class="s">&quot;http://www.w3.org/2001/XMLSchema-instance&quot;</span>
+         <span class="na">xsi:schemaLocation=</span><span class="s">&quot;http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd&quot;</span><span class="nt">&gt;</span>
+    <span class="nt">&lt;modelVersion&gt;</span>4.0.0<span class="nt">&lt;/modelVersion&gt;</span>
+
+    <span class="nt">&lt;name&gt;</span>akka-tutorial-first-java<span class="nt">&lt;/name&gt;</span>
+    <span class="nt">&lt;groupId&gt;</span>akka.tutorial.first.java<span class="nt">&lt;/groupId&gt;</span>
+    <span class="nt">&lt;artifactId&gt;</span>akka-tutorial-first-java<span class="nt">&lt;/artifactId&gt;</span>
+    <span class="nt">&lt;packaging&gt;</span>jar<span class="nt">&lt;/packaging&gt;</span>
+    <span class="nt">&lt;version&gt;</span>1.0-SNAPSHOT<span class="nt">&lt;/version&gt;</span>
+    <span class="nt">&lt;url&gt;</span>https://akka.io<span class="nt">&lt;/url&gt;</span>
+
+    <span class="nt">&lt;dependencies&gt;</span>
+        <span class="nt">&lt;dependency&gt;</span>
+            <span class="nt">&lt;groupId&gt;</span>se.scalablesolutions.akka<span class="nt">&lt;/groupId&gt;</span>
+            <span class="nt">&lt;artifactId&gt;</span>akka-actor<span class="nt">&lt;/artifactId&gt;</span>
+            <span class="nt">&lt;version&gt;</span>1.2<span class="nt">&lt;/version&gt;</span>
+        <span class="nt">&lt;/dependency&gt;</span>
+    <span class="nt">&lt;/dependencies&gt;</span>
+
+    <span class="nt">&lt;repositories&gt;</span>
+        <span class="nt">&lt;repository&gt;</span>
+            <span class="nt">&lt;id&gt;</span>typesafe<span class="nt">&lt;/id&gt;</span>
+            <span class="nt">&lt;name&gt;</span>Typesafe Repository<span class="nt">&lt;/name&gt;</span>
+            <span class="nt">&lt;url&gt;</span>http://repo.typesafe.com/typesafe/releases/<span class="nt">&lt;/url&gt;</span>
+        <span class="nt">&lt;/repository&gt;</span>
+    <span class="nt">&lt;/repositories&gt;</span>
+
+    <span class="nt">&lt;build&gt;</span>
+        <span class="nt">&lt;plugins&gt;</span>
+            <span class="nt">&lt;plugin&gt;</span>
+                <span class="nt">&lt;groupId&gt;</span>org.apache.maven.plugins<span class="nt">&lt;/groupId&gt;</span>
+                <span class="nt">&lt;artifactId&gt;</span>maven-compiler-plugin<span class="nt">&lt;/artifactId&gt;</span>
+                <span class="nt">&lt;version&gt;</span>2.3.2<span class="nt">&lt;/version&gt;</span>
+                <span class="nt">&lt;configuration&gt;</span>
+                    <span class="nt">&lt;source&gt;</span>1.6<span class="nt">&lt;/source&gt;</span>
+                    <span class="nt">&lt;target&gt;</span>1.6<span class="nt">&lt;/target&gt;</span>
+                <span class="nt">&lt;/configuration&gt;</span>
+            <span class="nt">&lt;/plugin&gt;</span>
+        <span class="nt">&lt;/plugins&gt;</span>
+    <span class="nt">&lt;/build&gt;</span>
+<span class="nt">&lt;/project&gt;</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="start-writing-the-code">
+<h2>Start writing the code<a class="headerlink" href="#start-writing-the-code" title="Permalink to this headline">¶</a></h2>
+<p>Now it&#8217;s about time to start hacking.</p>
+<p>We start by creating a <tt class="docutils literal"><span class="pre">Pi.java</span></tt> file and adding these import statements at the top of the file:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">package</span> <span class="nn">akka.tutorial.first.java</span><span class="o">;</span>
+
+<span class="k">import</span> <span class="nn">static</span> <span class="n">akka</span><span class="o">.</span><span class="n">actor</span><span class="o">.</span><span class="nc">Actors</span><span class="o">.</span><span class="n">actorOf</span><span class="o">;</span>
+<span class="k">import</span> <span class="nn">static</span> <span class="n">akka</span><span class="o">.</span><span class="n">actor</span><span class="o">.</span><span class="nc">Actors</span><span class="o">.</span><span class="n">poisonPill</span><span class="o">;</span>
+<span class="k">import</span> <span class="nn">static</span> <span class="n">java</span><span class="o">.</span><span class="n">util</span><span class="o">.</span><span class="nc">Arrays</span><span class="o">.</span><span class="n">asList</span><span class="o">;</span>
+
+<span class="k">import</span> <span class="nn">akka.actor.ActorRef</span><span class="o">;</span>
+<span class="k">import</span> <span class="nn">akka.actor.UntypedActor</span><span class="o">;</span>
+<span class="k">import</span> <span class="nn">akka.actor.UntypedActorFactory</span><span class="o">;</span>
+<span class="k">import</span> <span class="nn">akka.routing.CyclicIterator</span><span class="o">;</span>
+<span class="k">import</span> <span class="nn">akka.routing.InfiniteIterator</span><span class="o">;</span>
+<span class="k">import</span> <span class="nn">akka.routing.Routing.Broadcast</span><span class="o">;</span>
+<span class="k">import</span> <span class="nn">akka.routing.UntypedLoadBalancer</span><span class="o">;</span>
+
+<span class="k">import</span> <span class="nn">java.util.concurrent.CountDownLatch</span><span class="o">;</span>
+</pre></div>
+</div>
+<p>If you are using Maven in this tutorial then create the file in the <tt class="docutils literal"><span class="pre">src/main/java/akka/tutorial/first/java</span></tt> directory.</p>
+<p>If you are using the command line tools then create the file wherever you want. I will create it in a directory called <tt class="docutils literal"><span class="pre">tutorial</span></tt> at the root of the Akka distribution, e.g. in <tt class="docutils literal"><span class="pre">$AKKA_HOME/tutorial/akka/tutorial/first/java/Pi.java</span></tt>.</p>
+</div>
+<div class="section" id="creating-the-messages">
+<h2>Creating the messages<a class="headerlink" href="#creating-the-messages" title="Permalink to this headline">¶</a></h2>
+<p>The design we are aiming for is to have one <tt class="docutils literal"><span class="pre">Master</span></tt> actor initiating the computation, creating a set of <tt class="docutils literal"><span class="pre">Worker</span></tt> actors. Then it splits up the work into discrete chunks, and sends these chunks to the different workers in a round-robin fashion. The master waits until all the workers have completed their work and sent back results for aggregation. When computation is completed the master prints out the result, shuts down all workers and then itself.</p>
+<p>With this in mind, let&#8217;s now create the messages that we want to have flowing in the system. We need three different messages:</p>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">Calculate</span></tt> &#8211; sent to the <tt class="docutils literal"><span class="pre">Master</span></tt> actor to start the calculation</li>
+<li><tt class="docutils literal"><span class="pre">Work</span></tt> &#8211; sent from the <tt class="docutils literal"><span class="pre">Master</span></tt> actor to the <tt class="docutils literal"><span class="pre">Worker</span></tt> actors containing the work assignment</li>
+<li><tt class="docutils literal"><span class="pre">Result</span></tt> &#8211; sent from the <tt class="docutils literal"><span class="pre">Worker</span></tt> actors to the <tt class="docutils literal"><span class="pre">Master</span></tt> actor containing the result from the worker&#8217;s calculation</li>
+</ul>
+<p>Messages sent to actors should always be immutable to avoid sharing mutable state. So let&#8217;s start by creating three messages as immutable POJOs. We also create a wrapper <tt class="docutils literal"><span class="pre">Pi</span></tt> class to hold our implementation:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="n">public</span> <span class="k">class</span> <span class="nc">Pi</span> <span class="o">{</span>
+
+  <span class="n">static</span> <span class="k">class</span> <span class="nc">Calculate</span> <span class="o">{}</span>
+
+  <span class="n">static</span> <span class="k">class</span> <span class="nc">Work</span> <span class="o">{</span>
+    <span class="k">private</span> <span class="k">final</span> <span class="n">int</span> <span class="n">start</span><span class="o">;</span>
+    <span class="k">private</span> <span class="k">final</span> <span class="n">int</span> <span class="n">nrOfElements</span><span class="o">;</span>
+
+    <span class="n">public</span> <span class="nc">Work</span><span class="o">(</span><span class="n">int</span> <span class="n">start</span><span class="o">,</span> <span class="n">int</span> <span class="n">nrOfElements</span><span class="o">)</span> <span class="o">{</span>
+      <span class="k">this</span><span class="o">.</span><span class="n">start</span> <span class="k">=</span> <span class="n">start</span><span class="o">;</span>
+      <span class="k">this</span><span class="o">.</span><span class="n">nrOfElements</span> <span class="k">=</span> <span class="n">nrOfElements</span><span class="o">;</span>
+    <span class="o">}</span>
+
+    <span class="n">public</span> <span class="n">int</span> <span class="n">getStart</span><span class="o">()</span> <span class="o">{</span> <span class="k">return</span> <span class="n">start</span><span class="o">;</span> <span class="o">}</span>
+    <span class="n">public</span> <span class="n">int</span> <span class="n">getNrOfElements</span><span class="o">()</span> <span class="o">{</span> <span class="k">return</span> <span class="n">nrOfElements</span><span class="o">;</span> <span class="o">}</span>
+  <span class="o">}</span>
+
+  <span class="n">static</span> <span class="k">class</span> <span class="nc">Result</span> <span class="o">{</span>
+    <span class="k">private</span> <span class="k">final</span> <span class="n">double</span> <span class="n">value</span><span class="o">;</span>
+
+    <span class="n">public</span> <span class="nc">Result</span><span class="o">(</span><span class="n">double</span> <span class="n">value</span><span class="o">)</span> <span class="o">{</span>
+      <span class="k">this</span><span class="o">.</span><span class="n">value</span> <span class="k">=</span> <span class="n">value</span><span class="o">;</span>
+    <span class="o">}</span>
+
+    <span class="n">public</span> <span class="n">double</span> <span class="n">getValue</span><span class="o">()</span> <span class="o">{</span> <span class="k">return</span> <span class="n">value</span><span class="o">;</span> <span class="o">}</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="creating-the-worker">
+<h2>Creating the worker<a class="headerlink" href="#creating-the-worker" title="Permalink to this headline">¶</a></h2>
+<p>Now we can create the worker actor.  This is done by extending in the <tt class="docutils literal"><span class="pre">UntypedActor</span></tt> base class and defining the <tt class="docutils literal"><span class="pre">onReceive</span></tt> method. The <tt class="docutils literal"><span class="pre">onReceive</span></tt> method defines our message handler. We expect it to be able to handle the <tt class="docutils literal"><span class="pre">Work</span></tt> message so we need to add a handler for this message:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="n">static</span> <span class="k">class</span> <span class="nc">Worker</span> <span class="k">extends</span> <span class="nc">UntypedActor</span> <span class="o">{</span>
+
+  <span class="c1">// message handler</span>
+  <span class="n">public</span> <span class="n">void</span> <span class="n">onReceive</span><span class="o">(</span><span class="nc">Object</span> <span class="n">message</span><span class="o">)</span> <span class="o">{</span>
+    <span class="k">if</span> <span class="o">(</span><span class="n">message</span> <span class="n">instanceof</span> <span class="nc">Work</span><span class="o">)</span> <span class="o">{</span>
+      <span class="nc">Work</span> <span class="n">work</span> <span class="k">=</span> <span class="o">(</span><span class="nc">Work</span><span class="o">)</span> <span class="n">message</span><span class="o">;</span>
+
+      <span class="c1">// perform the work</span>
+      <span class="n">double</span> <span class="n">result</span> <span class="k">=</span> <span class="n">calculatePiFor</span><span class="o">(</span><span class="n">work</span><span class="o">.</span><span class="n">getStart</span><span class="o">(),</span> <span class="n">work</span><span class="o">.</span><span class="n">getNrOfElements</span><span class="o">());</span>
+
+      <span class="c1">// reply with the result</span>
+      <span class="n">getContext</span><span class="o">().</span><span class="n">replyUnsafe</span><span class="o">(</span><span class="k">new</span> <span class="nc">Result</span><span class="o">(</span><span class="n">result</span><span class="o">));</span>
+
+    <span class="o">}</span> <span class="k">else</span> <span class="k">throw</span> <span class="k">new</span> <span class="nc">IllegalArgumentException</span><span class="o">(</span><span class="s">&quot;Unknown message [&quot;</span> <span class="o">+</span> <span class="n">message</span> <span class="o">+</span> <span class="s">&quot;]&quot;</span><span class="o">);</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<p>As you can see we have now created an <tt class="docutils literal"><span class="pre">UntypedActor</span></tt> with a <tt class="docutils literal"><span class="pre">onReceive</span></tt> method as a handler for the <tt class="docutils literal"><span class="pre">Work</span></tt> message. In this handler we invoke the <tt class="docutils literal"><span class="pre">calculatePiFor(..)</span></tt> method, wrap the result in a <tt class="docutils literal"><span class="pre">Result</span></tt> message and send it back to the original sender using <tt class="docutils literal"><span class="pre">getContext().replyUnsafe(..)</span></tt>. In Akka the sender reference is implicitly passed along with the message so that the receiver can always reply or store away the sender reference for future use.</p>
+<p>The only thing missing in our <tt class="docutils literal"><span class="pre">Worker</span></tt> actor is the implementation on the <tt class="docutils literal"><span class="pre">calculatePiFor(..)</span></tt> method:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="c1">// define the work</span>
+<span class="k">private</span> <span class="n">double</span> <span class="n">calculatePiFor</span><span class="o">(</span><span class="n">int</span> <span class="n">start</span><span class="o">,</span> <span class="n">int</span> <span class="n">nrOfElements</span><span class="o">)</span> <span class="o">{</span>
+  <span class="n">double</span> <span class="n">acc</span> <span class="k">=</span> <span class="mf">0.0</span><span class="o">;</span>
+  <span class="k">for</span> <span class="o">(</span><span class="n">int</span> <span class="n">i</span> <span class="k">=</span> <span class="n">start</span> <span class="o">*</span> <span class="n">nrOfElements</span><span class="o">;</span> <span class="n">i</span> <span class="o">&lt;=</span> <span class="o">((</span><span class="n">start</span> <span class="o">+</span> <span class="mi">1</span><span class="o">)</span> <span class="o">*</span> <span class="n">nrOfElements</span> <span class="o">-</span> <span class="mi">1</span><span class="o">);</span> <span class="n">i</span><span class="o">++)</span> <span class="o">{</span>
+    <span class="n">acc</span> <span class="o">+=</span> <span class="mf">4.0</span> <span class="o">*</span> <span class="o">(</span><span class="mi">1</span> <span class="o">-</span> <span class="o">(</span><span class="n">i</span> <span class="o">%</span> <span class="mi">2</span><span class="o">)</span> <span class="o">*</span> <span class="mi">2</span><span class="o">)</span> <span class="o">/</span> <span class="o">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="o">);</span>
+  <span class="o">}</span>
+  <span class="k">return</span> <span class="n">acc</span><span class="o">;</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="creating-the-master">
+<h2>Creating the master<a class="headerlink" href="#creating-the-master" title="Permalink to this headline">¶</a></h2>
+<p>The master actor is a little bit more involved. In its constructor we need to create the workers (the <tt class="docutils literal"><span class="pre">Worker</span></tt> actors) and start them. We will also wrap them in a load-balancing router to make it easier to spread out the work evenly between the workers. Let&#8217;s do that first:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="n">static</span> <span class="k">class</span> <span class="nc">Master</span> <span class="k">extends</span> <span class="nc">UntypedActor</span> <span class="o">{</span>
+  <span class="o">...</span>
+
+  <span class="n">static</span> <span class="k">class</span> <span class="nc">PiRouter</span> <span class="k">extends</span> <span class="nc">UntypedLoadBalancer</span> <span class="o">{</span>
+    <span class="k">private</span> <span class="k">final</span> <span class="nc">InfiniteIterator</span><span class="o">&lt;</span><span class="nc">ActorRef</span><span class="o">&gt;</span> <span class="n">workers</span><span class="o">;</span>
+
+    <span class="n">public</span> <span class="nc">PiRouter</span><span class="o">(</span><span class="nc">ActorRef</span><span class="o">[]</span> <span class="n">workers</span><span class="o">)</span> <span class="o">{</span>
+      <span class="k">this</span><span class="o">.</span><span class="n">workers</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">CyclicIterator</span><span class="o">&lt;</span><span class="nc">ActorRef</span><span class="o">&gt;(</span><span class="n">asList</span><span class="o">(</span><span class="n">workers</span><span class="o">));</span>
+    <span class="o">}</span>
+
+    <span class="n">public</span> <span class="nc">InfiniteIterator</span><span class="o">&lt;</span><span class="nc">ActorRef</span><span class="o">&gt;</span> <span class="n">seq</span><span class="o">()</span> <span class="o">{</span>
+      <span class="k">return</span> <span class="n">workers</span><span class="o">;</span>
+    <span class="o">}</span>
+  <span class="o">}</span>
+
+  <span class="n">public</span> <span class="nc">Master</span><span class="o">(...)</span> <span class="o">{</span>
+    <span class="o">...</span>
+
+    <span class="c1">// create the workers</span>
+    <span class="k">final</span> <span class="nc">ActorRef</span><span class="o">[]</span> <span class="n">workers</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">ActorRef</span><span class="o">[</span><span class="kt">nrOfWorkers</span><span class="o">];</span>
+    <span class="k">for</span> <span class="o">(</span><span class="n">int</span> <span class="n">i</span> <span class="k">=</span> <span class="mi">0</span><span class="o">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">nrOfWorkers</span><span class="o">;</span> <span class="n">i</span><span class="o">++)</span> <span class="o">{</span>
+      <span class="n">workers</span><span class="o">[</span><span class="kt">i</span><span class="o">]</span> <span class="k">=</span> <span class="n">actorOf</span><span class="o">(</span><span class="nc">Worker</span><span class="o">.</span><span class="n">class</span><span class="o">).</span><span class="n">start</span><span class="o">();</span>
+    <span class="o">}</span>
+
+    <span class="c1">// wrap them with a load-balancing router</span>
+    <span class="nc">ActorRef</span> <span class="n">router</span> <span class="k">=</span> <span class="n">actorOf</span><span class="o">(</span><span class="k">new</span> <span class="nc">UntypedActorFactory</span><span class="o">()</span> <span class="o">{</span>
+      <span class="n">public</span> <span class="nc">UntypedActor</span> <span class="n">create</span><span class="o">()</span> <span class="o">{</span>
+        <span class="k">return</span> <span class="k">new</span> <span class="nc">PiRouter</span><span class="o">(</span><span class="n">workers</span><span class="o">);</span>
+      <span class="o">}</span>
+    <span class="o">}).</span><span class="n">start</span><span class="o">();</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<p>As you can see we are using the <tt class="docutils literal"><span class="pre">actorOf</span></tt> factory method to create actors, this method returns as an <tt class="docutils literal"><span class="pre">ActorRef</span></tt> which is a reference to our newly created actor.  This method is available in the <tt class="docutils literal"><span class="pre">Actors</span></tt> object but is usually imported:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">import</span> <span class="nn">static</span> <span class="n">akka</span><span class="o">.</span><span class="n">actor</span><span class="o">.</span><span class="nc">Actors</span><span class="o">.</span><span class="n">actorOf</span><span class="o">;</span>
+</pre></div>
+</div>
+<p>One thing to note is that we used two different versions of the <tt class="docutils literal"><span class="pre">actorOf</span></tt> method. For creating the <tt class="docutils literal"><span class="pre">Worker</span></tt> actor we just pass in the class but to create the <tt class="docutils literal"><span class="pre">PiRouter</span></tt> actor we can&#8217;t do that since the constructor in the <tt class="docutils literal"><span class="pre">PiRouter</span></tt> class takes arguments, instead we need to use the <tt class="docutils literal"><span class="pre">UntypedActorFactory</span></tt> which unfortunately is a bit more verbose.</p>
+<p><tt class="docutils literal"><span class="pre">actorOf</span></tt> is the only way to create an instance of an Actor, this is enforced by Akka runtime. The <tt class="docutils literal"><span class="pre">actorOf</span></tt> method instantiates the actor and returns, not an instance to the actor, but an instance to an <tt class="docutils literal"><span class="pre">ActorRef</span></tt>. This reference is the handle through which you communicate with the actor. It is immutable, serializable and location-aware meaning that it &#8220;remembers&#8221; its original actor even if it is sent to other nodes across the network and can be seen as the equivalent to the Erlang actor&#8217;s PID.</p>
+<p>The actor&#8217;s life-cycle is:</p>
+<ul class="simple">
+<li>Created &#8211; <tt class="docutils literal"><span class="pre">Actor.actorOf[MyActor]</span></tt> &#8211; can <strong>not</strong> receive messages</li>
+<li>Started &#8211; <tt class="docutils literal"><span class="pre">actorRef.start()</span></tt> &#8211; can receive messages</li>
+<li>Stopped &#8211; <tt class="docutils literal"><span class="pre">actorRef.stop()</span></tt> &#8211; can <strong>not</strong> receive messages</li>
+</ul>
+<p>Once the actor has been stopped it is dead and can not be started again.</p>
+<p>Now we have a router that is representing all our workers in a single abstraction. If you paid attention to the code above, you saw that we were using the <tt class="docutils literal"><span class="pre">nrOfWorkers</span></tt> variable. This variable and others we have to pass to the <tt class="docutils literal"><span class="pre">Master</span></tt> actor in its constructor. So now let&#8217;s create the master actor. We have to pass in three integer variables:</p>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">nrOfWorkers</span></tt> &#8211; defining how many workers we should start up</li>
+<li><tt class="docutils literal"><span class="pre">nrOfMessages</span></tt> &#8211; defining how many number chunks to send out to the workers</li>
+<li><tt class="docutils literal"><span class="pre">nrOfElements</span></tt> &#8211; defining how big the number chunks sent to each worker should be</li>
+</ul>
+<p>Here is the master actor:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="n">static</span> <span class="k">class</span> <span class="nc">Master</span> <span class="k">extends</span> <span class="nc">UntypedActor</span> <span class="o">{</span>
+  <span class="k">private</span> <span class="k">final</span> <span class="n">int</span> <span class="n">nrOfMessages</span><span class="o">;</span>
+  <span class="k">private</span> <span class="k">final</span> <span class="n">int</span> <span class="n">nrOfElements</span><span class="o">;</span>
+  <span class="k">private</span> <span class="k">final</span> <span class="nc">CountDownLatch</span> <span class="n">latch</span><span class="o">;</span>
+
+  <span class="k">private</span> <span class="n">double</span> <span class="n">pi</span><span class="o">;</span>
+  <span class="k">private</span> <span class="n">int</span> <span class="n">nrOfResults</span><span class="o">;</span>
+  <span class="k">private</span> <span class="n">long</span> <span class="n">start</span><span class="o">;</span>
+
+  <span class="k">private</span> <span class="nc">ActorRef</span> <span class="n">router</span><span class="o">;</span>
+
+  <span class="n">static</span> <span class="k">class</span> <span class="nc">PiRouter</span> <span class="k">extends</span> <span class="nc">UntypedLoadBalancer</span> <span class="o">{</span>
+    <span class="k">private</span> <span class="k">final</span> <span class="nc">InfiniteIterator</span><span class="o">&lt;</span><span class="nc">ActorRef</span><span class="o">&gt;</span> <span class="n">workers</span><span class="o">;</span>
+
+    <span class="n">public</span> <span class="nc">PiRouter</span><span class="o">(</span><span class="nc">ActorRef</span><span class="o">[]</span> <span class="n">workers</span><span class="o">)</span> <span class="o">{</span>
+      <span class="k">this</span><span class="o">.</span><span class="n">workers</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">CyclicIterator</span><span class="o">&lt;</span><span class="nc">ActorRef</span><span class="o">&gt;(</span><span class="n">asList</span><span class="o">(</span><span class="n">workers</span><span class="o">));</span>
+    <span class="o">}</span>
+
+    <span class="n">public</span> <span class="nc">InfiniteIterator</span><span class="o">&lt;</span><span class="nc">ActorRef</span><span class="o">&gt;</span> <span class="n">seq</span><span class="o">()</span> <span class="o">{</span>
+      <span class="k">return</span> <span class="n">workers</span><span class="o">;</span>
+    <span class="o">}</span>
+  <span class="o">}</span>
+
+  <span class="n">public</span> <span class="nc">Master</span><span class="o">(</span>
+    <span class="n">int</span> <span class="n">nrOfWorkers</span><span class="o">,</span> <span class="n">int</span> <span class="n">nrOfMessages</span><span class="o">,</span> <span class="n">int</span> <span class="n">nrOfElements</span><span class="o">,</span> <span class="nc">CountDownLatch</span> <span class="n">latch</span><span class="o">)</span> <span class="o">{</span>
+    <span class="k">this</span><span class="o">.</span><span class="n">nrOfMessages</span> <span class="k">=</span> <span class="n">nrOfMessages</span><span class="o">;</span>
+    <span class="k">this</span><span class="o">.</span><span class="n">nrOfElements</span> <span class="k">=</span> <span class="n">nrOfElements</span><span class="o">;</span>
+    <span class="k">this</span><span class="o">.</span><span class="n">latch</span> <span class="k">=</span> <span class="n">latch</span><span class="o">;</span>
+
+    <span class="c1">// create the workers</span>
+    <span class="k">final</span> <span class="nc">ActorRef</span><span class="o">[]</span> <span class="n">workers</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">ActorRef</span><span class="o">[</span><span class="kt">nrOfWorkers</span><span class="o">];</span>
+    <span class="k">for</span> <span class="o">(</span><span class="n">int</span> <span class="n">i</span> <span class="k">=</span> <span class="mi">0</span><span class="o">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">nrOfWorkers</span><span class="o">;</span> <span class="n">i</span><span class="o">++)</span> <span class="o">{</span>
+      <span class="n">workers</span><span class="o">[</span><span class="kt">i</span><span class="o">]</span> <span class="k">=</span> <span class="n">actorOf</span><span class="o">(</span><span class="nc">Worker</span><span class="o">.</span><span class="n">class</span><span class="o">).</span><span class="n">start</span><span class="o">();</span>
+    <span class="o">}</span>
+
+    <span class="c1">// wrap them with a load-balancing router</span>
+    <span class="n">router</span> <span class="k">=</span> <span class="n">actorOf</span><span class="o">(</span><span class="k">new</span> <span class="nc">UntypedActorFactory</span><span class="o">()</span> <span class="o">{</span>
+      <span class="n">public</span> <span class="nc">UntypedActor</span> <span class="n">create</span><span class="o">()</span> <span class="o">{</span>
+        <span class="k">return</span> <span class="k">new</span> <span class="nc">PiRouter</span><span class="o">(</span><span class="n">workers</span><span class="o">);</span>
+      <span class="o">}</span>
+    <span class="o">}).</span><span class="n">start</span><span class="o">();</span>
+  <span class="o">}</span>
+
+  <span class="c1">// message handler</span>
+  <span class="n">public</span> <span class="n">void</span> <span class="n">onReceive</span><span class="o">(</span><span class="nc">Object</span> <span class="n">message</span><span class="o">)</span> <span class="o">{</span> <span class="o">...</span> <span class="o">}</span>
+
+  <span class="nd">@Override</span>
+  <span class="n">public</span> <span class="n">void</span> <span class="n">preStart</span><span class="o">()</span> <span class="o">{</span>
+    <span class="n">start</span> <span class="k">=</span> <span class="nc">System</span><span class="o">.</span><span class="n">currentTimeMillis</span><span class="o">();</span>
+  <span class="o">}</span>
+
+  <span class="nd">@Override</span>
+  <span class="n">public</span> <span class="n">void</span> <span class="n">postStop</span><span class="o">()</span> <span class="o">{</span>
+    <span class="c1">// tell the world that the calculation is complete</span>
+     <span class="nc">System</span><span class="o">.</span><span class="n">out</span><span class="o">.</span><span class="n">println</span><span class="o">(</span><span class="nc">String</span><span class="o">.</span><span class="n">format</span><span class="o">(</span>
+       <span class="s">&quot;\n\tPi estimate: \t\t%s\n\tCalculation time: \t%s millis&quot;</span><span class="o">,</span>
+       <span class="n">pi</span><span class="o">,</span> <span class="o">(</span><span class="nc">System</span><span class="o">.</span><span class="n">currentTimeMillis</span><span class="o">()</span> <span class="o">-</span> <span class="n">start</span><span class="o">)));</span>
+    <span class="n">latch</span><span class="o">.</span><span class="n">countDown</span><span class="o">();</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<p>A couple of things are worth explaining further.</p>
+<p>First, we are passing in a <tt class="docutils literal"><span class="pre">java.util.concurrent.CountDownLatch</span></tt> to the <tt class="docutils literal"><span class="pre">Master</span></tt> actor. This latch is only used for plumbing (in this specific tutorial), to have a simple way of letting the outside world knowing when the master can deliver the result and shut down. In more idiomatic Akka code, as we will see in part two of this tutorial series, we would not use a latch but other abstractions and functions like <tt class="docutils literal"><span class="pre">Channel</span></tt>, <tt class="docutils literal"><span class="pre">Future</span></tt> and <tt class="docutils literal"><span class="pre">sendRequestReplyFuture</span></tt> to achieve the same thing in a non-blocking way. But for simplicity let&#8217;s stick to a <tt class="docutils literal"><span class="pre">CountDownLatch</span></tt> for now.</p>
+<p>Second, we are adding a couple of life-cycle callback methods; <tt class="docutils literal"><span class="pre">preStart</span></tt> and <tt class="docutils literal"><span class="pre">postStop</span></tt>. In the <tt class="docutils literal"><span class="pre">preStart</span></tt> callback we are recording the time when the actor is started and in the <tt class="docutils literal"><span class="pre">postStop</span></tt> callback we are printing out the result (the approximation of Pi) and the time it took to calculate it. In this call we also invoke <tt class="docutils literal"><span class="pre">latch.countDown()</span></tt> to tell the outside world that we are done.</p>
+<p>But we are not done yet. We are missing the message handler for the <tt class="docutils literal"><span class="pre">Master</span></tt> actor. This message handler needs to be able to react to two different messages:</p>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">Calculate</span></tt> &#8211; which should start the calculation</li>
+<li><tt class="docutils literal"><span class="pre">Result</span></tt> &#8211; which should aggregate the different results</li>
+</ul>
+<p>The <tt class="docutils literal"><span class="pre">Calculate</span></tt> handler is sending out work to all the <tt class="docutils literal"><span class="pre">Worker</span></tt> actors and after doing that it also sends a <tt class="docutils literal"><span class="pre">new</span> <span class="pre">Broadcast(poisonPill())</span></tt> message to the router, which will send out the <tt class="docutils literal"><span class="pre">PoisonPill</span></tt> message to all the actors it is representing (in our case all the <tt class="docutils literal"><span class="pre">Worker</span></tt> actors). <tt class="docutils literal"><span class="pre">PoisonPill</span></tt> is a special kind of message that tells the receiver to shut itself down using the normal shutdown method; <tt class="docutils literal"><span class="pre">getContext().stop()</span></tt>, and is created through the <tt class="docutils literal"><span class="pre">poisonPill()</span></tt> method. We also send a <tt class="docutils literal"><span class="pre">PoisonPill</span></tt> to the router itself (since it&#8217;s also an actor that we want to shut down).</p>
+<p>The <tt class="docutils literal"><span class="pre">Result</span></tt> handler is simpler, here we get the value from the <tt class="docutils literal"><span class="pre">Result</span></tt> message and aggregate it to our <tt class="docutils literal"><span class="pre">pi</span></tt> member variable. We also keep track of how many results we have received back, and if that matches the number of tasks sent out, the <tt class="docutils literal"><span class="pre">Master</span></tt> actor considers itself done and shuts down.</p>
+<p>Let&#8217;s capture this in code:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="c1">// message handler</span>
+<span class="n">public</span> <span class="n">void</span> <span class="n">onReceive</span><span class="o">(</span><span class="nc">Object</span> <span class="n">message</span><span class="o">)</span> <span class="o">{</span>
+
+  <span class="k">if</span> <span class="o">(</span><span class="n">message</span> <span class="n">instanceof</span> <span class="nc">Calculate</span><span class="o">)</span> <span class="o">{</span>
+    <span class="c1">// schedule work</span>
+    <span class="k">for</span> <span class="o">(</span><span class="n">int</span> <span class="n">start</span> <span class="k">=</span> <span class="mi">0</span><span class="o">;</span> <span class="n">start</span> <span class="o">&lt;</span> <span class="n">nrOfMessages</span><span class="o">;</span> <span class="n">start</span><span class="o">++)</span> <span class="o">{</span>
+      <span class="n">router</span><span class="o">.</span><span class="n">tell</span><span class="o">(</span><span class="k">new</span> <span class="nc">Work</span><span class="o">(</span><span class="n">start</span><span class="o">,</span> <span class="n">nrOfElements</span><span class="o">),</span> <span class="n">getContext</span><span class="o">());</span>
+    <span class="o">}</span>
+
+    <span class="c1">// send a PoisonPill to all workers telling them to shut down themselves</span>
+    <span class="n">router</span><span class="o">.</span><span class="n">tell</span><span class="o">(</span><span class="k">new</span> <span class="nc">Broadcast</span><span class="o">(</span><span class="n">poisonPill</span><span class="o">()));</span>
+
+    <span class="c1">// send a PoisonPill to the router, telling him to shut himself down</span>
+    <span class="n">router</span><span class="o">.</span><span class="n">tell</span><span class="o">(</span><span class="n">poisonPill</span><span class="o">());</span>
+
+  <span class="o">}</span> <span class="k">else</span> <span class="k">if</span> <span class="o">(</span><span class="n">message</span> <span class="n">instanceof</span> <span class="nc">Result</span><span class="o">)</span> <span class="o">{</span>
+
+    <span class="c1">// handle result from the worker</span>
+    <span class="nc">Result</span> <span class="n">result</span> <span class="k">=</span> <span class="o">(</span><span class="nc">Result</span><span class="o">)</span> <span class="n">message</span><span class="o">;</span>
+    <span class="n">pi</span> <span class="o">+=</span> <span class="n">result</span><span class="o">.</span><span class="n">getValue</span><span class="o">();</span>
+    <span class="n">nrOfResults</span> <span class="o">+=</span> <span class="mi">1</span><span class="o">;</span>
+    <span class="k">if</span> <span class="o">(</span><span class="n">nrOfResults</span> <span class="o">==</span> <span class="n">nrOfMessages</span><span class="o">)</span> <span class="n">getContext</span><span class="o">().</span><span class="n">stop</span><span class="o">();</span>
+
+  <span class="o">}</span> <span class="k">else</span> <span class="k">throw</span> <span class="k">new</span> <span class="nc">IllegalArgumentException</span><span class="o">(</span><span class="s">&quot;Unknown message [&quot;</span> <span class="o">+</span> <span class="n">message</span> <span class="o">+</span> <span class="s">&quot;]&quot;</span><span class="o">);</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="bootstrap-the-calculation">
+<h2>Bootstrap the calculation<a class="headerlink" href="#bootstrap-the-calculation" title="Permalink to this headline">¶</a></h2>
+<p>Now the only thing that is left to implement is the runner that should bootstrap and run the calculation for us. We do that by adding a <tt class="docutils literal"><span class="pre">main</span></tt> method to the enclosing <tt class="docutils literal"><span class="pre">Pi</span></tt> class in which we create a new instance of <tt class="docutils literal"><span class="pre">Pi</span></tt> and invoke method <tt class="docutils literal"><span class="pre">calculate</span></tt> in which we start up the <tt class="docutils literal"><span class="pre">Master</span></tt> actor and wait for it to finish:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="n">public</span> <span class="k">class</span> <span class="nc">Pi</span> <span class="o">{</span>
+
+  <span class="n">public</span> <span class="n">static</span> <span class="n">void</span> <span class="n">main</span><span class="o">(</span><span class="nc">String</span><span class="o">[]</span> <span class="n">args</span><span class="o">)</span> <span class="n">throws</span> <span class="nc">Exception</span> <span class="o">{</span>
+    <span class="nc">Pi</span> <span class="n">pi</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">Pi</span><span class="o">();</span>
+    <span class="n">pi</span><span class="o">.</span><span class="n">calculate</span><span class="o">(</span><span class="mi">4</span><span class="o">,</span> <span class="mi">10000</span><span class="o">,</span> <span class="mi">10000</span><span class="o">);</span>
+  <span class="o">}</span>
+
+  <span class="n">public</span> <span class="n">void</span> <span class="n">calculate</span><span class="o">(</span><span class="k">final</span> <span class="n">int</span> <span class="n">nrOfWorkers</span><span class="o">,</span> <span class="k">final</span> <span class="n">int</span> <span class="n">nrOfElements</span><span class="o">,</span> <span class="k">final</span> <span class="n">int</span> <span class="n">nrOfMessages</span><span class="o">)</span>
+    <span class="n">throws</span> <span class="nc">Exception</span> <span class="o">{</span>
+
+    <span class="c1">// this latch is only plumbing to know when the calculation is completed</span>
+    <span class="k">final</span> <span class="nc">CountDownLatch</span> <span class="n">latch</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">CountDownLatch</span><span class="o">(</span><span class="mi">1</span><span class="o">);</span>
+
+    <span class="c1">// create the master</span>
+    <span class="nc">ActorRef</span> <span class="n">master</span> <span class="k">=</span> <span class="n">actorOf</span><span class="o">(</span><span class="k">new</span> <span class="nc">UntypedActorFactory</span><span class="o">()</span> <span class="o">{</span>
+      <span class="n">public</span> <span class="nc">UntypedActor</span> <span class="n">create</span><span class="o">()</span> <span class="o">{</span>
+        <span class="k">return</span> <span class="k">new</span> <span class="nc">Master</span><span class="o">(</span><span class="n">nrOfWorkers</span><span class="o">,</span> <span class="n">nrOfMessages</span><span class="o">,</span> <span class="n">nrOfElements</span><span class="o">,</span> <span class="n">latch</span><span class="o">);</span>
+      <span class="o">}</span>
+    <span class="o">}).</span><span class="n">start</span><span class="o">();</span>
+
+    <span class="c1">// start the calculation</span>
+    <span class="n">master</span><span class="o">.</span><span class="n">tell</span><span class="o">(</span><span class="k">new</span> <span class="nc">Calculate</span><span class="o">());</span>
+
+    <span class="c1">// wait for master to shut down</span>
+    <span class="n">latch</span><span class="o">.</span><span class="n">await</span><span class="o">();</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<p>That&#8217;s it. Now we are done.</p>
+<p>Before we package it up and run it, let&#8217;s take a look at the full code now, with package declaration, imports and all:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">package</span> <span class="nn">akka.tutorial.first.java</span><span class="o">;</span>
+
+<span class="k">import</span> <span class="nn">static</span> <span class="n">akka</span><span class="o">.</span><span class="n">actor</span><span class="o">.</span><span class="nc">Actors</span><span class="o">.</span><span class="n">actorOf</span><span class="o">;</span>
+<span class="k">import</span> <span class="nn">static</span> <span class="n">akka</span><span class="o">.</span><span class="n">actor</span><span class="o">.</span><span class="nc">Actors</span><span class="o">.</span><span class="n">poisonPill</span><span class="o">;</span>
+<span class="k">import</span> <span class="nn">static</span> <span class="n">java</span><span class="o">.</span><span class="n">util</span><span class="o">.</span><span class="nc">Arrays</span><span class="o">.</span><span class="n">asList</span><span class="o">;</span>
+
+<span class="k">import</span> <span class="nn">akka.actor.ActorRef</span><span class="o">;</span>
+<span class="k">import</span> <span class="nn">akka.actor.UntypedActor</span><span class="o">;</span>
+<span class="k">import</span> <span class="nn">akka.actor.UntypedActorFactory</span><span class="o">;</span>
+<span class="k">import</span> <span class="nn">akka.routing.CyclicIterator</span><span class="o">;</span>
+<span class="k">import</span> <span class="nn">akka.routing.InfiniteIterator</span><span class="o">;</span>
+<span class="k">import</span> <span class="nn">akka.routing.Routing.Broadcast</span><span class="o">;</span>
+<span class="k">import</span> <span class="nn">akka.routing.UntypedLoadBalancer</span><span class="o">;</span>
+
+<span class="k">import</span> <span class="nn">java.util.concurrent.CountDownLatch</span><span class="o">;</span>
+
+<span class="n">public</span> <span class="k">class</span> <span class="nc">Pi</span> <span class="o">{</span>
+
+  <span class="n">public</span> <span class="n">static</span> <span class="n">void</span> <span class="n">main</span><span class="o">(</span><span class="nc">String</span><span class="o">[]</span> <span class="n">args</span><span class="o">)</span> <span class="n">throws</span> <span class="nc">Exception</span> <span class="o">{</span>
+    <span class="nc">Pi</span> <span class="n">pi</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">Pi</span><span class="o">();</span>
+    <span class="n">pi</span><span class="o">.</span><span class="n">calculate</span><span class="o">(</span><span class="mi">4</span><span class="o">,</span> <span class="mi">10000</span><span class="o">,</span> <span class="mi">10000</span><span class="o">);</span>
+  <span class="o">}</span>
+
+  <span class="c1">// ====================</span>
+  <span class="c1">// ===== Messages =====</span>
+  <span class="c1">// ====================</span>
+  <span class="n">static</span> <span class="k">class</span> <span class="nc">Calculate</span> <span class="o">{}</span>
+
+  <span class="n">static</span> <span class="k">class</span> <span class="nc">Work</span> <span class="o">{</span>
+    <span class="k">private</span> <span class="k">final</span> <span class="n">int</span> <span class="n">start</span><span class="o">;</span>
+    <span class="k">private</span> <span class="k">final</span> <span class="n">int</span> <span class="n">nrOfElements</span><span class="o">;</span>
+
+    <span class="n">public</span> <span class="nc">Work</span><span class="o">(</span><span class="n">int</span> <span class="n">start</span><span class="o">,</span> <span class="n">int</span> <span class="n">nrOfElements</span><span class="o">)</span> <span class="o">{</span>
+      <span class="k">this</span><span class="o">.</span><span class="n">start</span> <span class="k">=</span> <span class="n">start</span><span class="o">;</span>
+      <span class="k">this</span><span class="o">.</span><span class="n">nrOfElements</span> <span class="k">=</span> <span class="n">nrOfElements</span><span class="o">;</span>
+    <span class="o">}</span>
+
+    <span class="n">public</span> <span class="n">int</span> <span class="n">getStart</span><span class="o">()</span> <span class="o">{</span> <span class="k">return</span> <span class="n">start</span><span class="o">;</span> <span class="o">}</span>
+    <span class="n">public</span> <span class="n">int</span> <span class="n">getNrOfElements</span><span class="o">()</span> <span class="o">{</span> <span class="k">return</span> <span class="n">nrOfElements</span><span class="o">;</span> <span class="o">}</span>
+  <span class="o">}</span>
+
+  <span class="n">static</span> <span class="k">class</span> <span class="nc">Result</span> <span class="o">{</span>
+    <span class="k">private</span> <span class="k">final</span> <span class="n">double</span> <span class="n">value</span><span class="o">;</span>
+
+    <span class="n">public</span> <span class="nc">Result</span><span class="o">(</span><span class="n">double</span> <span class="n">value</span><span class="o">)</span> <span class="o">{</span>
+      <span class="k">this</span><span class="o">.</span><span class="n">value</span> <span class="k">=</span> <span class="n">value</span><span class="o">;</span>
+    <span class="o">}</span>
+
+    <span class="n">public</span> <span class="n">double</span> <span class="n">getValue</span><span class="o">()</span> <span class="o">{</span> <span class="k">return</span> <span class="n">value</span><span class="o">;</span> <span class="o">}</span>
+  <span class="o">}</span>
+
+  <span class="c1">// ==================</span>
+  <span class="c1">// ===== Worker =====</span>
+  <span class="c1">// ==================</span>
+  <span class="n">static</span> <span class="k">class</span> <span class="nc">Worker</span> <span class="k">extends</span> <span class="nc">UntypedActor</span> <span class="o">{</span>
+
+    <span class="c1">// define the work</span>
+    <span class="k">private</span> <span class="n">double</span> <span class="n">calculatePiFor</span><span class="o">(</span><span class="n">int</span> <span class="n">start</span><span class="o">,</span> <span class="n">int</span> <span class="n">nrOfElements</span><span class="o">)</span> <span class="o">{</span>
+      <span class="n">double</span> <span class="n">acc</span> <span class="k">=</span> <span class="mf">0.0</span><span class="o">;</span>
+      <span class="k">for</span> <span class="o">(</span><span class="n">int</span> <span class="n">i</span> <span class="k">=</span> <span class="n">start</span> <span class="o">*</span> <span class="n">nrOfElements</span><span class="o">;</span> <span class="n">i</span> <span class="o">&lt;=</span> <span class="o">((</span><span class="n">start</span> <span class="o">+</span> <span class="mi">1</span><span class="o">)</span> <span class="o">*</span> <span class="n">nrOfElements</span> <span class="o">-</span> <span class="mi">1</span><span class="o">);</span> <span class="n">i</span><span class="o">++)</span> <span class="o">{</span>
+        <span class="n">acc</span> <span class="o">+=</span> <span class="mf">4.0</span> <span class="o">*</span> <span class="o">(</span><span class="mi">1</span> <span class="o">-</span> <span class="o">(</span><span class="n">i</span> <span class="o">%</span> <span class="mi">2</span><span class="o">)</span> <span class="o">*</span> <span class="mi">2</span><span class="o">)</span> <span class="o">/</span> <span class="o">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="o">);</span>
+      <span class="o">}</span>
+      <span class="k">return</span> <span class="n">acc</span><span class="o">;</span>
+    <span class="o">}</span>
+
+    <span class="c1">// message handler</span>
+    <span class="n">public</span> <span class="n">void</span> <span class="n">onReceive</span><span class="o">(</span><span class="nc">Object</span> <span class="n">message</span><span class="o">)</span> <span class="o">{</span>
+      <span class="k">if</span> <span class="o">(</span><span class="n">message</span> <span class="n">instanceof</span> <span class="nc">Work</span><span class="o">)</span> <span class="o">{</span>
+        <span class="nc">Work</span> <span class="n">work</span> <span class="k">=</span> <span class="o">(</span><span class="nc">Work</span><span class="o">)</span> <span class="n">message</span><span class="o">;</span>
+
+        <span class="c1">// perform the work</span>
+        <span class="n">double</span> <span class="n">result</span> <span class="k">=</span> <span class="n">calculatePiFor</span><span class="o">(</span><span class="n">work</span><span class="o">.</span><span class="n">getStart</span><span class="o">(),</span> <span class="n">work</span><span class="o">.</span><span class="n">getNrOfElements</span><span class="o">())</span>
+
+        <span class="c1">// reply with the result</span>
+        <span class="n">getContext</span><span class="o">().</span><span class="n">replyUnsafe</span><span class="o">(</span><span class="k">new</span> <span class="nc">Result</span><span class="o">(</span><span class="n">result</span><span class="o">));</span>
+
+      <span class="o">}</span> <span class="k">else</span> <span class="k">throw</span> <span class="k">new</span> <span class="nc">IllegalArgumentException</span><span class="o">(</span><span class="s">&quot;Unknown message [&quot;</span> <span class="o">+</span> <span class="n">message</span> <span class="o">+</span> <span class="s">&quot;]&quot;</span><span class="o">);</span>
+    <span class="o">}</span>
+  <span class="o">}</span>
+
+  <span class="c1">// ==================</span>
+  <span class="c1">// ===== Master =====</span>
+  <span class="c1">// ==================</span>
+  <span class="n">static</span> <span class="k">class</span> <span class="nc">Master</span> <span class="k">extends</span> <span class="nc">UntypedActor</span> <span class="o">{</span>
+    <span class="k">private</span> <span class="k">final</span> <span class="n">int</span> <span class="n">nrOfMessages</span><span class="o">;</span>
+    <span class="k">private</span> <span class="k">final</span> <span class="n">int</span> <span class="n">nrOfElements</span><span class="o">;</span>
+    <span class="k">private</span> <span class="k">final</span> <span class="nc">CountDownLatch</span> <span class="n">latch</span><span class="o">;</span>
+
+    <span class="k">private</span> <span class="n">double</span> <span class="n">pi</span><span class="o">;</span>
+    <span class="k">private</span> <span class="n">int</span> <span class="n">nrOfResults</span><span class="o">;</span>
+    <span class="k">private</span> <span class="n">long</span> <span class="n">start</span><span class="o">;</span>
+
+    <span class="k">private</span> <span class="nc">ActorRef</span> <span class="n">router</span><span class="o">;</span>
+
+    <span class="n">static</span> <span class="k">class</span> <span class="nc">PiRouter</span> <span class="k">extends</span> <span class="nc">UntypedLoadBalancer</span> <span class="o">{</span>
+      <span class="k">private</span> <span class="k">final</span> <span class="nc">InfiniteIterator</span><span class="o">&lt;</span><span class="nc">ActorRef</span><span class="o">&gt;</span> <span class="n">workers</span><span class="o">;</span>
+
+      <span class="n">public</span> <span class="nc">PiRouter</span><span class="o">(</span><span class="nc">ActorRef</span><span class="o">[]</span> <span class="n">workers</span><span class="o">)</span> <span class="o">{</span>
+        <span class="k">this</span><span class="o">.</span><span class="n">workers</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">CyclicIterator</span><span class="o">&lt;</span><span class="nc">ActorRef</span><span class="o">&gt;(</span><span class="n">asList</span><span class="o">(</span><span class="n">workers</span><span class="o">));</span>
+      <span class="o">}</span>
+
+      <span class="n">public</span> <span class="nc">InfiniteIterator</span><span class="o">&lt;</span><span class="nc">ActorRef</span><span class="o">&gt;</span> <span class="n">seq</span><span class="o">()</span> <span class="o">{</span>
+        <span class="k">return</span> <span class="n">workers</span><span class="o">;</span>
+      <span class="o">}</span>
+    <span class="o">}</span>
+
+    <span class="n">public</span> <span class="nc">Master</span><span class="o">(</span>
+      <span class="n">int</span> <span class="n">nrOfWorkers</span><span class="o">,</span> <span class="n">int</span> <span class="n">nrOfMessages</span><span class="o">,</span> <span class="n">int</span> <span class="n">nrOfElements</span><span class="o">,</span> <span class="nc">CountDownLatch</span> <span class="n">latch</span><span class="o">)</span> <span class="o">{</span>
+
+      <span class="k">this</span><span class="o">.</span><span class="n">nrOfMessages</span> <span class="k">=</span> <span class="n">nrOfMessages</span><span class="o">;</span>
+      <span class="k">this</span><span class="o">.</span><span class="n">nrOfElements</span> <span class="k">=</span> <span class="n">nrOfElements</span><span class="o">;</span>
+      <span class="k">this</span><span class="o">.</span><span class="n">latch</span> <span class="k">=</span> <span class="n">latch</span><span class="o">;</span>
+
+      <span class="c1">// create the workers</span>
+      <span class="k">final</span> <span class="nc">ActorRef</span><span class="o">[]</span> <span class="n">workers</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">ActorRef</span><span class="o">[</span><span class="kt">nrOfWorkers</span><span class="o">];</span>
+      <span class="k">for</span> <span class="o">(</span><span class="n">int</span> <span class="n">i</span> <span class="k">=</span> <span class="mi">0</span><span class="o">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">nrOfWorkers</span><span class="o">;</span> <span class="n">i</span><span class="o">++)</span> <span class="o">{</span>
+        <span class="n">workers</span><span class="o">[</span><span class="kt">i</span><span class="o">]</span> <span class="k">=</span> <span class="n">actorOf</span><span class="o">(</span><span class="nc">Worker</span><span class="o">.</span><span class="n">class</span><span class="o">).</span><span class="n">start</span><span class="o">();</span>
+      <span class="o">}</span>
+
+      <span class="c1">// wrap them with a load-balancing router</span>
+      <span class="n">router</span> <span class="k">=</span> <span class="n">actorOf</span><span class="o">(</span><span class="k">new</span> <span class="nc">UntypedActorFactory</span><span class="o">()</span> <span class="o">{</span>
+        <span class="n">public</span> <span class="nc">UntypedActor</span> <span class="n">create</span><span class="o">()</span> <span class="o">{</span>
+          <span class="k">return</span> <span class="k">new</span> <span class="nc">PiRouter</span><span class="o">(</span><span class="n">workers</span><span class="o">);</span>
+        <span class="o">}</span>
+      <span class="o">}).</span><span class="n">start</span><span class="o">();</span>
+    <span class="o">}</span>
+
+    <span class="c1">// message handler</span>
+    <span class="n">public</span> <span class="n">void</span> <span class="n">onReceive</span><span class="o">(</span><span class="nc">Object</span> <span class="n">message</span><span class="o">)</span> <span class="o">{</span>
+
+      <span class="k">if</span> <span class="o">(</span><span class="n">message</span> <span class="n">instanceof</span> <span class="nc">Calculate</span><span class="o">)</span> <span class="o">{</span>
+        <span class="c1">// schedule work</span>
+        <span class="k">for</span> <span class="o">(</span><span class="n">int</span> <span class="n">start</span> <span class="k">=</span> <span class="mi">0</span><span class="o">;</span> <span class="n">start</span> <span class="o">&lt;</span> <span class="n">nrOfMessages</span><span class="o">;</span> <span class="n">start</span><span class="o">++)</span> <span class="o">{</span>
+          <span class="n">router</span><span class="o">.</span><span class="n">tell</span><span class="o">(</span><span class="k">new</span> <span class="nc">Work</span><span class="o">(</span><span class="n">start</span><span class="o">,</span> <span class="n">nrOfElements</span><span class="o">),</span> <span class="n">getContext</span><span class="o">());</span>
+        <span class="o">}</span>
+
+        <span class="c1">// send a PoisonPill to all workers telling them to shut down themselves</span>
+        <span class="n">router</span><span class="o">.</span><span class="n">tell</span><span class="o">(</span><span class="k">new</span> <span class="nc">Broadcast</span><span class="o">(</span><span class="n">poisonPill</span><span class="o">()));</span>
+
+        <span class="c1">// send a PoisonPill to the router, telling him to shut himself down</span>
+        <span class="n">router</span><span class="o">.</span><span class="n">tell</span><span class="o">(</span><span class="n">poisonPill</span><span class="o">());</span>
+
+      <span class="o">}</span> <span class="k">else</span> <span class="k">if</span> <span class="o">(</span><span class="n">message</span> <span class="n">instanceof</span> <span class="nc">Result</span><span class="o">)</span> <span class="o">{</span>
+
+        <span class="c1">// handle result from the worker</span>
+        <span class="nc">Result</span> <span class="n">result</span> <span class="k">=</span> <span class="o">(</span><span class="nc">Result</span><span class="o">)</span> <span class="n">message</span><span class="o">;</span>
+        <span class="n">pi</span> <span class="o">+=</span> <span class="n">result</span><span class="o">.</span><span class="n">getValue</span><span class="o">();</span>
+        <span class="n">nrOfResults</span> <span class="o">+=</span> <span class="mi">1</span><span class="o">;</span>
+        <span class="k">if</span> <span class="o">(</span><span class="n">nrOfResults</span> <span class="o">==</span> <span class="n">nrOfMessages</span><span class="o">)</span> <span class="n">getContext</span><span class="o">().</span><span class="n">stop</span><span class="o">();</span>
+
+      <span class="o">}</span> <span class="k">else</span> <span class="k">throw</span> <span class="k">new</span> <span class="nc">IllegalArgumentException</span><span class="o">(</span><span class="s">&quot;Unknown message [&quot;</span> <span class="o">+</span> <span class="n">message</span> <span class="o">+</span> <span class="s">&quot;]&quot;</span><span class="o">);</span>
+    <span class="o">}</span>
+
+    <span class="nd">@Override</span>
+    <span class="n">public</span> <span class="n">void</span> <span class="n">preStart</span><span class="o">()</span> <span class="o">{</span>
+      <span class="n">start</span> <span class="k">=</span> <span class="nc">System</span><span class="o">.</span><span class="n">currentTimeMillis</span><span class="o">();</span>
+    <span class="o">}</span>
+
+    <span class="nd">@Override</span>
+    <span class="n">public</span> <span class="n">void</span> <span class="n">postStop</span><span class="o">()</span> <span class="o">{</span>
+      <span class="c1">// tell the world that the calculation is complete</span>
+      <span class="nc">System</span><span class="o">.</span><span class="n">out</span><span class="o">.</span><span class="n">println</span><span class="o">(</span><span class="nc">String</span><span class="o">.</span><span class="n">format</span><span class="o">(</span>
+        <span class="s">&quot;\n\tPi estimate: \t\t%s\n\tCalculation time: \t%s millis&quot;</span><span class="o">,</span>
+        <span class="n">pi</span><span class="o">,</span> <span class="o">(</span><span class="nc">System</span><span class="o">.</span><span class="n">currentTimeMillis</span><span class="o">()</span> <span class="o">-</span> <span class="n">start</span><span class="o">)));</span>
+      <span class="n">latch</span><span class="o">.</span><span class="n">countDown</span><span class="o">();</span>
+    <span class="o">}</span>
+  <span class="o">}</span>
+
+  <span class="c1">// ==================</span>
+  <span class="c1">// ===== Run it =====</span>
+  <span class="c1">// ==================</span>
+  <span class="n">public</span> <span class="n">void</span> <span class="n">calculate</span><span class="o">(</span><span class="k">final</span> <span class="n">int</span> <span class="n">nrOfWorkers</span><span class="o">,</span> <span class="k">final</span> <span class="n">int</span> <span class="n">nrOfElements</span><span class="o">,</span> <span class="k">final</span> <span class="n">int</span> <span class="n">nrOfMessages</span><span class="o">)</span>
+    <span class="n">throws</span> <span class="nc">Exception</span> <span class="o">{</span>
+
+    <span class="c1">// this latch is only plumbing to know when the calculation is completed</span>
+    <span class="k">final</span> <span class="nc">CountDownLatch</span> <span class="n">latch</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">CountDownLatch</span><span class="o">(</span><span class="mi">1</span><span class="o">);</span>
+
+    <span class="c1">// create the master</span>
+    <span class="nc">ActorRef</span> <span class="n">master</span> <span class="k">=</span> <span class="n">actorOf</span><span class="o">(</span><span class="k">new</span> <span class="nc">UntypedActorFactory</span><span class="o">()</span> <span class="o">{</span>
+      <span class="n">public</span> <span class="nc">UntypedActor</span> <span class="n">create</span><span class="o">()</span> <span class="o">{</span>
+        <span class="k">return</span> <span class="k">new</span> <span class="nc">Master</span><span class="o">(</span><span class="n">nrOfWorkers</span><span class="o">,</span> <span class="n">nrOfMessages</span><span class="o">,</span> <span class="n">nrOfElements</span><span class="o">,</span> <span class="n">latch</span><span class="o">);</span>
+      <span class="o">}</span>
+    <span class="o">}).</span><span class="n">start</span><span class="o">();</span>
+
+    <span class="c1">// start the calculation</span>
+    <span class="n">master</span><span class="o">.</span><span class="n">tell</span><span class="o">(</span><span class="k">new</span> <span class="nc">Calculate</span><span class="o">());</span>
+
+    <span class="c1">// wait for master to shut down</span>
+    <span class="n">latch</span><span class="o">.</span><span class="n">await</span><span class="o">();</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="run-it-as-a-command-line-application">
+<h2>Run it as a command line application<a class="headerlink" href="#run-it-as-a-command-line-application" title="Permalink to this headline">¶</a></h2>
+<p>If you have not typed in (or copied) the code for the tutorial as
+<tt class="docutils literal"><span class="pre">$AKKA_HOME/tutorial/akka/tutorial/first/java/Pi.java</span></tt> then now is the
+time. When that&#8217;s done open up a shell and step in to the Akka distribution
+(<tt class="docutils literal"><span class="pre">cd</span> <span class="pre">$AKKA_HOME</span></tt>).</p>
+<p>First we need to compile the source file. That is done with Java&#8217;s compiler
+<tt class="docutils literal"><span class="pre">javac</span></tt>. Our application depends on the <tt class="docutils literal"><span class="pre">akka-actor-1.2.jar</span></tt> and the
+<tt class="docutils literal"><span class="pre">scala-library.jar</span></tt> JAR files, so let&#8217;s add them to the compiler classpath
+when we compile the source:</p>
+<div class="highlight-scala"><pre>$ javac -cp lib/scala-library.jar:lib/akka/akka-actor-1.2.jar tutorial/akka/tutorial/first/java/Pi.java</pre>
+</div>
+<p>When we have compiled the source file we are ready to run the application. This
+is done with <tt class="docutils literal"><span class="pre">java</span></tt> but yet again we need to add the <tt class="docutils literal"><span class="pre">akka-actor-1.2.jar</span></tt>
+and the <tt class="docutils literal"><span class="pre">scala-library.jar</span></tt> JAR files to the classpath as well as the classes
+we compiled ourselves:</p>
+<div class="highlight-scala"><pre>$ java \
+    -cp lib/scala-library.jar:lib/akka/akka-actor-1.2.jar:tutorial \
+    akka.tutorial.java.first.Pi
+AKKA_HOME is defined as [/Users/jboner/tools/akka-actors-1.2]
+loading config from [/Users/jboner/tools/akka-actors-1.2/config/akka.conf].
+
+Pi estimate:        3.1435501812459323
+Calculation time:   822 millis</pre>
+</div>
+<p>Yippee! It is working.</p>
+<p>If you have not defined the <tt class="docutils literal"><span class="pre">AKKA_HOME</span></tt> environment variable then Akka can&#8217;t
+find the <tt class="docutils literal"><span class="pre">akka.conf</span></tt> configuration file and will print out a <tt class="docutils literal"><span class="pre">Can’t</span> <span class="pre">load</span>
+<span class="pre">akka.conf</span></tt> warning. This is ok since it will then just use the defaults.</p>
+</div>
+<div class="section" id="run-it-inside-maven">
+<h2>Run it inside Maven<a class="headerlink" href="#run-it-inside-maven" title="Permalink to this headline">¶</a></h2>
+<p>If you used Maven, then you can run the application directly inside Maven. First you need to compile the project:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="n">$</span> <span class="n">mvn</span> <span class="n">compile</span>
+</pre></div>
+</div>
+<p>When this in done we can run our application directly inside Maven:</p>
+<div class="highlight-scala"><pre>$ mvn exec:java -Dexec.mainClass="akka.tutorial.first.java.Pi"
+...
+Pi estimate:        3.1435501812459323
+Calculation time:   939 millis</pre>
+</div>
+<p>Yippee! It is working.</p>
+<p>If you have not defined an the <tt class="docutils literal"><span class="pre">AKKA_HOME</span></tt> environment variable then Akka can&#8217;t find the <tt class="docutils literal"><span class="pre">akka.conf</span></tt> configuration file and will print out a <tt class="docutils literal"><span class="pre">Can’t</span> <span class="pre">load</span> <span class="pre">akka.conf</span></tt> warning. This is ok since it will then just use the defaults.</p>
+</div>
+<div class="section" id="conclusion">
+<h2>Conclusion<a class="headerlink" href="#conclusion" title="Permalink to this headline">¶</a></h2>
+<p>We have learned how to create our first Akka project using Akka&#8217;s actors to speed up a computation-intensive problem by scaling out on multi-core processors (also known as scaling up). We have also learned to compile and run an Akka project using either the tools on the command line or the SBT build system.</p>
+<p>If you have a multi-core machine then I encourage you to try out different number of workers (number of working actors) by tweaking the <tt class="docutils literal"><span class="pre">nrOfWorkers</span></tt> variable to for example; 2, 4, 6, 8 etc. to see performance improvement by scaling up.</p>
+<p>Now we are ready to take on more advanced problems. In the next tutorial we will build on this one, refactor it into more idiomatic Akka and Scala code, and introduce a few new concepts and abstractions. Whenever you feel ready, join me in the <a class="reference external" href="TODO">Getting Started Tutorial: Second Chapter</a>.</p>
+<p>Happy hakking.</p>
+</div>
+</div>
+
+
+      </div>
+      <div class="bottomnav">
+      
+        <p>
+        «&#160;&#160;<a href="getting-started-first-scala-eclipse.html">Getting Started Tutorial (Scala with Eclipse): First Chapter</a>
+        &#160;&#160;::&#160;&#160;
+        <a class="uplink" href="../index.html">Contents</a>
+        &#160;&#160;::&#160;&#160;
+        <a href="deployment-scenarios.html">Use-case and Deployment Scenarios</a>&#160;&#160;»
+        </p>
+
+      </div>
+
+    <div class="footer">
+        &copy; Copyright 2011, Typesafe Inc.
+      Last updated on Sep 19, 2011.
+    </div>
+  </body>
+</html>

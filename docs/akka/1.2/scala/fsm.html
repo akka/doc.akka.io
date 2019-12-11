@@ -1,0 +1,600 @@
+
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>FSM &mdash; Akka Documentation</title>
+    <link rel="stylesheet" href="../_static/akka.css" type="text/css" />
+<link rel="stylesheet" href="https://doc.akka.io/docs/akka/1.2/_static/akka.css" type="text/css"/>
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/print.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '1.2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+<script type="text/javascript" src="https://doc.akka.io/docs/akka/1.2/_static/warnOldDocs.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="../_static/theme_extras.js"></script>
+    <link rel="top" title="Akka Documentation" href="../index.html" />
+    <link rel="up" title="Scala API" href="index.html" />
+    <link rel="next" title="HTTP" href="http.html" />
+    <link rel="prev" title="Routing (Scala)" href="routing.html" /> 
+  </head>
+  <body>
+      <div class="header"><a href="../index.html"><img class="leftlogo" src="../_static/logo.png" alt="Logo"/></a><h1 class="heading"><a href="../index.html"><span>Akka Documentation</span></a></h1>
+       <h2 class="heading"><a href="../index.html"><span>Version 1.2</span></a></h2>
+       <h2 class="rightheading"><span><a href="https://akka.io/docs/akka/1.2/Akka.pdf">PDF</a></span></h2>
+      </div>
+      <div class="topnav">
+      
+        <p>
+        «&#160;&#160;<a href="routing.html">Routing (Scala)</a>
+        &#160;&#160;::&#160;&#160;
+        <a class="uplink" href="../index.html">Contents</a>
+        &#160;&#160;::&#160;&#160;
+        <a href="http.html">HTTP</a>&#160;&#160;»
+        </p>
+
+      </div>
+      <div class="content">
+        
+        
+  <div class="section" id="fsm">
+<h1>FSM<a class="headerlink" href="#fsm" title="Permalink to this headline">¶</a></h1>
+<div class="sidebar">
+<p class="first sidebar-title">Contents</p>
+<div class="contents local last topic" id="contents">
+<ul class="simple">
+<li><a class="reference internal" href="#overview" id="id1">Overview</a></li>
+<li><a class="reference internal" href="#a-simple-example" id="id2">A Simple Example</a></li>
+<li><a class="reference internal" href="#state-data" id="id3">State Data</a></li>
+<li><a class="reference internal" href="#reference" id="id4">Reference</a><ul>
+<li><a class="reference internal" href="#the-fsm-trait-and-object" id="id5">The FSM Trait and Object</a></li>
+<li><a class="reference internal" href="#defining-timeouts" id="id6">Defining Timeouts</a></li>
+<li><a class="reference internal" href="#defining-states" id="id7">Defining States</a></li>
+<li><a class="reference internal" href="#defining-the-initial-state" id="id8">Defining the Initial State</a></li>
+<li><a class="reference internal" href="#unhandled-events" id="id9">Unhandled Events</a></li>
+<li><a class="reference internal" href="#initiating-transitions" id="id10">Initiating Transitions</a></li>
+<li><a class="reference internal" href="#monitoring-transitions" id="id11">Monitoring Transitions</a><ul>
+<li><a class="reference internal" href="#internal-monitoring" id="id12">Internal Monitoring</a></li>
+<li><a class="reference internal" href="#external-monitoring" id="id13">External Monitoring</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#timers" id="id14">Timers</a></li>
+<li><a class="reference internal" href="#termination-from-inside" id="id15">Termination from Inside</a></li>
+<li><a class="reference internal" href="#termination-from-outside" id="id16">Termination from Outside</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#testing-and-debugging-finite-state-machines" id="id17">Testing and Debugging Finite State Machines</a><ul>
+<li><a class="reference internal" href="#event-tracing" id="id18">Event Tracing</a></li>
+<li><a class="reference internal" href="#rolling-event-log" id="id19">Rolling Event Log</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#examples" id="id20">Examples</a></li>
+</ul>
+</div>
+</div>
+<p id="module-FSM"><em>Platforms: </em>Scala</p>
+<p><em>Module author: Irmo Manie, Roland Kuhn</em></p>
+<p class="versionadded">
+<span class="versionmodified">New in version 1.0.</span></p>
+<p class="versionchanged">
+<span class="versionmodified">Changed in version 1.2: </span>added Tracing and Logging</p>
+<p>Module stability: <strong>STABLE</strong></p>
+<div class="section" id="overview">
+<h2><a class="toc-backref" href="#id1">Overview</a><a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
+<p>The FSM (Finite State Machine) is available as a mixin for the akka Actor and
+is best described in the <a class="reference external" href="http://www.erlang.org/documentation/doc-4.8.2/doc/design_principles/fsm.html">Erlang design principles</a></p>
+<p>A FSM can be described as a set of relations of the form:</p>
+<blockquote>
+<div><strong>State(S) x Event(E) -&gt; Actions (A), State(S&#8217;)</strong></div></blockquote>
+<p>These relations are interpreted as meaning:</p>
+<blockquote>
+<div><em>If we are in state S and the event E occurs, we should perform the actions A and make a transition to the state S&#8217;.</em></div></blockquote>
+</div>
+<div class="section" id="a-simple-example">
+<h2><a class="toc-backref" href="#id2">A Simple Example</a><a class="headerlink" href="#a-simple-example" title="Permalink to this headline">¶</a></h2>
+<p>To demonstrate the usage of states we start with a simple FSM without state
+data. The state can be of any type so for this example we create the states A,
+B and C.</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">sealed</span> <span class="k">trait</span> <span class="nc">ExampleState</span>
+<span class="k">case</span> <span class="k">object</span> <span class="nc">A</span> <span class="k">extends</span> <span class="nc">ExampleState</span>
+<span class="k">case</span> <span class="k">object</span> <span class="nc">B</span> <span class="k">extends</span> <span class="nc">ExampleState</span>
+<span class="k">case</span> <span class="k">object</span> <span class="nc">C</span> <span class="k">extends</span> <span class="nc">ExampleState</span>
+</pre></div>
+</div>
+<p>Now lets create an object representing the FSM and defining the behavior.</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">import</span> <span class="nn">akka.actor.</span><span class="o">{</span><span class="nc">Actor</span><span class="o">,</span> <span class="nc">FSM</span><span class="o">}</span>
+<span class="k">import</span> <span class="nn">akka.event.EventHandler</span>
+<span class="k">import</span> <span class="nn">akka.util.duration._</span>
+
+<span class="k">case</span> <span class="k">object</span> <span class="nc">Move</span>
+
+<span class="k">class</span> <span class="nc">ABC</span> <span class="k">extends</span> <span class="nc">Actor</span> <span class="k">with</span> <span class="nc">FSM</span><span class="o">[</span><span class="kt">ExampleState</span>, <span class="kt">Unit</span><span class="o">]</span> <span class="o">{</span>
+
+  <span class="k">import</span> <span class="nn">FSM._</span>
+
+  <span class="n">startWith</span><span class="o">(</span><span class="n">A</span><span class="o">,</span> <span class="nc">Unit</span><span class="o">)</span>
+
+  <span class="n">when</span><span class="o">(</span><span class="n">A</span><span class="o">)</span> <span class="o">{</span>
+    <span class="k">case</span> <span class="nc">Ev</span><span class="o">(</span><span class="nc">Move</span><span class="o">)</span> <span class="k">=&gt;</span>
+      <span class="nc">EventHandler</span><span class="o">.</span><span class="n">info</span><span class="o">(</span><span class="k">this</span><span class="o">,</span> <span class="s">&quot;Go to B and move on after 5 seconds&quot;</span><span class="o">)</span>
+      <span class="n">goto</span><span class="o">(</span><span class="n">B</span><span class="o">)</span> <span class="n">forMax</span> <span class="o">(</span><span class="mi">5</span> <span class="n">seconds</span><span class="o">)</span>
+  <span class="o">}</span>
+
+  <span class="n">when</span><span class="o">(</span><span class="n">B</span><span class="o">)</span> <span class="o">{</span>
+    <span class="k">case</span> <span class="nc">Ev</span><span class="o">(</span><span class="nc">StateTimeout</span><span class="o">)</span> <span class="k">=&gt;</span>
+      <span class="nc">EventHandler</span><span class="o">.</span><span class="n">info</span><span class="o">(</span><span class="k">this</span><span class="o">,</span> <span class="s">&quot;Moving to C&quot;</span><span class="o">)</span>
+      <span class="n">goto</span><span class="o">(</span><span class="n">C</span><span class="o">)</span>
+  <span class="o">}</span>
+
+  <span class="n">when</span><span class="o">(</span><span class="n">C</span><span class="o">)</span> <span class="o">{</span>
+    <span class="k">case</span> <span class="nc">Ev</span><span class="o">(</span><span class="nc">Move</span><span class="o">)</span> <span class="k">=&gt;</span>
+      <span class="nc">EventHandler</span><span class="o">.</span><span class="n">info</span><span class="o">(</span><span class="k">this</span><span class="o">,</span> <span class="s">&quot;Stopping&quot;</span><span class="o">)</span>
+      <span class="n">stop</span>
+  <span class="o">}</span>
+
+  <span class="n">initialize</span> <span class="c1">// this checks validity of the initial state and sets up timeout if needed</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<p>Each state is described by one or more <tt class="xref py py-func docutils literal"><span class="pre">when(state)</span></tt> blocks; if more than
+one is given for the same state, they are tried in the order given until the
+first is found which matches the incoming event. Events are matched using
+either <tt class="xref py py-func docutils literal"><span class="pre">Ev(msg)</span></tt> (if no state data are to be extracted) or
+<tt class="xref py py-func docutils literal"><span class="pre">Event(msg,</span> <span class="pre">data)</span></tt>, see below. The statements for each case are the
+actions to be taken, where the final expression must describe the transition
+into the next state. This can either be <tt class="xref py py-func docutils literal"><span class="pre">stay</span></tt> when no transition is
+needed or <tt class="xref py py-func docutils literal"><span class="pre">goto(target)</span></tt> for changing into the target state. The
+transition may be annotated with additional properties, where this example
+includes a state timeout of 5 seconds after the transition into state B:
+<tt class="xref py py-func docutils literal"><span class="pre">forMax(duration)</span></tt> arranges for a <tt class="xref py py-obj docutils literal"><span class="pre">StateTimeout</span></tt> message to be
+scheduled, unless some other message is received first. The construction of the
+FSM is finished by calling the <tt class="xref py py-func docutils literal"><span class="pre">initialize</span></tt> method as last part of the
+ABC constructor.</p>
+</div>
+<div class="section" id="state-data">
+<h2><a class="toc-backref" href="#id3">State Data</a><a class="headerlink" href="#state-data" title="Permalink to this headline">¶</a></h2>
+<p>The FSM can also hold state data associated with the internal state of the
+state machine. The state data can be of any type but to demonstrate let&#8217;s look
+at a lock with a <tt class="xref py py-class docutils literal"><span class="pre">String</span></tt> as state data holding the entered unlock code.
+First we need two states for the lock:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">sealed</span> <span class="k">trait</span> <span class="nc">LockState</span>
+<span class="k">case</span> <span class="k">object</span> <span class="nc">Locked</span> <span class="k">extends</span> <span class="nc">LockState</span>
+<span class="k">case</span> <span class="k">object</span> <span class="nc">Open</span> <span class="k">extends</span> <span class="nc">LockState</span>
+</pre></div>
+</div>
+<p>Now we can create a lock FSM that takes <tt class="xref py py-class docutils literal"><span class="pre">LockState</span></tt> as a state and a
+<tt class="xref py py-class docutils literal"><span class="pre">String</span></tt> as state data:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">import</span> <span class="nn">akka.actor.</span><span class="o">{</span><span class="nc">Actor</span><span class="o">,</span> <span class="nc">FSM</span><span class="o">}</span>
+
+<span class="k">class</span> <span class="nc">Lock</span><span class="o">(</span><span class="n">code</span><span class="k">:</span> <span class="kt">String</span><span class="o">)</span> <span class="k">extends</span> <span class="nc">Actor</span> <span class="k">with</span> <span class="nc">FSM</span><span class="o">[</span><span class="kt">LockState</span>, <span class="kt">String</span><span class="o">]</span> <span class="o">{</span>
+
+  <span class="k">import</span> <span class="nn">FSM._</span>
+
+  <span class="k">val</span> <span class="n">emptyCode</span> <span class="k">=</span> <span class="s">&quot;&quot;</span>
+
+  <span class="n">startWith</span><span class="o">(</span><span class="nc">Locked</span><span class="o">,</span> <span class="n">emptyCode</span><span class="o">)</span>
+
+  <span class="n">when</span><span class="o">(</span><span class="nc">Locked</span><span class="o">)</span> <span class="o">{</span>
+    <span class="c1">// receive a digit and the code that we have so far</span>
+    <span class="k">case</span> <span class="nc">Event</span><span class="o">(</span><span class="n">digit</span><span class="k">:</span> <span class="kt">Char</span><span class="o">,</span> <span class="n">soFar</span><span class="o">)</span> <span class="k">=&gt;</span> <span class="o">{</span>
+      <span class="c1">// add the digit to what we have</span>
+      <span class="n">soFar</span> <span class="o">+</span> <span class="n">digit</span> <span class="k">match</span> <span class="o">{</span>
+        <span class="k">case</span> <span class="n">incomplete</span> <span class="k">if</span> <span class="n">incomplete</span><span class="o">.</span><span class="n">length</span> <span class="o">&lt;</span> <span class="n">code</span><span class="o">.</span><span class="n">length</span> <span class="k">=&gt;</span>
+          <span class="c1">// not enough digits yet so stay using the incomplete code as the new state data</span>
+          <span class="n">stay</span> <span class="n">using</span> <span class="n">incomplete</span>
+        <span class="k">case</span> <span class="n">`code`</span> <span class="k">=&gt;</span>
+          <span class="c1">// code matched the one from the lock so go to Open state and reset the state data</span>
+          <span class="n">goto</span><span class="o">(</span><span class="nc">Open</span><span class="o">)</span> <span class="n">using</span> <span class="n">emptyCode</span> <span class="n">forMax</span> <span class="o">(</span><span class="mi">1</span> <span class="n">seconds</span><span class="o">)</span>
+        <span class="k">case</span> <span class="n">wrong</span> <span class="k">=&gt;</span>
+          <span class="c1">// wrong code, stay Locked and reset the state data</span>
+          <span class="n">stay</span> <span class="n">using</span> <span class="n">emptyCode</span>
+      <span class="o">}</span>
+    <span class="o">}</span>
+  <span class="o">}</span>
+
+  <span class="n">when</span><span class="o">(</span><span class="nc">Open</span><span class="o">)</span> <span class="o">{</span>
+    <span class="k">case</span> <span class="nc">Ev</span><span class="o">(</span><span class="nc">StateTimeout</span><span class="o">,</span> <span class="n">_</span><span class="o">)</span> <span class="k">=&gt;</span> <span class="o">{</span>
+      <span class="c1">// after the timeout, go back to Locked state</span>
+      <span class="n">goto</span><span class="o">(</span><span class="nc">Locked</span><span class="o">)</span>
+    <span class="o">}</span>
+  <span class="o">}</span>
+
+  <span class="n">initialize</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<p>This very simple example shows how the complete state of the FSM is encoded in
+the <tt class="xref py py-obj docutils literal"><span class="pre">(State,</span> <span class="pre">Data)</span></tt> pair and only explicitly updated during transitions.
+This encapsulation is what makes state machines a powerful abstraction, e.g.
+for handling socket states in a network server application.</p>
+</div>
+<div class="section" id="reference">
+<h2><a class="toc-backref" href="#id4">Reference</a><a class="headerlink" href="#reference" title="Permalink to this headline">¶</a></h2>
+<p>This section describes the DSL in a more formal way, refer to <a class="reference internal" href="#examples">Examples</a> for more sample material.</p>
+<div class="section" id="the-fsm-trait-and-object">
+<h3><a class="toc-backref" href="#id5">The FSM Trait and Object</a><a class="headerlink" href="#the-fsm-trait-and-object" title="Permalink to this headline">¶</a></h3>
+<p>The <a class="reference internal" href="#module-FSM" title="FSM: Finite State Machine DSL on top of Actors (Scala)"><tt class="xref py py-class docutils literal"><span class="pre">FSM</span></tt></a> trait may only be mixed into an <tt class="xref py py-class docutils literal"><span class="pre">Actor</span></tt>. Instead of
+extending <tt class="xref py py-class docutils literal"><span class="pre">Actor</span></tt>, the self type approach was chosen in order to make it
+obvious that an actor is actually created.  Importing all members of the
+<a class="reference internal" href="#module-FSM" title="FSM: Finite State Machine DSL on top of Actors (Scala)"><tt class="xref py py-obj docutils literal"><span class="pre">FSM</span></tt></a> object is recommended to receive useful implicits and directly
+access the symbols like <tt class="xref py py-obj docutils literal"><span class="pre">StateTimeout</span></tt>. This import is usually placed
+inside the state machine definition:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">class</span> <span class="nc">MyFSM</span> <span class="k">extends</span> <span class="nc">Actor</span> <span class="k">with</span> <span class="nc">FSM</span><span class="o">[</span><span class="kt">State</span>, <span class="kt">Data</span><span class="o">]</span> <span class="o">{</span>
+  <span class="k">import</span> <span class="nn">FSM._</span>
+
+  <span class="o">...</span>
+
+<span class="o">}</span>
+</pre></div>
+</div>
+<p>The <a class="reference internal" href="#module-FSM" title="FSM: Finite State Machine DSL on top of Actors (Scala)"><tt class="xref py py-class docutils literal"><span class="pre">FSM</span></tt></a> trait takes two type parameters:</p>
+<blockquote>
+<div><ol class="arabic simple">
+<li>the supertype of all state names, usually a sealed trait with case objects
+extending it,</li>
+<li>the type of the state data which are tracked by the <a class="reference internal" href="#module-FSM" title="FSM: Finite State Machine DSL on top of Actors (Scala)"><tt class="xref py py-class docutils literal"><span class="pre">FSM</span></tt></a> module
+itself.</li>
+</ol>
+</div></blockquote>
+<div class="admonition note" id="fsm-philosophy">
+<p class="first admonition-title">Note</p>
+<p class="last">The state data together with the state name describe the internal state of
+the state machine; if you stick to this scheme and do not add mutable fields
+to the FSM class you have the advantage of making all changes of the
+internal state explicit in a few well-known places.</p>
+</div>
+</div>
+<div class="section" id="defining-timeouts">
+<h3><a class="toc-backref" href="#id6">Defining Timeouts</a><a class="headerlink" href="#defining-timeouts" title="Permalink to this headline">¶</a></h3>
+<p>The <a class="reference internal" href="#module-FSM" title="FSM: Finite State Machine DSL on top of Actors (Scala)"><tt class="xref py py-class docutils literal"><span class="pre">FSM</span></tt></a> module uses <a class="reference internal" href="../common/duration.html#duration"><em>Duration</em></a> for all timing configuration.
+Several methods, like <tt class="xref py py-func docutils literal"><span class="pre">when</span></tt> and <tt class="xref py py-func docutils literal"><span class="pre">startWith</span></tt> take a
+<tt class="xref py py-class docutils literal"><span class="pre">FSM.Timeout</span></tt>, which is an alias for <tt class="xref py py-class docutils literal"><span class="pre">Option[Duration]</span></tt>. There is
+an implicit conversion available in the <a class="reference internal" href="#module-FSM" title="FSM: Finite State Machine DSL on top of Actors (Scala)"><tt class="xref py py-obj docutils literal"><span class="pre">FSM</span></tt></a> object which makes this
+transparent, just import it into your FSM body.</p>
+</div>
+<div class="section" id="defining-states">
+<h3><a class="toc-backref" href="#id7">Defining States</a><a class="headerlink" href="#defining-states" title="Permalink to this headline">¶</a></h3>
+<p>A state is defined by one or more invocations of the method</p>
+<blockquote>
+<div><tt class="xref py py-func docutils literal"><span class="pre">when(&lt;name&gt;[,</span> <span class="pre">stateTimeout</span> <span class="pre">=</span> <span class="pre">&lt;timeout&gt;])(stateFunction)</span></tt>.</div></blockquote>
+<p>The given name must be an object which is type-compatible with the first type
+parameter given to the <a class="reference internal" href="#module-FSM" title="FSM: Finite State Machine DSL on top of Actors (Scala)"><tt class="xref py py-class docutils literal"><span class="pre">FSM</span></tt></a> trait. This object is used as a hash key,
+so you must ensure that it properly implements <tt class="xref py py-meth docutils literal"><span class="pre">equals</span></tt> and
+<tt class="xref py py-meth docutils literal"><span class="pre">hashCode</span></tt>; in particular it must not be mutable. The easiest fit for
+these requirements are case objects.</p>
+<p>If the <tt class="xref py py-meth docutils literal"><span class="pre">stateTimeout</span></tt> parameter is given, then all transitions into this
+state, including staying, receive this timeout by default. Initiating the
+transition with an explicit timeout may be used to override this default, see
+<a class="reference internal" href="#initiating-transitions">Initiating Transitions</a> for more information. The state timeout of any state
+may be changed during action processing with <tt class="xref py py-func docutils literal"><span class="pre">setStateTimeout(state,</span>
+<span class="pre">duration)</span></tt>. This enables runtime configuration e.g. via external message.</p>
+<p>The <tt class="xref py py-meth docutils literal"><span class="pre">stateFunction</span></tt> argument is a <tt class="xref py py-class docutils literal"><span class="pre">PartialFunction[Event,</span> <span class="pre">State]</span></tt>,
+which is conveniently given using the partial function literal syntax as
+demonstrated below:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="n">when</span><span class="o">(</span><span class="nc">Idle</span><span class="o">)</span> <span class="o">{</span>
+  <span class="k">case</span> <span class="nc">Ev</span><span class="o">(</span><span class="nc">Start</span><span class="o">(</span><span class="n">msg</span><span class="o">))</span> <span class="k">=&gt;</span> <span class="c1">// convenience extractor when state data not needed</span>
+    <span class="n">goto</span><span class="o">(</span><span class="nc">Timer</span><span class="o">)</span> <span class="n">using</span> <span class="o">(</span><span class="n">msg</span><span class="o">,</span> <span class="n">self</span><span class="o">.</span><span class="n">channel</span><span class="o">)</span>
+<span class="o">}</span>
+
+<span class="n">when</span><span class="o">(</span><span class="nc">Timer</span><span class="o">,</span> <span class="n">stateTimeout</span> <span class="k">=</span> <span class="mi">12</span> <span class="n">seconds</span><span class="o">)</span> <span class="o">{</span>
+  <span class="k">case</span> <span class="nc">Event</span><span class="o">(</span><span class="nc">StateTimeout</span><span class="o">,</span> <span class="o">(</span><span class="n">msg</span><span class="o">,</span> <span class="n">channel</span><span class="o">))</span> <span class="k">=&gt;</span>
+    <span class="n">channel</span> <span class="o">!</span> <span class="n">msg</span>
+    <span class="n">goto</span><span class="o">(</span><span class="nc">Idle</span><span class="o">)</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<p>The <tt class="xref py py-class docutils literal"><span class="pre">Event(msg,</span> <span class="pre">data)</span></tt> case class may be used directly in the pattern as
+shown in state Idle, or you may use the extractor <tt class="xref py py-obj docutils literal"><span class="pre">Ev(msg)</span></tt> when the state
+data are not needed.</p>
+</div>
+<div class="section" id="defining-the-initial-state">
+<h3><a class="toc-backref" href="#id8">Defining the Initial State</a><a class="headerlink" href="#defining-the-initial-state" title="Permalink to this headline">¶</a></h3>
+<p>Each FSM needs a starting point, which is declared using</p>
+<blockquote>
+<div><tt class="xref py py-func docutils literal"><span class="pre">startWith(state,</span> <span class="pre">data[,</span> <span class="pre">timeout])</span></tt></div></blockquote>
+<p>The optionally given timeout argument overrides any specification given for the
+desired initial state. If you want to cancel a default timeout, use
+<tt class="xref py py-obj docutils literal"><span class="pre">Duration.Inf</span></tt>.</p>
+</div>
+<div class="section" id="unhandled-events">
+<h3><a class="toc-backref" href="#id9">Unhandled Events</a><a class="headerlink" href="#unhandled-events" title="Permalink to this headline">¶</a></h3>
+<p>If a state doesn&#8217;t handle a received event a warning is logged. If you want to
+do something else in this case you can specify that with
+<tt class="xref py py-func docutils literal"><span class="pre">whenUnhandled(stateFunction)</span></tt>:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="n">whenUnhandled</span> <span class="o">{</span>
+  <span class="k">case</span> <span class="nc">Event</span><span class="o">(</span><span class="n">x</span> <span class="k">:</span> <span class="kt">X</span><span class="o">,</span> <span class="n">data</span><span class="o">)</span> <span class="k">=&gt;</span>
+    <span class="nc">EventHandler</span><span class="o">.</span><span class="n">info</span><span class="o">(</span><span class="k">this</span><span class="o">,</span> <span class="s">&quot;Received unhandled event: &quot;</span> <span class="o">+</span> <span class="n">x</span><span class="o">)</span>
+    <span class="n">stay</span>
+  <span class="k">case</span> <span class="nc">Ev</span><span class="o">(</span><span class="n">msg</span><span class="o">)</span> <span class="k">=&gt;</span>
+    <span class="nc">EventHandler</span><span class="o">.</span><span class="n">warn</span><span class="o">(</span><span class="k">this</span><span class="o">,</span> <span class="s">&quot;Received unknown event: &quot;</span> <span class="o">+</span> <span class="n">x</span><span class="o">)</span>
+    <span class="n">goto</span><span class="o">(</span><span class="nc">Error</span><span class="o">)</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<p><strong>IMPORTANT</strong>: This handler is not stacked, meaning that each invocation of
+<tt class="xref py py-func docutils literal"><span class="pre">whenUnhandled</span></tt> replaces the previously installed handler.</p>
+</div>
+<div class="section" id="initiating-transitions">
+<h3><a class="toc-backref" href="#id10">Initiating Transitions</a><a class="headerlink" href="#initiating-transitions" title="Permalink to this headline">¶</a></h3>
+<p>The result of any <tt class="xref py py-obj docutils literal"><span class="pre">stateFunction</span></tt> must be a definition of the next state
+unless terminating the FSM, which is described in <a class="reference internal" href="#termination-from-inside">Termination from Inside</a>.
+The state definition can either be the current state, as described by the
+<tt class="xref py py-func docutils literal"><span class="pre">stay</span></tt> directive, or it is a different state as given by
+<tt class="xref py py-func docutils literal"><span class="pre">goto(state)</span></tt>. The resulting object allows further qualification by way
+of the modifiers described in the following:</p>
+<dl class="docutils">
+<dt><tt class="xref py py-meth docutils literal"><span class="pre">forMax(duration)</span></tt></dt>
+<dd><p class="first">This modifier sets a state timeout on the next state. This means that a timer
+is started which upon expiry sends a <tt class="xref py py-obj docutils literal"><span class="pre">StateTimeout</span></tt> message to the FSM.
+This timer is canceled upon reception of any other message in the meantime;
+you can rely on the fact that the <tt class="xref py py-obj docutils literal"><span class="pre">StateTimeout</span></tt> message will not be
+processed after an intervening message.</p>
+<p class="last">This modifier can also be used to override any default timeout which is
+specified for the target state. If you want to cancel the default timeout,
+use <tt class="xref py py-obj docutils literal"><span class="pre">Duration.Inf</span></tt>.</p>
+</dd>
+<dt><tt class="xref py py-meth docutils literal"><span class="pre">using(data)</span></tt></dt>
+<dd>This modifier replaces the old state data with the new data given. If you
+follow the advice <a class="reference internal" href="#fsm-philosophy"><em>above</em></a>, this is the only place where
+internal state data are ever modified.</dd>
+<dt><tt class="xref py py-meth docutils literal"><span class="pre">replying(msg)</span></tt></dt>
+<dd>This modifier sends a reply to the currently processed message and otherwise
+does not modify the state transition.</dd>
+</dl>
+<p>All modifier can be chained to achieve a nice and concise description:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="n">when</span><span class="o">(</span><span class="nc">State</span><span class="o">)</span> <span class="o">{</span>
+  <span class="k">case</span> <span class="nc">Ev</span><span class="o">(</span><span class="n">msg</span><span class="o">)</span> <span class="k">=&gt;</span>
+    <span class="n">goto</span><span class="o">(</span><span class="nc">Processing</span><span class="o">)</span> <span class="n">using</span> <span class="o">(</span><span class="n">msg</span><span class="o">)</span> <span class="n">forMax</span> <span class="o">(</span><span class="mi">5</span> <span class="n">seconds</span><span class="o">)</span> <span class="n">replying</span> <span class="o">(</span><span class="nc">WillDo</span><span class="o">)</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<p>The parentheses are not actually needed in all cases, but they visually
+distinguish between modifiers and their arguments and therefore make the code
+even more pleasant to read for foreigners.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Please note that the <tt class="docutils literal"><span class="pre">return</span></tt> statement may not be used in <tt class="xref py py-meth docutils literal"><span class="pre">when</span></tt>
+blocks or similar; this is a Scala restriction. Either refactor your code
+using <tt class="docutils literal"><span class="pre">if</span> <span class="pre">()</span> <span class="pre">...</span> <span class="pre">else</span> <span class="pre">...</span></tt> or move it into a method definition.</p>
+</div>
+</div>
+<div class="section" id="monitoring-transitions">
+<h3><a class="toc-backref" href="#id11">Monitoring Transitions</a><a class="headerlink" href="#monitoring-transitions" title="Permalink to this headline">¶</a></h3>
+<p>Transitions occur &#8220;between states&#8221; conceptually, which means after any actions
+you have put into the event handling block; this is obvious since the next
+state is only defined by the value returned by the event handling logic. You do
+not need to worry about the exact order with respect to setting the internal
+state variable, as everything within the FSM actor is running single-threaded
+anyway.</p>
+<div class="section" id="internal-monitoring">
+<h4><a class="toc-backref" href="#id12">Internal Monitoring</a><a class="headerlink" href="#internal-monitoring" title="Permalink to this headline">¶</a></h4>
+<p>Up to this point, the FSM DSL has been centered on states and events. The dual
+view is to describe it as a series of transitions. This is enabled by the
+method</p>
+<blockquote>
+<div><tt class="xref py py-func docutils literal"><span class="pre">onTransition(handler)</span></tt></div></blockquote>
+<p>which associates actions with a transition instead of with a state and event.
+The handler is a partial function which takes a pair of states as input; no
+resulting state is needed as it is not possible to modify the transition in
+progress.</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="n">onTransition</span> <span class="o">{</span>
+  <span class="k">case</span> <span class="nc">Idle</span> <span class="o">-&gt;</span> <span class="nc">Active</span> <span class="k">=&gt;</span> <span class="n">setTimer</span><span class="o">(</span><span class="s">&quot;timeout&quot;</span><span class="o">)</span>
+  <span class="k">case</span> <span class="nc">Active</span> <span class="o">-&gt;</span> <span class="k">_</span> <span class="k">=&gt;</span> <span class="n">cancelTimer</span><span class="o">(</span><span class="s">&quot;timeout&quot;</span><span class="o">)</span>
+  <span class="k">case</span> <span class="n">x</span> <span class="o">-&gt;</span> <span class="nc">Idle</span> <span class="k">=&gt;</span> <span class="nc">EventHandler</span><span class="o">.</span><span class="n">info</span><span class="o">(</span><span class="s">&quot;entering Idle from &quot;</span><span class="o">+</span><span class="n">x</span><span class="o">)</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<p>The convenience extractor <tt class="xref py py-obj docutils literal"><span class="pre">-&gt;</span></tt> enables decomposition of the pair of states
+with a clear visual reminder of the transition&#8217;s direction. As usual in pattern
+matches, an underscore may be used for irrelevant parts; alternatively you
+could bind the unconstrained state to a variable, e.g. for logging as shown in
+the last case.</p>
+<p>It is also possible to pass a function object accepting two states to
+<tt class="xref py py-func docutils literal"><span class="pre">onTransition</span></tt>, in case your transition handling logic is implemented as
+a method:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="n">onTransition</span><span class="o">(</span><span class="n">handler</span> <span class="n">_</span><span class="o">)</span>
+
+<span class="k">private</span> <span class="k">def</span> <span class="n">handler</span><span class="o">(</span><span class="n">from</span><span class="k">:</span> <span class="kt">State</span><span class="o">,</span> <span class="n">to</span><span class="k">:</span> <span class="kt">State</span><span class="o">)</span> <span class="o">{</span>
+  <span class="o">...</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<p>The handlers registered with this method are stacked, so you can intersperse
+<tt class="xref py py-func docutils literal"><span class="pre">onTransition</span></tt> blocks with <tt class="xref py py-func docutils literal"><span class="pre">when</span></tt> blocks as suits your design. It
+should be noted, however, that <em>all handlers will be invoked for each
+transition</em>, not only the first matching one. This is designed specifically so
+you can put all transition handling for a certain aspect into one place without
+having to worry about earlier declarations shadowing later ones; the actions
+are still executed in declaration order, though.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">This kind of internal monitoring may be used to structure your FSM according
+to transitions, so that for example the cancellation of a timer upon leaving
+a certain state cannot be forgot when adding new target states.</p>
+</div>
+</div>
+<div class="section" id="external-monitoring">
+<h4><a class="toc-backref" href="#id13">External Monitoring</a><a class="headerlink" href="#external-monitoring" title="Permalink to this headline">¶</a></h4>
+<p>External actors may be registered to be notified of state transitions by
+sending a message <tt class="xref py py-class docutils literal"><span class="pre">SubscribeTransitionCallBack(actorRef)</span></tt>. The named
+actor will be sent a <tt class="xref py py-class docutils literal"><span class="pre">CurrentState(self,</span> <span class="pre">stateName)</span></tt> message immediately
+and will receive <tt class="xref py py-class docutils literal"><span class="pre">Transition(actorRef,</span> <span class="pre">oldState,</span> <span class="pre">newState)</span></tt> messages
+whenever a new state is reached. External monitors may be unregistered by
+sending <tt class="xref py py-class docutils literal"><span class="pre">UnsubscribeTransitionCallBack(actorRef)</span></tt> to the FSM actor.</p>
+<p>Registering a not-running listener generates a warning and fails gracefully.
+Stopping a listener without unregistering will remove the listener from the
+subscription list upon the next transition.</p>
+</div>
+</div>
+<div class="section" id="timers">
+<h3><a class="toc-backref" href="#id14">Timers</a><a class="headerlink" href="#timers" title="Permalink to this headline">¶</a></h3>
+<p>Besides state timeouts, FSM manages timers identified by <tt class="xref py py-class docutils literal"><span class="pre">String</span></tt> names.
+You may set a timer using</p>
+<blockquote>
+<div><tt class="xref py py-func docutils literal"><span class="pre">setTimer(name,</span> <span class="pre">msg,</span> <span class="pre">interval,</span> <span class="pre">repeat)</span></tt></div></blockquote>
+<p>where <tt class="xref py py-obj docutils literal"><span class="pre">msg</span></tt> is the message object which will be sent after the duration
+<tt class="xref py py-obj docutils literal"><span class="pre">interval</span></tt> has elapsed. If <tt class="xref py py-obj docutils literal"><span class="pre">repeat</span></tt> is <tt class="xref py py-obj docutils literal"><span class="pre">true</span></tt>, then the timer is
+scheduled at fixed rate given by the <tt class="xref py py-obj docutils literal"><span class="pre">interval</span></tt> parameter. Timers may be
+canceled using</p>
+<blockquote>
+<div><tt class="xref py py-func docutils literal"><span class="pre">cancelTimer(name)</span></tt></div></blockquote>
+<p>which is guaranteed to work immediately, meaning that the scheduled message
+will not be processed after this call even if the timer already fired and
+queued it. The status of any timer may be inquired with</p>
+<blockquote>
+<div><tt class="xref py py-func docutils literal"><span class="pre">timerActive_?(name)</span></tt></div></blockquote>
+<p>These named timers complement state timeouts because they are not affected by
+intervening reception of other messages.</p>
+</div>
+<div class="section" id="termination-from-inside">
+<h3><a class="toc-backref" href="#id15">Termination from Inside</a><a class="headerlink" href="#termination-from-inside" title="Permalink to this headline">¶</a></h3>
+<p>The FSM is stopped by specifying the result state as</p>
+<blockquote>
+<div><tt class="xref py py-func docutils literal"><span class="pre">stop([reason[,</span> <span class="pre">data]])</span></tt></div></blockquote>
+<p>The reason must be one of <tt class="xref py py-obj docutils literal"><span class="pre">Normal</span></tt> (which is the default), <tt class="xref py py-obj docutils literal"><span class="pre">Shutdown</span></tt>
+or <tt class="xref py py-obj docutils literal"><span class="pre">Failure(reason)</span></tt>, and the second argument may be given to change the
+state data which is available during termination handling.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">It should be noted that <tt class="xref py py-func docutils literal"><span class="pre">stop</span></tt> does not abort the actions and stop the
+FSM immediately. The stop action must be returned from the event handler in
+the same way as a state transition (but note that the <tt class="docutils literal"><span class="pre">return</span></tt> statement
+may not be used within a <tt class="xref py py-meth docutils literal"><span class="pre">when</span></tt> block).</p>
+</div>
+<div class="highlight-scala"><div class="highlight"><pre><span class="n">when</span><span class="o">(</span><span class="n">A</span><span class="o">)</span> <span class="o">{</span>
+  <span class="k">case</span> <span class="nc">Ev</span><span class="o">(</span><span class="nc">Stop</span><span class="o">)</span> <span class="k">=&gt;</span>
+    <span class="n">doCleanup</span><span class="o">()</span>
+    <span class="n">stop</span><span class="o">()</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<p>You can use <tt class="xref py py-func docutils literal"><span class="pre">onTermination(handler)</span></tt> to specify custom code that is
+executed when the FSM is stopped. The handler is a partial function which takes
+a <tt class="xref py py-class docutils literal"><span class="pre">StopEvent(reason,</span> <span class="pre">stateName,</span> <span class="pre">stateData)</span></tt> as argument:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="n">onTermination</span> <span class="o">{</span>
+  <span class="k">case</span> <span class="nc">StopEvent</span><span class="o">(</span><span class="nc">Normal</span><span class="o">,</span> <span class="n">s</span><span class="o">,</span> <span class="n">d</span><span class="o">)</span>         <span class="k">=&gt;</span> <span class="o">...</span>
+  <span class="k">case</span> <span class="nc">StopEvent</span><span class="o">(</span><span class="nc">Shutdown</span><span class="o">,</span> <span class="n">_</span><span class="o">,</span> <span class="n">_</span><span class="o">)</span>       <span class="k">=&gt;</span> <span class="o">...</span>
+  <span class="k">case</span> <span class="nc">StopEvent</span><span class="o">(</span><span class="nc">Failure</span><span class="o">(</span><span class="n">cause</span><span class="o">),</span> <span class="n">s</span><span class="o">,</span> <span class="n">d</span><span class="o">)</span> <span class="k">=&gt;</span> <span class="o">...</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<p>As for the <tt class="xref py py-func docutils literal"><span class="pre">whenUnhandled</span></tt> case, this handler is not stacked, so each
+invocation of <tt class="xref py py-func docutils literal"><span class="pre">onTermination</span></tt> replaces the previously installed handler.</p>
+</div>
+<div class="section" id="termination-from-outside">
+<h3><a class="toc-backref" href="#id16">Termination from Outside</a><a class="headerlink" href="#termination-from-outside" title="Permalink to this headline">¶</a></h3>
+<p>When an <tt class="xref py py-class docutils literal"><span class="pre">ActorRef</span></tt> associated to a FSM is stopped using the
+<tt class="xref py py-meth docutils literal"><span class="pre">stop</span></tt> method, its <tt class="xref py py-meth docutils literal"><span class="pre">postStop</span></tt> hook will be executed. The default
+implementation by the <a class="reference internal" href="#module-FSM" title="FSM: Finite State Machine DSL on top of Actors (Scala)"><tt class="xref py py-class docutils literal"><span class="pre">FSM</span></tt></a> trait is to execute the
+<tt class="xref py py-meth docutils literal"><span class="pre">onTermination</span></tt> handler if that is prepared to handle a
+<tt class="xref py py-obj docutils literal"><span class="pre">StopEvent(Shutdown,</span> <span class="pre">...)</span></tt>.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">In case you override <tt class="xref py py-meth docutils literal"><span class="pre">postStop</span></tt> and want to have your
+<tt class="xref py py-meth docutils literal"><span class="pre">onTermination</span></tt> handler called, do not forget to call
+<tt class="docutils literal"><span class="pre">super.postStop</span></tt>.</p>
+</div>
+</div>
+</div>
+<div class="section" id="testing-and-debugging-finite-state-machines">
+<h2><a class="toc-backref" href="#id17">Testing and Debugging Finite State Machines</a><a class="headerlink" href="#testing-and-debugging-finite-state-machines" title="Permalink to this headline">¶</a></h2>
+<p>During development and for trouble shooting FSMs need care just as any other
+actor. There are specialized tools available as described in <a class="reference internal" href="testing.html#testfsmref"><em>Testing Finite State Machines</em></a>
+and in the following.</p>
+<div class="section" id="event-tracing">
+<h3><a class="toc-backref" href="#id18">Event Tracing</a><a class="headerlink" href="#event-tracing" title="Permalink to this headline">¶</a></h3>
+<p>The setting <tt class="docutils literal"><span class="pre">akka.actor.debug.fsm</span></tt> in <tt class="docutils literal"><span class="pre">akka.conf</span></tt> enables logging of an
+event trace by <tt class="xref py py-class docutils literal"><span class="pre">LoggingFSM</span></tt> instances:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">class</span> <span class="nc">MyFSM</span> <span class="k">extends</span> <span class="nc">Actor</span> <span class="k">with</span> <span class="nc">LoggingFSM</span><span class="o">[</span><span class="kt">X</span>, <span class="kt">Z</span><span class="o">]</span> <span class="o">{</span>
+  <span class="o">...</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<p>This FSM will log at DEBUG level:</p>
+<blockquote>
+<div><ul class="simple">
+<li>all processed events, including <tt class="xref py py-obj docutils literal"><span class="pre">StateTimeout</span></tt> and scheduled timer
+messages</li>
+<li>every setting and cancellation of named timers</li>
+<li>all state transitions</li>
+</ul>
+</div></blockquote>
+<p>Life cycle changes and special messages can be logged as described for
+<a class="reference internal" href="testing.html#actor-logging"><em>Actors</em></a>.</p>
+</div>
+<div class="section" id="rolling-event-log">
+<h3><a class="toc-backref" href="#id19">Rolling Event Log</a><a class="headerlink" href="#rolling-event-log" title="Permalink to this headline">¶</a></h3>
+<p>The <tt class="xref py py-class docutils literal"><span class="pre">LoggingFSM</span></tt> trait adds one more feature to the FSM: a rolling event
+log which may be used during debugging (for tracing how the FSM entered a
+certain failure state) or for other creative uses:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">class</span> <span class="nc">MyFSM</span> <span class="k">extends</span> <span class="nc">Actor</span> <span class="k">with</span> <span class="nc">LoggingFSM</span><span class="o">[</span><span class="kt">X</span>, <span class="kt">Z</span><span class="o">]</span> <span class="o">{</span>
+  <span class="k">override</span> <span class="k">def</span> <span class="n">logDepth</span> <span class="k">=</span> <span class="mi">12</span>
+  <span class="n">onTermination</span> <span class="o">{</span>
+    <span class="k">case</span> <span class="nc">StopEvent</span><span class="o">(</span><span class="nc">Failure</span><span class="o">(</span><span class="n">_</span><span class="o">),</span> <span class="n">state</span><span class="o">,</span> <span class="n">data</span><span class="o">)</span> <span class="k">=&gt;</span>
+      <span class="nc">EventHandler</span><span class="o">.</span><span class="n">warning</span><span class="o">(</span><span class="k">this</span><span class="o">,</span> <span class="s">&quot;Failure in state &quot;</span><span class="o">+</span><span class="n">state</span><span class="o">+</span><span class="s">&quot; with data &quot;</span><span class="o">+</span><span class="n">data</span><span class="o">+</span><span class="s">&quot;\n&quot;</span><span class="o">+</span>
+        <span class="s">&quot;Events leading up to this point:\n\t&quot;</span><span class="o">+</span><span class="n">getLog</span><span class="o">.</span><span class="n">mkString</span><span class="o">(</span><span class="s">&quot;\n\t&quot;</span><span class="o">))</span>
+  <span class="o">}</span>
+  <span class="o">...</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<p>The <tt class="xref py py-meth docutils literal"><span class="pre">logDepth</span></tt> defaults to zero, which turns off the event log.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">The log buffer is allocated during actor creation, which is why the
+configuration is done using a virtual method call. If you want to override
+with a <tt class="docutils literal"><span class="pre">val</span></tt>, make sure that its initialization happens before the
+initializer of <tt class="xref py py-class docutils literal"><span class="pre">LoggingFSM</span></tt> runs, and do not change the value returned
+by <tt class="docutils literal"><span class="pre">logDepth</span></tt> after the buffer has been allocated.</p>
+</div>
+<p>The contents of the event log are available using method <tt class="xref py py-meth docutils literal"><span class="pre">getLog</span></tt>, which
+returns an <tt class="xref py py-class docutils literal"><span class="pre">IndexedSeq[LogEntry]</span></tt> where the oldest entry is at index
+zero.</p>
+</div>
+</div>
+<div class="section" id="examples">
+<h2><a class="toc-backref" href="#id20">Examples</a><a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
+<p>A bigger FSM example contrasted with Actor&#8217;s <tt class="xref py py-meth docutils literal"><span class="pre">become</span></tt>/<tt class="xref py py-meth docutils literal"><span class="pre">unbecome</span></tt> can be found in the sources:</p>
+<blockquote>
+<div><ul class="simple">
+<li><a class="reference external" href="https://github.com/akka/akka/blob/master/akka-samples/akka-sample-fsm/src/main/scala/DiningHakkersOnFsm.scala#L1">Dining Hakkers using FSM</a></li>
+<li><a class="reference external" href="https://github.com/akka/akka/blob/master/akka-samples/akka-sample-fsm/src/main/scala/DiningHakkersOnBecome.scala#L1">Dining Hakkers using become</a></li>
+</ul>
+</div></blockquote>
+</div>
+</div>
+
+
+      </div>
+      <div class="bottomnav">
+      
+        <p>
+        «&#160;&#160;<a href="routing.html">Routing (Scala)</a>
+        &#160;&#160;::&#160;&#160;
+        <a class="uplink" href="../index.html">Contents</a>
+        &#160;&#160;::&#160;&#160;
+        <a href="http.html">HTTP</a>&#160;&#160;»
+        </p>
+
+      </div>
+
+    <div class="footer">
+        &copy; Copyright 2011, Typesafe Inc.
+      Last updated on Sep 19, 2011.
+    </div>
+  </body>
+</html>

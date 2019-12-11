@@ -1,0 +1,589 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" /><meta name="description" content="Akka is a toolkit for building highly concurrent, distributed, and resilient message-driven applications for Java and Scala."/><link rel="canonical" href="https://doc.akka.io/docs/akka/2.2/dev/multi-node-testing.html"/>
+    
+    <title>Multi Node Testing &mdash; Akka Documentation</title>
+    
+    <link rel="stylesheet" href="../_static/style.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/prettify.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/base.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
+    <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Exo:300,400,600,700" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '2.2.5',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+<script type="text/javascript" src="https://doc.akka.io/docs/akka/2.2.5/_static/warnOldDocs.js"></script>
+<script type="text/javascript" src="https://doc.akka.io/docs/akka/2.2.5/_static/warnOldDocs.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="../_static/toc.js"></script>
+    <script type="text/javascript" src="../_static/prettify.js"></script>
+    <script type="text/javascript" src="../_static/highlightCode.js"></script>
+    <script type="text/javascript" src="../_static/effects.core.js"></script>
+    <script type="text/javascript" src="../_static/effects.highlight.js"></script>
+    <script type="text/javascript" src="../_static/scrollTo.js"></script>
+    <script type="text/javascript" src="../_static/contentsFix.js"></script>
+    <script type="text/javascript" src="../_static/ga.js"></script>
+    <link rel="shortcut icon" href="../_static/favicon.ico"/>
+    <link rel="top" title="Akka Documentation" href="../index.html" />
+    <link rel="up" title="Experimental Modules" href="../experimental/index.html" />
+    <link rel="next" title="External Contributions" href="../contrib/index.html" />
+    <link rel="prev" title="Experimental Modules" href="../experimental/index.html" />
+    <!--Google Analytics-->
+    <script type="text/javascript">
+      var _gaq = _gaq || [];
+      _gaq.push(['_setAccount', 'UA-21117439-1']);
+      _gaq.push(['_setDomainName', 'akka.io']);
+      _gaq.push(['_trackPageview']);
+      (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+      })()
+    </script>
+
+  </head>
+  <body>
+  <div class="navbar">
+    <div class="navbar-inner">
+      <div class="container">
+        <div class="navbar-logo">
+          <a href="https://akka.io"><img src="../_static/logo-small.png" /></a>
+        </div>    
+        <ul class="nav">
+          <li><a href="https://akka.io/docs">Documentation</a></li>
+          <li><a href="https://akka.io/faq">FAQ</a></li>
+          <li><a href="http://typesafe.com/stack/downloads/akka">Download</a></li>
+          <li><a href="http://groups.google.com/group/akka-user">Mailing List</a></li>
+          <li><a href="http://github.com/akka/akka">Code</a></li>           
+          <li><a href="http://typesafe.com/products/typesafe-subscription">Commercial Support</a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="main">
+    <div class="container">
+      <div class="page-title">Multi Node Testing</div>
+      <div class="pdf-link"><a href="../AkkaScala.pdf" title="Akka Scala Documentation"><img src="../_static/pdf-scala-icon.png" style="height: 40px;" /></a></div>
+      <div class="pdf-link"><a href="../AkkaJava.pdf" title="Akka Java Documentation"><img src="../_static/pdf-java-icon.png" style="height: 40px;" /></a></div>
+    </div>
+    <div class="main-container">
+      <div class="container">
+        <div class="row">
+          <div class="span12">
+            <ul class="breadcrumb">           
+              <li>
+                 <span class="divider">|</span> <a href="../contrib/index.html">External Contributions</a> <span class="divider">»</span>
+              </li>
+              <li>
+                <a href="../index.html">Contents</a>
+              </li>
+              <li>
+                <span class="divider">«</span> <a href="../experimental/index.html">Experimental Modules</a> <span class="divider">|</span>
+              </li>
+              <li>
+                Version 2.2.5
+              </li>
+            </ul>
+          </div>
+        </div>
+        <div class="row">
+          <div class="span9">
+            <div id="cse">Loading</div>
+          </div><div class="span9">
+            
+  <div class="section" id="multi-node-testing">
+<span id="id1"></span><h1>Multi Node Testing</h1>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">This module is <a class="reference internal" href="../experimental/index.html#experimental"><em>experimental</em></a>. This document describes how to use the features
+implemented so far. More features are coming in Akka Coltrane. Track progress of the Coltrane milestone in
+<a class="reference external" href="http://www.assembla.com/spaces/akka/milestones/418132-coltrane">Assembla</a>.</p>
+</div>
+<div class="section" id="multi-node-testing-concepts">
+<h2>Multi Node Testing Concepts</h2>
+<p>When we talk about multi node testing in Akka we mean the process of running coordinated tests on multiple actor
+systems in different JVMs. The multi node testing kit consist of three main parts.</p>
+<ul class="simple">
+<li><a class="reference internal" href="#the-test-conductor">The Test Conductor</a>. that coordinates and controls the nodes under test.</li>
+<li><a class="reference internal" href="#the-multi-node-spec">The Multi Node Spec</a>. that is a convenience wrapper for starting the <tt class="docutils literal"><span class="pre">TestConductor</span></tt> and letting all
+nodes connect to it.</li>
+<li><a class="reference internal" href="#the-sbtmultijvm-plugin">The SbtMultiJvm Plugin</a>. that starts tests in multiple JVMs possibly on multiple machines.</li>
+</ul>
+</div>
+<div class="section" id="the-test-conductor">
+<h2>The Test Conductor</h2>
+<p>The basis for the multi node testing is the <tt class="docutils literal"><span class="pre">TestConductor</span></tt>. It is an Akka Extension that plugs in to the
+network stack and it is used to coordinate the nodes participating in the test and provides several features
+including:</p>
+<ul class="simple">
+<li>Node Address Lookup: Finding out the full path to another test node (No need to share configuration between
+test nodes)</li>
+<li>Node Barrier Coordination: Waiting for other nodes at named barriers.</li>
+<li>Network Failure Injection: Throttling traffic, dropping packets, unplugging and plugging nodes back in.</li>
+</ul>
+<p>This is a schematic overview of the test conductor.</p>
+<img alt="../_images/akka-remote-testconductor.png" src="../_images/akka-remote-testconductor.png" />
+<p>The test conductor server is responsible for coordinating barriers and sending commands to the test conductor
+clients that act upon them, e.g. throttling network traffic to/from another client. More information on the
+possible operations is availible in the <tt class="docutils literal"><span class="pre">akka.remote.testconductor.Conductor</span></tt> API documentation.</p>
+</div>
+<div class="section" id="the-multi-node-spec">
+<h2>The Multi Node Spec</h2>
+<p>The Multi Node Spec consists of two parts. The <tt class="docutils literal"><span class="pre">MultiNodeConfig</span></tt> that is responsible for common
+configuration and enumerating and naming the nodes under test. The <tt class="docutils literal"><span class="pre">MultiNodeSpec</span></tt> that contains a number
+of convenience functions for making the test nodes interact with each other. More information on the possible
+operations is available in the <tt class="docutils literal"><span class="pre">akka.remote.testkit.MultiNodeSpec</span></tt> API documentation.</p>
+<p>The setup of the <tt class="docutils literal"><span class="pre">MultiNodeSpec</span></tt> is configured through java system properties that you set on all JVMs that's going to run a
+node under test. These can easily be set on the JVM command line with <tt class="docutils literal"><span class="pre">-Dproperty=value</span></tt>.</p>
+<dl class="docutils">
+<dt>These are the available properties:</dt>
+<dd><ul class="first last">
+<li><p class="first"><tt class="docutils literal"><span class="pre">multinode.max-nodes</span></tt></p>
+<p>The maximum number of nodes that a test can have.</p>
+</li>
+<li><p class="first"><tt class="docutils literal"><span class="pre">multinode.host</span></tt></p>
+<p>The host name or IP for this node. Must be resolvable using InetAddress.getByName.</p>
+</li>
+<li><p class="first"><tt class="docutils literal"><span class="pre">multinode.port</span></tt></p>
+<p>The port number for this node. Defaults to 0 which will use a random port.</p>
+</li>
+<li><p class="first"><tt class="docutils literal"><span class="pre">multinode.server-host</span></tt></p>
+<p>The host name or IP for the server node. Must be resolvable using InetAddress.getByName.</p>
+</li>
+<li><p class="first"><tt class="docutils literal"><span class="pre">multinode.server-port</span></tt></p>
+<p>The port number for the server node. Defaults to 4711.</p>
+</li>
+<li><p class="first"><tt class="docutils literal"><span class="pre">multinode.index</span></tt></p>
+<p>The index of this node in the sequence of roles defined for the test. The index 0 is special and that machine
+will be the server. All failure injection and throttling must be done from this node.</p>
+</li>
+</ul>
+</dd>
+</dl>
+</div>
+<div class="section" id="the-sbtmultijvm-plugin">
+<h2>The SbtMultiJvm Plugin</h2>
+<p>The <a class="reference internal" href="multi-jvm-testing.html#multi-jvm-testing"><em>SbtMultiJvm Plugin</em></a> has been updated to be able to run multi node tests, by
+automatically generating the relevant <tt class="docutils literal"><span class="pre">multinode.*</span></tt> properties. This means that you can easily run multi node tests
+on a single machine without any special configuration by just running them as normal multi-jvm tests. These tests can
+then be run distributed over multiple machines without any changes simply by using the multi-node additions to the
+plugin.</p>
+<div class="section" id="multi-node-specific-additions">
+<h3>Multi Node Specific Additions</h3>
+<p>The plugin also has a number of new <tt class="docutils literal"><span class="pre">multi-node-*</span></tt> sbt tasks and settings to support running tests on multiple
+machines. The necessary test classes and dependencies are packaged for distribution to other machines with
+<a class="reference external" href="https://github.com/sbt/sbt-assembly">SbtAssembly</a> into a jar file with a name on the format
+<tt class="docutils literal"><span class="pre">&lt;projectName&gt;_&lt;scalaVersion&gt;-&lt;projectVersion&gt;-multi-jvm-assembly.jar</span></tt></p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">To be able to distribute and kick off the tests on multiple machines, it is assumed that both host and target
+systems are POSIX like systems with <tt class="docutils literal"><span class="pre">ssh</span></tt> and <tt class="docutils literal"><span class="pre">rsync</span></tt> available.</p>
+</div>
+<dl class="docutils">
+<dt>These are the available sbt multi-node settings:</dt>
+<dd><ul class="first last">
+<li><p class="first"><tt class="docutils literal"><span class="pre">multiNodeHosts</span></tt></p>
+<p>A sequence of hosts to use for running the test, on the form <tt class="docutils literal"><span class="pre">user&#64;host:java</span></tt> where host is the only required
+part. Will override settings from file.</p>
+</li>
+<li><p class="first"><tt class="docutils literal"><span class="pre">multiNodeHostsFileName</span></tt></p>
+<p>A file to use for reading in the hosts to use for running the test. One per line on the same format as above.
+Defaults to <tt class="docutils literal"><span class="pre">multi-node-test.hosts</span></tt> in the base project directory.</p>
+</li>
+<li><p class="first"><tt class="docutils literal"><span class="pre">multiNodeTargetDirName</span></tt></p>
+<p>A name for the directory on the target machine, where to copy the jar file. Defaults to <tt class="docutils literal"><span class="pre">multi-node-test</span></tt> in
+the base directory of the ssh user used to rsync the jar file.</p>
+</li>
+<li><p class="first"><tt class="docutils literal"><span class="pre">multiNodeJavaName</span></tt></p>
+<p>The name of the default Java executable on the target machines. Defaults to <tt class="docutils literal"><span class="pre">java</span></tt>.</p>
+</li>
+</ul>
+</dd>
+<dt>Here are some examples of how you define hosts:</dt>
+<dd><ul class="first last">
+<li><p class="first"><tt class="docutils literal"><span class="pre">localhost</span></tt></p>
+<p>The current user on localhost using the default java.</p>
+</li>
+<li><p class="first"><tt class="docutils literal"><span class="pre">user1&#64;host1</span></tt></p>
+<p>User <tt class="docutils literal"><span class="pre">user1</span></tt> on host <tt class="docutils literal"><span class="pre">host1</span></tt> with the default java.</p>
+</li>
+<li><p class="first"><tt class="docutils literal"><span class="pre">user2&#64;host2:/usr/lib/jvm/java-7-openjdk-amd64/bin/java</span></tt></p>
+<p>User <tt class="docutils literal"><span class="pre">user2</span></tt> on host <tt class="docutils literal"><span class="pre">host2</span></tt> using java 7.</p>
+</li>
+<li><p class="first"><tt class="docutils literal"><span class="pre">host3:/usr/lib/jvm/java-6-openjdk-amd64/bin/java</span></tt></p>
+<p>The current user on host <tt class="docutils literal"><span class="pre">host3</span></tt> using java 6.</p>
+</li>
+</ul>
+</dd>
+</dl>
+</div>
+<div class="section" id="running-the-multi-node-tests">
+<h3>Running the Multi Node Tests</h3>
+<p>To run all the multi node test in multi-node mode (i.e. distributing the jar files and kicking off the tests
+remotely) from inside sbt, use the <tt class="docutils literal"><span class="pre">multi-node-test</span></tt> task:</p>
+<div class="highlight-none"><div class="highlight"><pre>multi-node-test
+</pre></div>
+</div>
+<p>To run all of them in multi-jvm mode (i.e. all JVMs on the local machine) do:</p>
+<div class="highlight-none"><div class="highlight"><pre>multi-jvm:test
+</pre></div>
+</div>
+<p>To run individual tests use the <tt class="docutils literal"><span class="pre">multi-node-test-only</span></tt> task:</p>
+<div class="highlight-none"><div class="highlight"><pre>multi-node-test-only your.MultiNodeTest
+</pre></div>
+</div>
+<p>To run individual tests in the multi-jvm mode do:</p>
+<div class="highlight-none"><div class="highlight"><pre>multi-jvm:test-only your.MultiNodeTest
+</pre></div>
+</div>
+<p>More than one test name can be listed to run multiple specific tests. Tab completion in sbt makes it easy to
+complete the test names.</p>
+</div>
+</div>
+<div class="section" id="preparing-your-project-for-multi-node-testing">
+<h2>Preparing Your Project for Multi Node Testing</h2>
+<p>The multi node testing kit is a separate jar file. Make sure that you have the following dependency in your project:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="s">&quot;com.typesafe.akka&quot;</span> <span class="o">%%</span> <span class="s">&quot;akka-multi-node-testkit&quot;</span> <span class="o">%</span> <span class="s">&quot;2.2.5&quot;</span>
+</pre></div>
+</div>
+<p>If you are using the latest nightly build you should pick a timestamped Akka version from
+<a class="reference external" href="https://repo.akka.io/snapshots/com/typesafe/akka/akka-multi-node-testkit_2.12/">https://repo.akka.io/snapshots/com/typesafe/akka/akka-multi-node-testkit_2.12/</a>.
+We recommend against using <tt class="docutils literal"><span class="pre">SNAPSHOT</span></tt> in order to obtain stable builds.</p>
+</div>
+<div class="section" id="a-multi-node-testing-example">
+<h2>A Multi Node Testing Example</h2>
+<p>First we need some scaffolding to hook up the <tt class="docutils literal"><span class="pre">MultiNodeSpec</span></tt> with your favorite test framework. Lets define a trait
+<tt class="docutils literal"><span class="pre">STMultiNodeSpec</span></tt> that uses ScalaTest to start and stop <tt class="docutils literal"><span class="pre">MultiNodeSpec</span></tt>.</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">package</span> <span class="nn">sample.multinode</span>
+
+<span class="k">import</span> <span class="nn">org.scalatest.</span><span class="o">{</span> <span class="nc">BeforeAndAfterAll</span><span class="o">,</span> <span class="nc">WordSpec</span> <span class="o">}</span>
+<span class="k">import</span> <span class="nn">org.scalatest.matchers.MustMatchers</span>
+<span class="k">import</span> <span class="nn">akka.remote.testkit.MultiNodeSpecCallbacks</span>
+
+<span class="cm">/**</span>
+<span class="cm"> * Hooks up MultiNodeSpec with ScalaTest</span>
+<span class="cm"> */</span>
+<span class="k">trait</span> <span class="nc">STMultiNodeSpec</span> <span class="k">extends</span> <span class="nc">MultiNodeSpecCallbacks</span>
+  <span class="k">with</span> <span class="nc">WordSpec</span> <span class="k">with</span> <span class="nc">MustMatchers</span> <span class="k">with</span> <span class="nc">BeforeAndAfterAll</span> <span class="o">{</span>
+
+  <span class="k">override</span> <span class="k">def</span> <span class="n">beforeAll</span><span class="o">()</span> <span class="k">=</span> <span class="n">multiNodeSpecBeforeAll</span><span class="o">()</span>
+
+  <span class="k">override</span> <span class="k">def</span> <span class="n">afterAll</span><span class="o">()</span> <span class="k">=</span> <span class="n">multiNodeSpecAfterAll</span><span class="o">()</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<p>Then we need to define a configuration. Lets use two nodes <tt class="docutils literal"><span class="pre">&quot;node1</span></tt> and <tt class="docutils literal"><span class="pre">&quot;node2&quot;</span></tt> and call it
+<tt class="docutils literal"><span class="pre">MultiNodeSampleConfig</span></tt>.</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">package</span> <span class="nn">sample.multinode</span>
+<span class="k">import</span> <span class="nn">akka.remote.testkit.MultiNodeConfig</span>
+
+<span class="k">object</span> <span class="nc">MultiNodeSampleConfig</span> <span class="k">extends</span> <span class="nc">MultiNodeConfig</span> <span class="o">{</span>
+  <span class="k">val</span> <span class="n">node1</span> <span class="k">=</span> <span class="n">role</span><span class="o">(</span><span class="s">&quot;node1&quot;</span><span class="o">)</span>
+  <span class="k">val</span> <span class="n">node2</span> <span class="k">=</span> <span class="n">role</span><span class="o">(</span><span class="s">&quot;node2&quot;</span><span class="o">)</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<p>And then finally to the node test code. That starts the two nodes, and demonstrates a barrier, and a remote actor
+message send/receive.</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">package</span> <span class="nn">sample.multinode</span>
+<span class="k">import</span> <span class="nn">akka.remote.testkit.MultiNodeSpec</span>
+<span class="k">import</span> <span class="nn">akka.testkit.ImplicitSender</span>
+<span class="k">import</span> <span class="nn">akka.actor.</span><span class="o">{</span><span class="nc">Props</span><span class="o">,</span> <span class="nc">Actor</span><span class="o">}</span>
+
+<span class="k">class</span> <span class="nc">MultiNodeSampleSpecMultiJvmNode1</span> <span class="k">extends</span> <span class="nc">MultiNodeSample</span>
+<span class="k">class</span> <span class="nc">MultiNodeSampleSpecMultiJvmNode2</span> <span class="k">extends</span> <span class="nc">MultiNodeSample</span>
+
+<span class="k">class</span> <span class="nc">MultiNodeSample</span> <span class="k">extends</span> <span class="nc">MultiNodeSpec</span><span class="o">(</span><span class="nc">MultiNodeSampleConfig</span><span class="o">)</span>
+  <span class="k">with</span> <span class="nc">STMultiNodeSpec</span> <span class="k">with</span> <span class="nc">ImplicitSender</span> <span class="o">{</span>
+
+  <span class="k">import</span> <span class="nn">MultiNodeSampleConfig._</span>
+
+  <span class="k">def</span> <span class="n">initialParticipants</span> <span class="k">=</span> <span class="n">roles</span><span class="o">.</span><span class="n">size</span>
+
+  <span class="s">&quot;A MultiNodeSample&quot;</span> <span class="n">must</span> <span class="o">{</span>
+
+    <span class="s">&quot;wait for all nodes to enter a barrier&quot;</span> <span class="n">in</span> <span class="o">{</span>
+      <span class="n">enterBarrier</span><span class="o">(</span><span class="s">&quot;startup&quot;</span><span class="o">)</span>
+    <span class="o">}</span>
+
+    <span class="s">&quot;send to and receive from a remote node&quot;</span> <span class="n">in</span> <span class="o">{</span>
+      <span class="n">runOn</span><span class="o">(</span><span class="n">node1</span><span class="o">)</span> <span class="o">{</span>
+        <span class="n">enterBarrier</span><span class="o">(</span><span class="s">&quot;deployed&quot;</span><span class="o">)</span>
+        <span class="k">val</span> <span class="n">ponger</span> <span class="k">=</span> <span class="n">system</span><span class="o">.</span><span class="n">actorFor</span><span class="o">(</span><span class="n">node</span><span class="o">(</span><span class="n">node2</span><span class="o">)</span> <span class="o">/</span> <span class="s">&quot;user&quot;</span> <span class="o">/</span> <span class="s">&quot;ponger&quot;</span><span class="o">)</span>
+        <span class="n">ponger</span> <span class="o">!</span> <span class="s">&quot;ping&quot;</span>
+        <span class="n">expectMsg</span><span class="o">(</span><span class="s">&quot;pong&quot;</span><span class="o">)</span>
+      <span class="o">}</span>
+
+      <span class="n">runOn</span><span class="o">(</span><span class="n">node2</span><span class="o">)</span> <span class="o">{</span>
+        <span class="n">system</span><span class="o">.</span><span class="n">actorOf</span><span class="o">(</span><span class="nc">Props</span><span class="o">(</span><span class="k">new</span> <span class="nc">Actor</span> <span class="o">{</span>
+          <span class="k">def</span> <span class="n">receive</span> <span class="k">=</span> <span class="o">{</span>
+            <span class="k">case</span> <span class="s">&quot;ping&quot;</span> <span class="k">=&gt;</span> <span class="n">sender</span> <span class="o">!</span> <span class="s">&quot;pong&quot;</span>
+          <span class="o">}</span>
+        <span class="o">}),</span> <span class="s">&quot;ponger&quot;</span><span class="o">)</span>
+        <span class="n">enterBarrier</span><span class="o">(</span><span class="s">&quot;deployed&quot;</span><span class="o">)</span>
+      <span class="o">}</span>
+
+      <span class="n">enterBarrier</span><span class="o">(</span><span class="s">&quot;finished&quot;</span><span class="o">)</span>
+    <span class="o">}</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="things-to-keep-in-mind">
+<h2>Things to Keep in Mind</h2>
+<p>There are a couple of things to keep in mind when writing multi node tests or else your tests might behave in
+surprising ways.</p>
+<blockquote>
+<div><ul class="simple">
+<li>Don't issue a shutdown of the first node. The first node is the controller and if it shuts down your test will break.</li>
+<li>To be able to use <tt class="docutils literal"><span class="pre">blackhole</span></tt>, <tt class="docutils literal"><span class="pre">passThrough</span></tt>, and <tt class="docutils literal"><span class="pre">throttle</span></tt> you must activate the failure injector and
+throttler transport adapters by specifying <tt class="docutils literal"><span class="pre">testTransport(on</span> <span class="pre">=</span> <span class="pre">true)</span></tt> in your MultiNodeConfig.</li>
+<li>Throttling, shutdown and other failure injections can only be done from the first node, which again is the controller.</li>
+<li>Don't ask for the address of a node using <tt class="docutils literal"><span class="pre">node(address)</span></tt> after the node has been shut down. Grab the address before
+shutting down the node.</li>
+<li>Don't use MultiNodeSpec methods like address lookup, barrier entry et.c. from other threads than the main test
+thread. This also means that you shouldn't use them from inside an actor, a future, or a scheduled task.</li>
+</ul>
+</div></blockquote>
+</div>
+</div>
+
+
+          </div>
+          <div class="span3"><p class="contents-title">Contents</p>
+              <div id="scroller-anchor">
+                <div id="scroller">
+                  <div id="toc"></div>
+                </div>
+              </div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="footer">
+  <div class="container">
+    <ul>
+      <li><h5>Akka</h5></li>
+      <li><a href="https://akka.io/docs">Documentation</a></li>
+      <li><a href="https://akka.io/faq">FAQ</a></li>
+      <li><a href="http://typesafe.com/stack/downloads/akka">Downloads</a></li>
+      <li><a href="https://akka.io/news">News</a></li>
+      <li><a href="http://letitcrash.com">Blog</a></li>
+    </ul>
+    <ul>
+      <li><h5>Contribute</h5></li>
+      <li><a href="https://akka.io/community">Community Projects</a></li>
+      <li><a href="http://github.com/akka/akka">Source Code</a></li>
+      <li><a href="http://groups.google.com/group/akka-user">Mailing List</a></li>      
+      <li><a href="https://doc.akka.io/docs/akka/current/project/issue-tracking.html">Report a Bug</a></li>      
+    </ul>
+    <ul>
+      <li><h5>Company</h5></li>
+      <li><a href="http://typesafe.com/products/typesafe-subscription">Commercial Support</a></li>
+      <li><a href="https://akka.io/team">Team</a></li>
+      <li><a href="mailto:info@typesafe.com">Contact</a></li>
+    </ul>
+    <ul>
+      <li><img src="../_static/watermark.png" align="center"/></li>
+    </ul>
+  </div>
+  <div class="container copyright">
+    <p style="float: left;">
+      © 2013 <a href="http://typesafe.com/">Typesafe Inc.</a> <span class="license">Akka is Open Source and available under the Apache 2 License.</span>
+    </p>
+    <p style="float: right; font-size: 12px;">
+      Last updated: Feb 19, 2015
+    </p>          
+  </div>
+</div>
+<script src="http://www.google.com/jsapi" type="text/javascript"></script>
+<script type="text/javascript">
+    google.load('search', '1', {language : 'en', style : google.loader.themes.MINIMALIST});
+    google.setOnLoadCallback(function() {
+    var customSearchOptions = {};  var customSearchControl = new google.search.CustomSearchControl(
+    '003065520604945464838:izzukx8-qba', customSearchOptions);
+    customSearchControl.setResultSetSize(google.search.Search.FILTERED_CSE_RESULTSET);
+    customSearchControl.draw('cse');
+    var path = window.location.pathname.split('/').slice(0,4);
+    if(window.location.hostname && path.length >= 4) {
+    var site = "site:" + window.location.hostname + path.join('/').toString();
+    customSearchControl.setSearchStartingCallback(this, function(c, s, q) { s.setQueryAddition(site); });
+    }
+    }, true);
+</script>
+<style type="text/css">
+    .gsc-control-cse {
+    font-family: Arial, sans-serif;
+    border-color: rgb(242, 242, 235);
+    background-color: rgb(242, 242, 235);
+    }
+    .gsc-control-cse .gsc-table-result {
+      font-family: Arial, sans-serif;
+      display: block;
+    }
+    input.gsc-input {
+    border-color: #BBBBBB;
+    }
+    input.gsc-search-button {
+    border-color: rgb(34, 57, 64);
+    background-color: rgb(68, 114, 129);
+    color: #FFFFFF;
+    }
+    .gsc-tabHeader.gsc-tabhInactive {
+    border-color: #777777;
+    background-color: #777777;
+    }
+    .gsc-tabHeader.gsc-tabhActive {
+    border-color: #333333;
+    background-color: #333333;
+    }
+    .gsc-tabsArea {
+    border-color: #333333;
+    }
+    .gsc-webResult.gsc-result,
+    .gsc-results .gsc-imageResult {
+      border-color: #666666;
+      background-color: #FFFFFF;
+      padding: 0.5em 0.5em;
+    }
+    .gsc-webResult.gsc-result:hover,
+    .gsc-imageResult:hover {
+      border-color: #AAAAAA;
+      background-color: #FFFFFF;
+      padding: 0.5em 0.5em;
+    }
+    .gsc-webResult.gsc-result.gsc-promotion:hover {
+    border-color: #AAAAAA;
+    background-color: #FFFFFF;
+    }
+    .gs-webResult.gs-result a.gs-title:link,
+    .gs-webResult.gs-result a.gs-title:link b,
+    .gs-imageResult a.gs-title:link,
+    .gs-imageResult a.gs-title:link b {
+    color: #444444;
+    }
+    .gs-webResult.gs-result a.gs-title:visited,
+    .gs-webResult.gs-result a.gs-title:visited b,
+    .gs-imageResult a.gs-title:visited,
+    .gs-imageResult a.gs-title:visited b {
+    color: #444444;
+    }
+    .gs-webResult.gs-result a.gs-title:hover,
+    .gs-webResult.gs-result a.gs-title:hover b,
+    .gs-imageResult a.gs-title:hover,
+    .gs-imageResult a.gs-title:hover b {
+    color: #444444;
+    }
+    .gs-webResult.gs-result a.gs-title:active,
+    .gs-webResult.gs-result a.gs-title:active b,
+    .gs-imageResult a.gs-title:active,
+    .gs-imageResult a.gs-title:active b {
+    color: #777777;
+    }
+    .gsc-cursor-page {
+    color: #444444;
+    }
+    a.gsc-trailing-more-results:link {
+    color: #444444;
+    }
+    .gs-webResult .gs-snippet,
+    .gs-imageResult .gs-snippet,
+    .gs-fileFormatType {
+    color: #333333;
+    }
+    .gs-webResult div.gs-visibleUrl,
+    .gs-imageResult div.gs-visibleUrl {
+    color: #000000;
+    }
+    .gs-webResult div.gs-visibleUrl-short {
+    color: #000000;
+    }
+    .gs-webResult div.gs-visibleUrl-short {
+    display: none;
+    }
+    .gs-webResult div.gs-visibleUrl-long {
+    display: block;
+    }
+    .gs-promotion div.gs-visibleUrl-short {
+    display: none;
+    }
+    .gs-promotion div.gs-visibleUrl-long {
+    display: block;
+    }
+    .gsc-cursor-box {
+    border-color: #FFFFFF;
+    }
+    .gsc-results .gsc-cursor-box .gsc-cursor-page {
+    border-color: #777777;
+    background-color: #FFFFFF;
+    color: #444444;
+    }
+    .gsc-results .gsc-cursor-box .gsc-cursor-current-page {
+    border-color: #333333;
+    background-color: #333333;
+    color: #444444;
+    }
+    .gsc-webResult.gsc-result.gsc-promotion {
+    border-color: #CCCCCC;
+    background-color: #E6E6E6;
+    }
+    .gsc-completion-title {
+    color: #444444;
+    }
+    .gsc-completion-snippet {
+    color: #333333;
+    }
+    .gs-promotion a.gs-title:link,
+    .gs-promotion a.gs-title:link *,
+    .gs-promotion .gs-snippet a:link {
+    color: #0000CC;
+    }
+    .gs-promotion a.gs-title:visited,
+    .gs-promotion a.gs-title:visited *,
+    .gs-promotion .gs-snippet a:visited {
+    color: #0000CC;
+    }
+    .gs-promotion a.gs-title:hover,
+    .gs-promotion a.gs-title:hover *,
+    .gs-promotion .gs-snippet a:hover {
+    color: #444444;
+    }
+    .gs-promotion a.gs-title:active,
+    .gs-promotion a.gs-title:active *,
+    .gs-promotion .gs-snippet a:active {
+    color: #00CC00;
+    }
+    .gs-promotion .gs-snippet,
+    .gs-promotion .gs-title .gs-promotion-title-right,
+    .gs-promotion .gs-title .gs-promotion-title-right *  {
+    color: #333333;
+    }
+    .gs-promotion .gs-visibleUrl,
+    .gs-promotion .gs-visibleUrl-short {
+    color: #00CC00;
+    }
+</style>
+<script type="text/javascript">
+  $('#toc').toc();
+</script>
+  
+
+  </body>
+</html>

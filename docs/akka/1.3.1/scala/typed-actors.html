@@ -1,0 +1,287 @@
+
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Typed Actors (Scala) &mdash; Akka Documentation</title>
+    <link rel="stylesheet" href="../_static/style.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/prettify.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/base.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
+    <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Exo:300,400,600,700" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '1.3.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+<script type="text/javascript" src="https://doc.akka.io/docs/akka/1.3.1/_static/warnOldDocs.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="../_static/toc.js"></script>
+    <script type="text/javascript" src="../_static/prettify.js"></script>
+    <script type="text/javascript" src="../_static/highlightCode.js"></script>
+    <script type="text/javascript" src="../_static/effects.core.js"></script>
+    <script type="text/javascript" src="../_static/effects.highlight.js"></script>
+    <script type="text/javascript" src="../_static/scrollTo.js"></script>
+    <script type="text/javascript" src="../_static/contentsFix.js"></script>
+    <link rel="shortcut icon" href="../_static/favicon.ico"/>
+    <link rel="top" title="Akka Documentation" href="../index.html" />
+    <link rel="up" title="Scala API" href="index.html" />
+    <link rel="next" title="ActorRegistry (Scala)" href="actor-registry.html" />
+    <link rel="prev" title="Actors (Scala)" href="actors.html" /> 
+  </head>
+  <body>
+  <div class="navbar">
+    <div class="navbar-inner">
+      <div class="container">
+        <div class="navbar-logo">
+          <a href="https://akka.io"><img src="../_static/logo-small.png" /></a>
+        </div>    
+        <ul class="nav">
+          <li><a href="https://akka.io/docs">Documentation</a></li>
+          <li><a href="https://akka.io/downloads">Download</a></li>
+          <li><a href="http://groups.google.com/group/akka-user">Mailing List</a></li>
+          <li><a href="http://github.com/akka/akka">Code</a></li>           
+          <li><a href="http://typesafe.com/products/typesafe-subscription">Commercial Support</a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="main">
+    <div class="container">
+      <div class="page-title">Typed Actors (Scala)</div><div class="pdf-link"><a href="https://doc.akka.io/docs/akka/1.3.1/Akka.pdf"><img src="../_static/pdf-icon.png" style="height: 40px;" /></a></div></div>
+    <div class="main-container">
+      <div class="container">
+        <div class="row">
+          <div class="span12">
+            <ul class="breadcrumb">           
+              <li>
+                 <span class="divider">|</span> <a href="actor-registry.html">ActorRegistry (Scala)</a> <span class="divider">»</span>
+              </li>
+              <li>
+                <a href="../index.html">Contents</a>
+              </li>
+              <li>
+                <span class="divider">«</span> <a href="actors.html">Actors (Scala)</a> <span class="divider">|</span>
+              </li>
+              <li>
+                Version 1.3.1
+              </li>
+            </ul>         
+          </div>
+        </div>
+        <div class="row">
+          <div class="span9">
+            
+  <div class="section" id="typed-actors-scala">
+<h1>Typed Actors (Scala)</h1>
+<p>Module stability: <strong>SOLID</strong></p>
+<p>The Typed Actors are implemented through <a class="reference external" href="http://en.wikipedia.org/wiki/Active_object">Typed Actors</a>. It uses AOP through <a class="reference external" href="http://aspectwerkz.codehaus.org/">AspectWerkz</a> to turn regular POJOs into asynchronous non-blocking Actors with semantics of the Actor Model. Each method dispatch is turned into a message that is put on a queue to be processed by the Typed Actor sequentially one by one.</p>
+<p>If you are using the <a class="reference external" href="http://springsource.org">Spring Framework</a> then take a look at Akka&#8217;s <a class="reference external" href="spring-integration">Spring integration</a>.</p>
+<div class="section" id="creating-typed-actors">
+<h2>Creating Typed Actors</h2>
+<p><strong>IMPORTANT:</strong> The Typed Actors class must have access modifier &#8216;public&#8217; (which is default) and can&#8217;t be an inner class (unless it is an inner class in an &#8216;object&#8217;).</p>
+<p>Akka turns POJOs with interface and implementation into asynchronous (Typed) Actors. Akka is using <a class="reference external" href="http://blogs.codehaus.org/people/jboner/archives/000914_awproxy_proxy_on_steriods.html">AspectWerkz’s Proxy</a> implementation, which is the <a class="reference external" href="http://docs.codehaus.org/display/AW/AOP+Benchmark">most performant</a> proxy implementation there exists.</p>
+<p>In order to create a Typed Actor you have to subclass the TypedActor base class.</p>
+<p>Here is an example.</p>
+<p>If you have a POJO with an interface implementation separation like this:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">import</span> <span class="nn">akka.actor.TypedActor</span>
+
+<span class="k">trait</span> <span class="nc">RegistrationService</span> <span class="o">{</span>
+  <span class="k">def</span> <span class="n">register</span><span class="o">(</span><span class="n">user</span><span class="k">:</span> <span class="kt">User</span><span class="o">,</span> <span class="n">cred</span><span class="k">:</span> <span class="kt">Credentials</span><span class="o">)</span><span class="k">:</span> <span class="kt">Unit</span>
+  <span class="k">def</span> <span class="n">getUserFor</span><span class="o">(</span><span class="n">username</span><span class="k">:</span> <span class="kt">String</span><span class="o">)</span><span class="k">:</span> <span class="kt">User</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<div class="highlight-scala"><div class="highlight"><pre><span class="n">public</span> <span class="k">class</span> <span class="nc">RegistrationServiceImpl</span> <span class="k">extends</span> <span class="nc">TypedActor</span> <span class="k">with</span> <span class="nc">RegistrationService</span> <span class="o">{</span>
+  <span class="k">def</span> <span class="n">register</span><span class="o">(</span><span class="n">user</span><span class="k">:</span> <span class="kt">User</span><span class="o">,</span> <span class="n">cred</span><span class="k">:</span> <span class="kt">Credentials</span><span class="o">)</span><span class="k">:</span> <span class="kt">Unit</span> <span class="o">=</span> <span class="o">{</span>
+    <span class="o">...</span> <span class="c1">// register user</span>
+  <span class="o">}</span>
+
+  <span class="k">def</span> <span class="n">getUserFor</span><span class="o">(</span><span class="n">username</span><span class="k">:</span> <span class="kt">String</span><span class="o">)</span><span class="k">:</span> <span class="kt">User</span> <span class="o">=</span> <span class="o">{</span>
+    <span class="o">...</span> <span class="c1">// fetch user by username</span>
+   <span class="n">user</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<p>Then you can create an Typed Actor out of it by creating it through the &#8216;TypedActor&#8217; factory like this:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">val</span> <span class="n">service</span> <span class="k">=</span> <span class="nc">TypedActor</span><span class="o">.</span><span class="n">newInstance</span><span class="o">(</span><span class="n">classOf</span><span class="o">[</span><span class="kt">RegistrationService</span><span class="o">],</span> <span class="n">classOf</span><span class="o">[</span><span class="kt">RegistrationServiceImpl</span><span class="o">],</span> <span class="mi">1000</span><span class="o">)</span>
+<span class="c1">// The last parameter defines the timeout for Future calls</span>
+</pre></div>
+</div>
+<div class="section" id="creating-typed-actors-with-non-default-constructor">
+<h3>Creating Typed Actors with non-default constructor</h3>
+<p>To create a typed actor that takes constructor arguments use a variant of &#8216;newInstance&#8217; or &#8216;newRemoteInstance&#8217; that takes a call-by-name block in which you can create the Typed Actor in any way you like.</p>
+<p>Here is an example:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">val</span> <span class="n">service</span> <span class="k">=</span> <span class="nc">TypedActor</span><span class="o">.</span><span class="n">newInstance</span><span class="o">(</span><span class="n">classOf</span><span class="o">[</span><span class="kt">Service</span><span class="o">],</span> <span class="k">new</span> <span class="nc">ServiceWithConstructorArgs</span><span class="o">(</span><span class="s">&quot;someString&quot;</span><span class="o">,</span> <span class="mi">500L</span><span class="o">))</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="configuration-factory-class">
+<h3>Configuration factory class</h3>
+<p>Using a configuration object:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">import</span> <span class="nn">akka.actor.TypedActorConfiguration</span>
+<span class="k">import</span> <span class="nn">akka.util.Duration</span>
+<span class="k">import</span> <span class="nn">akka.util.duration._</span>
+
+    <span class="k">val</span> <span class="n">config</span> <span class="k">=</span> <span class="nc">TypedActorConfiguration</span><span class="o">()</span>
+      <span class="o">.</span><span class="n">timeout</span><span class="o">(</span><span class="mi">3000</span> <span class="n">millis</span><span class="o">)</span>
+
+<span class="k">val</span> <span class="n">service</span> <span class="k">=</span> <span class="nc">TypedActor</span><span class="o">.</span><span class="n">newInstance</span><span class="o">(</span><span class="n">classOf</span><span class="o">[</span><span class="kt">RegistrationService</span><span class="o">],</span> <span class="n">classOf</span><span class="o">[</span><span class="kt">RegistrationServiceImpl</span><span class="o">],</span> <span class="n">config</span><span class="o">)</span>
+</pre></div>
+</div>
+<p>However, often you will not use these factory methods but declaratively define the Typed Actors as part of a supervisor hierarchy. More on that in the <a class="reference internal" href="fault-tolerance.html#fault-tolerance-scala"><em>Fault Tolerance Through Supervisor Hierarchies (Scala)</em></a> section.</p>
+</div>
+</div>
+<div class="section" id="sending-messages">
+<h2>Sending messages</h2>
+<p>Messages are sent simply by invoking methods on the POJO, which is proxy to the &#8220;real&#8221; POJO now. The arguments to the method are bundled up atomically into an message and sent to the receiver (the actual POJO instance).</p>
+<div class="section" id="one-way-message-send">
+<h3>One-way message send</h3>
+<p>Methods that return void are turned into ‘fire-and-forget’ semantics by asynchronously firing off the message and return immediately. In the example above it would be the &#8216;register&#8217; method, so if this method is invoked then it returns immediately:</p>
+<div class="highlight-java"><div class="highlight"><pre><span class="c1">// method invocation returns immediately and method is invoke asynchronously using the Actor Model semantics</span>
+<span class="n">service</span><span class="o">.</span><span class="na">register</span><span class="o">(</span><span class="n">user</span><span class="o">,</span> <span class="n">creds</span><span class="o">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="request-reply-message-send">
+<h3>Request-reply message send</h3>
+<p>Methods that return something (e.g. non-void methods) are turned into ‘send-and-receive-eventually’ semantics by asynchronously firing off the message and wait on the reply using a Future.</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="c1">// method invocation is asynchronously dispatched using the Actor Model semantics,</span>
+<span class="c1">// but it blocks waiting on a Future to be resolved in the background</span>
+<span class="k">val</span> <span class="n">user</span> <span class="k">=</span> <span class="n">service</span><span class="o">.</span><span class="n">getUser</span><span class="o">(</span><span class="n">username</span><span class="o">)</span>
+</pre></div>
+</div>
+<p>Generally it is preferred to use fire-forget messages as much as possible since they will never block, e.g. consume a resource by waiting. But sometimes they are neat to use since they:
+# Simulates standard Java method dispatch, which is more intuitive for most Java developers
+# Are a neat to model request-reply
+# Are useful when you need to do things in a defined order</p>
+</div>
+<div class="section" id="request-reply-with-future-message-send">
+<h3>Request-reply-with-future message send</h3>
+<p>Methods that return a &#8216;akka.dispatch.Future&lt;TYPE&gt;&#8217; are turned into ‘send-and-receive-with-future’ semantics by asynchronously firing off the message and returns immediately with a Future. You need to use the &#8216;future(...)&#8217; method in the TypedActor base class to resolve the Future that the client code is waiting on.</p>
+<p>Here is an example:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">class</span> <span class="nc">MathTypedActorImpl</span> <span class="k">extends</span> <span class="nc">TypedActor</span> <span class="k">with</span> <span class="nc">MathTypedActor</span> <span class="o">{</span>
+  <span class="k">def</span> <span class="n">square</span><span class="o">(</span><span class="n">x</span><span class="k">:</span> <span class="kt">Int</span><span class="o">)</span><span class="k">:</span> <span class="kt">Future</span><span class="o">[</span><span class="kt">Integer</span><span class="o">]</span> <span class="k">=</span> <span class="n">future</span><span class="o">(</span><span class="n">x</span> <span class="o">*</span> <span class="n">x</span><span class="o">)</span>
+<span class="o">}</span>
+
+<span class="c1">// create the ping actor</span>
+<span class="k">val</span> <span class="n">math</span> <span class="k">=</span> <span class="nc">TypedActor</span><span class="o">.</span><span class="n">newInstance</span><span class="o">(</span><span class="n">classOf</span><span class="o">[</span><span class="kt">MathTyped</span><span class="o">],</span> <span class="n">classOf</span><span class="o">[</span><span class="kt">MathTypedImpl</span><span class="o">])</span>
+
+<span class="c1">// This method will return immediately when called, caller should wait on the Future for the result</span>
+<span class="k">val</span> <span class="n">future</span> <span class="k">=</span> <span class="n">math</span><span class="o">.</span><span class="n">square</span><span class="o">(</span><span class="mi">10</span><span class="o">)</span>
+<span class="n">future</span><span class="o">.</span><span class="n">await</span>
+<span class="k">val</span> <span class="n">result</span><span class="k">:</span> <span class="kt">Int</span> <span class="o">=</span> <span class="n">future</span><span class="o">.</span><span class="n">get</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="stopping-typed-actors">
+<h2>Stopping Typed Actors</h2>
+<p>Once Typed Actors have been created with one of the TypedActor.newInstance methods they need to be stopped with TypedActor.stop to free resources allocated by the created Typed Actor (this is not needed when the Typed Actor is supervised).</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="c1">// Create Typed Actor</span>
+<span class="k">val</span> <span class="n">service</span> <span class="k">=</span> <span class="nc">TypedActor</span><span class="o">.</span><span class="n">newInstance</span><span class="o">(</span><span class="n">classOf</span><span class="o">[</span><span class="kt">RegistrationService</span><span class="o">],</span> <span class="n">classOf</span><span class="o">[</span><span class="kt">RegistrationServiceImpl</span><span class="o">],</span> <span class="mi">1000</span><span class="o">)</span>
+
+<span class="c1">// ...</span>
+
+<span class="c1">// Free Typed Actor resources</span>
+<span class="nc">TypedActor</span><span class="o">.</span><span class="n">stop</span><span class="o">(</span><span class="n">service</span><span class="o">)</span>
+</pre></div>
+</div>
+<p>When the Typed Actor defines a shutdown callback method (<a class="reference internal" href="fault-tolerance.html#fault-tolerance-scala"><em>Fault Tolerance Through Supervisor Hierarchies (Scala)</em></a>) it will be invoked on TypedActor.stop.</p>
+</div>
+<div class="section" id="how-to-use-the-typedactorcontext-for-runtime-information-access">
+<h2>How to use the TypedActorContext for runtime information access</h2>
+<p>The &#8216;akka.actor.TypedActorContext&#8217; class Holds &#8216;runtime type information&#8217; (RTTI) for the Typed Actor. This context is a member field in the TypedActor base class and holds for example the current sender reference, the current sender future etc.</p>
+<p>Here is an example how you can use it to in a &#8216;void&#8217; (e.g. fire-forget) method to implement request-reply by using the sender reference:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">class</span> <span class="nc">PingImpl</span> <span class="k">extends</span> <span class="nc">TypedActor</span> <span class="k">with</span> <span class="nc">Ping</span> <span class="o">{</span>
+
+  <span class="k">def</span> <span class="n">hit</span><span class="o">(</span><span class="n">count</span><span class="k">:</span> <span class="kt">Int</span><span class="o">)</span> <span class="o">{</span>
+    <span class="k">val</span> <span class="n">pong</span> <span class="k">=</span> <span class="n">context</span><span class="o">.</span><span class="n">getSender</span><span class="o">.</span><span class="n">asInstanceOf</span><span class="o">[</span><span class="kt">Pong</span><span class="o">]</span>
+    <span class="n">pong</span><span class="o">.</span><span class="n">hit</span><span class="o">(</span><span class="n">count</span><span class="o">++)</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<p>If the sender, sender future etc. is not available, then these methods will return &#8216;null&#8217; so you should have a way of dealing with that scenario.</p>
+</div>
+<div class="section" id="messages-and-immutability">
+<h2>Messages and immutability</h2>
+<p><strong>IMPORTANT</strong>: Messages can be any kind of object but have to be immutable (there is a workaround, see next section). Java or Scala can’t enforce immutability (yet) so this has to be by convention. Primitives like String, int, Long are always immutable. Apart from these you have to create your own immutable objects to send as messages. If you pass on a reference to an instance that is mutable then this instance can be modified concurrently by two different Typed Actors and the Actor model is broken leaving you with NO guarantees and most likely corrupt data.</p>
+<p>Akka can help you in this regard. It allows you to turn on an option for serializing all messages, e.g. all parameters to the Typed Actor effectively making a deep clone/copy of the parameters. This will make sending mutable messages completely safe. This option is turned on in the ‘$AKKA_HOME/config/akka.conf’ config file like this:</p>
+<div class="highlight-ruby"><div class="highlight"><pre><span class="n">akka</span> <span class="p">{</span>
+  <span class="n">actor</span> <span class="p">{</span>
+    <span class="n">serialize</span><span class="o">-</span><span class="n">messages</span> <span class="o">=</span> <span class="n">on</span>  <span class="c1"># does a deep clone of messages to ensure immutability</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>This will make a deep clone (using Java serialization) of all parameters.</p>
+</div>
+</div>
+
+
+          </div>
+          <div class="span3"><p class="contents-title">Contents</p>
+              <div id="scroller-anchor">
+                <div id="scroller">
+                  <div id="toc"></div>
+                </div>
+              </div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="footer">
+  <div class="container">
+    <ul>
+      <li><h5>Akka</h5></li>
+      <li><a href="https://akka.io/docs">Documentation</a></li>
+      <li><a href="https://akka.io/downloads">Downloads</a></li>
+      <li><a href="https://akka.io/news">News</a></li>
+      <li><a href="http://letitcrash.com">Blog</a></li>
+    </ul>
+    <ul>
+      <li><h5>Contribute</h5></li>
+      <li><a href="http://github.com/akka/akka">Source Code</a></li>
+      <li><a href="http://groups.google.com/group/akka-user">Mailing List</a></li>      
+      <li><a href="http://www.assembla.com/spaces/akka/tickets">Report a Bug</a></li>      
+    </ul>
+    <ul>
+      <li><h5>Company</h5></li>
+      <li><a href="http://typesafe.com/products/typesafe-subscription">Commercial Support</a></li>
+      <li><a href="https://akka.io/team">Team</a></li>
+      <li><a href="mailto:info@typesafe.com">Contact</a></li>
+    </ul>
+    <ul>
+      <li><img src="../_static/watermark.png" align="center"/></li>
+    </ul>
+  </div>
+  <div class="container copyright">
+    <p style="float: left;">
+      © 2012 <a href="http://typesafe.com/">Typesafe Inc.</a> <span class="license">Akka is Open Source and available under the Apache 2 License.</span>
+    </p>
+    <p style="float: right; font-size: 12px;">
+      Last updated: Mar 08, 2012
+    </p>          
+  </div>
+</div>
+<script type="text/javascript">
+  $('#toc').toc();
+</script>
+  
+
+  </body>
+</html>

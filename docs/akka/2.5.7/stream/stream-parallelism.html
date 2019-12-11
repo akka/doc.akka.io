@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html class="no-js" lang="en">
+
+<head>
+<title>Pipelining and Parallelism &bull; Akka Documentation</title>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta name="description" content="Akka is a toolkit for building highly concurrent, distributed, and resilient message-driven applications for Java and Scala."/>
+<link rel="canonical" href="https://doc.akka.io/docs/akka/current/stream/stream-parallelism.html"/>
+<script type="text/javascript" src="../lib/jquery/jquery.min.js"></script>
+<script type="text/javascript" src="../lib/foundation/dist/js/foundation.min.js"></script>
+<link rel="stylesheet" type="text/css" href="../lib/normalize.css/normalize.css"/>
+<link rel="stylesheet" type="text/css" href="../lib/foundation/dist/css/foundation.min.css"/>
+<link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/docsearch.js/2/docsearch.min.css" />
+<link rel="stylesheet" type="text/css" href="../css/icons.css"/>
+<link rel="stylesheet" type="text/css" href="../css/page.css"/>
+<link rel="shortcut icon" href="../images/favicon.ico" />
+<link rel="apple-touch-icon" sizes="180x180" href="../images/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="../images/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="../images/favicon-16x16.png">
+<link rel="manifest" href="../images/manifest.json">
+<meta name="msapplication-TileImage" content="../images/mstile-150x150.png">
+<meta name="msapplication-TileColor" content="#15a9ce">
+<meta name="theme-color" content="#15a9ce">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<!--Google Analytics-->
+<script type="text/javascript">
+var _gaq = _gaq || [];
+_gaq.push(['_setAccount', 'UA-21117439-1']);
+_gaq.push(['_setDomainName', 'akka.io']);
+_gaq.push(['_trackPageview']);
+(function() {
+var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+})()
+</script>
+<!--Google Analytics & Marketo-->
+<script type="text/javascript">
+(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+ga('create', 'UA-23127719-1', 'lightbend.com', {'allowLinker': true, 'name': 'tsTracker'});
+ga('tsTracker.require', 'linker');
+ga('tsTracker.linker:autoLink', ['lightbend.com','playframework.com','scala-lang.org','scaladays.org','spray.io','akka.io','scala-sbt.org','scala-ide.org']);
+ga('tsTracker.send', 'pageview');
+(function() {
+var didInit = false;
+function initMunchkin() {
+if(didInit === false) {
+didInit = true;
+Munchkin.init('558-NCX-702');
+}
+}
+var s = document.createElement('script');
+s.type = 'text/javascript';
+s.async = true;
+s.src = '//munchkin.marketo.net/munchkin.js';
+s.onreadystatechange = function() {
+if (this.readyState == 'complete' || this.readyState == 'loaded') {
+initMunchkin();
+}
+};
+s.onload = initMunchkin;
+document.getElementsByTagName('head')[0].appendChild(s);
+})();
+</script>
+
+</head>
+
+<body id="underlay" data-toggler="nav-open">
+
+<header class="site-header hide-for-large">
+<div class="sticky-header clearfix">
+<a href="https://akka.io"><img class="logo" src="../images/akka-logo-reverse.svg"></a>
+
+<button class="menu-icon float-right" type="button" data-toggle="underlay overlay"></button>
+</div>
+<div id="overlay" class="overlay-nav" data-toggler="nav-open">
+<header class="nav-header">
+<div class="nav-header-title">
+<h1><a href="../index.html">Akka Documentation</a></h1>
+</div>
+<div class="nav-header-version">
+Version 2.5.7
+</div>
+<div class="nav-header-groups">
+<select class="supergroup" name="Language"><option class="group" value="group-scala">Scala</option><option class="group" value="group-java">Java</option></select>
+</div>
+<div id="overlay-search-container" class="nav-header-search">
+<input id="overlay-search" type="search" class="search" placeholder="Search"/>
+</div>
+</header>
+<nav class="nav-toc">
+<ul>
+  <li><a href="../security/index.html" class="page">Security Announcements</a></li>
+  <li><a href="../guide/index.html" class="page">Getting Started Guide</a></li>
+  <li><a href="../general/index.html" class="page">General Concepts</a></li>
+  <li><a href="../index-actors.html" class="page">Actors</a></li>
+  <li><a href="../index-network.html" class="page">Networking</a></li>
+  <li><a href="../stream/index.html" class="page">Streams</a>
+  <ul>
+    <li><a href="../stream/stream-introduction.html" class="page">Introduction</a></li>
+    <li><a href="../stream/stream-quickstart.html" class="page">Streams Quickstart Guide</a></li>
+    <li><a href="../general/stream/stream-design.html" class="page">Design Principles behind Akka Streams</a></li>
+    <li><a href="../stream/stream-flows-and-basics.html" class="page">Basics and working with Flows</a></li>
+    <li><a href="../stream/stream-graphs.html" class="page">Working with Graphs</a></li>
+    <li><a href="../stream/stream-composition.html" class="page">Modularity, Composition and Hierarchy</a></li>
+    <li><a href="../stream/stream-rate.html" class="page">Buffers and working with rate</a></li>
+    <li><a href="../stream/stream-dynamic.html" class="page">Dynamic stream handling</a></li>
+    <li><a href="../stream/stream-customize.html" class="page">Custom stream processing</a></li>
+    <li><a href="../stream/stream-integrations.html" class="page">Integration</a></li>
+    <li><a href="../stream/stream-error.html" class="page">Error Handling in Streams</a></li>
+    <li><a href="../stream/stream-io.html" class="page">Working with streaming IO</a></li>
+    <li><a href="../stream/stream-parallelism.html#pipelining-and-parallelism" class="active page">Pipelining and Parallelism</a>
+    <ul>
+      <li><a href="../stream/stream-parallelism.html#pipelining" class="header">Pipelining</a></li>
+      <li><a href="../stream/stream-parallelism.html#parallel-processing" class="header">Parallel processing</a></li>
+      <li><a href="../stream/stream-parallelism.html#combining-pipelining-and-parallel-processing" class="header">Combining pipelining and parallel processing</a></li>
+    </ul></li>
+    <li><a href="../stream/stream-testkit.html" class="page">Testing streams</a></li>
+    <li><a href="../stream/stages-overview.html" class="page">Overview of built-in stages and their semantics</a></li>
+    <li><a href="../stream/stream-cookbook.html" class="page">Streams Cookbook</a></li>
+    <li><a href="../general/stream/stream-configuration.html" class="page">Configuration</a></li>
+  </ul></li>
+  <li><a href="../index-futures.html" class="page">Futures and Agents</a></li>
+  <li><a href="../index-utilities.html" class="page">Utilities</a></li>
+  <li><a href="../common/other-modules.html" class="page">Other Akka modules</a></li>
+  <li><a href="../howto.html" class="page">HowTo: Common Patterns</a></li>
+  <li><a href="../project/index.html" class="page">Project Information</a></li>
+  <li><a href="../additional/index.html" class="page">Additional Information</a></li>
+</ul>
+</nav>
+</div>
+</header>
+
+<aside class="show-for-large">
+<header class="nav-header fixed-sidebar-header">
+<div class="nav-header-title">
+<h1><a href="../index.html">Akka Documentation</a></h1>
+</div>
+<div class="nav-header-version">
+Version 2.5.7
+</div>
+<div class="nav-header-groups">
+<select class="supergroup" name="Language"><option class="group" value="group-scala">Scala</option><option class="group" value="group-java">Java</option></select>
+</div>
+<div class="nav-header-search">
+<input id="search" type="search" class="search" placeholder="Search"/>
+</div>
+</header>
+<nav class="site-nav fixed-sidebar-contents">
+<div class="nav-toc">
+<ul>
+  <li><a href="../security/index.html" class="page">Security Announcements</a></li>
+  <li><a href="../guide/index.html" class="page">Getting Started Guide</a></li>
+  <li><a href="../general/index.html" class="page">General Concepts</a></li>
+  <li><a href="../index-actors.html" class="page">Actors</a></li>
+  <li><a href="../index-network.html" class="page">Networking</a></li>
+  <li><a href="../stream/index.html" class="page">Streams</a>
+  <ul>
+    <li><a href="../stream/stream-introduction.html" class="page">Introduction</a></li>
+    <li><a href="../stream/stream-quickstart.html" class="page">Streams Quickstart Guide</a></li>
+    <li><a href="../general/stream/stream-design.html" class="page">Design Principles behind Akka Streams</a></li>
+    <li><a href="../stream/stream-flows-and-basics.html" class="page">Basics and working with Flows</a></li>
+    <li><a href="../stream/stream-graphs.html" class="page">Working with Graphs</a></li>
+    <li><a href="../stream/stream-composition.html" class="page">Modularity, Composition and Hierarchy</a></li>
+    <li><a href="../stream/stream-rate.html" class="page">Buffers and working with rate</a></li>
+    <li><a href="../stream/stream-dynamic.html" class="page">Dynamic stream handling</a></li>
+    <li><a href="../stream/stream-customize.html" class="page">Custom stream processing</a></li>
+    <li><a href="../stream/stream-integrations.html" class="page">Integration</a></li>
+    <li><a href="../stream/stream-error.html" class="page">Error Handling in Streams</a></li>
+    <li><a href="../stream/stream-io.html" class="page">Working with streaming IO</a></li>
+    <li><a href="../stream/stream-parallelism.html#pipelining-and-parallelism" class="active page">Pipelining and Parallelism</a>
+    <ul>
+      <li><a href="../stream/stream-parallelism.html#pipelining" class="header">Pipelining</a></li>
+      <li><a href="../stream/stream-parallelism.html#parallel-processing" class="header">Parallel processing</a></li>
+      <li><a href="../stream/stream-parallelism.html#combining-pipelining-and-parallel-processing" class="header">Combining pipelining and parallel processing</a></li>
+    </ul></li>
+    <li><a href="../stream/stream-testkit.html" class="page">Testing streams</a></li>
+    <li><a href="../stream/stages-overview.html" class="page">Overview of built-in stages and their semantics</a></li>
+    <li><a href="../stream/stream-cookbook.html" class="page">Streams Cookbook</a></li>
+    <li><a href="../general/stream/stream-configuration.html" class="page">Configuration</a></li>
+  </ul></li>
+  <li><a href="../index-futures.html" class="page">Futures and Agents</a></li>
+  <li><a href="../index-utilities.html" class="page">Utilities</a></li>
+  <li><a href="../common/other-modules.html" class="page">Other Akka modules</a></li>
+  <li><a href="../howto.html" class="page">HowTo: Common Patterns</a></li>
+  <li><a href="../project/index.html" class="page">Project Information</a></li>
+  <li><a href="../additional/index.html" class="page">Additional Information</a></li>
+</ul>
+</div>
+</nav>
+<footer class="nav-footer fixed-sidebar-footer">
+<a href="https://akka.io"><img class="logo" src="../images/akka-logo-reverse.svg"></a>
+
+</footer>
+</aside>
+
+<main class="fixed-shift-for-large expanded row">
+<section class="site-content small-12 column">
+
+<article class="page-content row">
+<div class="small-12 large-9 column" id="docs">
+<h1><a href="#pipelining-and-parallelism" name="pipelining-and-parallelism" class="anchor"><span class="anchor-link"></span></a>Pipelining and Parallelism</h1>
+<p>Akka Streams processing stages (be it simple operators on Flows and Sources or graph junctions) are &ldquo;fused&rdquo; together and executed sequentially by default. This avoids the overhead of events crossing asynchronous boundaries but limits the flow to execute at most one stage at any given time.</p>
+<p>In many cases it is useful to be able to concurrently execute the stages of a flow, this is done by explicitly marking them as asynchronous using the <span class="group-scala"><code>async</code></span><span class="group-java"><code>async()</code></span> method. Each processing stage marked as asynchronous will run in a dedicated actor internally, while all stages not marked asynchronous will run in one single actor.</p>
+<p>We will illustrate through the example of pancake cooking how streams can be used for various processing patterns, exploiting the available parallelism on modern computers. The setting is the following: both Patrik and Roland like to make pancakes, but they need to produce sufficient amount in a cooking session to make all of the children happy. To increase their pancake production throughput they use two frying pans. How they organize their pancake processing is markedly different.</p>
+<h2><a href="#pipelining" name="pipelining" class="anchor"><span class="anchor-link"></span></a>Pipelining</h2>
+<p>Roland uses the two frying pans in an asymmetric fashion. The first pan is only used to fry one side of the pancake then the half-finished pancake is flipped into the second pan for the finishing fry on the other side. Once the first frying pan becomes available it gets a new scoop of batter. As an effect, most of the time there are two pancakes being cooked at the same time, one being cooked on its first side and the second being cooked to completion. This is how this setup would look like implemented as a stream:</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-scala">// Takes a scoop of batter and creates a pancake with one side cooked
+val fryingPan1: Flow[ScoopOfBatter, HalfCookedPancake, NotUsed] =
+  Flow[ScoopOfBatter].map { batter =&gt; HalfCookedPancake() }
+
+// Finishes a half-cooked pancake
+val fryingPan2: Flow[HalfCookedPancake, Pancake, NotUsed] =
+  Flow[HalfCookedPancake].map { halfCooked =&gt; Pancake() }
+
+// With the two frying pans we can fully cook pancakes
+val pancakeChef: Flow[ScoopOfBatter, Pancake, NotUsed] =
+  Flow[ScoopOfBatter].via(fryingPan1.async).via(fryingPan2.async)</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-java">Flow&lt;ScoopOfBatter, HalfCookedPancake, NotUsed&gt; fryingPan1 =
+  Flow.of(ScoopOfBatter.class).map(batter -&gt; new HalfCookedPancake());
+
+Flow&lt;HalfCookedPancake, Pancake, NotUsed&gt; fryingPan2 =
+  Flow.of(HalfCookedPancake.class).map(halfCooked -&gt; new Pancake());
+
+// With the two frying pans we can fully cook pancakes
+Flow&lt;ScoopOfBatter, Pancake, NotUsed&gt; pancakeChef =
+  fryingPan1.async().via(fryingPan2.async());</code></pre></dd>
+</dl>
+<p>The two <code>map</code> stages in sequence (encapsulated in the &ldquo;frying pan&rdquo; flows) will be executed in a pipelined way, basically doing the same as Roland with his frying pans:</p>
+<ol>
+  <li>A <code>ScoopOfBatter</code> enters <code>fryingPan1</code></li>
+  <li><code>fryingPan1</code> emits a HalfCookedPancake once <code>fryingPan2</code> becomes available</li>
+  <li><code>fryingPan2</code> takes the HalfCookedPancake</li>
+  <li>at this point fryingPan1 already takes the next scoop, without waiting for fryingPan2 to finish</li>
+</ol>
+<p>The benefit of pipelining is that it can be applied to any sequence of processing steps that are otherwise not parallelisable (for example because the result of a processing step depends on all the information from the previous step). One drawback is that if the processing times of the stages are very different then some of the stages will not be able to operate at full throughput because they will wait on a previous or subsequent stage most of the time. In the pancake example frying the second half of the pancake is usually faster than frying the first half, <code>fryingPan2</code> will not be able to operate at full capacity <a id="^1" href="#1">[1]</a>.</p><div class="callout note "><div class="callout-title">Note</div>
+<p>Asynchronous stream processing stages have internal buffers to make communication between them more efficient. For more details about the behavior of these and how to add additional buffers refer to <a href="stream-rate.html">Buffers and working with rate</a>.</p></div>
+<h2><a href="#parallel-processing" name="parallel-processing" class="anchor"><span class="anchor-link"></span></a>Parallel processing</h2>
+<p>Patrik uses the two frying pans symmetrically. He uses both pans to fully fry a pancake on both sides, then puts the results on a shared plate. Whenever a pan becomes empty, he takes the next scoop from the shared bowl of batter. In essence he parallelizes the same process over multiple pans. This is how this setup will look like if implemented using streams:</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-scala">val fryingPan: Flow[ScoopOfBatter, Pancake, NotUsed] =
+  Flow[ScoopOfBatter].map { batter ⇒ Pancake() }
+
+val pancakeChef: Flow[ScoopOfBatter, Pancake, NotUsed] = Flow.fromGraph(GraphDSL.create() { implicit builder ⇒
+  val dispatchBatter = builder.add(Balance[ScoopOfBatter](2))
+  val mergePancakes = builder.add(Merge[Pancake](2))
+
+  // Using two frying pans in parallel, both fully cooking a pancake from the batter.
+  // We always put the next scoop of batter to the first frying pan that becomes available.
+  dispatchBatter.out(0) ~&gt; fryingPan.async ~&gt; mergePancakes.in(0)
+  // Notice that we used the &quot;fryingPan&quot; flow without importing it via builder.add().
+  // Flows used this way are auto-imported, which in this case means that the two
+  // uses of &quot;fryingPan&quot; mean actually different stages in the graph.
+  dispatchBatter.out(1) ~&gt; fryingPan.async ~&gt; mergePancakes.in(1)
+
+  FlowShape(dispatchBatter.in, mergePancakes.out)
+})
+</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-java">Flow&lt;ScoopOfBatter, Pancake, NotUsed&gt; fryingPan =
+  Flow.of(ScoopOfBatter.class).map(batter -&gt; new Pancake());
+
+Flow&lt;ScoopOfBatter, Pancake, NotUsed&gt; pancakeChef =
+  Flow.fromGraph(GraphDSL.create(b -&gt; {
+    final UniformFanInShape&lt;Pancake, Pancake&gt; mergePancakes =
+      b.add(Merge.create(2));
+    final UniformFanOutShape&lt;ScoopOfBatter, ScoopOfBatter&gt; dispatchBatter =
+      b.add(Balance.create(2));
+
+    // Using two frying pans in parallel, both fully cooking a pancake from the batter.
+    // We always put the next scoop of batter to the first frying pan that becomes available.
+    b.from(dispatchBatter.out(0)).via(b.add(fryingPan.async())).toInlet(mergePancakes.in(0));
+    // Notice that we used the &quot;fryingPan&quot; flow without importing it via builder.add().
+    // Flows used this way are auto-imported, which in this case means that the two
+    // uses of &quot;fryingPan&quot; mean actually different stages in the graph.
+    b.from(dispatchBatter.out(1)).via(b.add(fryingPan.async())).toInlet(mergePancakes.in(1));
+
+    return FlowShape.of(dispatchBatter.in(), mergePancakes.out());
+  }));</code></pre></dd>
+</dl>
+<p>The benefit of parallelizing is that it is easy to scale. In the pancake example it is easy to add a third frying pan with Patrik&rsquo;s method, but Roland cannot add a third frying pan, since that would require a third processing step, which is not practically possible in the case of frying pancakes.</p>
+<p>One drawback of the example code above that it does not preserve the ordering of pancakes. This might be a problem if children like to track their &ldquo;own&rdquo; pancakes. In those cases the <code>Balance</code> and <code>Merge</code> stages should be replaced by strict-round robing balancing and merging stages that put in and take out pancakes in a strict order.</p>
+<p>A more detailed example of creating a worker pool can be found in the cookbook: <a href="stream-cookbook.html#cookbook-balance">Balancing jobs to a fixed pool of workers</a></p>
+<h2><a href="#combining-pipelining-and-parallel-processing" name="combining-pipelining-and-parallel-processing" class="anchor"><span class="anchor-link"></span></a>Combining pipelining and parallel processing</h2>
+<p>The two concurrency patterns that we demonstrated as means to increase throughput are not exclusive. In fact, it is rather simple to combine the two approaches and streams provide a nice unifying language to express and compose them.</p>
+<p>First, let&rsquo;s look at how we can parallelize pipelined processing stages. In the case of pancakes this means that we will employ two chefs, each working using Roland&rsquo;s pipelining method, but we use the two chefs in parallel, just like Patrik used the two frying pans. This is how it looks like if expressed as streams:</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-scala">val pancakeChef: Flow[ScoopOfBatter, Pancake, NotUsed] =
+  Flow.fromGraph(GraphDSL.create() { implicit builder ⇒
+
+    val dispatchBatter = builder.add(Balance[ScoopOfBatter](2))
+    val mergePancakes = builder.add(Merge[Pancake](2))
+
+    // Using two pipelines, having two frying pans each, in total using
+    // four frying pans
+    dispatchBatter.out(0) ~&gt; fryingPan1.async ~&gt; fryingPan2.async ~&gt; mergePancakes.in(0)
+    dispatchBatter.out(1) ~&gt; fryingPan1.async ~&gt; fryingPan2.async ~&gt; mergePancakes.in(1)
+
+    FlowShape(dispatchBatter.in, mergePancakes.out)
+  })</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-java">Flow&lt;ScoopOfBatter, Pancake, NotUsed&gt; pancakeChef =
+  Flow.fromGraph(GraphDSL.create(b -&gt; {
+    final UniformFanInShape&lt;Pancake, Pancake&gt; mergePancakes =
+      b.add(Merge.create(2));
+    final UniformFanOutShape&lt;ScoopOfBatter, ScoopOfBatter&gt; dispatchBatter =
+      b.add(Balance.create(2));
+
+    // Using two pipelines, having two frying pans each, in total using
+    // four frying pans
+    b.from(dispatchBatter.out(0))
+      .via(b.add(fryingPan1.async()))
+      .via(b.add(fryingPan2.async()))
+      .toInlet(mergePancakes.in(0));
+
+    b.from(dispatchBatter.out(1))
+      .via(b.add(fryingPan1.async()))
+      .via(b.add(fryingPan2.async()))
+      .toInlet(mergePancakes.in(1));
+
+    return FlowShape.of(dispatchBatter.in(), mergePancakes.out());
+  }));</code></pre></dd>
+</dl>
+<p>The above pattern works well if there are many independent jobs that do not depend on the results of each other, but the jobs themselves need multiple processing steps where each step builds on the result of the previous one. In our case individual pancakes do not depend on each other, they can be cooked in parallel, on the other hand it is not possible to fry both sides of the same pancake at the same time, so the two sides have to be fried in sequence.</p>
+<p>It is also possible to organize parallelized stages into pipelines. This would mean employing four chefs:</p>
+<ul>
+  <li>the first two chefs prepare half-cooked pancakes from batter, in parallel, then putting those on a large enough flat surface.</li>
+  <li>the second two chefs take these and fry their other side in their own pans, then they put the pancakes on a shared plate.</li>
+</ul>
+<p>This is again straightforward to implement with the streams API:</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-scala">val pancakeChefs1: Flow[ScoopOfBatter, HalfCookedPancake, NotUsed] =
+  Flow.fromGraph(GraphDSL.create() { implicit builder ⇒
+    val dispatchBatter = builder.add(Balance[ScoopOfBatter](2))
+    val mergeHalfPancakes = builder.add(Merge[HalfCookedPancake](2))
+
+    // Two chefs work with one frying pan for each, half-frying the pancakes then putting
+    // them into a common pool
+    dispatchBatter.out(0) ~&gt; fryingPan1.async ~&gt; mergeHalfPancakes.in(0)
+    dispatchBatter.out(1) ~&gt; fryingPan1.async ~&gt; mergeHalfPancakes.in(1)
+
+    FlowShape(dispatchBatter.in, mergeHalfPancakes.out)
+  })
+
+val pancakeChefs2: Flow[HalfCookedPancake, Pancake, NotUsed] =
+  Flow.fromGraph(GraphDSL.create() { implicit builder ⇒
+    val dispatchHalfPancakes = builder.add(Balance[HalfCookedPancake](2))
+    val mergePancakes = builder.add(Merge[Pancake](2))
+
+    // Two chefs work with one frying pan for each, finishing the pancakes then putting
+    // them into a common pool
+    dispatchHalfPancakes.out(0) ~&gt; fryingPan2.async ~&gt; mergePancakes.in(0)
+    dispatchHalfPancakes.out(1) ~&gt; fryingPan2.async ~&gt; mergePancakes.in(1)
+
+    FlowShape(dispatchHalfPancakes.in, mergePancakes.out)
+  })
+
+val kitchen: Flow[ScoopOfBatter, Pancake, NotUsed] = pancakeChefs1.via(pancakeChefs2)</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-java">Flow&lt;ScoopOfBatter, HalfCookedPancake, NotUsed&gt; pancakeChefs1 =
+  Flow.fromGraph(GraphDSL.create(b -&gt; {
+    final UniformFanInShape&lt;HalfCookedPancake, HalfCookedPancake&gt; mergeHalfCooked =
+      b.add(Merge.create(2));
+    final UniformFanOutShape&lt;ScoopOfBatter, ScoopOfBatter&gt; dispatchBatter =
+      b.add(Balance.create(2));
+
+    // Two chefs work with one frying pan for each, half-frying the pancakes then putting
+    // them into a common pool
+    b.from(dispatchBatter.out(0)).via(b.add(fryingPan1.async())).toInlet(mergeHalfCooked.in(0));
+    b.from(dispatchBatter.out(1)).via(b.add(fryingPan1.async())).toInlet(mergeHalfCooked.in(1));
+
+    return FlowShape.of(dispatchBatter.in(), mergeHalfCooked.out());
+  }));
+
+Flow&lt;HalfCookedPancake, Pancake, NotUsed&gt; pancakeChefs2 =
+  Flow.fromGraph(GraphDSL.create(b -&gt; {
+    final UniformFanInShape&lt;Pancake, Pancake&gt; mergePancakes =
+      b.add(Merge.create(2));
+    final UniformFanOutShape&lt;HalfCookedPancake, HalfCookedPancake&gt; dispatchHalfCooked =
+      b.add(Balance.create(2));
+
+    // Two chefs work with one frying pan for each, finishing the pancakes then putting
+    // them into a common pool
+    b.from(dispatchHalfCooked.out(0)).via(b.add(fryingPan2.async())).toInlet(mergePancakes.in(0));
+    b.from(dispatchHalfCooked.out(1)).via(b.add(fryingPan2.async())).toInlet(mergePancakes.in(1));
+
+    return FlowShape.of(dispatchHalfCooked.in(), mergePancakes.out());
+  }));
+
+Flow&lt;ScoopOfBatter, Pancake, NotUsed&gt; kitchen =
+    pancakeChefs1.via(pancakeChefs2);</code></pre></dd>
+</dl>
+<p>This usage pattern is less common but might be usable if a certain step in the pipeline might take wildly different times to finish different jobs. The reason is that there are more balance-merge steps in this pattern compared to the parallel pipelines. This pattern rebalances after each step, while the previous pattern only balances at the entry point of the pipeline. This only matters however if the processing time distribution has a large deviation.</p>
+<blockquote>
+  <p><a id="1" href="#^1">[1]</a> Roland&rsquo;s reason for this seemingly suboptimal procedure is that he prefers the temperature of the second pan to be slightly lower than the first in order to achieve a more homogeneous result.</p>
+</blockquote>
+</div>
+</article>
+
+<div class="row">
+<div class="small-12 large-9 column">
+<section class="nav-prev-next row">
+<div class="nav-prev small-6 column">
+<a href="../stream/stream-io.html"><i class="icon-prev"></i> <span class="link-prev">Working with streaming IO</span></a>
+</div>
+<div class="nav-next small-6 column clearfix">
+<a class="float-right" href="../stream/stream-testkit.html">Testing streams <i class="icon-next"></i></a>
+</div>
+</section>
+</div>
+</div>
+
+<div class="source-github row">
+The source code for this page can be found <a href="https://github.com/akka/akka/tree/master/akka-docs/src/main/paradox/stream/stream-parallelism.md">here</a>.
+</div>
+
+
+<footer class="page-footer row clearfix">
+<img class="akka-icon float-left show-for-medium" src="../images/akka-icon.svg">
+<section class="copyright">
+<div>&copy; 2011-2017 <a href="https://www.lightbend.com">Lightbend</a></div>
+<div>Akka is Open Source and available under the Apache 2 License.</div>
+</section>
+</footer>
+
+</section>
+</main>
+
+<script type="text/javascript" src="../js/scrollsneak.js"></script>
+<script type="text/javascript">jQuery(document).foundation();</script>
+<script type="text/javascript" src="../js/groups.js"></script>
+<script type="text/javascript" src="../js/page.js"></script>
+<script type="text/javascript" src="../js/magellan.js"></script>
+
+<style type="text/css">@import "../lib/prettify/prettify.css";</style>
+<script type="text/javascript" src="../lib/prettify/prettify.js"></script>
+<script type="text/javascript" src="../lib/prettify/lang-scala.js"></script>
+<script type="text/javascript">jQuery(function(){window.prettyPrint && prettyPrint()});</script>
+
+<!-- Algolia docs search -->
+<script type="text/javascript" src="https://cdn.jsdelivr.net/docsearch.js/2/docsearch.min.js"></script>
+<style>.algolia-autocomplete { display: block !important }</style>
+<script type="text/javascript">
+var lang = "scala";
+var path = window.location.pathname;
+if (path.includes("/java/") || path.includes("java.html")) {
+lang = "java";
+}
+
+docsearch({
+apiKey: '543bad5ad786495d9ccd445ed34ed082',
+indexName: 'akka_io',
+inputSelector: '#search',
+algoliaOptions: {
+hitsPerPage: 5,
+facetFilters: ["language:" + lang]
+}
+});
+
+docsearch({
+apiKey: '543bad5ad786495d9ccd445ed34ed082',
+indexName: 'akka_io',
+inputSelector: '#overlay-search',
+algoliaOptions: {
+hitsPerPage: 5,
+facetFilters: ["language:" + lang]
+}
+});
+
+// set up "/" as global shortcut for focusing on search
+jQuery(document).keypress(function (event) {
+if (event.keyCode == 47) {
+jQuery("#search").focus();
+return false; // swallow key event, otherwise the / char would be input into the search box
+}
+});
+</script>
+
+
+</body>
+</html>

@@ -1,0 +1,669 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" /><meta name="description" content="Akka is a toolkit for building highly concurrent, distributed, and resilient message-driven applications for Java and Scala."/><link rel="canonical" href="https://doc.akka.io/docs/akka/2.3/contrib/aggregator.html"/>
+    
+    <title>Aggregator Pattern &mdash; Akka Documentation</title>
+    
+    <link rel="stylesheet" href="../_static/style.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/prettify.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/base.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
+    <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,600,700" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '2.3.16',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="../_static/toc.js"></script>
+    <script type="text/javascript" src="../_static/prettify.js"></script>
+    <script type="text/javascript" src="../_static/highlightCode.js"></script>
+    <script type="text/javascript" src="../_static/effects.core.js"></script>
+    <script type="text/javascript" src="../_static/effects.highlight.js"></script>
+    <script type="text/javascript" src="../_static/scrollTo.js"></script>
+    <script type="text/javascript" src="../_static/contentsFix.js"></script>
+    <script type="text/javascript" src="../_static/ga.js"></script>
+    <link rel="shortcut icon" href="../_static/favicon.ico"/>
+    <link rel="top" title="Akka Documentation" href="../index.html" />
+    <link rel="up" title="External Contributions" href="index.html" />
+    <link rel="next" title="Information for Akka Developers" href="../dev/index.html" />
+    <link rel="prev" title="Cluster Client" href="cluster-client.html" />
+    <!--Google Analytics-->
+    <script type="text/javascript">
+      var _gaq = _gaq || [];
+      _gaq.push(['_setAccount', 'UA-21117439-1']);
+      _gaq.push(['_setDomainName', 'akka.io']);
+      _gaq.push(['_trackPageview']);
+      (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+      })()
+    </script>
+    <!--Google Analytics & Marketo-->
+    <script type="text/javascript">
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+      (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+      m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+      ga('create', 'UA-23127719-1', 'typesafe.com', {'allowLinker': true, 'name': 'tsTracker'});
+      ga('tsTracker.require', 'linker');
+      ga('tsTracker.linker:autoLink', ['typesafe.com','playframework.com','scala-lang.org','scaladays.org','spray.io','akka.io','scala-sbt.org','scala-ide.org']);
+      ga('tsTracker.send', 'pageview');
+      
+      (function() {
+          var didInit = false;
+          function initMunchkin() {
+          if(didInit === false) {
+            didInit = true;
+            Munchkin.init('558-NCX-702');
+          }
+          }
+          var s = document.createElement('script');
+          s.type = 'text/javascript';
+          s.async = true;
+          s.src = '//munchkin.marketo.net/munchkin.js';
+          s.onreadystatechange = function() {
+          if (this.readyState == 'complete' || this.readyState == 'loaded') {
+            initMunchkin();
+          }
+          };
+          s.onload = initMunchkin;
+          document.getElementsByTagName('head')[0].appendChild(s);
+        })();
+    </script>
+
+  </head>
+  <body role="document">
+  <div class="navbar">
+    <div class="navbar-inner">
+      <div class="container">
+        <div class="navbar-logo">
+          <a href="https://akka.io"><img class="svg-logo" src="../_static/akka_full_color.svg" /></a>
+        </div>    
+        <ul class="nav">
+          <li><a href="https://akka.io/docs">Documentation</a></li>
+          <li><a href="https://akka.io/faq">FAQ</a></li>
+          <li><a href="https://akka.io/downloads">Download</a></li>
+          <li><a href="http://groups.google.com/group/akka-user">Mailing List</a></li>
+          <li><a href="http://github.com/akka/akka">Code</a></li>           
+          <li><a href="http://www.typesafe.com/how/subscription">Commercial Support</a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="main">
+    <div class="container">
+      <div class="page-title">Aggregator Pattern</div>
+      <div class="pdf-link"><a href="../AkkaScala.pdf" title="Akka Scala Documentation"><img src="../_static/pdf-scala-icon.png" style="height: 40px;" /></a></div>
+      <div class="pdf-link"><a href="../AkkaJava.pdf" title="Akka Java Documentation"><img src="../_static/pdf-java-icon.png" style="height: 40px;" /></a></div>
+    </div>
+    <div class="main-container">
+      <div class="container">
+        <div class="row">
+          <div class="span12">
+            <ul class="breadcrumb">           
+              <li>
+                 <span class="divider">|</span> <a href="../dev/index.html">Information for Akka Developers</a> <span class="divider">»</span>
+              </li>
+              <li>
+                <a href="../index.html">Contents</a>
+              </li>
+              <li>
+                <span class="divider">«</span> <a href="cluster-client.html">Cluster Client</a> <span class="divider">|</span>
+              </li>
+              <li>
+                Version 2.3.16
+              </li>
+            </ul>
+          </div>
+        </div>
+        <div class="row">
+          <div class="span9">
+            <div id="cse">Loading</div>
+          </div><div class="span9">
+            
+  <div class="section" id="aggregator-pattern">
+<span id="aggregator"></span><h1>Aggregator Pattern</h1>
+<p>The aggregator pattern supports writing actors that aggregate data from multiple
+other actors and updates its state based on those responses. It is even harder to
+optionally aggregate more data based on the runtime state of the actor or take
+certain actions (sending another message and get another response) based on two or
+more previous responses.</p>
+<p>A common thought is to use the ask pattern to request information from other
+actors. However, ask creates another actor specifically for the ask. We cannot
+use a callback from the future to update the state as the thread executing the
+callback is not defined. This will likely close-over the current actor.</p>
+<p>The aggregator pattern solves such scenarios. It makes sure we're
+acting from the same actor in the scope of the actor receive.</p>
+<div class="section" id="introduction">
+<h2>Introduction</h2>
+<p>The aggregator pattern allows match patterns to be dynamically added to and removed
+from an actor from inside the message handling logic. All match patterns are called
+from the receive loop and run in the thread handling the incoming message. These
+dynamically added patterns and logic can safely read and/or modify this actor's
+mutable state without risking integrity or concurrency issues.</p>
+</div>
+<div class="section" id="usage">
+<h2>Usage</h2>
+<p>To use the aggregator pattern, you need to extend the <code class="xref py py-class docutils literal"><span class="pre">Aggregator</span></code> trait.
+The trait takes care of <code class="xref py py-class docutils literal"><span class="pre">receive</span></code> and actors extending this trait should
+not override <code class="xref py py-class docutils literal"><span class="pre">receive</span></code>. The trait provides the <code class="xref py py-class docutils literal"><span class="pre">expect</span></code>,
+<code class="xref py py-class docutils literal"><span class="pre">expectOnce</span></code>, and <code class="xref py py-class docutils literal"><span class="pre">unexpect</span></code> calls. The <code class="xref py py-class docutils literal"><span class="pre">expect</span></code> and
+<code class="xref py py-class docutils literal"><span class="pre">expectOnce</span></code> calls return a handle that can be used for later de-registration
+by passing the handle to <code class="xref py py-class docutils literal"><span class="pre">unexpect</span></code>.</p>
+<p><code class="xref py py-class docutils literal"><span class="pre">expect</span></code> is often used for standing matches such as catching error messages or timeouts.</p>
+<div class="highlight-scala"><div class="highlight"><pre><span></span><span class="n">expect</span> <span class="o">{</span>
+  <span class="k">case</span> <span class="nc">TimedOut</span> <span class="k">⇒</span> <span class="n">collectBalances</span><span class="o">(</span><span class="n">force</span> <span class="k">=</span> <span class="kc">true</span><span class="o">)</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<p><code class="xref py py-class docutils literal"><span class="pre">expectOnce</span></code> is used for matching the initial message as well as other requested messages</p>
+<div class="highlight-scala"><div class="highlight"><pre><span></span><span class="n">expectOnce</span> <span class="o">{</span>
+  <span class="k">case</span> <span class="nc">GetCustomerAccountBalances</span><span class="o">(</span><span class="n">id</span><span class="o">,</span> <span class="n">types</span><span class="o">)</span> <span class="k">⇒</span>
+    <span class="k">new</span> <span class="nc">AccountAggregator</span><span class="o">(</span><span class="n">sender</span><span class="o">(),</span> <span class="n">id</span><span class="o">,</span> <span class="n">types</span><span class="o">)</span>
+  <span class="k">case</span> <span class="k">_</span> <span class="k">⇒</span>
+    <span class="n">sender</span><span class="o">()</span> <span class="o">!</span> <span class="nc">CantUnderstand</span>
+    <span class="n">context</span><span class="o">.</span><span class="n">stop</span><span class="o">(</span><span class="n">self</span><span class="o">)</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<div class="highlight-scala"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="n">fetchCheckingAccountsBalance</span><span class="o">()</span> <span class="o">{</span>
+  <span class="n">context</span><span class="o">.</span><span class="n">actorOf</span><span class="o">(</span><span class="nc">Props</span><span class="o">[</span><span class="kt">CheckingAccountProxy</span><span class="o">])</span> <span class="o">!</span> <span class="nc">GetAccountBalances</span><span class="o">(</span><span class="n">id</span><span class="o">)</span>
+  <span class="n">expectOnce</span> <span class="o">{</span>
+    <span class="k">case</span> <span class="nc">CheckingAccountBalances</span><span class="o">(</span><span class="n">balances</span><span class="o">)</span> <span class="k">⇒</span>
+      <span class="n">results</span> <span class="o">+=</span> <span class="o">(</span><span class="nc">Checking</span> <span class="o">-&gt;</span> <span class="n">balances</span><span class="o">)</span>
+      <span class="n">collectBalances</span><span class="o">()</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<p><code class="xref py py-class docutils literal"><span class="pre">unexpect</span></code> can be used for expecting multiple responses until a timeout or when the logic
+dictates such an <code class="xref py py-class docutils literal"><span class="pre">expect</span></code> no longer applies.</p>
+<div class="highlight-scala"><div class="highlight"><pre><span></span><span class="k">val</span> <span class="n">handle</span> <span class="k">=</span> <span class="n">expect</span> <span class="o">{</span>
+  <span class="k">case</span> <span class="nc">Response</span><span class="o">(</span><span class="n">name</span><span class="o">,</span> <span class="n">value</span><span class="o">)</span> <span class="k">⇒</span>
+    <span class="n">values</span> <span class="o">+=</span> <span class="n">value</span>
+    <span class="k">if</span> <span class="o">(</span><span class="n">values</span><span class="o">.</span><span class="n">size</span> <span class="o">&gt;</span> <span class="mi">3</span><span class="o">)</span> <span class="n">processList</span><span class="o">()</span>
+  <span class="k">case</span> <span class="nc">TimedOut</span> <span class="k">⇒</span> <span class="n">processList</span><span class="o">()</span>
+<span class="o">}</span>
+
+<span class="k">def</span> <span class="n">processList</span><span class="o">()</span> <span class="o">{</span>
+  <span class="n">unexpect</span><span class="o">(</span><span class="n">handle</span><span class="o">)</span>
+
+  <span class="k">if</span> <span class="o">(</span><span class="n">values</span><span class="o">.</span><span class="n">size</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="o">)</span> <span class="o">{</span>
+    <span class="n">context</span><span class="o">.</span><span class="n">actorSelection</span><span class="o">(</span><span class="s">&quot;/user/evaluator&quot;</span><span class="o">)</span> <span class="o">!</span> <span class="n">values</span><span class="o">.</span><span class="n">toList</span>
+    <span class="n">expectOnce</span> <span class="o">{</span>
+      <span class="k">case</span> <span class="nc">EvaluationResults</span><span class="o">(</span><span class="n">name</span><span class="o">,</span> <span class="n">eval</span><span class="o">)</span> <span class="k">⇒</span> <span class="n">processFinal</span><span class="o">(</span><span class="n">eval</span><span class="o">)</span>
+    <span class="o">}</span>
+  <span class="o">}</span> <span class="k">else</span> <span class="n">processFinal</span><span class="o">(</span><span class="nc">List</span><span class="o">.</span><span class="n">empty</span><span class="o">[</span><span class="kt">Int</span><span class="o">])</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<p>As the name eludes, <code class="xref py py-class docutils literal"><span class="pre">expect</span></code> keeps the partial function matching any
+received messages until <code class="xref py py-class docutils literal"><span class="pre">unexpect</span></code> is called or the actor terminates,
+whichever comes first. On the other hand, <code class="xref py py-class docutils literal"><span class="pre">expectOnce</span></code> removes the partial
+function once a match has been established.</p>
+<p>It is a common pattern to register the initial expectOnce from the construction
+of the actor to accept the initial message. Once that message is received, the
+actor starts doing all aggregations and sends the response back to the original
+requester. The aggregator should terminate after the response is sent (or timed
+out). A different original request should use a different actor instance.</p>
+<p>As you can see, aggregator actors are generally stateful, short lived actors.</p>
+</div>
+<div class="section" id="sample-use-case-accountbalanceretriever">
+<h2>Sample Use Case - AccountBalanceRetriever</h2>
+<p>This example below shows a typical and intended use of the aggregator pattern.</p>
+<div class="highlight-scala"><div class="highlight"><pre><span></span><span class="k">import</span> <span class="nn">scala.collection._</span>
+<span class="k">import</span> <span class="nn">scala.concurrent.duration._</span>
+<span class="k">import</span> <span class="nn">scala.math.BigDecimal.int2bigDecimal</span>
+
+<span class="k">import</span> <span class="nn">akka.actor._</span>
+<span class="cm">/**</span>
+<span class="cm"> * Sample and test code for the aggregator patter.</span>
+<span class="cm"> * This is based on Jamie Allen&#39;s tutorial at</span>
+<span class="cm"> * http://jaxenter.com/tutorial-asynchronous-programming-with-akka-actors-46220.html</span>
+<span class="cm"> */</span>
+
+<span class="k">sealed</span> <span class="k">trait</span> <span class="nc">AccountType</span>
+<span class="k">case</span> <span class="k">object</span> <span class="nc">Checking</span> <span class="k">extends</span> <span class="nc">AccountType</span>
+<span class="k">case</span> <span class="k">object</span> <span class="nc">Savings</span> <span class="k">extends</span> <span class="nc">AccountType</span>
+<span class="k">case</span> <span class="k">object</span> <span class="nc">MoneyMarket</span> <span class="k">extends</span> <span class="nc">AccountType</span>
+
+<span class="k">case</span> <span class="k">class</span> <span class="nc">GetCustomerAccountBalances</span><span class="o">(</span><span class="n">id</span><span class="k">:</span> <span class="kt">Long</span><span class="o">,</span> <span class="n">accountTypes</span><span class="k">:</span> <span class="kt">Set</span><span class="o">[</span><span class="kt">AccountType</span><span class="o">])</span>
+<span class="k">case</span> <span class="k">class</span> <span class="nc">GetAccountBalances</span><span class="o">(</span><span class="n">id</span><span class="k">:</span> <span class="kt">Long</span><span class="o">)</span>
+
+<span class="k">case</span> <span class="k">class</span> <span class="nc">AccountBalances</span><span class="o">(</span><span class="n">accountType</span><span class="k">:</span> <span class="kt">AccountType</span><span class="o">,</span>
+                           <span class="n">balance</span><span class="k">:</span> <span class="kt">Option</span><span class="o">[</span><span class="kt">List</span><span class="o">[(</span><span class="kt">Long</span>, <span class="kt">BigDecimal</span><span class="o">)]])</span>
+
+<span class="k">case</span> <span class="k">class</span> <span class="nc">CheckingAccountBalances</span><span class="o">(</span><span class="n">balances</span><span class="k">:</span> <span class="kt">Option</span><span class="o">[</span><span class="kt">List</span><span class="o">[(</span><span class="kt">Long</span>, <span class="kt">BigDecimal</span><span class="o">)]])</span>
+<span class="k">case</span> <span class="k">class</span> <span class="nc">SavingsAccountBalances</span><span class="o">(</span><span class="n">balances</span><span class="k">:</span> <span class="kt">Option</span><span class="o">[</span><span class="kt">List</span><span class="o">[(</span><span class="kt">Long</span>, <span class="kt">BigDecimal</span><span class="o">)]])</span>
+<span class="k">case</span> <span class="k">class</span> <span class="nc">MoneyMarketAccountBalances</span><span class="o">(</span><span class="n">balances</span><span class="k">:</span> <span class="kt">Option</span><span class="o">[</span><span class="kt">List</span><span class="o">[(</span><span class="kt">Long</span>, <span class="kt">BigDecimal</span><span class="o">)]])</span>
+
+<span class="k">case</span> <span class="k">object</span> <span class="nc">TimedOut</span>
+<span class="k">case</span> <span class="k">object</span> <span class="nc">CantUnderstand</span>
+
+<span class="k">class</span> <span class="nc">SavingsAccountProxy</span> <span class="k">extends</span> <span class="nc">Actor</span> <span class="o">{</span>
+  <span class="k">def</span> <span class="n">receive</span> <span class="k">=</span> <span class="o">{</span>
+    <span class="k">case</span> <span class="nc">GetAccountBalances</span><span class="o">(</span><span class="n">id</span><span class="k">:</span> <span class="kt">Long</span><span class="o">)</span> <span class="k">⇒</span>
+      <span class="n">sender</span><span class="o">()</span> <span class="o">!</span> <span class="nc">SavingsAccountBalances</span><span class="o">(</span><span class="nc">Some</span><span class="o">(</span><span class="nc">List</span><span class="o">((</span><span class="mi">1</span><span class="o">,</span> <span class="mi">150000</span><span class="o">),</span> <span class="o">(</span><span class="mi">2</span><span class="o">,</span> <span class="mi">29000</span><span class="o">))))</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+<span class="k">class</span> <span class="nc">CheckingAccountProxy</span> <span class="k">extends</span> <span class="nc">Actor</span> <span class="o">{</span>
+  <span class="k">def</span> <span class="n">receive</span> <span class="k">=</span> <span class="o">{</span>
+    <span class="k">case</span> <span class="nc">GetAccountBalances</span><span class="o">(</span><span class="n">id</span><span class="k">:</span> <span class="kt">Long</span><span class="o">)</span> <span class="k">⇒</span>
+      <span class="n">sender</span><span class="o">()</span> <span class="o">!</span> <span class="nc">CheckingAccountBalances</span><span class="o">(</span><span class="nc">Some</span><span class="o">(</span><span class="nc">List</span><span class="o">((</span><span class="mi">3</span><span class="o">,</span> <span class="mi">15000</span><span class="o">))))</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+<span class="k">class</span> <span class="nc">MoneyMarketAccountProxy</span> <span class="k">extends</span> <span class="nc">Actor</span> <span class="o">{</span>
+  <span class="k">def</span> <span class="n">receive</span> <span class="k">=</span> <span class="o">{</span>
+    <span class="k">case</span> <span class="nc">GetAccountBalances</span><span class="o">(</span><span class="n">id</span><span class="k">:</span> <span class="kt">Long</span><span class="o">)</span> <span class="k">⇒</span>
+      <span class="n">sender</span><span class="o">()</span> <span class="o">!</span> <span class="nc">MoneyMarketAccountBalances</span><span class="o">(</span><span class="nc">None</span><span class="o">)</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+
+<span class="k">class</span> <span class="nc">AccountBalanceRetriever</span> <span class="k">extends</span> <span class="nc">Actor</span> <span class="k">with</span> <span class="nc">Aggregator</span> <span class="o">{</span>
+
+  <span class="k">import</span> <span class="nn">context._</span>
+
+  <span class="n">expectOnce</span> <span class="o">{</span>
+    <span class="k">case</span> <span class="nc">GetCustomerAccountBalances</span><span class="o">(</span><span class="n">id</span><span class="o">,</span> <span class="n">types</span><span class="o">)</span> <span class="k">⇒</span>
+      <span class="k">new</span> <span class="nc">AccountAggregator</span><span class="o">(</span><span class="n">sender</span><span class="o">(),</span> <span class="n">id</span><span class="o">,</span> <span class="n">types</span><span class="o">)</span>
+    <span class="k">case</span> <span class="k">_</span> <span class="k">⇒</span>
+      <span class="n">sender</span><span class="o">()</span> <span class="o">!</span> <span class="nc">CantUnderstand</span>
+      <span class="n">context</span><span class="o">.</span><span class="n">stop</span><span class="o">(</span><span class="n">self</span><span class="o">)</span>
+  <span class="o">}</span>
+
+  <span class="k">class</span> <span class="nc">AccountAggregator</span><span class="o">(</span><span class="n">originalSender</span><span class="k">:</span> <span class="kt">ActorRef</span><span class="o">,</span>
+                          <span class="n">id</span><span class="k">:</span> <span class="kt">Long</span><span class="o">,</span> <span class="n">types</span><span class="k">:</span> <span class="kt">Set</span><span class="o">[</span><span class="kt">AccountType</span><span class="o">])</span> <span class="o">{</span>
+
+    <span class="k">val</span> <span class="n">results</span> <span class="k">=</span>
+      <span class="n">mutable</span><span class="o">.</span><span class="nc">ArrayBuffer</span><span class="o">.</span><span class="n">empty</span><span class="o">[(</span><span class="kt">AccountType</span>, <span class="kt">Option</span><span class="o">[</span><span class="kt">List</span><span class="o">[(</span><span class="kt">Long</span>, <span class="kt">BigDecimal</span><span class="o">)]])]</span>
+
+    <span class="k">if</span> <span class="o">(</span><span class="n">types</span><span class="o">.</span><span class="n">size</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="o">)</span>
+      <span class="n">types</span> <span class="n">foreach</span> <span class="o">{</span>
+        <span class="k">case</span> <span class="nc">Checking</span>    <span class="k">⇒</span> <span class="n">fetchCheckingAccountsBalance</span><span class="o">()</span>
+        <span class="k">case</span> <span class="nc">Savings</span>     <span class="k">⇒</span> <span class="n">fetchSavingsAccountsBalance</span><span class="o">()</span>
+        <span class="k">case</span> <span class="nc">MoneyMarket</span> <span class="k">⇒</span> <span class="n">fetchMoneyMarketAccountsBalance</span><span class="o">()</span>
+      <span class="o">}</span>
+    <span class="k">else</span> <span class="n">collectBalances</span><span class="o">()</span> <span class="c1">// Empty type list yields empty response</span>
+
+    <span class="n">context</span><span class="o">.</span><span class="n">system</span><span class="o">.</span><span class="n">scheduler</span><span class="o">.</span><span class="n">scheduleOnce</span><span class="o">(</span><span class="mf">1.</span><span class="n">second</span><span class="o">,</span> <span class="n">self</span><span class="o">,</span> <span class="nc">TimedOut</span><span class="o">)</span>
+    <span class="n">expect</span> <span class="o">{</span>
+      <span class="k">case</span> <span class="nc">TimedOut</span> <span class="k">⇒</span> <span class="n">collectBalances</span><span class="o">(</span><span class="n">force</span> <span class="k">=</span> <span class="kc">true</span><span class="o">)</span>
+    <span class="o">}</span>
+
+    <span class="k">def</span> <span class="n">fetchCheckingAccountsBalance</span><span class="o">()</span> <span class="o">{</span>
+      <span class="n">context</span><span class="o">.</span><span class="n">actorOf</span><span class="o">(</span><span class="nc">Props</span><span class="o">[</span><span class="kt">CheckingAccountProxy</span><span class="o">])</span> <span class="o">!</span> <span class="nc">GetAccountBalances</span><span class="o">(</span><span class="n">id</span><span class="o">)</span>
+      <span class="n">expectOnce</span> <span class="o">{</span>
+        <span class="k">case</span> <span class="nc">CheckingAccountBalances</span><span class="o">(</span><span class="n">balances</span><span class="o">)</span> <span class="k">⇒</span>
+          <span class="n">results</span> <span class="o">+=</span> <span class="o">(</span><span class="nc">Checking</span> <span class="o">-&gt;</span> <span class="n">balances</span><span class="o">)</span>
+          <span class="n">collectBalances</span><span class="o">()</span>
+      <span class="o">}</span>
+    <span class="o">}</span>
+
+    <span class="k">def</span> <span class="n">fetchSavingsAccountsBalance</span><span class="o">()</span> <span class="o">{</span>
+      <span class="n">context</span><span class="o">.</span><span class="n">actorOf</span><span class="o">(</span><span class="nc">Props</span><span class="o">[</span><span class="kt">SavingsAccountProxy</span><span class="o">])</span> <span class="o">!</span> <span class="nc">GetAccountBalances</span><span class="o">(</span><span class="n">id</span><span class="o">)</span>
+      <span class="n">expectOnce</span> <span class="o">{</span>
+        <span class="k">case</span> <span class="nc">SavingsAccountBalances</span><span class="o">(</span><span class="n">balances</span><span class="o">)</span> <span class="k">⇒</span>
+          <span class="n">results</span> <span class="o">+=</span> <span class="o">(</span><span class="nc">Savings</span> <span class="o">-&gt;</span> <span class="n">balances</span><span class="o">)</span>
+          <span class="n">collectBalances</span><span class="o">()</span>
+      <span class="o">}</span>
+    <span class="o">}</span>
+
+    <span class="k">def</span> <span class="n">fetchMoneyMarketAccountsBalance</span><span class="o">()</span> <span class="o">{</span>
+      <span class="n">context</span><span class="o">.</span><span class="n">actorOf</span><span class="o">(</span><span class="nc">Props</span><span class="o">[</span><span class="kt">MoneyMarketAccountProxy</span><span class="o">])</span> <span class="o">!</span> <span class="nc">GetAccountBalances</span><span class="o">(</span><span class="n">id</span><span class="o">)</span>
+      <span class="n">expectOnce</span> <span class="o">{</span>
+        <span class="k">case</span> <span class="nc">MoneyMarketAccountBalances</span><span class="o">(</span><span class="n">balances</span><span class="o">)</span> <span class="k">⇒</span>
+          <span class="n">results</span> <span class="o">+=</span> <span class="o">(</span><span class="nc">MoneyMarket</span> <span class="o">-&gt;</span> <span class="n">balances</span><span class="o">)</span>
+          <span class="n">collectBalances</span><span class="o">()</span>
+      <span class="o">}</span>
+    <span class="o">}</span>
+
+    <span class="k">def</span> <span class="n">collectBalances</span><span class="o">(</span><span class="n">force</span><span class="k">:</span> <span class="kt">Boolean</span> <span class="o">=</span> <span class="kc">false</span><span class="o">)</span> <span class="o">{</span>
+      <span class="k">if</span> <span class="o">(</span><span class="n">results</span><span class="o">.</span><span class="n">size</span> <span class="o">==</span> <span class="n">types</span><span class="o">.</span><span class="n">size</span> <span class="o">||</span> <span class="n">force</span><span class="o">)</span> <span class="o">{</span>
+        <span class="n">originalSender</span> <span class="o">!</span> <span class="n">results</span><span class="o">.</span><span class="n">toList</span> <span class="c1">// Make sure it becomes immutable</span>
+        <span class="n">context</span><span class="o">.</span><span class="n">stop</span><span class="o">(</span><span class="n">self</span><span class="o">)</span>
+      <span class="o">}</span>
+    <span class="o">}</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="sample-use-case-multiple-response-aggregation-and-chaining">
+<h2>Sample Use Case - Multiple Response Aggregation and Chaining</h2>
+<p>A shorter example showing aggregating responses and chaining further requests.</p>
+<div class="highlight-scala"><div class="highlight"><pre><span></span><span class="k">case</span> <span class="k">class</span> <span class="nc">InitialRequest</span><span class="o">(</span><span class="n">name</span><span class="k">:</span> <span class="kt">String</span><span class="o">)</span>
+<span class="k">case</span> <span class="k">class</span> <span class="nc">Request</span><span class="o">(</span><span class="n">name</span><span class="k">:</span> <span class="kt">String</span><span class="o">)</span>
+<span class="k">case</span> <span class="k">class</span> <span class="nc">Response</span><span class="o">(</span><span class="n">name</span><span class="k">:</span> <span class="kt">String</span><span class="o">,</span> <span class="n">value</span><span class="k">:</span> <span class="kt">String</span><span class="o">)</span>
+<span class="k">case</span> <span class="k">class</span> <span class="nc">EvaluationResults</span><span class="o">(</span><span class="n">name</span><span class="k">:</span> <span class="kt">String</span><span class="o">,</span> <span class="n">eval</span><span class="k">:</span> <span class="kt">List</span><span class="o">[</span><span class="kt">Int</span><span class="o">])</span>
+<span class="k">case</span> <span class="k">class</span> <span class="nc">FinalResponse</span><span class="o">(</span><span class="n">qualifiedValues</span><span class="k">:</span> <span class="kt">List</span><span class="o">[</span><span class="kt">String</span><span class="o">])</span>
+
+<span class="cm">/**</span>
+<span class="cm"> * An actor sample demonstrating use of unexpect and chaining.</span>
+<span class="cm"> * This is just an example and not a complete test case.</span>
+<span class="cm"> */</span>
+<span class="k">class</span> <span class="nc">ChainingSample</span> <span class="k">extends</span> <span class="nc">Actor</span> <span class="k">with</span> <span class="nc">Aggregator</span> <span class="o">{</span>
+
+  <span class="n">expectOnce</span> <span class="o">{</span>
+    <span class="k">case</span> <span class="nc">InitialRequest</span><span class="o">(</span><span class="n">name</span><span class="o">)</span> <span class="k">⇒</span> <span class="k">new</span> <span class="nc">MultipleResponseHandler</span><span class="o">(</span><span class="n">sender</span><span class="o">(),</span> <span class="n">name</span><span class="o">)</span>
+  <span class="o">}</span>
+
+  <span class="k">class</span> <span class="nc">MultipleResponseHandler</span><span class="o">(</span><span class="n">originalSender</span><span class="k">:</span> <span class="kt">ActorRef</span><span class="o">,</span> <span class="n">propName</span><span class="k">:</span> <span class="kt">String</span><span class="o">)</span> <span class="o">{</span>
+
+    <span class="k">import</span> <span class="nn">context.dispatcher</span>
+    <span class="k">import</span> <span class="nn">collection.mutable.ArrayBuffer</span>
+
+    <span class="k">val</span> <span class="n">values</span> <span class="k">=</span> <span class="nc">ArrayBuffer</span><span class="o">.</span><span class="n">empty</span><span class="o">[</span><span class="kt">String</span><span class="o">]</span>
+
+    <span class="n">context</span><span class="o">.</span><span class="n">actorSelection</span><span class="o">(</span><span class="s">&quot;/user/request_proxies&quot;</span><span class="o">)</span> <span class="o">!</span> <span class="nc">Request</span><span class="o">(</span><span class="n">propName</span><span class="o">)</span>
+    <span class="n">context</span><span class="o">.</span><span class="n">system</span><span class="o">.</span><span class="n">scheduler</span><span class="o">.</span><span class="n">scheduleOnce</span><span class="o">(</span><span class="mf">50.</span><span class="n">milliseconds</span><span class="o">,</span> <span class="n">self</span><span class="o">,</span> <span class="nc">TimedOut</span><span class="o">)</span>
+
+    <span class="k">val</span> <span class="n">handle</span> <span class="k">=</span> <span class="n">expect</span> <span class="o">{</span>
+      <span class="k">case</span> <span class="nc">Response</span><span class="o">(</span><span class="n">name</span><span class="o">,</span> <span class="n">value</span><span class="o">)</span> <span class="k">⇒</span>
+        <span class="n">values</span> <span class="o">+=</span> <span class="n">value</span>
+        <span class="k">if</span> <span class="o">(</span><span class="n">values</span><span class="o">.</span><span class="n">size</span> <span class="o">&gt;</span> <span class="mi">3</span><span class="o">)</span> <span class="n">processList</span><span class="o">()</span>
+      <span class="k">case</span> <span class="nc">TimedOut</span> <span class="k">⇒</span> <span class="n">processList</span><span class="o">()</span>
+    <span class="o">}</span>
+
+    <span class="k">def</span> <span class="n">processList</span><span class="o">()</span> <span class="o">{</span>
+      <span class="n">unexpect</span><span class="o">(</span><span class="n">handle</span><span class="o">)</span>
+
+      <span class="k">if</span> <span class="o">(</span><span class="n">values</span><span class="o">.</span><span class="n">size</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="o">)</span> <span class="o">{</span>
+        <span class="n">context</span><span class="o">.</span><span class="n">actorSelection</span><span class="o">(</span><span class="s">&quot;/user/evaluator&quot;</span><span class="o">)</span> <span class="o">!</span> <span class="n">values</span><span class="o">.</span><span class="n">toList</span>
+        <span class="n">expectOnce</span> <span class="o">{</span>
+          <span class="k">case</span> <span class="nc">EvaluationResults</span><span class="o">(</span><span class="n">name</span><span class="o">,</span> <span class="n">eval</span><span class="o">)</span> <span class="k">⇒</span> <span class="n">processFinal</span><span class="o">(</span><span class="n">eval</span><span class="o">)</span>
+        <span class="o">}</span>
+      <span class="o">}</span> <span class="k">else</span> <span class="n">processFinal</span><span class="o">(</span><span class="nc">List</span><span class="o">.</span><span class="n">empty</span><span class="o">[</span><span class="kt">Int</span><span class="o">])</span>
+    <span class="o">}</span>
+
+    <span class="k">def</span> <span class="n">processFinal</span><span class="o">(</span><span class="n">eval</span><span class="k">:</span> <span class="kt">List</span><span class="o">[</span><span class="kt">Int</span><span class="o">])</span> <span class="o">{</span>
+      <span class="c1">// Select only the entries coming back from eval</span>
+      <span class="n">originalSender</span> <span class="o">!</span> <span class="nc">FinalResponse</span><span class="o">(</span><span class="n">eval</span> <span class="n">map</span> <span class="n">values</span><span class="o">)</span>
+      <span class="n">context</span><span class="o">.</span><span class="n">stop</span><span class="o">(</span><span class="n">self</span><span class="o">)</span>
+    <span class="o">}</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="pitfalls">
+<h2>Pitfalls</h2>
+<ul>
+<li><p class="first">The current implementation does not match the sender of the message. This is
+designed to work with <code class="xref py py-class docutils literal"><span class="pre">ActorSelection</span></code> as well as <code class="xref py py-class docutils literal"><span class="pre">ActorRef</span></code>.
+Without the sender(), there is a chance a received message can be matched by
+more than one partial function. The partial function that was registered via
+<code class="xref py py-class docutils literal"><span class="pre">expect</span></code> or <code class="xref py py-class docutils literal"><span class="pre">expectOnce</span></code> first (chronologically) and is not yet
+de-registered by <code class="xref py py-class docutils literal"><span class="pre">unexpect</span></code> takes precedence in this case. Developers
+should make sure the messages can be uniquely matched or the wrong logic can
+be executed for a certain message.</p>
+</li>
+<li><p class="first">The <code class="xref py py-class docutils literal"><span class="pre">sender</span></code> referenced in any <code class="xref py py-class docutils literal"><span class="pre">expect</span></code> or <code class="xref py py-class docutils literal"><span class="pre">expectOnce</span></code>
+logic refers to the sender() of that particular message and not the sender() of
+the original message. The original sender() still needs to be saved so a final
+response can be sent back.</p>
+</li>
+<li><p class="first"><code class="xref py py-class docutils literal"><span class="pre">context.become</span></code> is not supported when extending the <code class="xref py py-class docutils literal"><span class="pre">Aggregator</span></code>
+trait.</p>
+</li>
+<li><p class="first">We strongly recommend against overriding <code class="xref py py-class docutils literal"><span class="pre">receive</span></code>. If your use case
+really dictates, you may do so with extreme caution. Always provide a pattern
+match handling aggregator messages among your <code class="xref py py-class docutils literal"><span class="pre">receive</span></code> pattern matches,
+as follows:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span></span><span class="k">case</span> <span class="n">msg</span> <span class="k">if</span> <span class="n">handleMessage</span><span class="o">(</span><span class="n">msg</span><span class="o">)</span> <span class="k">⇒</span> <span class="c1">// noop</span>
+<span class="c1">// side effects of handleMessage does the actual match</span>
+</pre></div>
+</div>
+</li>
+</ul>
+<p>Sorry, there is not yet a Java implementation of the aggregator pattern available.</p>
+</div>
+</div>
+
+
+          </div>
+          <div class="span3"><p class="contents-title">Contents</p>
+              <div id="scroller-anchor">
+                <div id="scroller">
+                  <div id="toc"></div>
+                </div>
+              </div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="footer">
+  <div class="container">
+    <ul>
+      <li><h5>Akka</h5></li>
+      <li><a href="https://akka.io/docs">Documentation</a></li>
+      <li><a href="https://akka.io/faq">FAQ</a></li>
+      <li><a href="https://akka.io/downloads">Downloads</a></li>
+      <li><a href="https://akka.io/news">News</a></li>
+      <li><a href="http://letitcrash.com">Blog</a></li>
+    </ul>
+    <ul>
+      <li><h5>Contribute</h5></li>
+      <li><a href="https://akka.io/community">Community Projects</a></li>
+      <li><a href="http://github.com/akka/akka">Source Code</a></li>
+      <li><a href="http://groups.google.com/group/akka-user">Mailing List</a></li>      
+      <li><a href="https://doc.akka.io/docs/akka/current/project/issue-tracking.html">Report a Bug</a></li>      
+    </ul>
+    <ul>
+      <li><h5>Company</h5></li>
+      <li><a href="http://www.typesafe.com/how/subscription">Commercial Support</a></li>
+      <li><a href="https://akka.io/team">Team</a></li>
+      <li><a href="mailto:info@typesafe.com">Contact</a></li>
+    </ul>
+    <ul>
+      <li><img src="../_static/akka_icon_reverse.svg" align="center"/></li>
+    </ul>
+  </div>
+  <div class="container copyright">
+    <p style="float: left;">
+      © 2014 <a href="http://www.typesafe.com/">Typesafe Inc.</a> <span class="license">Akka is Open Source and available under the Apache 2 License.</span>
+    </p>
+    <p style="float: right; font-size: 12px;">
+      Last updated: Oct 28, 2016
+    </p>          
+  </div>
+</div>
+<script src="http://www.google.com/jsapi" type="text/javascript"></script>
+<script type="text/javascript">
+    google.load('search', '1', {language : 'en', style : google.loader.themes.MINIMALIST});
+    google.setOnLoadCallback(function() {
+    var customSearchOptions = {};  var customSearchControl = new google.search.CustomSearchControl(
+    '003065520604945464838:izzukx8-qba', customSearchOptions);
+    customSearchControl.setResultSetSize(google.search.Search.FILTERED_CSE_RESULTSET);
+    customSearchControl.draw('cse');
+    var path = window.location.pathname.split('/').slice(0,4);
+    if(window.location.hostname && path.length >= 4) {
+    var site = "site:" + window.location.hostname + path.join('/').toString();
+    customSearchControl.setSearchStartingCallback(this, function(c, s, q) { s.setQueryAddition(site); });
+    }
+    }, true);
+</script>
+<style type="text/css">
+    .gsc-control-cse {
+    font-family: Arial, sans-serif;
+    border-color: rgb(242, 242, 235);
+    background-color: rgb(242, 242, 235);
+    }
+    .gsc-control-cse .gsc-table-result {
+      font-family: Arial, sans-serif;
+      display: block;
+    }
+    input.gsc-input {
+    border-color: #BBBBBB;
+    }
+    input.gsc-search-button {
+    border-color: rgb(34, 57, 64);
+    background-color: rgb(68, 114, 129);
+    color: #FFFFFF;
+    }
+    .gsc-tabHeader.gsc-tabhInactive {
+    border-color: #777777;
+    background-color: #777777;
+    }
+    .gsc-tabHeader.gsc-tabhActive {
+    border-color: #333333;
+    background-color: #333333;
+    }
+    .gsc-tabsArea {
+    border-color: #333333;
+    }
+    .gsc-webResult.gsc-result,
+    .gsc-results .gsc-imageResult {
+      border-color: #666666;
+      background-color: #FFFFFF;
+      padding: 0.5em 0.5em;
+    }
+    .gsc-webResult.gsc-result:hover,
+    .gsc-imageResult:hover {
+      border-color: #AAAAAA;
+      background-color: #FFFFFF;
+      padding: 0.5em 0.5em;
+    }
+    .gsc-webResult.gsc-result.gsc-promotion:hover {
+    border-color: #AAAAAA;
+    background-color: #FFFFFF;
+    }
+    .gs-webResult.gs-result a.gs-title:link,
+    .gs-webResult.gs-result a.gs-title:link b,
+    .gs-imageResult a.gs-title:link,
+    .gs-imageResult a.gs-title:link b {
+    color: #444444;
+    }
+    .gs-webResult.gs-result a.gs-title:visited,
+    .gs-webResult.gs-result a.gs-title:visited b,
+    .gs-imageResult a.gs-title:visited,
+    .gs-imageResult a.gs-title:visited b {
+    color: #444444;
+    }
+    .gs-webResult.gs-result a.gs-title:hover,
+    .gs-webResult.gs-result a.gs-title:hover b,
+    .gs-imageResult a.gs-title:hover,
+    .gs-imageResult a.gs-title:hover b {
+    color: #444444;
+    }
+    .gs-webResult.gs-result a.gs-title:active,
+    .gs-webResult.gs-result a.gs-title:active b,
+    .gs-imageResult a.gs-title:active,
+    .gs-imageResult a.gs-title:active b {
+    color: #777777;
+    }
+    .gsc-cursor-page {
+    color: #444444;
+    }
+    a.gsc-trailing-more-results:link {
+    color: #444444;
+    }
+    .gs-webResult .gs-snippet,
+    .gs-imageResult .gs-snippet,
+    .gs-fileFormatType {
+    color: #333333;
+    }
+    .gs-webResult div.gs-visibleUrl,
+    .gs-imageResult div.gs-visibleUrl {
+    color: #000000;
+    }
+    .gs-webResult div.gs-visibleUrl-short {
+    color: #000000;
+    }
+    .gs-webResult div.gs-visibleUrl-short {
+    display: none;
+    }
+    .gs-webResult div.gs-visibleUrl-long {
+    display: block;
+    }
+    .gs-promotion div.gs-visibleUrl-short {
+    display: none;
+    }
+    .gs-promotion div.gs-visibleUrl-long {
+    display: block;
+    }
+    .gsc-cursor-box {
+    border-color: #FFFFFF;
+    }
+    .gsc-results .gsc-cursor-box .gsc-cursor-page {
+    border-color: #777777;
+    background-color: #FFFFFF;
+    color: #444444;
+    }
+    .gsc-results .gsc-cursor-box .gsc-cursor-current-page {
+    border-color: #333333;
+    background-color: #333333;
+    color: #444444;
+    }
+    .gsc-webResult.gsc-result.gsc-promotion {
+    border-color: #CCCCCC;
+    background-color: #E6E6E6;
+    }
+    .gsc-completion-title {
+    color: #444444;
+    }
+    .gsc-completion-snippet {
+    color: #333333;
+    }
+    .gs-promotion a.gs-title:link,
+    .gs-promotion a.gs-title:link *,
+    .gs-promotion .gs-snippet a:link {
+    color: #0000CC;
+    }
+    .gs-promotion a.gs-title:visited,
+    .gs-promotion a.gs-title:visited *,
+    .gs-promotion .gs-snippet a:visited {
+    color: #0000CC;
+    }
+    .gs-promotion a.gs-title:hover,
+    .gs-promotion a.gs-title:hover *,
+    .gs-promotion .gs-snippet a:hover {
+    color: #444444;
+    }
+    .gs-promotion a.gs-title:active,
+    .gs-promotion a.gs-title:active *,
+    .gs-promotion .gs-snippet a:active {
+    color: #00CC00;
+    }
+    .gs-promotion .gs-snippet,
+    .gs-promotion .gs-title .gs-promotion-title-right,
+    .gs-promotion .gs-title .gs-promotion-title-right *  {
+    color: #333333;
+    }
+    .gs-promotion .gs-visibleUrl,
+    .gs-promotion .gs-visibleUrl-short {
+    color: #00CC00;
+    }
+</style>
+<script type="text/javascript">
+  var $toc = $('#toc');
+  $toc.toc();
+
+  // change hash when TOC link clicked:
+  $toc.find("a").click(function() { window.location.hash = $(this).attr('href'); });
+
+  // show clickable section sign when section header hovered:
+  $('.section h2,.section h3,.section h4,.section h5').each(function(i, el) {
+      var $el = $(el);
+      $el.prepend($("<a class='section-marker' href='#" + $el.attr("id") + "'>&sect;</a>"))
+  });
+</script>
+  
+
+  </body>
+</html>

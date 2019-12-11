@@ -1,0 +1,972 @@
+
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Working with Graphs &mdash; Akka Documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/style.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/prettify.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/base.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/docs.css" type="text/css" />
+    <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,600,700" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '2.4.20',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="../../_static/toc.js"></script>
+    <script type="text/javascript" src="../../_static/prettify.js"></script>
+    <script type="text/javascript" src="../../_static/highlightCode.js"></script>
+    <script type="text/javascript" src="../../_static/effects.core.js"></script>
+    <script type="text/javascript" src="../../_static/effects.highlight.js"></script>
+    <script type="text/javascript" src="../../_static/scrollTo.js"></script>
+    <script type="text/javascript" src="../../_static/contentsFix.js"></script>
+    <script type="text/javascript" src="../../_static/ga.js"></script>
+    <script type="text/javascript" src="../../_static/warnOldDocs.js"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/docsearch.js/1/docsearch.min.js"></script>
+    <link rel="shortcut icon" href="../../_static/favicon.ico"/>
+    <link rel="top" title="Akka Documentation" href="../../index.html" />
+    <link rel="up" title="Streams" href="index.html" />
+    <link rel="next" title="Modularity, Composition and Hierarchy" href="stream-composition.html" />
+    <link rel="prev" title="Basics and working with Flows" href="stream-flows-and-basics.html" />
+    <!-- Hint to search engines that the "canonical" page is under "current", which will boost it appearing in search results -->
+    <link rel="canonical" href="https://doc.akka.io/docs/akka/2.4/scala/stream/stream-graphs.html" />
+
+    <!--Google Analytics-->
+    <script type="text/javascript">
+      var _gaq = _gaq || [];
+      _gaq.push(['_setAccount', 'UA-21117439-1']);
+      _gaq.push(['_setDomainName', 'akka.io']);
+      _gaq.push(['_trackPageview']);
+      (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+      })()
+    </script>
+    <!--Google Analytics & Marketo-->
+    <script type="text/javascript">
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+      (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+      m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+      ga('create', 'UA-23127719-1', 'lightbend.com', {'allowLinker': true, 'name': 'tsTracker'});
+      ga('tsTracker.require', 'linker');
+      ga('tsTracker.linker:autoLink', ['lightbend.com','playframework.com','scala-lang.org','scaladays.org','spray.io','akka.io','scala-sbt.org','scala-ide.org']);
+      ga('tsTracker.send', 'pageview');
+
+      (function() {
+          var didInit = false;
+          function initMunchkin() {
+          if(didInit === false) {
+            didInit = true;
+            Munchkin.init('558-NCX-702');
+          }
+          }
+          var s = document.createElement('script');
+          s.type = 'text/javascript';
+          s.async = true;
+          s.src = '//munchkin.marketo.net/munchkin.js';
+          s.onreadystatechange = function() {
+          if (this.readyState == 'complete' || this.readyState == 'loaded') {
+            initMunchkin();
+          }
+          };
+          s.onload = initMunchkin;
+          document.getElementsByTagName('head')[0].appendChild(s);
+        })();
+    </script>
+
+
+  </head>
+  <body>
+  <div class="navbar">
+    <div class="navbar-inner">
+      <div class="container">
+        <div class="navbar-logo">
+          <a href="https://akka.io"><img class="svg-logo" src="../../_static/akka_full_color.svg" /></a>
+        </div>
+        <ul class="nav">
+          <li><a href="https://akka.io/docs">Documentation</a></li>
+          <li><a href="https://doc.akka.io/docs/akka/current/additional/faq.html">FAQ</a></li>
+          <li><a href="https://akka.io/downloads">Download</a></li>
+          <li><a href="http://groups.google.com/group/akka-user">Mailing List</a></li>
+          <li><a href="http://github.com/akka/akka">Code</a></li>
+          <li><a href="http://www.lightbend.com/how/subscription">Commercial Support</a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="main">
+    <div class="container">
+      <div class="page-title">Working with Graphs - Version 2.4.20</div>
+      <div class="pdf-link"><a href="../../AkkaScala.pdf" title="Akka Scala Documentation"><img src="../../_static/pdf-scala-icon.png" style="height: 40px;" /></a></div>
+      <div class="pdf-link"><a href="../../AkkaJava.pdf" title="Akka Java Documentation"><img src="../../_static/pdf-java-icon.png" style="height: 40px;" /></a></div>
+    </div>
+    <div class="main-container">
+      <div class="container">
+        <div class="row">
+          <div class="span12">
+            <div class="breadcrumb">
+              <div style="position: relative">
+                <input type="search" id="search" class="form-control" style="position: relative" placeholder="Search in the doc" />
+              </div>
+              <div>
+                <div>
+                  <span class="divider">«</span> <a href="stream-flows-and-basics.html">Basics and working with Flows</a> <span class="divider">|</span>
+                </div>
+                <div>
+                  <a href="../../java.html">Java Contents</a> <span class="divider">|</span> <a href="../../scala.html">Scala Contents</a>
+                </div>
+                <div>
+                  <span class="divider">|</span> <a href="stream-composition.html">Modularity, Composition and Hierarchy</a> <span class="divider">»</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="row">
+          <div class="span9">
+          </div><div class="span9">
+            
+  <div class="section" id="working-with-graphs">
+<span id="stream-graph-scala"></span><h1>Working with Graphs</h1>
+<p>In Akka Streams computation graphs are not expressed using a fluent DSL like linear computations are, instead they are
+written in a more graph-resembling DSL which aims to make translating graph drawings (e.g. from notes taken
+from design discussions, or illustrations in protocol specifications) to and from code simpler. In this section we’ll
+dive into the multiple ways of constructing and re-using graphs, as well as explain common pitfalls and how to avoid them.</p>
+<p>Graphs are needed whenever you want to perform any kind of fan-in (&quot;multiple inputs&quot;) or fan-out (&quot;multiple outputs&quot;) operations.
+Considering linear Flows to be like roads, we can picture graph operations as junctions: multiple flows being connected at a single point.
+Some graph operations which are common enough and fit the linear style of Flows, such as <tt class="docutils literal"><span class="pre">concat</span></tt> (which concatenates two
+streams, such that the second one is consumed after the first one has completed), may have shorthand methods defined on
+<tt class="xref py py-class docutils literal"><span class="pre">Flow</span></tt> or <tt class="xref py py-class docutils literal"><span class="pre">Source</span></tt> themselves, however you should keep in mind that those are also implemented as graph junctions.</p>
+<div class="section" id="constructing-graphs">
+<span id="graph-dsl-scala"></span><h2>Constructing Graphs</h2>
+<p>Graphs are built from simple Flows which serve as the linear connections within the graphs as well as junctions
+which serve as fan-in and fan-out points for Flows. Thanks to the junctions having meaningful types based on their behaviour
+and making them explicit elements these elements should be rather straightforward to use.</p>
+<p>Akka Streams currently provide these junctions (for a detailed list see <a class="reference internal" href="stages-overview.html#stages-overview-scala"><em>Overview of built-in stages and their semantics</em></a>):</p>
+<ul class="simple">
+<li><strong>Fan-out</strong></li>
+</ul>
+<blockquote>
+<div><ul class="simple">
+<li><tt class="docutils literal"><span class="pre">Broadcast[T]</span></tt> – <em>(1 input, N outputs)</em> given an input element emits to each output</li>
+<li><tt class="docutils literal"><span class="pre">Balance[T]</span></tt> – <em>(1 input, N outputs)</em> given an input element emits to one of its output ports</li>
+<li><tt class="docutils literal"><span class="pre">UnzipWith[In,A,B,...]</span></tt> – <em>(1 input, N outputs)</em> takes a function of 1 input that given a value for each input emits N output elements (where N &lt;= 20)</li>
+<li><tt class="docutils literal"><span class="pre">UnZip[A,B]</span></tt> – <em>(1 input, 2 outputs)</em> splits a stream of <tt class="docutils literal"><span class="pre">(A,B)</span></tt> tuples into two streams, one of type <tt class="docutils literal"><span class="pre">A</span></tt> and one of type <tt class="docutils literal"><span class="pre">B</span></tt></li>
+</ul>
+</div></blockquote>
+<ul class="simple">
+<li><strong>Fan-in</strong></li>
+</ul>
+<blockquote>
+<div><ul class="simple">
+<li><tt class="docutils literal"><span class="pre">Merge[In]</span></tt> – <em>(N inputs , 1 output)</em> picks randomly from inputs pushing them one by one to its output</li>
+<li><tt class="docutils literal"><span class="pre">MergePreferred[In]</span></tt> – like <tt class="xref py py-class docutils literal"><span class="pre">Merge</span></tt> but if elements are available on <tt class="docutils literal"><span class="pre">preferred</span></tt> port, it picks from it, otherwise randomly from <tt class="docutils literal"><span class="pre">others</span></tt></li>
+<li><tt class="docutils literal"><span class="pre">ZipWith[A,B,...,Out]</span></tt> – <em>(N inputs, 1 output)</em> which takes a function of N inputs that given a value for each input emits 1 output element</li>
+<li><tt class="docutils literal"><span class="pre">Zip[A,B]</span></tt> – <em>(2 inputs, 1 output)</em> is a <tt class="xref py py-class docutils literal"><span class="pre">ZipWith</span></tt> specialised to zipping input streams of <tt class="docutils literal"><span class="pre">A</span></tt> and <tt class="docutils literal"><span class="pre">B</span></tt> into an <tt class="docutils literal"><span class="pre">(A,B)</span></tt> tuple stream</li>
+<li><tt class="docutils literal"><span class="pre">Concat[A]</span></tt> – <em>(2 inputs, 1 output)</em> concatenates two streams (first consume one, then the second one)</li>
+</ul>
+</div></blockquote>
+<p>One of the goals of the GraphDSL DSL is to look similar to how one would draw a graph on a whiteboard, so that it is
+simple to translate a design from whiteboard to code and be able to relate those two. Let's illustrate this by translating
+the below hand drawn graph into Akka Streams:</p>
+<img alt="../../_images/simple-graph-example1.png" src="../../_images/simple-graph-example1.png" />
+<p>Such graph is simple to translate to the Graph DSL since each linear element corresponds to a <tt class="xref py py-class docutils literal"><span class="pre">Flow</span></tt>,
+and each circle corresponds to either a <tt class="xref py py-class docutils literal"><span class="pre">Junction</span></tt> or a <tt class="xref py py-class docutils literal"><span class="pre">Source</span></tt> or <tt class="xref py py-class docutils literal"><span class="pre">Sink</span></tt> if it is beginning
+or ending a <tt class="xref py py-class docutils literal"><span class="pre">Flow</span></tt>. Junctions must always be created with defined type parameters, as otherwise the <tt class="docutils literal"><span class="pre">Nothing</span></tt> type
+will be inferred.</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">val</span> <span class="n">g</span> <span class="k">=</span> <span class="nc">RunnableGraph</span><span class="o">.</span><span class="n">fromGraph</span><span class="o">(</span><span class="nc">GraphDSL</span><span class="o">.</span><span class="n">create</span><span class="o">()</span> <span class="o">{</span> <span class="k">implicit</span> <span class="n">builder</span><span class="k">:</span> <span class="kt">GraphDSL.Builder</span><span class="o">[</span><span class="kt">NotUsed</span><span class="o">]</span> <span class="k">=&gt;</span>
+  <span class="k">import</span> <span class="nn">GraphDSL.Implicits._</span>
+  <span class="k">val</span> <span class="n">in</span> <span class="k">=</span> <span class="nc">Source</span><span class="o">(</span><span class="mi">1</span> <span class="n">to</span> <span class="mi">10</span><span class="o">)</span>
+  <span class="k">val</span> <span class="n">out</span> <span class="k">=</span> <span class="nc">Sink</span><span class="o">.</span><span class="n">ignore</span>
+
+  <span class="k">val</span> <span class="n">bcast</span> <span class="k">=</span> <span class="n">builder</span><span class="o">.</span><span class="n">add</span><span class="o">(</span><span class="nc">Broadcast</span><span class="o">[</span><span class="kt">Int</span><span class="o">](</span><span class="mi">2</span><span class="o">))</span>
+  <span class="k">val</span> <span class="n">merge</span> <span class="k">=</span> <span class="n">builder</span><span class="o">.</span><span class="n">add</span><span class="o">(</span><span class="nc">Merge</span><span class="o">[</span><span class="kt">Int</span><span class="o">](</span><span class="mi">2</span><span class="o">))</span>
+
+  <span class="k">val</span> <span class="n">f1</span><span class="o">,</span> <span class="n">f2</span><span class="o">,</span> <span class="n">f3</span><span class="o">,</span> <span class="n">f4</span> <span class="k">=</span> <span class="nc">Flow</span><span class="o">[</span><span class="kt">Int</span><span class="o">].</span><span class="n">map</span><span class="o">(</span><span class="k">_</span> <span class="o">+</span> <span class="mi">10</span><span class="o">)</span>
+
+  <span class="n">in</span> <span class="o">~&gt;</span> <span class="n">f1</span> <span class="o">~&gt;</span> <span class="n">bcast</span> <span class="o">~&gt;</span> <span class="n">f2</span> <span class="o">~&gt;</span> <span class="n">merge</span> <span class="o">~&gt;</span> <span class="n">f3</span> <span class="o">~&gt;</span> <span class="n">out</span>
+  <span class="n">bcast</span> <span class="o">~&gt;</span> <span class="n">f4</span> <span class="o">~&gt;</span> <span class="n">merge</span>
+  <span class="nc">ClosedShape</span>
+<span class="o">})</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Junction <em>reference equality</em> defines <em>graph node equality</em> (i.e. the same merge <em>instance</em> used in a GraphDSL
+refers to the same location in the resulting graph).</p>
+</div>
+<p>Notice the <tt class="docutils literal"><span class="pre">import&nbsp;GraphDSL.Implicits._</span></tt> which brings into scope the <tt class="docutils literal"><span class="pre">~&gt;</span></tt> operator (read as &quot;edge&quot;, &quot;via&quot; or &quot;to&quot;)
+and its inverted counterpart <tt class="docutils literal"><span class="pre">&lt;~</span></tt> (for noting down flows in the opposite direction where appropriate).</p>
+<p>By looking at the snippets above, it should be apparent that the <tt class="xref py py-class docutils literal"><span class="pre">GraphDSL.Builder</span></tt> object is <em>mutable</em>.
+It is used (implicitly) by the <tt class="docutils literal"><span class="pre">~&gt;</span></tt> operator, also making it a mutable operation as well.
+The reason for this design choice is to enable simpler creation of complex graphs, which may even contain cycles.
+Once the GraphDSL has been constructed though, the <tt class="xref py py-class docutils literal"><span class="pre">GraphDSL</span></tt> instance <em>is immutable, thread-safe, and freely shareable</em>.
+The same is true of all graph pieces—sources, sinks, and flows—once they are constructed.
+This means that you can safely re-use one given Flow or junction in multiple places in a processing graph.</p>
+<p>We have seen examples of such re-use already above: the merge and broadcast junctions were imported
+into the graph using <tt class="docutils literal"><span class="pre">builder.add(...)</span></tt>, an operation that will make a copy of the blueprint that
+is passed to it and return the inlets and outlets of the resulting copy so that they can be wired up.
+Another alternative is to pass existing graphs—of any shape—into the factory method that produces a
+new graph. The difference between these approaches is that importing using <tt class="docutils literal"><span class="pre">builder.add(...)</span></tt> ignores the
+materialized value of the imported graph while importing via the factory method allows its inclusion;
+for more details see <a class="reference internal" href="stream-flows-and-basics.html#stream-materialization-scala"><em>Stream Materialization</em></a>.</p>
+<p>In the example below we prepare a graph that consists of two parallel streams,
+in which we re-use the same instance of <tt class="xref py py-class docutils literal"><span class="pre">Flow</span></tt>, yet it will properly be
+materialized as two connections between the corresponding Sources and Sinks:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">val</span> <span class="n">topHeadSink</span> <span class="k">=</span> <span class="nc">Sink</span><span class="o">.</span><span class="n">head</span><span class="o">[</span><span class="kt">Int</span><span class="o">]</span>
+<span class="k">val</span> <span class="n">bottomHeadSink</span> <span class="k">=</span> <span class="nc">Sink</span><span class="o">.</span><span class="n">head</span><span class="o">[</span><span class="kt">Int</span><span class="o">]</span>
+<span class="k">val</span> <span class="n">sharedDoubler</span> <span class="k">=</span> <span class="nc">Flow</span><span class="o">[</span><span class="kt">Int</span><span class="o">].</span><span class="n">map</span><span class="o">(</span><span class="k">_</span> <span class="o">*</span> <span class="mi">2</span><span class="o">)</span>
+
+<span class="nc">RunnableGraph</span><span class="o">.</span><span class="n">fromGraph</span><span class="o">(</span><span class="nc">GraphDSL</span><span class="o">.</span><span class="n">create</span><span class="o">(</span><span class="n">topHeadSink</span><span class="o">,</span> <span class="n">bottomHeadSink</span><span class="o">)((</span><span class="k">_</span><span class="o">,</span> <span class="k">_</span><span class="o">))</span> <span class="o">{</span> <span class="k">implicit</span> <span class="n">builder</span> <span class="k">=&gt;</span>
+  <span class="o">(</span><span class="n">topHS</span><span class="o">,</span> <span class="n">bottomHS</span><span class="o">)</span> <span class="k">=&gt;</span>
+  <span class="k">import</span> <span class="nn">GraphDSL.Implicits._</span>
+  <span class="k">val</span> <span class="n">broadcast</span> <span class="k">=</span> <span class="n">builder</span><span class="o">.</span><span class="n">add</span><span class="o">(</span><span class="nc">Broadcast</span><span class="o">[</span><span class="kt">Int</span><span class="o">](</span><span class="mi">2</span><span class="o">))</span>
+  <span class="nc">Source</span><span class="o">.</span><span class="n">single</span><span class="o">(</span><span class="mi">1</span><span class="o">)</span> <span class="o">~&gt;</span> <span class="n">broadcast</span><span class="o">.</span><span class="n">in</span>
+
+  <span class="n">broadcast</span><span class="o">.</span><span class="n">out</span><span class="o">(</span><span class="mi">0</span><span class="o">)</span> <span class="o">~&gt;</span> <span class="n">sharedDoubler</span> <span class="o">~&gt;</span> <span class="n">topHS</span><span class="o">.</span><span class="n">in</span>
+  <span class="n">broadcast</span><span class="o">.</span><span class="n">out</span><span class="o">(</span><span class="mi">1</span><span class="o">)</span> <span class="o">~&gt;</span> <span class="n">sharedDoubler</span> <span class="o">~&gt;</span> <span class="n">bottomHS</span><span class="o">.</span><span class="n">in</span>
+  <span class="nc">ClosedShape</span>
+<span class="o">})</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="constructing-and-combining-partial-graphs">
+<span id="partial-graph-dsl-scala"></span><h2>Constructing and combining Partial Graphs</h2>
+<p>Sometimes it is not possible (or needed) to construct the entire computation graph in one place, but instead construct
+all of its different phases in different places and in the end connect them all into a complete graph and run it.</p>
+<p>This can be achieved by returning a different <tt class="docutils literal"><span class="pre">Shape</span></tt> than <tt class="docutils literal"><span class="pre">ClosedShape</span></tt>, for example <tt class="docutils literal"><span class="pre">FlowShape(in,</span> <span class="pre">out)</span></tt>, from the
+function given to <tt class="docutils literal"><span class="pre">GraphDSL.create</span></tt>. See <a class="reference internal" href="#predefined-shapes"><em>Predefined shapes</em></a>) for a list of such predefined shapes.</p>
+<p>Making a <tt class="docutils literal"><span class="pre">Graph</span></tt> a <tt class="xref py py-class docutils literal"><span class="pre">RunnableGraph</span></tt> requires all ports to be connected, and if they are not
+it will throw an exception at construction time, which helps to avoid simple
+wiring errors while working with graphs. A partial graph however allows
+you to return the set of yet to be connected ports from the code block that
+performs the internal wiring.</p>
+<p>Let's imagine we want to provide users with a specialized element that given 3 inputs will pick
+the greatest int value of each zipped triple. We'll want to expose 3 input ports (unconnected sources) and one output port
+(unconnected sink).</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">val</span> <span class="n">pickMaxOfThree</span> <span class="k">=</span> <span class="nc">GraphDSL</span><span class="o">.</span><span class="n">create</span><span class="o">()</span> <span class="o">{</span> <span class="k">implicit</span> <span class="n">b</span> <span class="k">=&gt;</span>
+  <span class="k">import</span> <span class="nn">GraphDSL.Implicits._</span>
+
+  <span class="k">val</span> <span class="n">zip1</span> <span class="k">=</span> <span class="n">b</span><span class="o">.</span><span class="n">add</span><span class="o">(</span><span class="nc">ZipWith</span><span class="o">[</span><span class="kt">Int</span>, <span class="kt">Int</span>, <span class="kt">Int</span><span class="o">](</span><span class="n">math</span><span class="o">.</span><span class="n">max</span> <span class="k">_</span><span class="o">))</span>
+  <span class="k">val</span> <span class="n">zip2</span> <span class="k">=</span> <span class="n">b</span><span class="o">.</span><span class="n">add</span><span class="o">(</span><span class="nc">ZipWith</span><span class="o">[</span><span class="kt">Int</span>, <span class="kt">Int</span>, <span class="kt">Int</span><span class="o">](</span><span class="n">math</span><span class="o">.</span><span class="n">max</span> <span class="k">_</span><span class="o">))</span>
+  <span class="n">zip1</span><span class="o">.</span><span class="n">out</span> <span class="o">~&gt;</span> <span class="n">zip2</span><span class="o">.</span><span class="n">in0</span>
+
+  <span class="nc">UniformFanInShape</span><span class="o">(</span><span class="n">zip2</span><span class="o">.</span><span class="n">out</span><span class="o">,</span> <span class="n">zip1</span><span class="o">.</span><span class="n">in0</span><span class="o">,</span> <span class="n">zip1</span><span class="o">.</span><span class="n">in1</span><span class="o">,</span> <span class="n">zip2</span><span class="o">.</span><span class="n">in1</span><span class="o">)</span>
+<span class="o">}</span>
+
+<span class="k">val</span> <span class="n">resultSink</span> <span class="k">=</span> <span class="nc">Sink</span><span class="o">.</span><span class="n">head</span><span class="o">[</span><span class="kt">Int</span><span class="o">]</span>
+
+<span class="k">val</span> <span class="n">g</span> <span class="k">=</span> <span class="nc">RunnableGraph</span><span class="o">.</span><span class="n">fromGraph</span><span class="o">(</span><span class="nc">GraphDSL</span><span class="o">.</span><span class="n">create</span><span class="o">(</span><span class="n">resultSink</span><span class="o">)</span> <span class="o">{</span> <span class="k">implicit</span> <span class="n">b</span> <span class="k">=&gt;</span> <span class="n">sink</span> <span class="k">=&gt;</span>
+  <span class="k">import</span> <span class="nn">GraphDSL.Implicits._</span>
+
+  <span class="c1">// importing the partial graph will return its shape (inlets &amp; outlets)</span>
+  <span class="k">val</span> <span class="n">pm3</span> <span class="k">=</span> <span class="n">b</span><span class="o">.</span><span class="n">add</span><span class="o">(</span><span class="n">pickMaxOfThree</span><span class="o">)</span>
+
+  <span class="nc">Source</span><span class="o">.</span><span class="n">single</span><span class="o">(</span><span class="mi">1</span><span class="o">)</span> <span class="o">~&gt;</span> <span class="n">pm3</span><span class="o">.</span><span class="n">in</span><span class="o">(</span><span class="mi">0</span><span class="o">)</span>
+  <span class="nc">Source</span><span class="o">.</span><span class="n">single</span><span class="o">(</span><span class="mi">2</span><span class="o">)</span> <span class="o">~&gt;</span> <span class="n">pm3</span><span class="o">.</span><span class="n">in</span><span class="o">(</span><span class="mi">1</span><span class="o">)</span>
+  <span class="nc">Source</span><span class="o">.</span><span class="n">single</span><span class="o">(</span><span class="mi">3</span><span class="o">)</span> <span class="o">~&gt;</span> <span class="n">pm3</span><span class="o">.</span><span class="n">in</span><span class="o">(</span><span class="mi">2</span><span class="o">)</span>
+  <span class="n">pm3</span><span class="o">.</span><span class="n">out</span> <span class="o">~&gt;</span> <span class="n">sink</span><span class="o">.</span><span class="n">in</span>
+  <span class="nc">ClosedShape</span>
+<span class="o">})</span>
+
+<span class="k">val</span> <span class="n">max</span><span class="k">:</span> <span class="kt">Future</span><span class="o">[</span><span class="kt">Int</span><span class="o">]</span> <span class="k">=</span> <span class="n">g</span><span class="o">.</span><span class="n">run</span><span class="o">()</span>
+<span class="nc">Await</span><span class="o">.</span><span class="n">result</span><span class="o">(</span><span class="n">max</span><span class="o">,</span> <span class="mf">300.</span><span class="n">millis</span><span class="o">)</span> <span class="n">should</span> <span class="n">equal</span><span class="o">(</span><span class="mi">3</span><span class="o">)</span>
+</pre></div>
+</div>
+<p>As you can see, first we construct the partial graph that contains all the zipping and comparing of stream
+elements. This partial graph will have three inputs and one output, wherefore we use the <tt class="xref py py-class docutils literal"><span class="pre">UniformFanInShape</span></tt>.
+Then we import it (all of its nodes and connections) explicitly into the closed graph built in the second step in which all
+the undefined elements are rewired to real sources and sinks. The graph can then be run and yields the expected result.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p>Please note that <tt class="xref py py-class docutils literal"><span class="pre">GraphDSL</span></tt> is not able to provide compile time type-safety about whether or not all
+elements have been properly connected—this validation is performed as a runtime check during the graph's instantiation.</p>
+<p class="last">A partial graph also verifies that all ports are either connected or part of the returned <tt class="xref py py-class docutils literal"><span class="pre">Shape</span></tt>.</p>
+</div>
+</div>
+<div class="section" id="constructing-sources-sinks-and-flows-from-partial-graphs">
+<span id="constructing-sources-sinks-flows-from-partial-graphs-scala"></span><h2>Constructing Sources, Sinks and Flows from Partial Graphs</h2>
+<p>Instead of treating a partial graph as simply a collection of flows and junctions which may not yet all be
+connected it is sometimes useful to expose such a complex graph as a simpler structure,
+such as a <tt class="xref py py-class docutils literal"><span class="pre">Source</span></tt>, <tt class="xref py py-class docutils literal"><span class="pre">Sink</span></tt> or <tt class="xref py py-class docutils literal"><span class="pre">Flow</span></tt>.</p>
+<p>In fact, these concepts can be easily expressed as special cases of a partially connected graph:</p>
+<ul class="simple">
+<li><tt class="xref py py-class docutils literal"><span class="pre">Source</span></tt> is a partial graph with <em>exactly one</em> output, that is it returns a <tt class="xref py py-class docutils literal"><span class="pre">SourceShape</span></tt>.</li>
+<li><tt class="xref py py-class docutils literal"><span class="pre">Sink</span></tt> is a partial graph with <em>exactly one</em> input, that is it returns a <tt class="xref py py-class docutils literal"><span class="pre">SinkShape</span></tt>.</li>
+<li><tt class="xref py py-class docutils literal"><span class="pre">Flow</span></tt> is a partial graph with <em>exactly one</em> input and <em>exactly one</em> output, that is it returns a <tt class="xref py py-class docutils literal"><span class="pre">FlowShape</span></tt>.</li>
+</ul>
+<p>Being able to hide complex graphs inside of simple elements such as Sink / Source / Flow enables you to easily create one
+complex element and from there on treat it as simple compound stage for linear computations.</p>
+<p>In order to create a Source from a graph the method <tt class="docutils literal"><span class="pre">Source.fromGraph</span></tt> is used, to use it we must have a
+<tt class="docutils literal"><span class="pre">Graph[SourceShape,</span> <span class="pre">T]</span></tt>. This is constructed using <tt class="docutils literal"><span class="pre">GraphDSL.create</span></tt> and returning a <tt class="docutils literal"><span class="pre">SourceShape</span></tt>
+from the function passed in . The single outlet must be provided to the <tt class="docutils literal"><span class="pre">SourceShape.of</span></tt> method and will become
+“the sink that must be attached before this Source can run”.</p>
+<p>Refer to the example below, in which we create a Source that zips together two numbers, to see this graph
+construction in action:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">val</span> <span class="n">pairs</span> <span class="k">=</span> <span class="nc">Source</span><span class="o">.</span><span class="n">fromGraph</span><span class="o">(</span><span class="nc">GraphDSL</span><span class="o">.</span><span class="n">create</span><span class="o">()</span> <span class="o">{</span> <span class="k">implicit</span> <span class="n">b</span> <span class="k">=&gt;</span>
+  <span class="k">import</span> <span class="nn">GraphDSL.Implicits._</span>
+
+  <span class="c1">// prepare graph elements</span>
+  <span class="k">val</span> <span class="n">zip</span> <span class="k">=</span> <span class="n">b</span><span class="o">.</span><span class="n">add</span><span class="o">(</span><span class="nc">Zip</span><span class="o">[</span><span class="kt">Int</span>, <span class="kt">Int</span><span class="o">]())</span>
+  <span class="k">def</span> <span class="n">ints</span> <span class="k">=</span> <span class="nc">Source</span><span class="o">.</span><span class="n">fromIterator</span><span class="o">(()</span> <span class="k">=&gt;</span> <span class="nc">Iterator</span><span class="o">.</span><span class="n">from</span><span class="o">(</span><span class="mi">1</span><span class="o">))</span>
+
+  <span class="c1">// connect the graph</span>
+  <span class="n">ints</span><span class="o">.</span><span class="n">filter</span><span class="o">(</span><span class="k">_</span> <span class="o">%</span> <span class="mi">2</span> <span class="o">!=</span> <span class="mi">0</span><span class="o">)</span> <span class="o">~&gt;</span> <span class="n">zip</span><span class="o">.</span><span class="n">in0</span>
+  <span class="n">ints</span><span class="o">.</span><span class="n">filter</span><span class="o">(</span><span class="k">_</span> <span class="o">%</span> <span class="mi">2</span> <span class="o">==</span> <span class="mi">0</span><span class="o">)</span> <span class="o">~&gt;</span> <span class="n">zip</span><span class="o">.</span><span class="n">in1</span>
+
+  <span class="c1">// expose port</span>
+  <span class="nc">SourceShape</span><span class="o">(</span><span class="n">zip</span><span class="o">.</span><span class="n">out</span><span class="o">)</span>
+<span class="o">})</span>
+
+<span class="k">val</span> <span class="n">firstPair</span><span class="k">:</span> <span class="kt">Future</span><span class="o">[(</span><span class="kt">Int</span>, <span class="kt">Int</span><span class="o">)]</span> <span class="k">=</span> <span class="n">pairs</span><span class="o">.</span><span class="n">runWith</span><span class="o">(</span><span class="nc">Sink</span><span class="o">.</span><span class="n">head</span><span class="o">)</span>
+</pre></div>
+</div>
+<p>Similarly the same can be done for a <tt class="docutils literal"><span class="pre">Sink[T]</span></tt>, using <tt class="docutils literal"><span class="pre">SinkShape.of</span></tt> in which case the provided value
+must be an <tt class="docutils literal"><span class="pre">Inlet[T]</span></tt>. For defining a <tt class="docutils literal"><span class="pre">Flow[T]</span></tt> we need to expose both an inlet and an outlet:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">val</span> <span class="n">pairUpWithToString</span> <span class="k">=</span>
+  <span class="nc">Flow</span><span class="o">.</span><span class="n">fromGraph</span><span class="o">(</span><span class="nc">GraphDSL</span><span class="o">.</span><span class="n">create</span><span class="o">()</span> <span class="o">{</span> <span class="k">implicit</span> <span class="n">b</span> <span class="k">=&gt;</span>
+    <span class="k">import</span> <span class="nn">GraphDSL.Implicits._</span>
+
+    <span class="c1">// prepare graph elements</span>
+    <span class="k">val</span> <span class="n">broadcast</span> <span class="k">=</span> <span class="n">b</span><span class="o">.</span><span class="n">add</span><span class="o">(</span><span class="nc">Broadcast</span><span class="o">[</span><span class="kt">Int</span><span class="o">](</span><span class="mi">2</span><span class="o">))</span>
+    <span class="k">val</span> <span class="n">zip</span> <span class="k">=</span> <span class="n">b</span><span class="o">.</span><span class="n">add</span><span class="o">(</span><span class="nc">Zip</span><span class="o">[</span><span class="kt">Int</span>, <span class="kt">String</span><span class="o">]())</span>
+
+    <span class="c1">// connect the graph</span>
+    <span class="n">broadcast</span><span class="o">.</span><span class="n">out</span><span class="o">(</span><span class="mi">0</span><span class="o">).</span><span class="n">map</span><span class="o">(</span><span class="n">identity</span><span class="o">)</span> <span class="o">~&gt;</span> <span class="n">zip</span><span class="o">.</span><span class="n">in0</span>
+    <span class="n">broadcast</span><span class="o">.</span><span class="n">out</span><span class="o">(</span><span class="mi">1</span><span class="o">).</span><span class="n">map</span><span class="o">(</span><span class="k">_</span><span class="o">.</span><span class="n">toString</span><span class="o">)</span> <span class="o">~&gt;</span> <span class="n">zip</span><span class="o">.</span><span class="n">in1</span>
+
+    <span class="c1">// expose ports</span>
+    <span class="nc">FlowShape</span><span class="o">(</span><span class="n">broadcast</span><span class="o">.</span><span class="n">in</span><span class="o">,</span> <span class="n">zip</span><span class="o">.</span><span class="n">out</span><span class="o">)</span>
+  <span class="o">})</span>
+
+<span class="n">pairUpWithToString</span><span class="o">.</span><span class="n">runWith</span><span class="o">(</span><span class="nc">Source</span><span class="o">(</span><span class="nc">List</span><span class="o">(</span><span class="mi">1</span><span class="o">)),</span> <span class="nc">Sink</span><span class="o">.</span><span class="n">head</span><span class="o">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="combining-sources-and-sinks-with-simplified-api">
+<h2>Combining Sources and Sinks with simplified API</h2>
+<p>There is a simplified API you can use to combine sources and sinks with junctions like: <tt class="docutils literal"><span class="pre">Broadcast[T]</span></tt>, <tt class="docutils literal"><span class="pre">Balance[T]</span></tt>,
+<tt class="docutils literal"><span class="pre">Merge[In]</span></tt> and <tt class="docutils literal"><span class="pre">Concat[A]</span></tt> without the need for using the Graph DSL. The combine method takes care of constructing
+the necessary graph underneath. In following example we combine two sources into one (fan-in):</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">val</span> <span class="n">sourceOne</span> <span class="k">=</span> <span class="nc">Source</span><span class="o">(</span><span class="nc">List</span><span class="o">(</span><span class="mi">1</span><span class="o">))</span>
+<span class="k">val</span> <span class="n">sourceTwo</span> <span class="k">=</span> <span class="nc">Source</span><span class="o">(</span><span class="nc">List</span><span class="o">(</span><span class="mi">2</span><span class="o">))</span>
+<span class="k">val</span> <span class="n">merged</span> <span class="k">=</span> <span class="nc">Source</span><span class="o">.</span><span class="n">combine</span><span class="o">(</span><span class="n">sourceOne</span><span class="o">,</span> <span class="n">sourceTwo</span><span class="o">)(</span><span class="nc">Merge</span><span class="o">(</span><span class="k">_</span><span class="o">))</span>
+
+<span class="k">val</span> <span class="n">mergedResult</span><span class="k">:</span> <span class="kt">Future</span><span class="o">[</span><span class="kt">Int</span><span class="o">]</span> <span class="k">=</span> <span class="n">merged</span><span class="o">.</span><span class="n">runWith</span><span class="o">(</span><span class="nc">Sink</span><span class="o">.</span><span class="n">fold</span><span class="o">(</span><span class="mi">0</span><span class="o">)(</span><span class="k">_</span> <span class="o">+</span> <span class="k">_</span><span class="o">))</span>
+</pre></div>
+</div>
+<p>The same can be done for a <tt class="docutils literal"><span class="pre">Sink[T]</span></tt> but in this case it will be fan-out:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">val</span> <span class="n">sendRmotely</span> <span class="k">=</span> <span class="nc">Sink</span><span class="o">.</span><span class="n">actorRef</span><span class="o">(</span><span class="n">actorRef</span><span class="o">,</span> <span class="s">&quot;Done&quot;</span><span class="o">)</span>
+<span class="k">val</span> <span class="n">localProcessing</span> <span class="k">=</span> <span class="nc">Sink</span><span class="o">.</span><span class="n">foreach</span><span class="o">[</span><span class="kt">Int</span><span class="o">](</span><span class="k">_</span> <span class="k">=&gt;</span> <span class="cm">/* do something usefull */</span> <span class="o">())</span>
+
+<span class="k">val</span> <span class="n">sink</span> <span class="k">=</span> <span class="nc">Sink</span><span class="o">.</span><span class="n">combine</span><span class="o">(</span><span class="n">sendRmotely</span><span class="o">,</span> <span class="n">localProcessing</span><span class="o">)(</span><span class="nc">Broadcast</span><span class="o">[</span><span class="kt">Int</span><span class="o">](</span><span class="k">_</span><span class="o">))</span>
+
+<span class="nc">Source</span><span class="o">(</span><span class="nc">List</span><span class="o">(</span><span class="mi">0</span><span class="o">,</span> <span class="mi">1</span><span class="o">,</span> <span class="mi">2</span><span class="o">)).</span><span class="n">runWith</span><span class="o">(</span><span class="n">sink</span><span class="o">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="building-reusable-graph-components">
+<h2>Building reusable Graph components</h2>
+<p>It is possible to build reusable, encapsulated components of arbitrary input and output ports using the graph DSL.</p>
+<p>As an example, we will build a graph junction that represents a pool of workers, where a worker is expressed
+as a <tt class="docutils literal"><span class="pre">Flow[I,O,_]</span></tt>, i.e. a simple transformation of jobs of type <tt class="docutils literal"><span class="pre">I</span></tt> to results of type <tt class="docutils literal"><span class="pre">O</span></tt> (as you have seen
+already, this flow can actually contain a complex graph inside). Our reusable worker pool junction will
+not preserve the order of the incoming jobs (they are assumed to have a proper ID field) and it will use a <tt class="docutils literal"><span class="pre">Balance</span></tt>
+junction to schedule jobs to available workers. On top of this, our junction will feature a &quot;fastlane&quot;, a dedicated port
+where jobs of higher priority can be sent.</p>
+<p>Altogether, our junction will have two input ports of type <tt class="docutils literal"><span class="pre">I</span></tt> (for the normal and priority jobs) and an output port
+of type <tt class="docutils literal"><span class="pre">O</span></tt>. To represent this interface, we need to define a custom <tt class="xref py py-class docutils literal"><span class="pre">Shape</span></tt>. The following lines show how to do that.</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="c1">// A shape represents the input and output ports of a reusable</span>
+<span class="c1">// processing module</span>
+<span class="k">case</span> <span class="k">class</span> <span class="nc">PriorityWorkerPoolShape</span><span class="o">[</span><span class="kt">In</span>, <span class="kt">Out</span><span class="o">](</span>
+  <span class="n">jobsIn</span><span class="k">:</span>         <span class="kt">Inlet</span><span class="o">[</span><span class="kt">In</span><span class="o">],</span>
+  <span class="n">priorityJobsIn</span><span class="k">:</span> <span class="kt">Inlet</span><span class="o">[</span><span class="kt">In</span><span class="o">],</span>
+  <span class="n">resultsOut</span><span class="k">:</span>     <span class="kt">Outlet</span><span class="o">[</span><span class="kt">Out</span><span class="o">])</span> <span class="k">extends</span> <span class="nc">Shape</span> <span class="o">{</span>
+
+  <span class="c1">// It is important to provide the list of all input and output</span>
+  <span class="c1">// ports with a stable order. Duplicates are not allowed.</span>
+  <span class="k">override</span> <span class="k">val</span> <span class="n">inlets</span><span class="k">:</span> <span class="kt">immutable.Seq</span><span class="o">[</span><span class="kt">Inlet</span><span class="o">[</span><span class="k">_</span><span class="o">]]</span> <span class="k">=</span>
+    <span class="n">jobsIn</span> <span class="o">::</span> <span class="n">priorityJobsIn</span> <span class="o">::</span> <span class="nc">Nil</span>
+  <span class="k">override</span> <span class="k">val</span> <span class="n">outlets</span><span class="k">:</span> <span class="kt">immutable.Seq</span><span class="o">[</span><span class="kt">Outlet</span><span class="o">[</span><span class="k">_</span><span class="o">]]</span> <span class="k">=</span>
+    <span class="n">resultsOut</span> <span class="o">::</span> <span class="nc">Nil</span>
+
+  <span class="c1">// A Shape must be able to create a copy of itself. Basically</span>
+  <span class="c1">// it means a new instance with copies of the ports</span>
+  <span class="k">override</span> <span class="k">def</span> <span class="n">deepCopy</span><span class="o">()</span> <span class="k">=</span> <span class="nc">PriorityWorkerPoolShape</span><span class="o">(</span>
+    <span class="n">jobsIn</span><span class="o">.</span><span class="n">carbonCopy</span><span class="o">(),</span>
+    <span class="n">priorityJobsIn</span><span class="o">.</span><span class="n">carbonCopy</span><span class="o">(),</span>
+    <span class="n">resultsOut</span><span class="o">.</span><span class="n">carbonCopy</span><span class="o">())</span>
+
+  <span class="c1">// A Shape must also be able to create itself from existing ports</span>
+  <span class="k">override</span> <span class="k">def</span> <span class="n">copyFromPorts</span><span class="o">(</span>
+    <span class="n">inlets</span><span class="k">:</span>  <span class="kt">immutable.Seq</span><span class="o">[</span><span class="kt">Inlet</span><span class="o">[</span><span class="k">_</span><span class="o">]],</span>
+    <span class="n">outlets</span><span class="k">:</span> <span class="kt">immutable.Seq</span><span class="o">[</span><span class="kt">Outlet</span><span class="o">[</span><span class="k">_</span><span class="o">]])</span> <span class="k">=</span> <span class="o">{</span>
+    <span class="n">assert</span><span class="o">(</span><span class="n">inlets</span><span class="o">.</span><span class="n">size</span> <span class="o">==</span> <span class="k">this</span><span class="o">.</span><span class="n">inlets</span><span class="o">.</span><span class="n">size</span><span class="o">)</span>
+    <span class="n">assert</span><span class="o">(</span><span class="n">outlets</span><span class="o">.</span><span class="n">size</span> <span class="o">==</span> <span class="k">this</span><span class="o">.</span><span class="n">outlets</span><span class="o">.</span><span class="n">size</span><span class="o">)</span>
+    <span class="c1">// This is why order matters when overriding inlets and outlets.</span>
+    <span class="nc">PriorityWorkerPoolShape</span><span class="o">[</span><span class="kt">In</span>, <span class="kt">Out</span><span class="o">](</span><span class="n">inlets</span><span class="o">(</span><span class="mi">0</span><span class="o">).</span><span class="n">as</span><span class="o">[</span><span class="kt">In</span><span class="o">],</span> <span class="n">inlets</span><span class="o">(</span><span class="mi">1</span><span class="o">).</span><span class="n">as</span><span class="o">[</span><span class="kt">In</span><span class="o">],</span> <span class="n">outlets</span><span class="o">(</span><span class="mi">0</span><span class="o">).</span><span class="n">as</span><span class="o">[</span><span class="kt">Out</span><span class="o">])</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="predefined-shapes">
+<span id="id1"></span><h2>Predefined shapes</h2>
+<p>In general a custom <tt class="xref py py-class docutils literal"><span class="pre">Shape</span></tt> needs to be able to provide all its input and output ports, be able to copy itself, and also be
+able to create a new instance from given ports. There are some predefined shapes provided to avoid unnecessary
+boilerplate:</p>
+<blockquote>
+<div><ul class="simple">
+<li><tt class="xref py py-class docutils literal"><span class="pre">SourceShape</span></tt>, <tt class="xref py py-class docutils literal"><span class="pre">SinkShape</span></tt>, <tt class="xref py py-class docutils literal"><span class="pre">FlowShape</span></tt> for simpler shapes,</li>
+<li><tt class="xref py py-class docutils literal"><span class="pre">UniformFanInShape</span></tt> and <tt class="xref py py-class docutils literal"><span class="pre">UniformFanOutShape</span></tt> for junctions with multiple input (or output) ports
+of the same type,</li>
+<li><tt class="xref py py-class docutils literal"><span class="pre">FanInShape1</span></tt>, <tt class="xref py py-class docutils literal"><span class="pre">FanInShape2</span></tt>, ..., <tt class="xref py py-class docutils literal"><span class="pre">FanOutShape1</span></tt>, <tt class="xref py py-class docutils literal"><span class="pre">FanOutShape2</span></tt>, ... for junctions
+with multiple input (or output) ports of different types.</li>
+</ul>
+</div></blockquote>
+<p>Since our shape has two input ports and one output port, we can just use the <tt class="xref py py-class docutils literal"><span class="pre">FanInShape</span></tt> DSL to define
+our custom shape:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">import</span> <span class="nn">FanInShape.</span><span class="o">{</span> <span class="nc">Init</span><span class="o">,</span> <span class="nc">Name</span> <span class="o">}</span>
+
+<span class="k">class</span> <span class="nc">PriorityWorkerPoolShape2</span><span class="o">[</span><span class="kt">In</span>, <span class="kt">Out</span><span class="o">](</span><span class="nc">_init</span><span class="k">:</span> <span class="kt">Init</span><span class="o">[</span><span class="kt">Out</span><span class="o">]</span> <span class="k">=</span> <span class="nc">Name</span><span class="o">(</span><span class="s">&quot;PriorityWorkerPool&quot;</span><span class="o">))</span>
+  <span class="k">extends</span> <span class="nc">FanInShape</span><span class="o">[</span><span class="kt">Out</span><span class="o">](</span><span class="nc">_init</span><span class="o">)</span> <span class="o">{</span>
+  <span class="k">protected</span> <span class="k">override</span> <span class="k">def</span> <span class="n">construct</span><span class="o">(</span><span class="n">i</span><span class="k">:</span> <span class="kt">Init</span><span class="o">[</span><span class="kt">Out</span><span class="o">])</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">PriorityWorkerPoolShape2</span><span class="o">(</span><span class="n">i</span><span class="o">)</span>
+
+  <span class="k">val</span> <span class="n">jobsIn</span> <span class="k">=</span> <span class="n">newInlet</span><span class="o">[</span><span class="kt">In</span><span class="o">](</span><span class="s">&quot;jobsIn&quot;</span><span class="o">)</span>
+  <span class="k">val</span> <span class="n">priorityJobsIn</span> <span class="k">=</span> <span class="n">newInlet</span><span class="o">[</span><span class="kt">In</span><span class="o">](</span><span class="s">&quot;priorityJobsIn&quot;</span><span class="o">)</span>
+  <span class="c1">// Outlet[Out] with name &quot;out&quot; is automatically created</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<p>Now that we have a <tt class="xref py py-class docutils literal"><span class="pre">Shape</span></tt> we can wire up a Graph that represents
+our worker pool. First, we will merge incoming normal and priority jobs using <tt class="docutils literal"><span class="pre">MergePreferred</span></tt>, then we will send the jobs
+to a <tt class="docutils literal"><span class="pre">Balance</span></tt> junction which will fan-out to a configurable number of workers (flows), finally we merge all these
+results together and send them out through our only output port. This is expressed by the following code:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">object</span> <span class="nc">PriorityWorkerPool</span> <span class="o">{</span>
+  <span class="k">def</span> <span class="n">apply</span><span class="o">[</span><span class="kt">In</span>, <span class="kt">Out</span><span class="o">](</span>
+    <span class="n">worker</span><span class="k">:</span>      <span class="kt">Flow</span><span class="o">[</span><span class="kt">In</span>, <span class="kt">Out</span>, <span class="kt">Any</span><span class="o">],</span>
+    <span class="n">workerCount</span><span class="k">:</span> <span class="kt">Int</span><span class="o">)</span><span class="k">:</span> <span class="kt">Graph</span><span class="o">[</span><span class="kt">PriorityWorkerPoolShape</span><span class="o">[</span><span class="kt">In</span>, <span class="kt">Out</span><span class="o">]</span>, <span class="kt">NotUsed</span><span class="o">]</span> <span class="k">=</span> <span class="o">{</span>
+
+    <span class="nc">GraphDSL</span><span class="o">.</span><span class="n">create</span><span class="o">()</span> <span class="o">{</span> <span class="k">implicit</span> <span class="n">b</span> <span class="k">=&gt;</span>
+      <span class="k">import</span> <span class="nn">GraphDSL.Implicits._</span>
+
+      <span class="k">val</span> <span class="n">priorityMerge</span> <span class="k">=</span> <span class="n">b</span><span class="o">.</span><span class="n">add</span><span class="o">(</span><span class="nc">MergePreferred</span><span class="o">[</span><span class="kt">In</span><span class="o">](</span><span class="mi">1</span><span class="o">))</span>
+      <span class="k">val</span> <span class="n">balance</span> <span class="k">=</span> <span class="n">b</span><span class="o">.</span><span class="n">add</span><span class="o">(</span><span class="nc">Balance</span><span class="o">[</span><span class="kt">In</span><span class="o">](</span><span class="n">workerCount</span><span class="o">))</span>
+      <span class="k">val</span> <span class="n">resultsMerge</span> <span class="k">=</span> <span class="n">b</span><span class="o">.</span><span class="n">add</span><span class="o">(</span><span class="nc">Merge</span><span class="o">[</span><span class="kt">Out</span><span class="o">](</span><span class="n">workerCount</span><span class="o">))</span>
+
+      <span class="c1">// After merging priority and ordinary jobs, we feed them to the balancer</span>
+      <span class="n">priorityMerge</span> <span class="o">~&gt;</span> <span class="n">balance</span>
+
+      <span class="c1">// Wire up each of the outputs of the balancer to a worker flow</span>
+      <span class="c1">// then merge them back</span>
+      <span class="k">for</span> <span class="o">(</span><span class="n">i</span> <span class="k">&lt;-</span> <span class="mi">0</span> <span class="n">until</span> <span class="n">workerCount</span><span class="o">)</span>
+        <span class="n">balance</span><span class="o">.</span><span class="n">out</span><span class="o">(</span><span class="n">i</span><span class="o">)</span> <span class="o">~&gt;</span> <span class="n">worker</span> <span class="o">~&gt;</span> <span class="n">resultsMerge</span><span class="o">.</span><span class="n">in</span><span class="o">(</span><span class="n">i</span><span class="o">)</span>
+
+      <span class="c1">// We now expose the input ports of the priorityMerge and the output</span>
+      <span class="c1">// of the resultsMerge as our PriorityWorkerPool ports</span>
+      <span class="c1">// -- all neatly wrapped in our domain specific Shape</span>
+      <span class="nc">PriorityWorkerPoolShape</span><span class="o">(</span>
+        <span class="n">jobsIn</span> <span class="k">=</span> <span class="n">priorityMerge</span><span class="o">.</span><span class="n">in</span><span class="o">(</span><span class="mi">0</span><span class="o">),</span>
+        <span class="n">priorityJobsIn</span> <span class="k">=</span> <span class="n">priorityMerge</span><span class="o">.</span><span class="n">preferred</span><span class="o">,</span>
+        <span class="n">resultsOut</span> <span class="k">=</span> <span class="n">resultsMerge</span><span class="o">.</span><span class="n">out</span><span class="o">)</span>
+    <span class="o">}</span>
+
+  <span class="o">}</span>
+
+<span class="o">}</span>
+</pre></div>
+</div>
+<p>All we need to do now is to use our custom junction in a graph. The following code simulates some simple workers
+and jobs using plain strings and prints out the results. Actually we used <em>two</em> instances of our worker pool junction
+using <tt class="docutils literal"><span class="pre">add()</span></tt> twice.</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">val</span> <span class="n">worker1</span> <span class="k">=</span> <span class="nc">Flow</span><span class="o">[</span><span class="kt">String</span><span class="o">].</span><span class="n">map</span><span class="o">(</span><span class="s">&quot;step 1 &quot;</span> <span class="o">+</span> <span class="k">_</span><span class="o">)</span>
+<span class="k">val</span> <span class="n">worker2</span> <span class="k">=</span> <span class="nc">Flow</span><span class="o">[</span><span class="kt">String</span><span class="o">].</span><span class="n">map</span><span class="o">(</span><span class="s">&quot;step 2 &quot;</span> <span class="o">+</span> <span class="k">_</span><span class="o">)</span>
+
+<span class="nc">RunnableGraph</span><span class="o">.</span><span class="n">fromGraph</span><span class="o">(</span><span class="nc">GraphDSL</span><span class="o">.</span><span class="n">create</span><span class="o">()</span> <span class="o">{</span> <span class="k">implicit</span> <span class="n">b</span> <span class="k">=&gt;</span>
+  <span class="k">import</span> <span class="nn">GraphDSL.Implicits._</span>
+
+  <span class="k">val</span> <span class="n">priorityPool1</span> <span class="k">=</span> <span class="n">b</span><span class="o">.</span><span class="n">add</span><span class="o">(</span><span class="nc">PriorityWorkerPool</span><span class="o">(</span><span class="n">worker1</span><span class="o">,</span> <span class="mi">4</span><span class="o">))</span>
+  <span class="k">val</span> <span class="n">priorityPool2</span> <span class="k">=</span> <span class="n">b</span><span class="o">.</span><span class="n">add</span><span class="o">(</span><span class="nc">PriorityWorkerPool</span><span class="o">(</span><span class="n">worker2</span><span class="o">,</span> <span class="mi">2</span><span class="o">))</span>
+
+  <span class="nc">Source</span><span class="o">(</span><span class="mi">1</span> <span class="n">to</span> <span class="mi">100</span><span class="o">).</span><span class="n">map</span><span class="o">(</span><span class="s">&quot;job: &quot;</span> <span class="o">+</span> <span class="k">_</span><span class="o">)</span> <span class="o">~&gt;</span> <span class="n">priorityPool1</span><span class="o">.</span><span class="n">jobsIn</span>
+  <span class="nc">Source</span><span class="o">(</span><span class="mi">1</span> <span class="n">to</span> <span class="mi">100</span><span class="o">).</span><span class="n">map</span><span class="o">(</span><span class="s">&quot;priority job: &quot;</span> <span class="o">+</span> <span class="k">_</span><span class="o">)</span> <span class="o">~&gt;</span> <span class="n">priorityPool1</span><span class="o">.</span><span class="n">priorityJobsIn</span>
+
+  <span class="n">priorityPool1</span><span class="o">.</span><span class="n">resultsOut</span> <span class="o">~&gt;</span> <span class="n">priorityPool2</span><span class="o">.</span><span class="n">jobsIn</span>
+  <span class="nc">Source</span><span class="o">(</span><span class="mi">1</span> <span class="n">to</span> <span class="mi">100</span><span class="o">).</span><span class="n">map</span><span class="o">(</span><span class="s">&quot;one-step, priority &quot;</span> <span class="o">+</span> <span class="k">_</span><span class="o">)</span> <span class="o">~&gt;</span> <span class="n">priorityPool2</span><span class="o">.</span><span class="n">priorityJobsIn</span>
+
+  <span class="n">priorityPool2</span><span class="o">.</span><span class="n">resultsOut</span> <span class="o">~&gt;</span> <span class="nc">Sink</span><span class="o">.</span><span class="n">foreach</span><span class="o">(</span><span class="n">println</span><span class="o">)</span>
+  <span class="nc">ClosedShape</span>
+<span class="o">}).</span><span class="n">run</span><span class="o">()</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="bidirectional-flows">
+<span id="bidi-flow-scala"></span><h2>Bidirectional Flows</h2>
+<p>A graph topology that is often useful is that of two flows going in opposite
+directions. Take for example a codec stage that serializes outgoing messages
+and deserializes incoming octet streams. Another such stage could add a framing
+protocol that attaches a length header to outgoing data and parses incoming
+frames back into the original octet stream chunks. These two stages are meant
+to be composed, applying one atop the other as part of a protocol stack. For
+this purpose exists the special type <tt class="xref py py-class docutils literal"><span class="pre">BidiFlow</span></tt> which is a graph that
+has exactly two open inlets and two open outlets. The corresponding shape is
+called <tt class="xref py py-class docutils literal"><span class="pre">BidiShape</span></tt> and is defined like this:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="cm">/**</span>
+<span class="cm"> * A bidirectional flow of elements that consequently has two inputs and two</span>
+<span class="cm"> * outputs, arranged like this:</span>
+<span class="cm"> *</span>
+<span class="cm"> * {{{</span>
+<span class="cm"> *        +------+</span>
+<span class="cm"> *  In1 ~&gt;|      |~&gt; Out1</span>
+<span class="cm"> *        | bidi |</span>
+<span class="cm"> * Out2 &lt;~|      |&lt;~ In2</span>
+<span class="cm"> *        +------+</span>
+<span class="cm"> * }}}</span>
+<span class="cm"> */</span>
+<span class="k">final</span> <span class="k">case</span> <span class="k">class</span> <span class="nc">BidiShape</span><span class="o">[</span><span class="kt">-In1</span>, <span class="kt">+Out1</span>, <span class="kt">-In2</span>, <span class="kt">+Out2</span><span class="o">](</span>
+  <span class="n">in1</span><span class="k">:</span>  <span class="kt">Inlet</span><span class="o">[</span><span class="kt">In1</span> <span class="kt">@uncheckedVariance</span><span class="o">],</span>
+  <span class="n">out1</span><span class="k">:</span> <span class="kt">Outlet</span><span class="o">[</span><span class="kt">Out1</span> <span class="kt">@uncheckedVariance</span><span class="o">],</span>
+  <span class="n">in2</span><span class="k">:</span>  <span class="kt">Inlet</span><span class="o">[</span><span class="kt">In2</span> <span class="kt">@uncheckedVariance</span><span class="o">],</span>
+  <span class="n">out2</span><span class="k">:</span> <span class="kt">Outlet</span><span class="o">[</span><span class="kt">Out2</span> <span class="kt">@uncheckedVariance</span><span class="o">])</span> <span class="k">extends</span> <span class="nc">Shape</span> <span class="o">{</span>
+  <span class="c1">// implementation details elided ...</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<p>A bidirectional flow is defined just like a unidirectional <tt class="xref py py-class docutils literal"><span class="pre">Flow</span></tt> as
+demonstrated for the codec mentioned above:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">trait</span> <span class="nc">Message</span>
+<span class="k">case</span> <span class="k">class</span> <span class="nc">Ping</span><span class="o">(</span><span class="n">id</span><span class="k">:</span> <span class="kt">Int</span><span class="o">)</span> <span class="k">extends</span> <span class="nc">Message</span>
+<span class="k">case</span> <span class="k">class</span> <span class="nc">Pong</span><span class="o">(</span><span class="n">id</span><span class="k">:</span> <span class="kt">Int</span><span class="o">)</span> <span class="k">extends</span> <span class="nc">Message</span>
+
+<span class="k">def</span> <span class="n">toBytes</span><span class="o">(</span><span class="n">msg</span><span class="k">:</span> <span class="kt">Message</span><span class="o">)</span><span class="k">:</span> <span class="kt">ByteString</span> <span class="o">=</span> <span class="o">{</span>
+  <span class="c1">// implementation details elided ...</span>
+<span class="o">}</span>
+
+<span class="k">def</span> <span class="n">fromBytes</span><span class="o">(</span><span class="n">bytes</span><span class="k">:</span> <span class="kt">ByteString</span><span class="o">)</span><span class="k">:</span> <span class="kt">Message</span> <span class="o">=</span> <span class="o">{</span>
+  <span class="c1">// implementation details elided ...</span>
+<span class="o">}</span>
+
+<span class="k">val</span> <span class="n">codecVerbose</span> <span class="k">=</span> <span class="nc">BidiFlow</span><span class="o">.</span><span class="n">fromGraph</span><span class="o">(</span><span class="nc">GraphDSL</span><span class="o">.</span><span class="n">create</span><span class="o">()</span> <span class="o">{</span> <span class="n">b</span> <span class="k">=&gt;</span>
+  <span class="c1">// construct and add the top flow, going outbound</span>
+  <span class="k">val</span> <span class="n">outbound</span> <span class="k">=</span> <span class="n">b</span><span class="o">.</span><span class="n">add</span><span class="o">(</span><span class="nc">Flow</span><span class="o">[</span><span class="kt">Message</span><span class="o">].</span><span class="n">map</span><span class="o">(</span><span class="n">toBytes</span><span class="o">))</span>
+  <span class="c1">// construct and add the bottom flow, going inbound</span>
+  <span class="k">val</span> <span class="n">inbound</span> <span class="k">=</span> <span class="n">b</span><span class="o">.</span><span class="n">add</span><span class="o">(</span><span class="nc">Flow</span><span class="o">[</span><span class="kt">ByteString</span><span class="o">].</span><span class="n">map</span><span class="o">(</span><span class="n">fromBytes</span><span class="o">))</span>
+  <span class="c1">// fuse them together into a BidiShape</span>
+  <span class="nc">BidiShape</span><span class="o">.</span><span class="n">fromFlows</span><span class="o">(</span><span class="n">outbound</span><span class="o">,</span> <span class="n">inbound</span><span class="o">)</span>
+<span class="o">})</span>
+
+<span class="c1">// this is the same as the above</span>
+<span class="k">val</span> <span class="n">codec</span> <span class="k">=</span> <span class="nc">BidiFlow</span><span class="o">.</span><span class="n">fromFunctions</span><span class="o">(</span><span class="n">toBytes</span> <span class="k">_</span><span class="o">,</span> <span class="n">fromBytes</span> <span class="k">_</span><span class="o">)</span>
+</pre></div>
+</div>
+<p>The first version resembles the partial graph constructor, while for the simple
+case of a functional 1:1 transformation there is a concise convenience method
+as shown on the last line. The implementation of the two functions is not
+difficult either:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">def</span> <span class="n">toBytes</span><span class="o">(</span><span class="n">msg</span><span class="k">:</span> <span class="kt">Message</span><span class="o">)</span><span class="k">:</span> <span class="kt">ByteString</span> <span class="o">=</span> <span class="o">{</span>
+  <span class="k">implicit</span> <span class="k">val</span> <span class="n">order</span> <span class="k">=</span> <span class="nc">ByteOrder</span><span class="o">.</span><span class="nc">LITTLE_ENDIAN</span>
+  <span class="n">msg</span> <span class="k">match</span> <span class="o">{</span>
+    <span class="k">case</span> <span class="nc">Ping</span><span class="o">(</span><span class="n">id</span><span class="o">)</span> <span class="k">=&gt;</span> <span class="nc">ByteString</span><span class="o">.</span><span class="n">newBuilder</span><span class="o">.</span><span class="n">putByte</span><span class="o">(</span><span class="mi">1</span><span class="o">).</span><span class="n">putInt</span><span class="o">(</span><span class="n">id</span><span class="o">).</span><span class="n">result</span><span class="o">()</span>
+    <span class="k">case</span> <span class="nc">Pong</span><span class="o">(</span><span class="n">id</span><span class="o">)</span> <span class="k">=&gt;</span> <span class="nc">ByteString</span><span class="o">.</span><span class="n">newBuilder</span><span class="o">.</span><span class="n">putByte</span><span class="o">(</span><span class="mi">2</span><span class="o">).</span><span class="n">putInt</span><span class="o">(</span><span class="n">id</span><span class="o">).</span><span class="n">result</span><span class="o">()</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+
+<span class="k">def</span> <span class="n">fromBytes</span><span class="o">(</span><span class="n">bytes</span><span class="k">:</span> <span class="kt">ByteString</span><span class="o">)</span><span class="k">:</span> <span class="kt">Message</span> <span class="o">=</span> <span class="o">{</span>
+  <span class="k">implicit</span> <span class="k">val</span> <span class="n">order</span> <span class="k">=</span> <span class="nc">ByteOrder</span><span class="o">.</span><span class="nc">LITTLE_ENDIAN</span>
+  <span class="k">val</span> <span class="n">it</span> <span class="k">=</span> <span class="n">bytes</span><span class="o">.</span><span class="n">iterator</span>
+  <span class="n">it</span><span class="o">.</span><span class="n">getByte</span> <span class="k">match</span> <span class="o">{</span>
+    <span class="k">case</span> <span class="mi">1</span>     <span class="k">=&gt;</span> <span class="nc">Ping</span><span class="o">(</span><span class="n">it</span><span class="o">.</span><span class="n">getInt</span><span class="o">)</span>
+    <span class="k">case</span> <span class="mi">2</span>     <span class="k">=&gt;</span> <span class="nc">Pong</span><span class="o">(</span><span class="n">it</span><span class="o">.</span><span class="n">getInt</span><span class="o">)</span>
+    <span class="k">case</span> <span class="n">other</span> <span class="k">=&gt;</span> <span class="k">throw</span> <span class="k">new</span> <span class="nc">RuntimeException</span><span class="o">(</span><span class="n">s</span><span class="s">&quot;parse error: expected 1|2 got $other&quot;</span><span class="o">)</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<p>In this way you could easily integrate any other serialization library that
+turns an object into a sequence of bytes.</p>
+<p>The other stage that we talked about is a little more involved since reversing
+a framing protocol means that any received chunk of bytes may correspond to
+zero or more messages. This is best implemented using a <tt class="xref py py-class docutils literal"><span class="pre">GraphStage</span></tt>
+(see also <a class="reference internal" href="stream-customize.html#graphstage-scala"><em>Custom processing with GraphStage</em></a>).</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">val</span> <span class="n">framing</span> <span class="k">=</span> <span class="nc">BidiFlow</span><span class="o">.</span><span class="n">fromGraph</span><span class="o">(</span><span class="nc">GraphDSL</span><span class="o">.</span><span class="n">create</span><span class="o">()</span> <span class="o">{</span> <span class="n">b</span> <span class="k">=&gt;</span>
+  <span class="k">implicit</span> <span class="k">val</span> <span class="n">order</span> <span class="k">=</span> <span class="nc">ByteOrder</span><span class="o">.</span><span class="nc">LITTLE_ENDIAN</span>
+
+  <span class="k">def</span> <span class="n">addLengthHeader</span><span class="o">(</span><span class="n">bytes</span><span class="k">:</span> <span class="kt">ByteString</span><span class="o">)</span> <span class="k">=</span> <span class="o">{</span>
+    <span class="k">val</span> <span class="n">len</span> <span class="k">=</span> <span class="n">bytes</span><span class="o">.</span><span class="n">length</span>
+    <span class="nc">ByteString</span><span class="o">.</span><span class="n">newBuilder</span><span class="o">.</span><span class="n">putInt</span><span class="o">(</span><span class="n">len</span><span class="o">).</span><span class="n">append</span><span class="o">(</span><span class="n">bytes</span><span class="o">).</span><span class="n">result</span><span class="o">()</span>
+  <span class="o">}</span>
+
+  <span class="k">class</span> <span class="nc">FrameParser</span> <span class="k">extends</span> <span class="nc">GraphStage</span><span class="o">[</span><span class="kt">FlowShape</span><span class="o">[</span><span class="kt">ByteString</span>, <span class="kt">ByteString</span><span class="o">]]</span> <span class="o">{</span>
+
+    <span class="k">val</span> <span class="n">in</span> <span class="k">=</span> <span class="nc">Inlet</span><span class="o">[</span><span class="kt">ByteString</span><span class="o">](</span><span class="s">&quot;FrameParser.in&quot;</span><span class="o">)</span>
+    <span class="k">val</span> <span class="n">out</span> <span class="k">=</span> <span class="nc">Outlet</span><span class="o">[</span><span class="kt">ByteString</span><span class="o">](</span><span class="s">&quot;FrameParser.out&quot;</span><span class="o">)</span>
+    <span class="k">override</span> <span class="k">val</span> <span class="n">shape</span> <span class="k">=</span> <span class="nc">FlowShape</span><span class="o">.</span><span class="n">of</span><span class="o">(</span><span class="n">in</span><span class="o">,</span> <span class="n">out</span><span class="o">)</span>
+
+    <span class="k">override</span> <span class="k">def</span> <span class="n">createLogic</span><span class="o">(</span><span class="n">inheritedAttributes</span><span class="k">:</span> <span class="kt">Attributes</span><span class="o">)</span><span class="k">:</span> <span class="kt">GraphStageLogic</span> <span class="o">=</span> <span class="k">new</span> <span class="nc">GraphStageLogic</span><span class="o">(</span><span class="n">shape</span><span class="o">)</span> <span class="o">{</span>
+
+      <span class="c1">// this holds the received but not yet parsed bytes</span>
+      <span class="k">var</span> <span class="n">stash</span> <span class="k">=</span> <span class="nc">ByteString</span><span class="o">.</span><span class="n">empty</span>
+      <span class="c1">// this holds the current message length or -1 if at a boundary</span>
+      <span class="k">var</span> <span class="n">needed</span> <span class="k">=</span> <span class="o">-</span><span class="mi">1</span>
+
+      <span class="n">setHandler</span><span class="o">(</span><span class="n">out</span><span class="o">,</span> <span class="k">new</span> <span class="nc">OutHandler</span> <span class="o">{</span>
+        <span class="k">override</span> <span class="k">def</span> <span class="n">onPull</span><span class="o">()</span><span class="k">:</span> <span class="kt">Unit</span> <span class="o">=</span> <span class="o">{</span>
+          <span class="k">if</span> <span class="o">(</span><span class="n">isClosed</span><span class="o">(</span><span class="n">in</span><span class="o">))</span> <span class="n">run</span><span class="o">()</span>
+          <span class="k">else</span> <span class="n">pull</span><span class="o">(</span><span class="n">in</span><span class="o">)</span>
+        <span class="o">}</span>
+      <span class="o">})</span>
+      <span class="n">setHandler</span><span class="o">(</span><span class="n">in</span><span class="o">,</span> <span class="k">new</span> <span class="nc">InHandler</span> <span class="o">{</span>
+        <span class="k">override</span> <span class="k">def</span> <span class="n">onPush</span><span class="o">()</span><span class="k">:</span> <span class="kt">Unit</span> <span class="o">=</span> <span class="o">{</span>
+          <span class="k">val</span> <span class="n">bytes</span> <span class="k">=</span> <span class="n">grab</span><span class="o">(</span><span class="n">in</span><span class="o">)</span>
+          <span class="n">stash</span> <span class="k">=</span> <span class="n">stash</span> <span class="o">++</span> <span class="n">bytes</span>
+          <span class="n">run</span><span class="o">()</span>
+        <span class="o">}</span>
+
+        <span class="k">override</span> <span class="k">def</span> <span class="n">onUpstreamFinish</span><span class="o">()</span><span class="k">:</span> <span class="kt">Unit</span> <span class="o">=</span> <span class="o">{</span>
+          <span class="c1">// either we are done</span>
+          <span class="k">if</span> <span class="o">(</span><span class="n">stash</span><span class="o">.</span><span class="n">isEmpty</span><span class="o">)</span> <span class="n">completeStage</span><span class="o">()</span>
+          <span class="c1">// or we still have bytes to emit</span>
+          <span class="c1">// wait with completion and let run() complete when the</span>
+          <span class="c1">// rest of the stash has been sent downstream</span>
+          <span class="k">else</span> <span class="k">if</span> <span class="o">(</span><span class="n">isAvailable</span><span class="o">(</span><span class="n">out</span><span class="o">))</span> <span class="n">run</span><span class="o">()</span>
+        <span class="o">}</span>
+      <span class="o">})</span>
+
+      <span class="k">private</span> <span class="k">def</span> <span class="n">run</span><span class="o">()</span><span class="k">:</span> <span class="kt">Unit</span> <span class="o">=</span> <span class="o">{</span>
+        <span class="k">if</span> <span class="o">(</span><span class="n">needed</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="o">)</span> <span class="o">{</span>
+          <span class="c1">// are we at a boundary? then figure out next length</span>
+          <span class="k">if</span> <span class="o">(</span><span class="n">stash</span><span class="o">.</span><span class="n">length</span> <span class="o">&lt;</span> <span class="mi">4</span><span class="o">)</span> <span class="o">{</span>
+            <span class="k">if</span> <span class="o">(</span><span class="n">isClosed</span><span class="o">(</span><span class="n">in</span><span class="o">))</span> <span class="n">completeStage</span><span class="o">()</span>
+            <span class="k">else</span> <span class="n">pull</span><span class="o">(</span><span class="n">in</span><span class="o">)</span>
+          <span class="o">}</span> <span class="k">else</span> <span class="o">{</span>
+            <span class="n">needed</span> <span class="k">=</span> <span class="n">stash</span><span class="o">.</span><span class="n">iterator</span><span class="o">.</span><span class="n">getInt</span>
+            <span class="n">stash</span> <span class="k">=</span> <span class="n">stash</span><span class="o">.</span><span class="n">drop</span><span class="o">(</span><span class="mi">4</span><span class="o">)</span>
+            <span class="n">run</span><span class="o">()</span> <span class="c1">// cycle back to possibly already emit the next chunk</span>
+          <span class="o">}</span>
+        <span class="o">}</span> <span class="k">else</span> <span class="k">if</span> <span class="o">(</span><span class="n">stash</span><span class="o">.</span><span class="n">length</span> <span class="o">&lt;</span> <span class="n">needed</span><span class="o">)</span> <span class="o">{</span>
+          <span class="c1">// we are in the middle of a message, need more bytes,</span>
+          <span class="c1">// or have to stop if input closed</span>
+          <span class="k">if</span> <span class="o">(</span><span class="n">isClosed</span><span class="o">(</span><span class="n">in</span><span class="o">))</span> <span class="n">completeStage</span><span class="o">()</span>
+          <span class="k">else</span> <span class="n">pull</span><span class="o">(</span><span class="n">in</span><span class="o">)</span>
+        <span class="o">}</span> <span class="k">else</span> <span class="o">{</span>
+          <span class="c1">// we have enough to emit at least one message, so do it</span>
+          <span class="k">val</span> <span class="n">emit</span> <span class="k">=</span> <span class="n">stash</span><span class="o">.</span><span class="n">take</span><span class="o">(</span><span class="n">needed</span><span class="o">)</span>
+          <span class="n">stash</span> <span class="k">=</span> <span class="n">stash</span><span class="o">.</span><span class="n">drop</span><span class="o">(</span><span class="n">needed</span><span class="o">)</span>
+          <span class="n">needed</span> <span class="k">=</span> <span class="o">-</span><span class="mi">1</span>
+          <span class="n">push</span><span class="o">(</span><span class="n">out</span><span class="o">,</span> <span class="n">emit</span><span class="o">)</span>
+        <span class="o">}</span>
+      <span class="o">}</span>
+    <span class="o">}</span>
+  <span class="o">}</span>
+
+  <span class="k">val</span> <span class="n">outbound</span> <span class="k">=</span> <span class="n">b</span><span class="o">.</span><span class="n">add</span><span class="o">(</span><span class="nc">Flow</span><span class="o">[</span><span class="kt">ByteString</span><span class="o">].</span><span class="n">map</span><span class="o">(</span><span class="n">addLengthHeader</span><span class="o">))</span>
+  <span class="k">val</span> <span class="n">inbound</span> <span class="k">=</span> <span class="n">b</span><span class="o">.</span><span class="n">add</span><span class="o">(</span><span class="nc">Flow</span><span class="o">[</span><span class="kt">ByteString</span><span class="o">].</span><span class="n">via</span><span class="o">(</span><span class="k">new</span> <span class="nc">FrameParser</span><span class="o">))</span>
+  <span class="nc">BidiShape</span><span class="o">.</span><span class="n">fromFlows</span><span class="o">(</span><span class="n">outbound</span><span class="o">,</span> <span class="n">inbound</span><span class="o">)</span>
+<span class="o">})</span>
+</pre></div>
+</div>
+<p>With these implementations we can build a protocol stack and test it:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="cm">/* construct protocol stack</span>
+<span class="cm"> *         +------------------------------------+</span>
+<span class="cm"> *         | stack                              |</span>
+<span class="cm"> *         |                                    |</span>
+<span class="cm"> *         |  +-------+            +---------+  |</span>
+<span class="cm"> *    ~&gt;   O~~o       |     ~&gt;     |         o~~O    ~&gt;</span>
+<span class="cm"> * Message |  | codec | ByteString | framing |  | ByteString</span>
+<span class="cm"> *    &lt;~   O~~o       |     &lt;~     |         o~~O    &lt;~</span>
+<span class="cm"> *         |  +-------+            +---------+  |</span>
+<span class="cm"> *         +------------------------------------+</span>
+<span class="cm"> */</span>
+<span class="k">val</span> <span class="n">stack</span> <span class="k">=</span> <span class="n">codec</span><span class="o">.</span><span class="n">atop</span><span class="o">(</span><span class="n">framing</span><span class="o">)</span>
+
+<span class="c1">// test it by plugging it into its own inverse and closing the right end</span>
+<span class="k">val</span> <span class="n">pingpong</span> <span class="k">=</span> <span class="nc">Flow</span><span class="o">[</span><span class="kt">Message</span><span class="o">].</span><span class="n">collect</span> <span class="o">{</span> <span class="k">case</span> <span class="nc">Ping</span><span class="o">(</span><span class="n">id</span><span class="o">)</span> <span class="k">=&gt;</span> <span class="nc">Pong</span><span class="o">(</span><span class="n">id</span><span class="o">)</span> <span class="o">}</span>
+<span class="k">val</span> <span class="n">flow</span> <span class="k">=</span> <span class="n">stack</span><span class="o">.</span><span class="n">atop</span><span class="o">(</span><span class="n">stack</span><span class="o">.</span><span class="n">reversed</span><span class="o">).</span><span class="n">join</span><span class="o">(</span><span class="n">pingpong</span><span class="o">)</span>
+<span class="k">val</span> <span class="n">result</span> <span class="k">=</span> <span class="nc">Source</span><span class="o">((</span><span class="mi">0</span> <span class="n">to</span> <span class="mi">9</span><span class="o">).</span><span class="n">map</span><span class="o">(</span><span class="nc">Ping</span><span class="o">)).</span><span class="n">via</span><span class="o">(</span><span class="n">flow</span><span class="o">).</span><span class="n">limit</span><span class="o">(</span><span class="mi">20</span><span class="o">).</span><span class="n">runWith</span><span class="o">(</span><span class="nc">Sink</span><span class="o">.</span><span class="n">seq</span><span class="o">)</span>
+<span class="nc">Await</span><span class="o">.</span><span class="n">result</span><span class="o">(</span><span class="n">result</span><span class="o">,</span> <span class="mf">1.</span><span class="n">second</span><span class="o">)</span> <span class="n">should</span> <span class="o">===((</span><span class="mi">0</span> <span class="n">to</span> <span class="mi">9</span><span class="o">).</span><span class="n">map</span><span class="o">(</span><span class="nc">Pong</span><span class="o">))</span>
+</pre></div>
+</div>
+<p>This example demonstrates how <tt class="xref py py-class docutils literal"><span class="pre">BidiFlow</span></tt> subgraphs can be hooked
+together and also turned around with the <tt class="docutils literal"><span class="pre">.reversed</span></tt> method. The test
+simulates both parties of a network communication protocol without actually
+having to open a network connection—the flows can just be connected directly.</p>
+</div>
+<div class="section" id="accessing-the-materialized-value-inside-the-graph">
+<span id="graph-matvalue-scala"></span><h2>Accessing the materialized value inside the Graph</h2>
+<p>In certain cases it might be necessary to feed back the materialized value of a Graph (partial, closed or backing a
+Source, Sink, Flow or BidiFlow). This is possible by using <tt class="docutils literal"><span class="pre">builder.materializedValue</span></tt> which gives an <tt class="docutils literal"><span class="pre">Outlet</span></tt> that
+can be used in the graph as an ordinary source or outlet, and which will eventually emit the materialized value.
+If the materialized value is needed at more than one place, it is possible to call <tt class="docutils literal"><span class="pre">materializedValue</span></tt> any number of
+times to acquire the necessary number of outlets.</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">import</span> <span class="nn">GraphDSL.Implicits._</span>
+<span class="k">val</span> <span class="n">foldFlow</span><span class="k">:</span> <span class="kt">Flow</span><span class="o">[</span><span class="kt">Int</span>, <span class="kt">Int</span>, <span class="kt">Future</span><span class="o">[</span><span class="kt">Int</span><span class="o">]]</span> <span class="k">=</span> <span class="nc">Flow</span><span class="o">.</span><span class="n">fromGraph</span><span class="o">(</span><span class="nc">GraphDSL</span><span class="o">.</span><span class="n">create</span><span class="o">(</span><span class="nc">Sink</span><span class="o">.</span><span class="n">fold</span><span class="o">[</span><span class="kt">Int</span>, <span class="kt">Int</span><span class="o">](</span><span class="mi">0</span><span class="o">)(</span><span class="k">_</span> <span class="o">+</span> <span class="k">_</span><span class="o">))</span> <span class="o">{</span> <span class="k">implicit</span> <span class="n">builder</span> <span class="k">=&gt;</span> <span class="n">fold</span> <span class="k">=&gt;</span>
+  <span class="nc">FlowShape</span><span class="o">(</span><span class="n">fold</span><span class="o">.</span><span class="n">in</span><span class="o">,</span> <span class="n">builder</span><span class="o">.</span><span class="n">materializedValue</span><span class="o">.</span><span class="n">mapAsync</span><span class="o">(</span><span class="mi">4</span><span class="o">)(</span><span class="n">identity</span><span class="o">).</span><span class="n">outlet</span><span class="o">)</span>
+<span class="o">})</span>
+</pre></div>
+</div>
+<p>Be careful not to introduce a cycle where the materialized value actually contributes to the materialized value.
+The following example demonstrates a case where the materialized <tt class="docutils literal"><span class="pre">Future</span></tt> of a fold is fed back to the fold itself.</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">import</span> <span class="nn">GraphDSL.Implicits._</span>
+<span class="c1">// This cannot produce any value:</span>
+<span class="k">val</span> <span class="n">cyclicFold</span><span class="k">:</span> <span class="kt">Source</span><span class="o">[</span><span class="kt">Int</span>, <span class="kt">Future</span><span class="o">[</span><span class="kt">Int</span><span class="o">]]</span> <span class="k">=</span> <span class="nc">Source</span><span class="o">.</span><span class="n">fromGraph</span><span class="o">(</span><span class="nc">GraphDSL</span><span class="o">.</span><span class="n">create</span><span class="o">(</span><span class="nc">Sink</span><span class="o">.</span><span class="n">fold</span><span class="o">[</span><span class="kt">Int</span>, <span class="kt">Int</span><span class="o">](</span><span class="mi">0</span><span class="o">)(</span><span class="k">_</span> <span class="o">+</span> <span class="k">_</span><span class="o">))</span> <span class="o">{</span> <span class="k">implicit</span> <span class="n">builder</span> <span class="k">=&gt;</span> <span class="n">fold</span> <span class="k">=&gt;</span>
+  <span class="c1">// - Fold cannot complete until its upstream mapAsync completes</span>
+  <span class="c1">// - mapAsync cannot complete until the materialized Future produced by</span>
+  <span class="c1">//   fold completes</span>
+  <span class="c1">// As a result this Source will never emit anything, and its materialited</span>
+  <span class="c1">// Future will never complete</span>
+  <span class="n">builder</span><span class="o">.</span><span class="n">materializedValue</span><span class="o">.</span><span class="n">mapAsync</span><span class="o">(</span><span class="mi">4</span><span class="o">)(</span><span class="n">identity</span><span class="o">)</span> <span class="o">~&gt;</span> <span class="n">fold</span>
+  <span class="nc">SourceShape</span><span class="o">(</span><span class="n">builder</span><span class="o">.</span><span class="n">materializedValue</span><span class="o">.</span><span class="n">mapAsync</span><span class="o">(</span><span class="mi">4</span><span class="o">)(</span><span class="n">identity</span><span class="o">).</span><span class="n">outlet</span><span class="o">)</span>
+<span class="o">})</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="graph-cycles-liveness-and-deadlocks">
+<span id="graph-cycles-scala"></span><h2>Graph cycles, liveness and deadlocks</h2>
+<p>Cycles in bounded stream topologies need special considerations to avoid potential deadlocks and other liveness issues.
+This section shows several examples of problems that can arise from the presence of feedback arcs in stream processing
+graphs.</p>
+<p>In the following examples runnable graphs are created but do not run because each have some issue and will deadlock after start.
+<tt class="docutils literal"><span class="pre">Source</span></tt> variable is not defined as the nature and number of element does not matter for described problems.</p>
+<p>The first example demonstrates a graph that contains a naïve cycle.
+The graph takes elements from the source, prints them, then broadcasts those elements
+to a consumer (we just used <tt class="docutils literal"><span class="pre">Sink.ignore</span></tt> for now) and to a feedback arc that is merged back into the main stream via
+a <tt class="docutils literal"><span class="pre">Merge</span></tt> junction.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The graph DSL allows the connection arrows to be reversed, which is particularly handy when writing cycles—as we will
+see there are cases where this is very helpful.</p>
+</div>
+<div class="highlight-scala"><div class="highlight"><pre><span class="c1">// WARNING! The graph below deadlocks!</span>
+<span class="nc">RunnableGraph</span><span class="o">.</span><span class="n">fromGraph</span><span class="o">(</span><span class="nc">GraphDSL</span><span class="o">.</span><span class="n">create</span><span class="o">()</span> <span class="o">{</span> <span class="k">implicit</span> <span class="n">b</span> <span class="k">=&gt;</span>
+  <span class="k">import</span> <span class="nn">GraphDSL.Implicits._</span>
+
+  <span class="k">val</span> <span class="n">merge</span> <span class="k">=</span> <span class="n">b</span><span class="o">.</span><span class="n">add</span><span class="o">(</span><span class="nc">Merge</span><span class="o">[</span><span class="kt">Int</span><span class="o">](</span><span class="mi">2</span><span class="o">))</span>
+  <span class="k">val</span> <span class="n">bcast</span> <span class="k">=</span> <span class="n">b</span><span class="o">.</span><span class="n">add</span><span class="o">(</span><span class="nc">Broadcast</span><span class="o">[</span><span class="kt">Int</span><span class="o">](</span><span class="mi">2</span><span class="o">))</span>
+
+  <span class="n">source</span> <span class="o">~&gt;</span> <span class="n">merge</span> <span class="o">~&gt;</span> <span class="nc">Flow</span><span class="o">[</span><span class="kt">Int</span><span class="o">].</span><span class="n">map</span> <span class="o">{</span> <span class="n">s</span> <span class="k">=&gt;</span> <span class="n">println</span><span class="o">(</span><span class="n">s</span><span class="o">);</span> <span class="n">s</span> <span class="o">}</span> <span class="o">~&gt;</span> <span class="n">bcast</span> <span class="o">~&gt;</span> <span class="nc">Sink</span><span class="o">.</span><span class="n">ignore</span>
+            <span class="n">merge</span>                    <span class="o">&lt;~</span>                      <span class="n">bcast</span>
+  <span class="nc">ClosedShape</span>
+<span class="o">})</span>
+</pre></div>
+</div>
+<p>Running this we observe that after a few numbers have been printed, no more elements are logged to the console -
+all processing stops after some time. After some investigation we observe that:</p>
+<ul class="simple">
+<li>through merging from <tt class="docutils literal"><span class="pre">source</span></tt> we increase the number of elements flowing in the cycle</li>
+<li>by broadcasting back to the cycle we do not decrease the number of elements in the cycle</li>
+</ul>
+<p>Since Akka Streams (and Reactive Streams in general) guarantee bounded processing (see the &quot;Buffering&quot; section for more
+details) it means that only a bounded number of elements are buffered over any time span. Since our cycle gains more and
+more elements, eventually all of its internal buffers become full, backpressuring <tt class="docutils literal"><span class="pre">source</span></tt> forever. To be able
+to process more elements from <tt class="docutils literal"><span class="pre">source</span></tt> elements would need to leave the cycle somehow.</p>
+<p>If we modify our feedback loop by replacing the <tt class="docutils literal"><span class="pre">Merge</span></tt> junction with a <tt class="docutils literal"><span class="pre">MergePreferred</span></tt> we can avoid the deadlock.
+<tt class="docutils literal"><span class="pre">MergePreferred</span></tt> is unfair as it always tries to consume from a preferred input port if there are elements available
+before trying the other lower priority input ports. Since we feed back through the preferred port it is always guaranteed
+that the elements in the cycles can flow.</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="c1">// WARNING! The graph below stops consuming from &quot;source&quot; after a few steps</span>
+<span class="nc">RunnableGraph</span><span class="o">.</span><span class="n">fromGraph</span><span class="o">(</span><span class="nc">GraphDSL</span><span class="o">.</span><span class="n">create</span><span class="o">()</span> <span class="o">{</span> <span class="k">implicit</span> <span class="n">b</span> <span class="k">=&gt;</span>
+  <span class="k">import</span> <span class="nn">GraphDSL.Implicits._</span>
+
+  <span class="k">val</span> <span class="n">merge</span> <span class="k">=</span> <span class="n">b</span><span class="o">.</span><span class="n">add</span><span class="o">(</span><span class="nc">MergePreferred</span><span class="o">[</span><span class="kt">Int</span><span class="o">](</span><span class="mi">1</span><span class="o">))</span>
+  <span class="k">val</span> <span class="n">bcast</span> <span class="k">=</span> <span class="n">b</span><span class="o">.</span><span class="n">add</span><span class="o">(</span><span class="nc">Broadcast</span><span class="o">[</span><span class="kt">Int</span><span class="o">](</span><span class="mi">2</span><span class="o">))</span>
+
+  <span class="n">source</span> <span class="o">~&gt;</span> <span class="n">merge</span> <span class="o">~&gt;</span> <span class="nc">Flow</span><span class="o">[</span><span class="kt">Int</span><span class="o">].</span><span class="n">map</span> <span class="o">{</span> <span class="n">s</span> <span class="k">=&gt;</span> <span class="n">println</span><span class="o">(</span><span class="n">s</span><span class="o">);</span> <span class="n">s</span> <span class="o">}</span> <span class="o">~&gt;</span> <span class="n">bcast</span> <span class="o">~&gt;</span> <span class="nc">Sink</span><span class="o">.</span><span class="n">ignore</span>
+            <span class="n">merge</span><span class="o">.</span><span class="n">preferred</span>              <span class="o">&lt;~</span>                  <span class="n">bcast</span>
+  <span class="nc">ClosedShape</span>
+<span class="o">})</span>
+</pre></div>
+</div>
+<p>If we run the example we see that the same sequence of numbers are printed
+over and over again, but the processing does not stop. Hence, we avoided the deadlock, but <tt class="docutils literal"><span class="pre">source</span></tt> is still
+back-pressured forever, because buffer space is never recovered: the only action we see is the circulation of a couple
+of initial elements from <tt class="docutils literal"><span class="pre">source</span></tt>.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">What we see here is that in certain cases we need to choose between boundedness and liveness. Our first example would
+not deadlock if there would be an infinite buffer in the loop, or vice versa, if the elements in the cycle would
+be balanced (as many elements are removed as many are injected) then there would be no deadlock.</p>
+</div>
+<p>To make our cycle both live (not deadlocking) and fair we can introduce a dropping element on the feedback arc. In this
+case we chose the <tt class="docutils literal"><span class="pre">buffer()</span></tt> operation giving it a dropping strategy <tt class="docutils literal"><span class="pre">OverflowStrategy.dropHead</span></tt>.</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="nc">RunnableGraph</span><span class="o">.</span><span class="n">fromGraph</span><span class="o">(</span><span class="nc">GraphDSL</span><span class="o">.</span><span class="n">create</span><span class="o">()</span> <span class="o">{</span> <span class="k">implicit</span> <span class="n">b</span> <span class="k">=&gt;</span>
+  <span class="k">import</span> <span class="nn">GraphDSL.Implicits._</span>
+
+  <span class="k">val</span> <span class="n">merge</span> <span class="k">=</span> <span class="n">b</span><span class="o">.</span><span class="n">add</span><span class="o">(</span><span class="nc">Merge</span><span class="o">[</span><span class="kt">Int</span><span class="o">](</span><span class="mi">2</span><span class="o">))</span>
+  <span class="k">val</span> <span class="n">bcast</span> <span class="k">=</span> <span class="n">b</span><span class="o">.</span><span class="n">add</span><span class="o">(</span><span class="nc">Broadcast</span><span class="o">[</span><span class="kt">Int</span><span class="o">](</span><span class="mi">2</span><span class="o">))</span>
+
+  <span class="n">source</span> <span class="o">~&gt;</span> <span class="n">merge</span> <span class="o">~&gt;</span> <span class="nc">Flow</span><span class="o">[</span><span class="kt">Int</span><span class="o">].</span><span class="n">map</span> <span class="o">{</span> <span class="n">s</span> <span class="k">=&gt;</span> <span class="n">println</span><span class="o">(</span><span class="n">s</span><span class="o">);</span> <span class="n">s</span> <span class="o">}</span> <span class="o">~&gt;</span> <span class="n">bcast</span> <span class="o">~&gt;</span> <span class="nc">Sink</span><span class="o">.</span><span class="n">ignore</span>
+      <span class="n">merge</span> <span class="o">&lt;~</span> <span class="nc">Flow</span><span class="o">[</span><span class="kt">Int</span><span class="o">].</span><span class="n">buffer</span><span class="o">(</span><span class="mi">10</span><span class="o">,</span> <span class="nc">OverflowStrategy</span><span class="o">.</span><span class="n">dropHead</span><span class="o">)</span> <span class="o">&lt;~</span> <span class="n">bcast</span>
+  <span class="nc">ClosedShape</span>
+<span class="o">})</span>
+</pre></div>
+</div>
+<p>If we run this example we see that</p>
+<ul class="simple">
+<li>The flow of elements does not stop, there are always elements printed</li>
+<li>We see that some of the numbers are printed several times over time (due to the feedback loop) but on average
+the numbers are increasing in the long term</li>
+</ul>
+<p>This example highlights that one solution to avoid deadlocks in the presence of potentially unbalanced cycles
+(cycles where the number of circulating elements are unbounded) is to drop elements. An alternative would be to
+define a larger buffer with <tt class="docutils literal"><span class="pre">OverflowStrategy.fail</span></tt> which would fail the stream instead of deadlocking it after
+all buffer space has been consumed.</p>
+<p>As we discovered in the previous examples, the core problem was the unbalanced nature of the feedback loop. We
+circumvented this issue by adding a dropping element, but now we want to build a cycle that is balanced from
+the beginning instead. To achieve this we modify our first graph by replacing the <tt class="docutils literal"><span class="pre">Merge</span></tt> junction with a <tt class="docutils literal"><span class="pre">ZipWith</span></tt>.
+Since <tt class="docutils literal"><span class="pre">ZipWith</span></tt> takes one element from <tt class="docutils literal"><span class="pre">source</span></tt> <em>and</em> from the feedback arc to inject one element into the cycle,
+we maintain the balance of elements.</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="c1">// WARNING! The graph below never processes any elements</span>
+<span class="nc">RunnableGraph</span><span class="o">.</span><span class="n">fromGraph</span><span class="o">(</span><span class="nc">GraphDSL</span><span class="o">.</span><span class="n">create</span><span class="o">()</span> <span class="o">{</span> <span class="k">implicit</span> <span class="n">b</span> <span class="k">=&gt;</span>
+  <span class="k">import</span> <span class="nn">GraphDSL.Implicits._</span>
+
+  <span class="k">val</span> <span class="n">zip</span> <span class="k">=</span> <span class="n">b</span><span class="o">.</span><span class="n">add</span><span class="o">(</span><span class="nc">ZipWith</span><span class="o">[</span><span class="kt">Int</span>, <span class="kt">Int</span>, <span class="kt">Int</span><span class="o">]((</span><span class="n">left</span><span class="o">,</span> <span class="n">right</span><span class="o">)</span> <span class="k">=&gt;</span> <span class="n">right</span><span class="o">))</span>
+  <span class="k">val</span> <span class="n">bcast</span> <span class="k">=</span> <span class="n">b</span><span class="o">.</span><span class="n">add</span><span class="o">(</span><span class="nc">Broadcast</span><span class="o">[</span><span class="kt">Int</span><span class="o">](</span><span class="mi">2</span><span class="o">))</span>
+
+  <span class="n">source</span> <span class="o">~&gt;</span> <span class="n">zip</span><span class="o">.</span><span class="n">in0</span>
+  <span class="n">zip</span><span class="o">.</span><span class="n">out</span><span class="o">.</span><span class="n">map</span> <span class="o">{</span> <span class="n">s</span> <span class="k">=&gt;</span> <span class="n">println</span><span class="o">(</span><span class="n">s</span><span class="o">);</span> <span class="n">s</span> <span class="o">}</span> <span class="o">~&gt;</span> <span class="n">bcast</span> <span class="o">~&gt;</span> <span class="nc">Sink</span><span class="o">.</span><span class="n">ignore</span>
+  <span class="n">zip</span><span class="o">.</span><span class="n">in1</span>             <span class="o">&lt;~</span>                <span class="n">bcast</span>
+  <span class="nc">ClosedShape</span>
+<span class="o">})</span>
+</pre></div>
+</div>
+<p>Still, when we try to run the example it turns out that no element is printed at all! After some investigation we
+realize that:</p>
+<ul class="simple">
+<li>In order to get the first element from <tt class="docutils literal"><span class="pre">source</span></tt> into the cycle we need an already existing element in the cycle</li>
+<li>In order to get an initial element in the cycle we need an element from <tt class="docutils literal"><span class="pre">source</span></tt></li>
+</ul>
+<p>These two conditions are a typical &quot;chicken-and-egg&quot; problem. The solution is to inject an initial
+element into the cycle that is independent from <tt class="docutils literal"><span class="pre">source</span></tt>. We do this by using a <tt class="docutils literal"><span class="pre">Concat</span></tt> junction on the backwards
+arc that injects a single element using <tt class="docutils literal"><span class="pre">Source.single</span></tt>.</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="nc">RunnableGraph</span><span class="o">.</span><span class="n">fromGraph</span><span class="o">(</span><span class="nc">GraphDSL</span><span class="o">.</span><span class="n">create</span><span class="o">()</span> <span class="o">{</span> <span class="k">implicit</span> <span class="n">b</span> <span class="k">=&gt;</span>
+  <span class="k">import</span> <span class="nn">GraphDSL.Implicits._</span>
+
+  <span class="k">val</span> <span class="n">zip</span> <span class="k">=</span> <span class="n">b</span><span class="o">.</span><span class="n">add</span><span class="o">(</span><span class="nc">ZipWith</span><span class="o">((</span><span class="n">left</span><span class="k">:</span> <span class="kt">Int</span><span class="o">,</span> <span class="n">right</span><span class="k">:</span> <span class="kt">Int</span><span class="o">)</span> <span class="k">=&gt;</span> <span class="n">left</span><span class="o">))</span>
+  <span class="k">val</span> <span class="n">bcast</span> <span class="k">=</span> <span class="n">b</span><span class="o">.</span><span class="n">add</span><span class="o">(</span><span class="nc">Broadcast</span><span class="o">[</span><span class="kt">Int</span><span class="o">](</span><span class="mi">2</span><span class="o">))</span>
+  <span class="k">val</span> <span class="n">concat</span> <span class="k">=</span> <span class="n">b</span><span class="o">.</span><span class="n">add</span><span class="o">(</span><span class="nc">Concat</span><span class="o">[</span><span class="kt">Int</span><span class="o">]())</span>
+  <span class="k">val</span> <span class="n">start</span> <span class="k">=</span> <span class="nc">Source</span><span class="o">.</span><span class="n">single</span><span class="o">(</span><span class="mi">0</span><span class="o">)</span>
+
+  <span class="n">source</span> <span class="o">~&gt;</span> <span class="n">zip</span><span class="o">.</span><span class="n">in0</span>
+  <span class="n">zip</span><span class="o">.</span><span class="n">out</span><span class="o">.</span><span class="n">map</span> <span class="o">{</span> <span class="n">s</span> <span class="k">=&gt;</span> <span class="n">println</span><span class="o">(</span><span class="n">s</span><span class="o">);</span> <span class="n">s</span> <span class="o">}</span> <span class="o">~&gt;</span> <span class="n">bcast</span> <span class="o">~&gt;</span> <span class="nc">Sink</span><span class="o">.</span><span class="n">ignore</span>
+  <span class="n">zip</span><span class="o">.</span><span class="n">in1</span> <span class="o">&lt;~</span> <span class="n">concat</span> <span class="o">&lt;~</span> <span class="n">start</span>
+             <span class="n">concat</span>         <span class="o">&lt;~</span>          <span class="n">bcast</span>
+  <span class="nc">ClosedShape</span>
+<span class="o">})</span>
+</pre></div>
+</div>
+<p>When we run the above example we see that processing starts and never stops. The important takeaway from this example
+is that balanced cycles often need an initial &quot;kick-off&quot; element to be injected into the cycle.</p>
+</div>
+</div>
+
+
+          </div>
+          <div class="span3"><p class="contents-title">Contents</p>
+              <div id="scroller-anchor">
+                <div id="scroller">
+                  <div id="toc"></div>
+                </div>
+              </div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="footer">
+  <div class="container">
+    <ul>
+      <li><h5>Akka</h5></li>
+      <li><a href="https://akka.io/docs">Documentation</a></li>
+      <li><a href="https://doc.akka.io/docs/akka/current/additional/faq.html">FAQ</a></li>
+      <li><a href="https://akka.io/downloads">Downloads</a></li>
+      <li><a href="https://akka.io/news">News</a></li>
+      <li><a href="http://letitcrash.com">Blog</a></li>
+    </ul>
+    <ul>
+      <li><h5>Contribute</h5></li>
+      <li><a href="https://akka.io/community">Community Projects</a></li>
+      <li><a href="http://github.com/akka/akka">Source Code</a></li>
+      <li><a href="http://groups.google.com/group/akka-user">Mailing List</a></li>
+      <li><a href="https://doc.akka.io/docs/akka/current/project/issue-tracking.html">Report a Bug</a></li>
+    </ul>
+    <ul>
+      <li><h5>Company</h5></li>
+      <li><a href="http://www.lightbend.com/how/subscription">Commercial Support</a></li>
+      <li><a href="https://akka.io/team">Team</a></li>
+      <li><a href="mailto:info@lightbend.com">Contact</a></li>
+    </ul>
+    <ul>
+      <li><img src="../../_static/akka_icon_reverse.svg" align="center"/></li>
+    </ul>
+  </div>
+  <div class="container copyright">
+    <p style="float: left;">
+      © 2015 <a href="http://www.lightbend.com/">Lightbend Inc.</a> <span class="license">Akka is Open Source and available under the Apache 2 License.</span>
+    </p>
+    <p style="float: right; font-size: 12px;">
+      Last updated: Aug 10, 2017
+    </p>
+  </div>
+</div>
+<script type="text/javascript">
+  var $toc = $('#toc');
+  $toc.toc();
+
+  // show clickable section sign when section header hovered:
+  $('.section h2,.section h3,.section h4,.section h5').each(function(i, el) {
+      var $el = $(el);
+      $el.prepend($("<a class='section-marker' href='#" + $el.attr("id") + "'>&sect;</a>"))
+  });
+</script>
+
+<!-- Algolia docs search -->
+<script type="text/javascript">
+  var version = DOCUMENTATION_OPTIONS.VERSION;
+
+  var lang = "scala";
+  var path = window.location.pathname;
+  if (path.includes("/java/") || path.includes("java.html")) lang = "java";
+
+  console.log("Search configured for:", lang, "@", version);
+
+  docsearch({
+    apiKey: '543bad5ad786495d9ccd445ed34ed082',
+    indexName: 'akka_io',
+    inputSelector: '#search',
+    algoliaOptions: {
+      hitsPerPage: 5,
+      facetFilters: '[' + '["language:' + lang + '","language:general"]' + ',"version:' + version + '"]'
+    }
+  });
+
+  // set up "/" as global shortcut for focusing on search
+  $(document).keypress(function (event) {
+    if (event.keyCode == 47) {
+      $("#q").focus();
+      return false; // swallow key event, otherwise the / char would be input into the search box
+    }
+  });
+</script>
+
+  
+
+  </body>
+</html>

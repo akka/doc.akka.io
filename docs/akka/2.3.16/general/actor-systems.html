@@ -1,0 +1,528 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" /><meta name="description" content="Akka is a toolkit for building highly concurrent, distributed, and resilient message-driven applications for Java and Scala."/><link rel="canonical" href="https://doc.akka.io/docs/akka/2.3/general/actor-systems.html"/>
+    
+    <title>Actor Systems &mdash; Akka Documentation</title>
+    
+    <link rel="stylesheet" href="../_static/style.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/prettify.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/base.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
+    <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,600,700" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '2.3.16',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="../_static/toc.js"></script>
+    <script type="text/javascript" src="../_static/prettify.js"></script>
+    <script type="text/javascript" src="../_static/highlightCode.js"></script>
+    <script type="text/javascript" src="../_static/effects.core.js"></script>
+    <script type="text/javascript" src="../_static/effects.highlight.js"></script>
+    <script type="text/javascript" src="../_static/scrollTo.js"></script>
+    <script type="text/javascript" src="../_static/contentsFix.js"></script>
+    <script type="text/javascript" src="../_static/ga.js"></script>
+    <link rel="shortcut icon" href="../_static/favicon.ico"/>
+    <link rel="top" title="Akka Documentation" href="../index.html" />
+    <link rel="up" title="General" href="index.html" />
+    <link rel="next" title="What is an Actor?" href="actors.html" />
+    <link rel="prev" title="Terminology, Concepts" href="terminology.html" />
+    <!--Google Analytics-->
+    <script type="text/javascript">
+      var _gaq = _gaq || [];
+      _gaq.push(['_setAccount', 'UA-21117439-1']);
+      _gaq.push(['_setDomainName', 'akka.io']);
+      _gaq.push(['_trackPageview']);
+      (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+      })()
+    </script>
+    <!--Google Analytics & Marketo-->
+    <script type="text/javascript">
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+      (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+      m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+      ga('create', 'UA-23127719-1', 'typesafe.com', {'allowLinker': true, 'name': 'tsTracker'});
+      ga('tsTracker.require', 'linker');
+      ga('tsTracker.linker:autoLink', ['typesafe.com','playframework.com','scala-lang.org','scaladays.org','spray.io','akka.io','scala-sbt.org','scala-ide.org']);
+      ga('tsTracker.send', 'pageview');
+      
+      (function() {
+          var didInit = false;
+          function initMunchkin() {
+          if(didInit === false) {
+            didInit = true;
+            Munchkin.init('558-NCX-702');
+          }
+          }
+          var s = document.createElement('script');
+          s.type = 'text/javascript';
+          s.async = true;
+          s.src = '//munchkin.marketo.net/munchkin.js';
+          s.onreadystatechange = function() {
+          if (this.readyState == 'complete' || this.readyState == 'loaded') {
+            initMunchkin();
+          }
+          };
+          s.onload = initMunchkin;
+          document.getElementsByTagName('head')[0].appendChild(s);
+        })();
+    </script>
+
+  </head>
+  <body role="document">
+  <div class="navbar">
+    <div class="navbar-inner">
+      <div class="container">
+        <div class="navbar-logo">
+          <a href="https://akka.io"><img class="svg-logo" src="../_static/akka_full_color.svg" /></a>
+        </div>    
+        <ul class="nav">
+          <li><a href="https://akka.io/docs">Documentation</a></li>
+          <li><a href="https://akka.io/faq">FAQ</a></li>
+          <li><a href="https://akka.io/downloads">Download</a></li>
+          <li><a href="http://groups.google.com/group/akka-user">Mailing List</a></li>
+          <li><a href="http://github.com/akka/akka">Code</a></li>           
+          <li><a href="http://www.typesafe.com/how/subscription">Commercial Support</a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="main">
+    <div class="container">
+      <div class="page-title">Actor Systems</div>
+      <div class="pdf-link"><a href="../AkkaScala.pdf" title="Akka Scala Documentation"><img src="../_static/pdf-scala-icon.png" style="height: 40px;" /></a></div>
+      <div class="pdf-link"><a href="../AkkaJava.pdf" title="Akka Java Documentation"><img src="../_static/pdf-java-icon.png" style="height: 40px;" /></a></div>
+    </div>
+    <div class="main-container">
+      <div class="container">
+        <div class="row">
+          <div class="span12">
+            <ul class="breadcrumb">           
+              <li>
+                 <span class="divider">|</span> <a href="actors.html">What is an Actor?</a> <span class="divider">»</span>
+              </li>
+              <li>
+                <a href="../index.html">Contents</a>
+              </li>
+              <li>
+                <span class="divider">«</span> <a href="terminology.html">Terminology, Concepts</a> <span class="divider">|</span>
+              </li>
+              <li>
+                Version 2.3.16
+              </li>
+            </ul>
+          </div>
+        </div>
+        <div class="row">
+          <div class="span9">
+            <div id="cse">Loading</div>
+          </div><div class="span9">
+            
+  <div class="section" id="actor-systems">
+<span id="id1"></span><h1>Actor Systems</h1>
+<p>Actors are objects which encapsulate state and behavior, they communicate
+exclusively by exchanging messages which are placed into the recipient’s
+mailbox. In a sense, actors are the most stringent form of object-oriented
+programming, but it serves better to view them as persons: while modeling a
+solution with actors, envision a group of people and assign sub-tasks to them,
+arrange their functions into an organizational structure and think about how to
+escalate failure (all with the benefit of not actually dealing with people,
+which means that we need not concern ourselves with their emotional state or
+moral issues). The result can then serve as a mental scaffolding for building
+the software implementation.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">An ActorSystem is a heavyweight structure that will allocate 1…N Threads,
+so create one per logical application.</p>
+</div>
+<div class="section" id="hierarchical-structure">
+<h2>Hierarchical Structure</h2>
+<p>Like in an economic organization, actors naturally form hierarchies. One actor,
+which is to oversee a certain function in the program might want to split up
+its task into smaller, more manageable pieces. For this purpose it starts child
+actors which it supervises. While the details of supervision are explained
+<a class="reference internal" href="supervision.html#supervision"><span class="std std-ref">here</span></a>, we shall concentrate on the underlying concepts in
+this section. The only prerequisite is to know that each actor has exactly one
+supervisor, which is the actor that created it.</p>
+<p>The quintessential feature of actor systems is that tasks are split up and
+delegated until they become small enough to be handled in one piece. In doing
+so, not only is the task itself clearly structured, but the resulting actors
+can be reasoned about in terms of which messages they should process, how they
+should react normally and how failure should be handled. If one actor does not
+have the means for dealing with a certain situation, it sends a corresponding
+failure message to its supervisor, asking for help. The recursive structure
+then allows to handle failure at the right level.</p>
+<p>Compare this to layered software design which easily devolves into defensive
+programming with the aim of not leaking any failure out: if the problem is
+communicated to the right person, a better solution can be found than if
+trying to keep everything “under the carpet”.</p>
+<p>Now, the difficulty in designing such a system is how to decide who should
+supervise what. There is of course no single best solution, but there are a few
+guidelines which might be helpful:</p>
+<blockquote>
+<div><ul class="simple">
+<li>If one actor manages the work another actor is doing, e.g. by passing on
+sub-tasks, then the manager should supervise the child. The reason is that
+the manager knows which kind of failures are expected and how to handle
+them.</li>
+<li>If one actor carries very important data (i.e. its state shall not be lost
+if avoidable), this actor should source out any possibly dangerous sub-tasks
+to children it supervises and handle failures of these children as
+appropriate. Depending on the nature of the requests, it may be best to
+create a new child for each request, which simplifies state management for
+collecting the replies. This is known as the “Error Kernel Pattern” from
+Erlang.</li>
+<li>If one actor depends on another actor for carrying out its duty, it should
+watch that other actor’s liveness and act upon receiving a termination
+notice. This is different from supervision, as the watching party has no
+influence on the supervisor strategy, and it should be noted that a
+functional dependency alone is not a criterion for deciding where to place a
+certain child actor in the hierarchy.</li>
+</ul>
+</div></blockquote>
+<p>There are of course always exceptions to these rules, but no matter whether you
+follow the rules or break them, you should always have a reason.</p>
+</div>
+<div class="section" id="configuration-container">
+<h2>Configuration Container</h2>
+<p>The actor system as a collaborating ensemble of actors is the natural unit for
+managing shared facilities like scheduling services, configuration, logging,
+etc. Several actor systems with different configuration may co-exist within the
+same JVM without problems, there is no global shared state within Akka itself.
+Couple this with the transparent communication between actor systems—within one
+node or across a network connection—to see that actor systems themselves can be
+used as building blocks in a functional hierarchy.</p>
+</div>
+<div class="section" id="actor-best-practices">
+<h2>Actor Best Practices</h2>
+<ol class="arabic simple">
+<li>Actors should be like nice co-workers: do their job efficiently without
+bothering everyone else needlessly and avoid hogging resources. Translated
+to programming this means to process events and generate responses (or more
+requests) in an event-driven manner. Actors should not block (i.e. passively
+wait while occupying a Thread) on some external entity—which might be a
+lock, a network socket, etc.—unless it is unavoidable; in the latter case
+see below.</li>
+<li>Do not pass mutable objects between actors. In order to ensure that, prefer
+immutable messages. If the encapsulation of actors is broken by exposing
+their mutable state to the outside, you are back in normal Java concurrency
+land with all the drawbacks.</li>
+<li>Actors are made to be containers for behavior and state, embracing this
+means to not routinely send behavior within messages (which may be tempting
+using Scala closures). One of the risks is to accidentally share mutable
+state between actors, and this violation of the actor model unfortunately
+breaks all the properties which make programming in actors such a nice
+experience.</li>
+<li>Top-level actors are the innermost part of your Error Kernel, so create them
+sparingly and prefer truly hierarchical systems. This has benefits with
+respect to fault-handling (both considering the granularity of configuration
+and the performance) and it also reduces the strain on the guardian actor,
+which is a single point of contention if over-used.</li>
+</ol>
+</div>
+<div class="section" id="blocking-needs-careful-management">
+<h2>Blocking Needs Careful Management</h2>
+<p>In some cases it is unavoidable to do blocking operations, i.e. to put a thread
+to sleep for an indeterminate time, waiting for an external event to occur.
+Examples are legacy RDBMS drivers or messaging APIs, and the underlying reason
+is typically that (network) I/O occurs under the covers. When facing this, you
+may be tempted to just wrap the blocking call inside a <code class="xref py py-class docutils literal"><span class="pre">Future</span></code> and work
+with that instead, but this strategy is too simple: you are quite likely to
+find bottlenecks or run out of memory or threads when the application runs
+under increased load.</p>
+<p>The non-exhaustive list of adequate solutions to the “blocking problem”
+includes the following suggestions:</p>
+<blockquote>
+<div><ul class="simple">
+<li>Do the blocking call within an actor (or a set of actors managed by a router
+[<a class="reference internal" href="../java/routing.html#routing-java"><span class="std std-ref">Java</span></a>, <a class="reference internal" href="../scala/routing.html#routing-scala"><span class="std std-ref">Scala</span></a>]), making sure to
+configure a thread pool which is either dedicated for this purpose or
+sufficiently sized.</li>
+<li>Do the blocking call within a <code class="xref py py-class docutils literal"><span class="pre">Future</span></code>, ensuring an upper bound on
+the number of such calls at any point in time (submitting an unbounded
+number of tasks of this nature will exhaust your memory or thread limits).</li>
+<li>Do the blocking call within a <code class="xref py py-class docutils literal"><span class="pre">Future</span></code>, providing a thread pool with
+an upper limit on the number of threads which is appropriate for the
+hardware on which the application runs.</li>
+<li>Dedicate a single thread to manage a set of blocking resources (e.g. a NIO
+selector driving multiple channels) and dispatch events as they occur as
+actor messages.</li>
+</ul>
+</div></blockquote>
+<p>The first possibility is especially well-suited for resources which are
+single-threaded in nature, like database handles which traditionally can only
+execute one outstanding query at a time and use internal synchronization to
+ensure this. A common pattern is to create a router for N actors, each of which
+wraps a single DB connection and handles queries as sent to the router. The
+number N must then be tuned for maximum throughput, which will vary depending
+on which DBMS is deployed on what hardware.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Configuring thread pools is a task best delegated to Akka, simply configure
+in the <code class="docutils literal"><span class="pre">application.conf</span></code> and instantiate through an <code class="xref py py-class docutils literal"><span class="pre">ActorSystem</span></code>
+[<a class="reference internal" href="../java/dispatchers.html#dispatcher-lookup-java"><span class="std std-ref">Java</span></a>, <a class="reference internal" href="../scala/dispatchers.html#dispatcher-lookup-scala"><span class="std std-ref">Scala</span></a>]</p>
+</div>
+</div>
+<div class="section" id="what-you-should-not-concern-yourself-with">
+<h2>What you should not concern yourself with</h2>
+<p>An actor system manages the resources it is configured to use in order to run
+the actors which it contains. There may be millions of actors within one such
+system, after all the mantra is to view them as abundant and they weigh in at
+an overhead of only roughly 300 bytes per instance. Naturally, the exact order
+in which messages are processed in large systems is not controllable by the
+application author, but this is also not intended. Take a step back and relax
+while Akka does the heavy lifting under the hood.</p>
+</div>
+</div>
+
+
+          </div>
+          <div class="span3"><p class="contents-title">Contents</p>
+              <div id="scroller-anchor">
+                <div id="scroller">
+                  <div id="toc"></div>
+                </div>
+              </div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="footer">
+  <div class="container">
+    <ul>
+      <li><h5>Akka</h5></li>
+      <li><a href="https://akka.io/docs">Documentation</a></li>
+      <li><a href="https://akka.io/faq">FAQ</a></li>
+      <li><a href="https://akka.io/downloads">Downloads</a></li>
+      <li><a href="https://akka.io/news">News</a></li>
+      <li><a href="http://letitcrash.com">Blog</a></li>
+    </ul>
+    <ul>
+      <li><h5>Contribute</h5></li>
+      <li><a href="https://akka.io/community">Community Projects</a></li>
+      <li><a href="http://github.com/akka/akka">Source Code</a></li>
+      <li><a href="http://groups.google.com/group/akka-user">Mailing List</a></li>      
+      <li><a href="https://doc.akka.io/docs/akka/current/project/issue-tracking.html">Report a Bug</a></li>      
+    </ul>
+    <ul>
+      <li><h5>Company</h5></li>
+      <li><a href="http://www.typesafe.com/how/subscription">Commercial Support</a></li>
+      <li><a href="https://akka.io/team">Team</a></li>
+      <li><a href="mailto:info@typesafe.com">Contact</a></li>
+    </ul>
+    <ul>
+      <li><img src="../_static/akka_icon_reverse.svg" align="center"/></li>
+    </ul>
+  </div>
+  <div class="container copyright">
+    <p style="float: left;">
+      © 2014 <a href="http://www.typesafe.com/">Typesafe Inc.</a> <span class="license">Akka is Open Source and available under the Apache 2 License.</span>
+    </p>
+    <p style="float: right; font-size: 12px;">
+      Last updated: Oct 28, 2016
+    </p>          
+  </div>
+</div>
+<script src="http://www.google.com/jsapi" type="text/javascript"></script>
+<script type="text/javascript">
+    google.load('search', '1', {language : 'en', style : google.loader.themes.MINIMALIST});
+    google.setOnLoadCallback(function() {
+    var customSearchOptions = {};  var customSearchControl = new google.search.CustomSearchControl(
+    '003065520604945464838:izzukx8-qba', customSearchOptions);
+    customSearchControl.setResultSetSize(google.search.Search.FILTERED_CSE_RESULTSET);
+    customSearchControl.draw('cse');
+    var path = window.location.pathname.split('/').slice(0,4);
+    if(window.location.hostname && path.length >= 4) {
+    var site = "site:" + window.location.hostname + path.join('/').toString();
+    customSearchControl.setSearchStartingCallback(this, function(c, s, q) { s.setQueryAddition(site); });
+    }
+    }, true);
+</script>
+<style type="text/css">
+    .gsc-control-cse {
+    font-family: Arial, sans-serif;
+    border-color: rgb(242, 242, 235);
+    background-color: rgb(242, 242, 235);
+    }
+    .gsc-control-cse .gsc-table-result {
+      font-family: Arial, sans-serif;
+      display: block;
+    }
+    input.gsc-input {
+    border-color: #BBBBBB;
+    }
+    input.gsc-search-button {
+    border-color: rgb(34, 57, 64);
+    background-color: rgb(68, 114, 129);
+    color: #FFFFFF;
+    }
+    .gsc-tabHeader.gsc-tabhInactive {
+    border-color: #777777;
+    background-color: #777777;
+    }
+    .gsc-tabHeader.gsc-tabhActive {
+    border-color: #333333;
+    background-color: #333333;
+    }
+    .gsc-tabsArea {
+    border-color: #333333;
+    }
+    .gsc-webResult.gsc-result,
+    .gsc-results .gsc-imageResult {
+      border-color: #666666;
+      background-color: #FFFFFF;
+      padding: 0.5em 0.5em;
+    }
+    .gsc-webResult.gsc-result:hover,
+    .gsc-imageResult:hover {
+      border-color: #AAAAAA;
+      background-color: #FFFFFF;
+      padding: 0.5em 0.5em;
+    }
+    .gsc-webResult.gsc-result.gsc-promotion:hover {
+    border-color: #AAAAAA;
+    background-color: #FFFFFF;
+    }
+    .gs-webResult.gs-result a.gs-title:link,
+    .gs-webResult.gs-result a.gs-title:link b,
+    .gs-imageResult a.gs-title:link,
+    .gs-imageResult a.gs-title:link b {
+    color: #444444;
+    }
+    .gs-webResult.gs-result a.gs-title:visited,
+    .gs-webResult.gs-result a.gs-title:visited b,
+    .gs-imageResult a.gs-title:visited,
+    .gs-imageResult a.gs-title:visited b {
+    color: #444444;
+    }
+    .gs-webResult.gs-result a.gs-title:hover,
+    .gs-webResult.gs-result a.gs-title:hover b,
+    .gs-imageResult a.gs-title:hover,
+    .gs-imageResult a.gs-title:hover b {
+    color: #444444;
+    }
+    .gs-webResult.gs-result a.gs-title:active,
+    .gs-webResult.gs-result a.gs-title:active b,
+    .gs-imageResult a.gs-title:active,
+    .gs-imageResult a.gs-title:active b {
+    color: #777777;
+    }
+    .gsc-cursor-page {
+    color: #444444;
+    }
+    a.gsc-trailing-more-results:link {
+    color: #444444;
+    }
+    .gs-webResult .gs-snippet,
+    .gs-imageResult .gs-snippet,
+    .gs-fileFormatType {
+    color: #333333;
+    }
+    .gs-webResult div.gs-visibleUrl,
+    .gs-imageResult div.gs-visibleUrl {
+    color: #000000;
+    }
+    .gs-webResult div.gs-visibleUrl-short {
+    color: #000000;
+    }
+    .gs-webResult div.gs-visibleUrl-short {
+    display: none;
+    }
+    .gs-webResult div.gs-visibleUrl-long {
+    display: block;
+    }
+    .gs-promotion div.gs-visibleUrl-short {
+    display: none;
+    }
+    .gs-promotion div.gs-visibleUrl-long {
+    display: block;
+    }
+    .gsc-cursor-box {
+    border-color: #FFFFFF;
+    }
+    .gsc-results .gsc-cursor-box .gsc-cursor-page {
+    border-color: #777777;
+    background-color: #FFFFFF;
+    color: #444444;
+    }
+    .gsc-results .gsc-cursor-box .gsc-cursor-current-page {
+    border-color: #333333;
+    background-color: #333333;
+    color: #444444;
+    }
+    .gsc-webResult.gsc-result.gsc-promotion {
+    border-color: #CCCCCC;
+    background-color: #E6E6E6;
+    }
+    .gsc-completion-title {
+    color: #444444;
+    }
+    .gsc-completion-snippet {
+    color: #333333;
+    }
+    .gs-promotion a.gs-title:link,
+    .gs-promotion a.gs-title:link *,
+    .gs-promotion .gs-snippet a:link {
+    color: #0000CC;
+    }
+    .gs-promotion a.gs-title:visited,
+    .gs-promotion a.gs-title:visited *,
+    .gs-promotion .gs-snippet a:visited {
+    color: #0000CC;
+    }
+    .gs-promotion a.gs-title:hover,
+    .gs-promotion a.gs-title:hover *,
+    .gs-promotion .gs-snippet a:hover {
+    color: #444444;
+    }
+    .gs-promotion a.gs-title:active,
+    .gs-promotion a.gs-title:active *,
+    .gs-promotion .gs-snippet a:active {
+    color: #00CC00;
+    }
+    .gs-promotion .gs-snippet,
+    .gs-promotion .gs-title .gs-promotion-title-right,
+    .gs-promotion .gs-title .gs-promotion-title-right *  {
+    color: #333333;
+    }
+    .gs-promotion .gs-visibleUrl,
+    .gs-promotion .gs-visibleUrl-short {
+    color: #00CC00;
+    }
+</style>
+<script type="text/javascript">
+  var $toc = $('#toc');
+  $toc.toc();
+
+  // change hash when TOC link clicked:
+  $toc.find("a").click(function() { window.location.hash = $(this).attr('href'); });
+
+  // show clickable section sign when section header hovered:
+  $('.section h2,.section h3,.section h4,.section h5').each(function(i, el) {
+      var $el = $(el);
+      $el.prepend($("<a class='section-marker' href='#" + $el.attr("id") + "'>&sect;</a>"))
+  });
+</script>
+  
+
+  </body>
+</html>

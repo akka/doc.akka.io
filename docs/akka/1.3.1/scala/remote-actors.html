@@ -1,0 +1,722 @@
+
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Remote Actors (Scala) &mdash; Akka Documentation</title>
+    <link rel="stylesheet" href="../_static/style.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/prettify.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/base.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
+    <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Exo:300,400,600,700" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '1.3.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+<script type="text/javascript" src="https://doc.akka.io/docs/akka/1.3.1/_static/warnOldDocs.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="../_static/toc.js"></script>
+    <script type="text/javascript" src="../_static/prettify.js"></script>
+    <script type="text/javascript" src="../_static/highlightCode.js"></script>
+    <script type="text/javascript" src="../_static/effects.core.js"></script>
+    <script type="text/javascript" src="../_static/effects.highlight.js"></script>
+    <script type="text/javascript" src="../_static/scrollTo.js"></script>
+    <script type="text/javascript" src="../_static/contentsFix.js"></script>
+    <link rel="shortcut icon" href="../_static/favicon.ico"/>
+    <link rel="top" title="Akka Documentation" href="../index.html" />
+    <link rel="up" title="Scala API" href="index.html" />
+    <link rel="next" title="Serialization (Scala)" href="serialization.html" />
+    <link rel="prev" title="Transactors (Scala)" href="transactors.html" /> 
+  </head>
+  <body>
+  <div class="navbar">
+    <div class="navbar-inner">
+      <div class="container">
+        <div class="navbar-logo">
+          <a href="https://akka.io"><img src="../_static/logo-small.png" /></a>
+        </div>    
+        <ul class="nav">
+          <li><a href="https://akka.io/docs">Documentation</a></li>
+          <li><a href="https://akka.io/downloads">Download</a></li>
+          <li><a href="http://groups.google.com/group/akka-user">Mailing List</a></li>
+          <li><a href="http://github.com/akka/akka">Code</a></li>           
+          <li><a href="http://typesafe.com/products/typesafe-subscription">Commercial Support</a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="main">
+    <div class="container">
+      <div class="page-title">Remote Actors (Scala)</div><div class="pdf-link"><a href="https://doc.akka.io/docs/akka/1.3.1/Akka.pdf"><img src="../_static/pdf-icon.png" style="height: 40px;" /></a></div></div>
+    <div class="main-container">
+      <div class="container">
+        <div class="row">
+          <div class="span12">
+            <ul class="breadcrumb">           
+              <li>
+                 <span class="divider">|</span> <a href="serialization.html">Serialization (Scala)</a> <span class="divider">»</span>
+              </li>
+              <li>
+                <a href="../index.html">Contents</a>
+              </li>
+              <li>
+                <span class="divider">«</span> <a href="transactors.html">Transactors (Scala)</a> <span class="divider">|</span>
+              </li>
+              <li>
+                Version 1.3.1
+              </li>
+            </ul>         
+          </div>
+        </div>
+        <div class="row">
+          <div class="span9">
+            
+  <div class="section" id="remote-actors-scala">
+<h1>Remote Actors (Scala)</h1>
+<p>Module stability: <strong>SOLID</strong></p>
+<p>Akka supports starting and interacting with Actors and Typed Actors on remote nodes using a very efficient and scalable NIO implementation built upon <a class="reference external" href="http://jboss.org/netty">JBoss Netty</a> and <a class="reference external" href="http://code.google.com/p/protobuf/">Google Protocol Buffers</a> .</p>
+<p>The usage is completely transparent with local actors, both in regards to sending messages and error handling and propagation as well as supervision, linking and restarts. You can send references to other Actors as part of the message.</p>
+<p>You can find a runnable sample <a class="reference external" href="http://github.com/akka/akka/tree/master/akka-samples/akka-sample-remote/">here</a>.</p>
+<div class="section" id="starting-up-the-remote-service">
+<h2>Starting up the remote service</h2>
+<div class="section" id="starting-remote-service-in-user-code-as-a-library">
+<h3>Starting remote service in user code as a library</h3>
+<p>Here is how to start up the RemoteNode and specify the hostname and port programmatically:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">import</span> <span class="nn">akka.actor.Actor._</span>
+
+<span class="n">remote</span><span class="o">.</span><span class="n">start</span><span class="o">(</span><span class="s">&quot;localhost&quot;</span><span class="o">,</span> <span class="mi">2552</span><span class="o">)</span>
+
+<span class="c1">// Specify the classloader to use to load the remote class (actor)</span>
+<span class="n">remote</span><span class="o">.</span><span class="n">start</span><span class="o">(</span><span class="s">&quot;localhost&quot;</span><span class="o">,</span> <span class="mi">2552</span><span class="o">,</span> <span class="n">classLoader</span><span class="o">)</span>
+</pre></div>
+</div>
+<p>Here is how to start up the RemoteNode and specify the hostname and port in the &#8216;akka.conf&#8217; configuration file (see the section below for details):</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">import</span> <span class="nn">akka.actor.Actor._</span>
+
+<span class="n">remote</span><span class="o">.</span><span class="n">start</span><span class="o">()</span>
+
+<span class="c1">// Specify the classloader to use to load the remote class (actor)</span>
+<span class="n">remote</span><span class="o">.</span><span class="n">start</span><span class="o">(</span><span class="n">classLoader</span><span class="o">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="starting-remote-service-as-part-of-the-stand-alone-kernel">
+<h3>Starting remote service as part of the stand-alone Kernel</h3>
+<p>You simply need to make sure that the service is turned on in the external &#8216;akka.conf&#8217; configuration file.</p>
+<div class="highlight-ruby"><div class="highlight"><pre><span class="n">akka</span> <span class="p">{</span>
+  <span class="n">remote</span> <span class="p">{</span>
+    <span class="n">server</span> <span class="p">{</span>
+      <span class="n">service</span> <span class="o">=</span> <span class="n">on</span>
+      <span class="n">hostname</span> <span class="o">=</span> <span class="s2">&quot;localhost&quot;</span>
+      <span class="n">port</span> <span class="o">=</span> <span class="mi">2552</span>
+      <span class="n">connection</span><span class="o">-</span><span class="n">timeout</span> <span class="o">=</span> <span class="mi">1000</span> <span class="c1"># in millis</span>
+    <span class="p">}</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="stopping-a-remotenode-or-remoteserver">
+<h3>Stopping a RemoteNode or RemoteServer</h3>
+<p>If you invoke &#8216;shutdown&#8217; on the server then the connection will be closed.</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">import</span> <span class="nn">akka.actor.Actor._</span>
+
+<span class="n">remote</span><span class="o">.</span><span class="n">shutdown</span><span class="o">()</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="connecting-and-shutting-down-a-client-explicitly">
+<h3>Connecting and shutting down a client explicitly</h3>
+<p>Normally you should not have to start and stop the client connection explicitly since that is handled by Akka on a demand basis. But if you for some reason want to do that then you can do it like this:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">import</span> <span class="nn">akka.actor.Actor._</span>
+<span class="k">import</span> <span class="nn">java.net.InetSocketAddress</span>
+
+<span class="n">remote</span><span class="o">.</span><span class="n">shutdownClientConnection</span><span class="o">(</span><span class="k">new</span> <span class="nc">InetSocketAddress</span><span class="o">(</span><span class="s">&quot;localhost&quot;</span><span class="o">,</span> <span class="mi">6666</span><span class="o">))</span> <span class="c1">//Returns true if successful, false otherwise</span>
+<span class="n">remote</span><span class="o">.</span><span class="n">restartClientConnection</span><span class="o">(</span><span class="k">new</span> <span class="nc">InetSocketAddress</span><span class="o">(</span><span class="s">&quot;localhost&quot;</span><span class="o">,</span> <span class="mi">6666</span><span class="o">))</span> <span class="c1">//Returns true if successful, false otherwise</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="remote-client-message-frame-size-configuration">
+<h3>Remote Client message frame size configuration</h3>
+<p>You can define the max message frame size for the remote messages:</p>
+<div class="highlight-ruby"><div class="highlight"><pre><span class="n">akka</span> <span class="p">{</span>
+  <span class="n">remote</span> <span class="p">{</span>
+    <span class="n">client</span> <span class="p">{</span>
+      <span class="n">message</span><span class="o">-</span><span class="n">frame</span><span class="o">-</span><span class="n">size</span> <span class="o">=</span> <span class="mi">1048576</span>
+    <span class="p">}</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="remote-client-reconnect-configuration">
+<h3>Remote Client reconnect configuration</h3>
+<p>The Remote Client automatically performs reconnection upon connection failure.</p>
+<p>You can configure it like this:</p>
+<div class="highlight-ruby"><div class="highlight"><pre><span class="n">akka</span> <span class="p">{</span>
+  <span class="n">remote</span> <span class="p">{</span>
+    <span class="n">client</span> <span class="p">{</span>
+      <span class="n">reconnect</span><span class="o">-</span><span class="n">delay</span> <span class="o">=</span> <span class="mi">5</span>            <span class="c1"># in seconds (5 sec default)</span>
+      <span class="n">read</span><span class="o">-</span><span class="n">timeout</span> <span class="o">=</span> <span class="mi">10</span>              <span class="c1"># in seconds (10 sec default)</span>
+      <span class="n">reconnection</span><span class="o">-</span><span class="n">time</span><span class="o">-</span><span class="n">window</span> <span class="o">=</span> <span class="mi">600</span> <span class="c1"># the maximum time window that a client should try to reconnect for</span>
+    <span class="p">}</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>The RemoteClient is automatically trying to reconnect to the server if the connection is broken. By default it has a reconnection window of 10 minutes (600 seconds).</p>
+<p>If it has not been able to reconnect during this period of time then it is shut down and further attempts to use it will yield a &#8216;RemoteClientException&#8217;. The &#8216;RemoteClientException&#8217; contains the message as well as a reference to the RemoteClient that is not yet connect in order for you to retrieve it an do an explicit connect if needed.</p>
+<p>You can also register a listener that will listen for example the &#8216;RemoteClientStopped&#8217; event, retrieve the &#8216;RemoteClient&#8217; from it and reconnect explicitly.</p>
+<p>See the section on RemoteClient listener and events below for details.</p>
+</div>
+<div class="section" id="remote-client-message-buffering-and-send-retry-on-failure">
+<h3>Remote Client message buffering and send retry on failure</h3>
+<p>The Remote Client implements message buffering on network failure. This feature has zero overhead (even turned on) in the successful scenario and a queue append operation in case of unsuccessful send. So it is really really fast.</p>
+<p>The default behavior is that the remote client will maintain a transaction log of all messages that it has failed to send due to network problems (not other problems like serialization errors etc.).  The client will try to resend these messages upon first successful reconnect and the message ordering is maintained. This means that the remote client will swallow all exceptions due to network failure and instead queue remote messages in the transaction log. The failures will however be reported through the remote client life-cycle events as well as the regular Akka event handler. You can turn this behavior on and off in the configuration file. It gives &#8216;at-least-once&#8217; semantics, use a message id/counter for discarding potential duplicates (or use idempotent messages).</p>
+<div class="highlight-ruby"><div class="highlight"><pre><span class="n">akka</span> <span class="p">{</span>
+  <span class="n">remote</span> <span class="p">{</span>
+    <span class="n">client</span> <span class="p">{</span>
+      <span class="n">buffering</span> <span class="p">{</span>
+        <span class="k">retry</span><span class="o">-</span><span class="n">message</span><span class="o">-</span><span class="nb">send</span><span class="o">-</span><span class="n">on</span><span class="o">-</span><span class="n">failure</span> <span class="o">=</span> <span class="n">on</span>
+        <span class="n">capacity</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>                      <span class="c1"># If negative (or zero) then an unbounded mailbox is used (default)</span>
+                                           <span class="c1"># If positive then a bounded mailbox is used and the capacity is set using the property</span>
+      <span class="p">}</span>
+    <span class="p">}</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>If you choose a capacity higher than 0, then a bounded queue will be used and if the limit of the queue is reached then a &#8216;RemoteClientMessageBufferException&#8217; will be thrown.</p>
+</div>
+</div>
+<div class="section" id="running-remote-server-in-untrusted-mode">
+<h2>Running Remote Server in untrusted mode</h2>
+<p>You can run the remote server in untrusted mode. This means that the server will not allow any client-managed remote actors or any life-cycle messages and methods. This is useful if you want to let untrusted clients use server-managed actors in a safe way. This can optionally be combined with the secure cookie authentication mechanism described below as well as the SSL support for remote actor communication.</p>
+<p>If the client is trying to perform one of these unsafe actions then a &#8216;java.lang.SecurityException&#8217; is thrown on the server as well as transferred to the client and thrown there as well.</p>
+<p>Here is how you turn it on:</p>
+<div class="highlight-ruby"><div class="highlight"><pre><span class="n">akka</span> <span class="p">{</span>
+  <span class="n">remote</span> <span class="p">{</span>
+    <span class="n">server</span> <span class="p">{</span>
+      <span class="n">untrusted</span><span class="o">-</span><span class="n">mode</span> <span class="o">=</span> <span class="n">on</span> <span class="c1"># the default is &#39;off&#39;</span>
+    <span class="p">}</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>The messages that it prevents are all that extends &#8216;LifeCycleMessage&#8217;:
+* class HotSwap(..)
+* class RevertHotSwap..)
+* class Restart(..)
+* class Exit(..)
+* class Link(..)
+* class Unlink(..)
+* class UnlinkAndStop(..)
+* class ReceiveTimeout..)</p>
+<p>It also prevents the client from invoking any life-cycle and side-effecting methods, such as:
+* start
+* stop
+* link
+* unlink
+* spawnLink
+* etc.</p>
+</div>
+<div class="section" id="using-secure-cookie-for-remote-client-authentication">
+<h2>Using secure cookie for remote client authentication</h2>
+<p>Akka is using a similar scheme for remote client node authentication as Erlang; using secure cookies. In order to use this authentication mechanism you have to do two things:</p>
+<ul class="simple">
+<li>Enable secure cookie authentication in the remote server</li>
+<li>Use the same secure cookie on all the trusted peer nodes</li>
+</ul>
+<div class="section" id="enabling-secure-cookie-authentication">
+<h3>Enabling secure cookie authentication</h3>
+<p>The first one is done by enabling the secure cookie authentication in the remote server section in the configuration file:</p>
+<div class="highlight-ruby"><div class="highlight"><pre><span class="n">akka</span> <span class="p">{</span>
+  <span class="n">remote</span> <span class="p">{</span>
+    <span class="n">server</span> <span class="p">{</span>
+      <span class="nb">require</span><span class="o">-</span><span class="n">cookie</span> <span class="o">=</span> <span class="n">on</span>
+    <span class="p">}</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>Now if you have try to connect to a server with a client then it will first try to authenticate the client by comparing the secure cookie for the two nodes. If they are the same then it allows the client to connect and use the server freely but if they are not the same then it will throw a &#8216;java.lang.SecurityException&#8217; and not allow the client to connect.</p>
+</div>
+<div class="section" id="generating-and-using-the-secure-cookie">
+<h3>Generating and using the secure cookie</h3>
+<p>The secure cookie can be any string value but in order to ensure that it is secure it is best to randomly generate it. This can be done by invoking the &#8216;generate_config_with_secure_cookie.sh&#8217; script which resides in the &#8216;$AKKA_HOME/scripts&#8217; folder. This script will generate and print out a complete &#8216;akka.conf&#8217; configuration file with the generated secure cookie defined that you can either use as-is or cut and paste the &#8216;secure-cookie&#8217; snippet. Here is an example of its generated output:</p>
+<div class="highlight-ruby"><div class="highlight"><pre><span class="c1"># This config imports the Akka reference configuration.</span>
+<span class="kp">include</span> <span class="s2">&quot;akka-reference.conf&quot;</span>
+
+<span class="c1"># In this file you can override any option defined in the &#39;akka-reference.conf&#39; file.</span>
+<span class="c1"># Copy in all or parts of the &#39;akka-reference.conf&#39; file and modify as you please.</span>
+
+<span class="n">akka</span> <span class="p">{</span>
+  <span class="n">remote</span> <span class="p">{</span>
+    <span class="n">secure</span><span class="o">-</span><span class="n">cookie</span> <span class="o">=</span> <span class="s2">&quot;000E02050F0300040C050C0D060A040306090B0C&quot;</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>The simplest way to use it is to have it create your &#8216;akka.conf&#8217; file like this:</p>
+<div class="highlight-ruby"><div class="highlight"><pre><span class="n">cd</span> <span class="vg">$AKKA_HOME</span>
+<span class="o">.</span><span class="n">/scripts</span><span class="o">/</span><span class="n">generate_config_with_secure_cookie</span><span class="o">.</span><span class="n">sh</span> <span class="o">&gt;</span> <span class="o">.</span><span class="n">/config</span><span class="o">/</span><span class="n">akka</span><span class="o">.</span><span class="n">conf</span>
+</pre></div>
+</div>
+<p>Now it is good to make sure that the configuration file is only accessible by the owner of the file. On Unix-style file system this can be done like this:</p>
+<div class="highlight-ruby"><div class="highlight"><pre><span class="n">chmod</span> <span class="mi">400</span> <span class="o">.</span><span class="n">/config</span><span class="o">/</span><span class="n">akka</span><span class="o">.</span><span class="n">conf</span>
+</pre></div>
+</div>
+<p>Running this script requires having &#8216;scala&#8217; on the path (and will take a couple of seconds to run since it is using Scala and has to boot up the JVM to run).</p>
+<p>You can also generate the secure cookie by using the &#8216;Crypt&#8217; object and its &#8216;generateSecureCookie&#8217; method.</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">import</span> <span class="nn">akka.util.Crypt</span>
+
+<span class="k">val</span> <span class="n">secureCookie</span> <span class="k">=</span> <span class="nc">Crypt</span><span class="o">.</span><span class="n">generateSecureCookie</span>
+</pre></div>
+</div>
+<p>The secure cookie is a cryptographically secure randomly generated byte array turned into a SHA-1 hash.</p>
+</div>
+</div>
+<div class="section" id="client-managed-remote-actors">
+<h2>Client-managed Remote Actors</h2>
+<p>DEPRECATED AS OF 1.1</p>
+<p>The client creates the remote actor and &#8220;moves it&#8221; to the server.</p>
+<p>When you define an actor as being remote it is instantiated as on the remote host and your local actor becomes a proxy, it works as a handle to the remote actor. The real execution is always happening on the remote node.</p>
+<p>Actors can be made remote by calling remote.actorOf[MyActor](host, port)</p>
+<p>Here is an example:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">import</span> <span class="nn">akka.actor.Actor</span>
+
+<span class="k">class</span> <span class="nc">MyActor</span> <span class="k">extends</span> <span class="nc">Actor</span> <span class="o">{</span>
+  <span class="k">def</span> <span class="n">receive</span> <span class="k">=</span> <span class="o">{</span>
+    <span class="k">case</span>  <span class="s">&quot;hello&quot;</span> <span class="k">=&gt;</span> <span class="n">self</span><span class="o">.</span><span class="n">reply</span><span class="o">(</span><span class="s">&quot;world&quot;</span><span class="o">)</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+
+<span class="k">val</span> <span class="n">remoteActor</span> <span class="k">=</span> <span class="nc">Actor</span><span class="o">.</span><span class="n">remote</span><span class="o">.</span><span class="n">actorOf</span><span class="o">[</span><span class="kt">MyActor</span><span class="o">](</span><span class="s">&quot;192.68.23.769&quot;</span><span class="o">,</span> <span class="mi">2552</span><span class="o">)</span>
+</pre></div>
+</div>
+<p>An Actor can also start remote child Actors through one of the &#8216;spawn/link&#8217; methods. These will start, link and make the Actor remote atomically.</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="o">...</span>
+<span class="n">self</span><span class="o">.</span><span class="n">spawnRemote</span><span class="o">[</span><span class="kt">MyActor</span><span class="o">](</span><span class="n">hostname</span><span class="o">,</span> <span class="n">port</span><span class="o">,</span> <span class="n">timeout</span><span class="o">)</span>
+<span class="n">self</span><span class="o">.</span><span class="n">spawnLinkRemote</span><span class="o">[</span><span class="kt">MyActor</span><span class="o">](</span><span class="n">hostname</span><span class="o">,</span> <span class="n">port</span><span class="o">,</span> <span class="n">timeout</span><span class="o">)</span>
+<span class="o">...</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="server-managed-remote-actors">
+<h2>Server-managed Remote Actors</h2>
+<p>Here it is the server that creates the remote actor and the client can ask for a handle to this actor.</p>
+<div class="section" id="server-side-setup">
+<h3>Server side setup</h3>
+<p>The API for server managed remote actors is really simple. 2 methods only:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">class</span> <span class="nc">HelloWorldActor</span> <span class="k">extends</span> <span class="nc">Actor</span> <span class="o">{</span>
+  <span class="k">def</span> <span class="n">receive</span> <span class="k">=</span> <span class="o">{</span>
+    <span class="k">case</span> <span class="s">&quot;Hello&quot;</span> <span class="k">=&gt;</span> <span class="n">self</span><span class="o">.</span><span class="n">reply</span><span class="o">(</span><span class="s">&quot;World&quot;</span><span class="o">)</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+
+<span class="n">remote</span><span class="o">.</span><span class="n">start</span><span class="o">(</span><span class="s">&quot;localhost&quot;</span><span class="o">,</span> <span class="mi">2552</span><span class="o">)</span> <span class="c1">//Start the server</span>
+<span class="n">remote</span><span class="o">.</span><span class="n">register</span><span class="o">(</span><span class="s">&quot;hello-service&quot;</span><span class="o">,</span> <span class="n">actorOf</span><span class="o">[</span><span class="kt">HelloWorldActor</span><span class="o">])</span> <span class="c1">//Register the actor with the specified service id</span>
+</pre></div>
+</div>
+<p>Actors created like this are automatically started.</p>
+<p>You can also register an actor by its UUID rather than ID or handle. This is done by prefixing the handle with the &#8220;uuid:&#8221; protocol.</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="n">remote</span><span class="o">.</span><span class="n">register</span><span class="o">(</span><span class="s">&quot;uuid:&quot;</span> <span class="o">+</span> <span class="n">actor</span><span class="o">.</span><span class="n">uuid</span><span class="o">,</span> <span class="n">actor</span><span class="o">)</span>
+
+<span class="n">remote</span><span class="o">.</span><span class="n">unregister</span><span class="o">(</span><span class="s">&quot;uuid:&quot;</span> <span class="o">+</span> <span class="n">actor</span><span class="o">.</span><span class="n">uuid</span><span class="o">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="session-bound-server-side-setup">
+<h3>Session bound server side setup</h3>
+<p>Session bound server managed remote actors work by creating and starting a new actor for every client that connects. Actors are stopped automatically when the client disconnects. The client side is the same as regular server managed remote actors. Use the function registerPerSession instead of register.</p>
+<p>Session bound actors are useful if you need to keep state per session, e.g. username.
+They are also useful if you need to perform some cleanup when a client disconnects by overriding the postStop method as described <a class="reference external" href="actors-scala#Stoppingactors">here</a></p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">class</span> <span class="nc">HelloWorldActor</span> <span class="k">extends</span> <span class="nc">Actor</span> <span class="o">{</span>
+  <span class="k">def</span> <span class="n">receive</span> <span class="k">=</span> <span class="o">{</span>
+    <span class="k">case</span> <span class="s">&quot;Hello&quot;</span> <span class="k">=&gt;</span> <span class="n">self</span><span class="o">.</span><span class="n">reply</span><span class="o">(</span><span class="s">&quot;World&quot;</span><span class="o">)</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+<span class="n">remote</span><span class="o">.</span><span class="n">start</span><span class="o">(</span><span class="s">&quot;localhost&quot;</span><span class="o">,</span> <span class="mi">2552</span><span class="o">)</span>
+<span class="n">remote</span><span class="o">.</span><span class="n">registerPerSession</span><span class="o">(</span><span class="s">&quot;hello-service&quot;</span><span class="o">,</span> <span class="n">actorOf</span><span class="o">[</span><span class="kt">HelloWorldActor</span><span class="o">])</span>
+</pre></div>
+</div>
+<p>Note that the second argument in registerPerSession is an implicit function. It will be called to create an actor every time a session is established.</p>
+</div>
+<div class="section" id="client-side-usage">
+<h3>Client side usage</h3>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">val</span> <span class="n">actor</span> <span class="k">=</span> <span class="n">remote</span><span class="o">.</span><span class="n">actorFor</span><span class="o">(</span><span class="s">&quot;hello-service&quot;</span><span class="o">,</span> <span class="s">&quot;localhost&quot;</span><span class="o">,</span> <span class="mi">2552</span><span class="o">)</span>
+<span class="n">remote</span><span class="o">.</span><span class="n">start</span><span class="o">(</span><span class="s">&quot;localhost&quot;</span><span class="o">,</span> <span class="mi">2553</span><span class="o">);</span>
+<span class="k">val</span> <span class="n">result</span> <span class="k">=</span> <span class="o">(</span><span class="n">actor</span> <span class="o">?</span> <span class="s">&quot;Hello&quot;</span><span class="o">).</span><span class="n">as</span><span class="o">[</span><span class="kt">String</span><span class="o">]</span>
+</pre></div>
+</div>
+<p>There are many variations on the &#8216;remote#actorFor&#8217; method. Here are some of them:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="o">...</span> <span class="k">=</span> <span class="n">remote</span><span class="o">.</span><span class="n">actorFor</span><span class="o">(</span><span class="n">className</span><span class="o">,</span> <span class="n">hostname</span><span class="o">,</span> <span class="n">port</span><span class="o">)</span>
+<span class="o">...</span> <span class="k">=</span> <span class="n">remote</span><span class="o">.</span><span class="n">actorFor</span><span class="o">(</span><span class="n">className</span><span class="o">,</span> <span class="n">timeout</span><span class="o">,</span> <span class="n">hostname</span><span class="o">,</span> <span class="n">port</span><span class="o">)</span>
+<span class="o">...</span> <span class="k">=</span> <span class="n">remote</span><span class="o">.</span><span class="n">actorFor</span><span class="o">(</span><span class="n">uuid</span><span class="o">,</span> <span class="n">className</span><span class="o">,</span> <span class="n">hostname</span><span class="o">,</span> <span class="n">port</span><span class="o">)</span>
+<span class="o">...</span> <span class="k">=</span> <span class="n">remote</span><span class="o">.</span><span class="n">actorFor</span><span class="o">(</span><span class="n">uuid</span><span class="o">,</span> <span class="n">className</span><span class="o">,</span> <span class="n">timeout</span><span class="o">,</span> <span class="n">hostname</span><span class="o">,</span> <span class="n">port</span><span class="o">)</span>
+<span class="o">...</span> <span class="c1">// etc</span>
+</pre></div>
+</div>
+<p>All of these also have variations where you can pass in an explicit &#8216;ClassLoader&#8217; which can be used when deserializing messages sent from the remote actor.</p>
+</div>
+<div class="section" id="running-sample">
+<h3>Running sample</h3>
+<p>Here is a complete running sample (also available <a class="reference external" href="http://github.com/akka/akka/blob/master/akka-core/src/test/scala/ServerInitiatedRemoteActorSample.scala">here</a>):</p>
+<p>Paste in the code below into two sbt concole shells. Then run:</p>
+<ul class="simple">
+<li>ServerInitiatedRemoteActorServer.run() in one shell</li>
+<li>ServerInitiatedRemoteActorClient.run() in the other shell</li>
+</ul>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">import</span> <span class="nn">akka.actor.Actor</span>
+<span class="k">import</span> <span class="nn">Actor._</span>
+<span class="k">import</span> <span class="nn">akka.event.EventHandler</span>
+
+<span class="k">class</span> <span class="nc">HelloWorldActor</span> <span class="k">extends</span> <span class="nc">Actor</span> <span class="o">{</span>
+  <span class="k">def</span> <span class="n">receive</span> <span class="k">=</span> <span class="o">{</span>
+    <span class="k">case</span> <span class="s">&quot;Hello&quot;</span> <span class="k">=&gt;</span> <span class="n">self</span><span class="o">.</span><span class="n">reply</span><span class="o">(</span><span class="s">&quot;World&quot;</span><span class="o">)</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+
+<span class="k">object</span> <span class="nc">ServerInitiatedRemoteActorServer</span> <span class="o">{</span>
+
+  <span class="k">def</span> <span class="n">run</span><span class="o">()</span> <span class="o">{</span>
+    <span class="n">remote</span><span class="o">.</span><span class="n">start</span><span class="o">(</span><span class="s">&quot;localhost&quot;</span><span class="o">,</span> <span class="mi">2552</span><span class="o">)</span>
+    <span class="n">remote</span><span class="o">.</span><span class="n">register</span><span class="o">(</span><span class="s">&quot;hello-service&quot;</span><span class="o">,</span> <span class="n">actorOf</span><span class="o">[</span><span class="kt">HelloWorldActor</span><span class="o">])</span>
+  <span class="o">}</span>
+
+  <span class="k">def</span> <span class="n">main</span><span class="o">(</span><span class="n">args</span><span class="k">:</span> <span class="kt">Array</span><span class="o">[</span><span class="kt">String</span><span class="o">])</span> <span class="o">{</span> <span class="n">run</span><span class="o">()</span> <span class="o">}</span>
+<span class="o">}</span>
+
+<span class="k">object</span> <span class="nc">ServerInitiatedRemoteActorClient</span> <span class="o">{</span>
+
+  <span class="k">def</span> <span class="n">run</span><span class="o">()</span> <span class="o">{</span>
+    <span class="k">val</span> <span class="n">actor</span> <span class="k">=</span> <span class="n">remote</span><span class="o">.</span><span class="n">actorFor</span><span class="o">(</span><span class="s">&quot;hello-service&quot;</span><span class="o">,</span> <span class="s">&quot;localhost&quot;</span><span class="o">,</span> <span class="mi">2552</span><span class="o">)</span>
+    <span class="k">val</span> <span class="n">result</span> <span class="k">=</span> <span class="o">(</span><span class="n">actor</span> <span class="o">?</span> <span class="s">&quot;Hello&quot;</span><span class="o">).</span><span class="n">as</span><span class="o">[</span><span class="kt">AnyRef</span><span class="o">]</span>
+    <span class="nc">EventHandler</span><span class="o">.</span><span class="n">info</span><span class="o">(</span><span class="s">&quot;Result from Remote Actor: %s&quot;</span><span class="o">,</span> <span class="n">result</span><span class="o">)</span>
+  <span class="o">}</span>
+
+  <span class="k">def</span> <span class="n">main</span><span class="o">(</span><span class="n">args</span><span class="k">:</span> <span class="kt">Array</span><span class="o">[</span><span class="kt">String</span><span class="o">])</span> <span class="o">{</span> <span class="n">run</span><span class="o">()</span> <span class="o">}</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="automatic-remote-sender-reference-management">
+<h2>Automatic remote &#8216;sender&#8217; reference management</h2>
+<p>The sender of a remote message will be reachable with a reply through the remote server on the node that the actor is residing, automatically.
+Please note that firewalled clients won&#8217;t work right now. [2011-01-05]</p>
+</div>
+<div class="section" id="identifying-remote-actors">
+<h2>Identifying remote actors</h2>
+<p>The &#8216;id&#8217; field in the &#8216;Actor&#8217; class is of importance since it is used as identifier for the remote actor. If you want to create a brand new actor every time you instantiate a remote actor then you have to set the &#8216;id&#8217; field to a unique &#8216;String&#8217; for each instance. If you want to reuse the same remote actor instance for each new remote actor (of the same class) you create then you don&#8217;t have to do anything since the &#8216;id&#8217; field by default is equal to the name of the actor class.</p>
+<p>Here is an example of overriding the &#8216;id&#8217; field:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">import</span> <span class="nn">akka.actor.newUuid</span>
+
+<span class="k">class</span> <span class="nc">MyActor</span> <span class="k">extends</span> <span class="nc">Actor</span> <span class="o">{</span>
+  <span class="n">self</span><span class="o">.</span><span class="n">id</span> <span class="k">=</span> <span class="n">newUuid</span><span class="o">.</span><span class="n">toString</span>
+  <span class="k">def</span> <span class="n">receive</span> <span class="k">=</span> <span class="o">{</span>
+    <span class="k">case</span>  <span class="s">&quot;hello&quot;</span> <span class="k">=&gt;</span>  <span class="n">self</span><span class="o">.</span><span class="n">reply</span><span class="o">(</span><span class="s">&quot;world&quot;</span><span class="o">)</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+
+<span class="k">val</span> <span class="n">actor</span> <span class="k">=</span> <span class="n">remote</span><span class="o">.</span><span class="n">actorOf</span><span class="o">[</span><span class="kt">MyActor</span><span class="o">](</span><span class="s">&quot;192.68.23.769&quot;</span><span class="o">,</span> <span class="mi">2552</span><span class="o">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="client-managed-remote-typed-actors">
+<h2>Client-managed Remote Typed Actors</h2>
+<p>DEPRECATED AS OF 1.1</p>
+<p>You can define the Typed Actor to be a remote service by adding the &#8216;RemoteAddress&#8217; configuration element in the declarative supervisor configuration:</p>
+<div class="highlight-java"><div class="highlight"><pre><span class="k">new</span> <span class="nf">Component</span><span class="o">(</span>
+  <span class="n">Foo</span><span class="o">.</span><span class="na">class</span><span class="o">,</span>
+  <span class="k">new</span> <span class="nf">LifeCycle</span><span class="o">(</span><span class="k">new</span> <span class="n">Permanent</span><span class="o">(),</span> <span class="mi">1000</span><span class="o">),</span>
+  <span class="mi">1000</span><span class="o">,</span>
+  <span class="k">new</span> <span class="nf">RemoteAddress</span><span class="o">(</span><span class="s">&quot;localhost&quot;</span><span class="o">,</span> <span class="mi">2552</span><span class="o">))</span>
+</pre></div>
+</div>
+<p>You can also define an Typed Actor to be remote programmatically when creating it explicitly:</p>
+<div class="highlight-java"><div class="highlight"><pre><span class="n">TypedActorFactory</span> <span class="n">factory</span> <span class="o">=</span> <span class="k">new</span> <span class="n">TypedActorFactory</span><span class="o">();</span>
+
+<span class="n">POJO</span> <span class="n">pojo</span> <span class="o">=</span> <span class="o">(</span><span class="n">POJO</span><span class="o">)</span> <span class="n">factory</span><span class="o">.</span><span class="na">newRemoteInstance</span><span class="o">(</span><span class="n">POJO</span><span class="o">.</span><span class="na">class</span><span class="o">,</span> <span class="mi">1000</span><span class="o">,</span> <span class="s">&quot;localhost&quot;</span><span class="o">,</span> <span class="mi">2552</span><span class="o">)</span>
+
+<span class="o">...</span> <span class="c1">// use pojo as usual</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="server-managed-remote-typed-actors">
+<h2>Server-managed Remote Typed Actors</h2>
+<p>WARNING: Remote TypedActors do not work with overloaded methods on your TypedActor, refrain from using overloading.</p>
+<div class="section" id="id1">
+<h3>Server side setup</h3>
+<p>The API for server managed remote typed actors is nearly the same as for untyped actor</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">class</span> <span class="nc">RegistrationServiceImpl</span> <span class="k">extends</span> <span class="nc">TypedActor</span> <span class="k">with</span> <span class="nc">RegistrationService</span> <span class="o">{</span>
+  <span class="k">def</span> <span class="n">registerUser</span><span class="o">(</span><span class="n">user</span><span class="k">:</span> <span class="kt">User</span><span class="o">)</span><span class="k">:</span> <span class="kt">Unit</span> <span class="o">=</span> <span class="o">{</span>
+    <span class="o">...</span> <span class="c1">// register user</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+
+<span class="n">remote</span><span class="o">.</span><span class="n">start</span><span class="o">(</span><span class="s">&quot;localhost&quot;</span><span class="o">,</span> <span class="mi">2552</span><span class="o">)</span>
+
+<span class="k">val</span> <span class="n">typedActor</span> <span class="k">=</span> <span class="nc">TypedActor</span><span class="o">.</span><span class="n">newInstance</span><span class="o">(</span><span class="n">classOf</span><span class="o">[</span><span class="kt">RegistrationService</span><span class="o">],</span> <span class="n">classOf</span><span class="o">[</span><span class="kt">RegistrationServiceImpl</span><span class="o">],</span> <span class="mi">2000</span><span class="o">)</span>
+<span class="n">remote</span><span class="o">.</span><span class="n">registerTypedActor</span><span class="o">(</span><span class="s">&quot;user-service&quot;</span><span class="o">,</span> <span class="n">typedActor</span><span class="o">)</span>
+</pre></div>
+</div>
+<p>Actors created like this are automatically started.</p>
+</div>
+<div class="section" id="id2">
+<h3>Session bound server side setup</h3>
+<p>Session bound server managed remote actors work by creating and starting a new actor for every client that connects. Actors are stopped automatically when the client disconnects. The client side is the same as regular server managed remote actors. Use the function registerTypedPerSessionActor instead of registerTypedActor.</p>
+<p>Session bound actors are useful if you need to keep state per session, e.g. username.
+They are also useful if you need to perform some cleanup when a client disconnects.</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">class</span> <span class="nc">RegistrationServiceImpl</span> <span class="k">extends</span> <span class="nc">TypedActor</span> <span class="k">with</span> <span class="nc">RegistrationService</span> <span class="o">{</span>
+  <span class="k">def</span> <span class="n">registerUser</span><span class="o">(</span><span class="n">user</span><span class="k">:</span> <span class="kt">User</span><span class="o">)</span><span class="k">:</span> <span class="kt">Unit</span> <span class="o">=</span> <span class="o">{</span>
+    <span class="o">...</span> <span class="c1">// register user</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+<span class="n">remote</span><span class="o">.</span><span class="n">start</span><span class="o">(</span><span class="s">&quot;localhost&quot;</span><span class="o">,</span> <span class="mi">2552</span><span class="o">)</span>
+
+<span class="n">remote</span><span class="o">.</span><span class="n">registerTypedPerSessionActor</span><span class="o">(</span><span class="s">&quot;user-service&quot;</span><span class="o">,</span>
+   <span class="nc">TypedActor</span><span class="o">.</span><span class="n">newInstance</span><span class="o">(</span><span class="n">classOf</span><span class="o">[</span><span class="kt">RegistrationService</span><span class="o">],</span>
+    <span class="n">classOf</span><span class="o">[</span><span class="kt">RegistrationServiceImpl</span><span class="o">],</span> <span class="mi">2000</span><span class="o">))</span>
+</pre></div>
+</div>
+<p>Note that the second argument in registerTypedPerSessionActor is an implicit function. It will be called to create an actor every time a session is established.</p>
+</div>
+<div class="section" id="id3">
+<h3>Client side usage</h3>
+<div class="highlight-scala"><pre>val actor = remote.typedActorFor(classOf[RegistrationService], "user-service", 5000L, "localhost", 2552)
+actor.registerUser(…)</pre>
+</div>
+<p>There are variations on the &#8216;remote#typedActorFor&#8217; method. Here are some of them:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="o">...</span> <span class="k">=</span> <span class="n">remote</span><span class="o">.</span><span class="n">typedActorFor</span><span class="o">(</span><span class="n">interfaceClazz</span><span class="o">,</span> <span class="n">serviceIdOrClassName</span><span class="o">,</span> <span class="n">hostname</span><span class="o">,</span> <span class="n">port</span><span class="o">)</span>
+<span class="o">...</span> <span class="k">=</span> <span class="n">remote</span><span class="o">.</span><span class="n">typedActorFor</span><span class="o">(</span><span class="n">interfaceClazz</span><span class="o">,</span> <span class="n">serviceIdOrClassName</span><span class="o">,</span> <span class="n">timeout</span><span class="o">,</span> <span class="n">hostname</span><span class="o">,</span> <span class="n">port</span><span class="o">)</span>
+<span class="o">...</span> <span class="k">=</span> <span class="n">remote</span><span class="o">.</span><span class="n">typedActorFor</span><span class="o">(</span><span class="n">interfaceClazz</span><span class="o">,</span> <span class="n">serviceIdOrClassName</span><span class="o">,</span> <span class="n">timeout</span><span class="o">,</span> <span class="n">hostname</span><span class="o">,</span> <span class="n">port</span><span class="o">,</span> <span class="n">classLoader</span><span class="o">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="data-compression-configuration">
+<h2>Data Compression Configuration</h2>
+<p>Akka uses compression to minimize the size of the data sent over the wire. Currently it only supports &#8216;zlib&#8217; compression but more will come later.</p>
+<p>You can configure it like this:</p>
+<div class="highlight-ruby"><div class="highlight"><pre><span class="n">akka</span> <span class="p">{</span>
+  <span class="n">remote</span> <span class="p">{</span>
+    <span class="n">compression</span><span class="o">-</span><span class="n">scheme</span> <span class="o">=</span> <span class="s2">&quot;zlib&quot;</span> <span class="c1"># Options: &quot;zlib&quot; (lzf to come), leave out for no compression</span>
+    <span class="n">zlib</span><span class="o">-</span><span class="n">compression</span><span class="o">-</span><span class="n">level</span> <span class="o">=</span> <span class="mi">6</span>  <span class="c1"># Options: 0-9 (1 being fastest and 9 being the most compressed), default is 6</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="code-provisioning">
+<h2>Code provisioning</h2>
+<p>Akka does currently not support automatic code provisioning but requires you to have the remote actor class files available on both the &#8220;client&#8221; the &#8220;server&#8221; nodes.
+This is something that will be addressed soon. Until then, sorry for the inconvenience.</p>
+</div>
+<div class="section" id="subscribe-to-remote-client-events">
+<h2>Subscribe to Remote Client events</h2>
+<p>Akka has a subscription API for the client event. You can register an Actor as a listener and this actor will have to be able to process these events:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">sealed</span> <span class="k">trait</span> <span class="nc">RemoteClientLifeCycleEvent</span>
+<span class="k">case</span> <span class="k">class</span> <span class="nc">RemoteClientError</span><span class="o">(</span>
+  <span class="nd">@BeanProperty</span> <span class="n">cause</span><span class="k">:</span> <span class="kt">Throwable</span><span class="o">,</span>
+  <span class="nd">@BeanProperty</span> <span class="n">client</span><span class="k">:</span> <span class="kt">RemoteClientModule</span><span class="o">,</span>
+  <span class="nd">@BeanProperty</span> <span class="n">remoteAddress</span><span class="k">:</span> <span class="kt">InetSocketAddress</span><span class="o">)</span> <span class="k">extends</span> <span class="nc">RemoteClientLifeCycleEvent</span>
+
+<span class="k">case</span> <span class="k">class</span> <span class="nc">RemoteClientDisconnected</span><span class="o">(</span>
+  <span class="nd">@BeanProperty</span> <span class="n">client</span><span class="k">:</span> <span class="kt">RemoteClientModule</span><span class="o">,</span>
+  <span class="nd">@BeanProperty</span> <span class="n">remoteAddress</span><span class="k">:</span> <span class="kt">InetSocketAddress</span><span class="o">)</span> <span class="k">extends</span> <span class="nc">RemoteClientLifeCycleEvent</span>
+
+<span class="k">case</span> <span class="k">class</span> <span class="nc">RemoteClientConnected</span><span class="o">(</span>
+  <span class="nd">@BeanProperty</span> <span class="n">client</span><span class="k">:</span> <span class="kt">RemoteClientModule</span><span class="o">,</span>
+  <span class="nd">@BeanProperty</span> <span class="n">remoteAddress</span><span class="k">:</span> <span class="kt">InetSocketAddress</span><span class="o">)</span> <span class="k">extends</span> <span class="nc">RemoteClientLifeCycleEvent</span>
+
+<span class="k">case</span> <span class="k">class</span> <span class="nc">RemoteClientStarted</span><span class="o">(</span>
+  <span class="nd">@BeanProperty</span> <span class="n">client</span><span class="k">:</span> <span class="kt">RemoteClientModule</span><span class="o">,</span>
+  <span class="nd">@BeanProperty</span> <span class="n">remoteAddress</span><span class="k">:</span> <span class="kt">InetSocketAddress</span><span class="o">)</span> <span class="k">extends</span> <span class="nc">RemoteClientLifeCycleEvent</span>
+
+<span class="k">case</span> <span class="k">class</span> <span class="nc">RemoteClientShutdown</span><span class="o">(</span>
+  <span class="nd">@BeanProperty</span> <span class="n">client</span><span class="k">:</span> <span class="kt">RemoteClientModule</span><span class="o">,</span>
+  <span class="nd">@BeanProperty</span> <span class="n">remoteAddress</span><span class="k">:</span> <span class="kt">InetSocketAddress</span><span class="o">)</span> <span class="k">extends</span> <span class="nc">RemoteClientLifeCycleEvent</span>
+
+<span class="k">case</span> <span class="k">class</span> <span class="nc">RemoteClientWriteFailed</span><span class="o">(</span>
+  <span class="nd">@BeanProperty</span> <span class="n">request</span><span class="k">:</span> <span class="kt">AnyRef</span><span class="o">,</span>
+  <span class="nd">@BeanProperty</span> <span class="n">cause</span><span class="k">:</span> <span class="kt">Throwable</span><span class="o">,</span>
+  <span class="nd">@BeanProperty</span> <span class="n">client</span><span class="k">:</span> <span class="kt">RemoteClientModule</span><span class="o">,</span>
+  <span class="nd">@BeanProperty</span> <span class="n">remoteAddress</span><span class="k">:</span> <span class="kt">InetSocketAddress</span><span class="o">)</span> <span class="k">extends</span> <span class="nc">RemoteClientLifeCycleEvent</span>
+</pre></div>
+</div>
+<p>So a simple listener actor can look like this:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">import</span> <span class="nn">akka.actor.Actor</span>
+<span class="k">import</span> <span class="nn">akka.actor.Actor._</span>
+<span class="k">import</span> <span class="nn">akka.remoteinterface._</span>
+
+<span class="k">val</span> <span class="n">listener</span> <span class="k">=</span> <span class="n">actorOf</span><span class="o">(</span><span class="k">new</span> <span class="nc">Actor</span> <span class="o">{</span>
+  <span class="k">def</span> <span class="n">receive</span> <span class="k">=</span> <span class="o">{</span>
+    <span class="k">case</span> <span class="nc">RemoteClientError</span><span class="o">(</span><span class="n">cause</span><span class="o">,</span> <span class="n">client</span><span class="o">,</span> <span class="n">address</span><span class="o">)</span> <span class="k">=&gt;</span> <span class="c1">//... act upon error</span>
+    <span class="k">case</span> <span class="nc">RemoteClientDisconnected</span><span class="o">(</span><span class="n">client</span><span class="o">,</span> <span class="n">address</span><span class="o">)</span> <span class="k">=&gt;</span> <span class="c1">//... act upon disconnection</span>
+    <span class="k">case</span> <span class="nc">RemoteClientConnected</span><span class="o">(</span><span class="n">client</span><span class="o">,</span> <span class="n">address</span><span class="o">)</span>    <span class="k">=&gt;</span> <span class="c1">//... act upon connection</span>
+    <span class="k">case</span> <span class="nc">RemoteClientStarted</span><span class="o">(</span><span class="n">client</span><span class="o">,</span> <span class="n">address</span><span class="o">)</span>      <span class="k">=&gt;</span> <span class="c1">//... act upon client shutdown</span>
+    <span class="k">case</span> <span class="nc">RemoteClientShutdown</span><span class="o">(</span><span class="n">client</span><span class="o">,</span> <span class="n">address</span><span class="o">)</span>     <span class="k">=&gt;</span> <span class="c1">//... act upon client shutdown</span>
+    <span class="k">case</span> <span class="nc">RemoteClientWriteFailed</span><span class="o">(</span><span class="n">request</span><span class="o">,</span> <span class="n">cause</span><span class="o">,</span> <span class="n">client</span><span class="o">,</span> <span class="n">address</span><span class="o">)</span> <span class="k">=&gt;</span> <span class="c1">//... act upon write failure</span>
+    <span class="k">case</span> <span class="k">_</span> <span class="k">=&gt;</span> <span class="c1">// ignore other</span>
+  <span class="o">}</span>
+<span class="o">}).</span><span class="n">start</span><span class="o">()</span>
+</pre></div>
+</div>
+<p>Registration and de-registration can be done like this:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="n">remote</span><span class="o">.</span><span class="n">addListener</span><span class="o">(</span><span class="n">listener</span><span class="o">)</span>
+<span class="o">...</span>
+<span class="n">remote</span><span class="o">.</span><span class="n">removeListener</span><span class="o">(</span><span class="n">listener</span><span class="o">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="subscribe-to-remote-server-events">
+<h2>Subscribe to Remote Server events</h2>
+<p>Akka has a subscription API for the &#8216;RemoteServer&#8217;. You can register an Actor as a listener and this actor will have to be able to process these events:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">sealed</span> <span class="k">trait</span> <span class="nc">RemoteServerLifeCycleEvent</span>
+<span class="k">case</span> <span class="k">class</span> <span class="nc">RemoteServerStarted</span><span class="o">(</span>
+  <span class="nd">@BeanProperty</span> <span class="k">val</span> <span class="n">server</span><span class="k">:</span> <span class="kt">RemoteServerModule</span><span class="o">)</span> <span class="k">extends</span> <span class="nc">RemoteServerLifeCycleEvent</span>
+<span class="k">case</span> <span class="k">class</span> <span class="nc">RemoteServerShutdown</span><span class="o">(</span>
+  <span class="nd">@BeanProperty</span> <span class="k">val</span> <span class="n">server</span><span class="k">:</span> <span class="kt">RemoteServerModule</span><span class="o">)</span> <span class="k">extends</span> <span class="nc">RemoteServerLifeCycleEvent</span>
+<span class="k">case</span> <span class="k">class</span> <span class="nc">RemoteServerError</span><span class="o">(</span>
+  <span class="nd">@BeanProperty</span> <span class="k">val</span> <span class="n">cause</span><span class="k">:</span> <span class="kt">Throwable</span><span class="o">,</span>
+  <span class="nd">@BeanProperty</span> <span class="k">val</span> <span class="n">server</span><span class="k">:</span> <span class="kt">RemoteServerModule</span><span class="o">)</span> <span class="k">extends</span> <span class="nc">RemoteServerLifeCycleEvent</span>
+<span class="k">case</span> <span class="k">class</span> <span class="nc">RemoteServerClientConnected</span><span class="o">(</span>
+  <span class="nd">@BeanProperty</span> <span class="k">val</span> <span class="n">server</span><span class="k">:</span> <span class="kt">RemoteServerModule</span><span class="o">,</span>
+  <span class="nd">@BeanProperty</span> <span class="k">val</span> <span class="n">clientAddress</span><span class="k">:</span> <span class="kt">Option</span><span class="o">[</span><span class="kt">InetSocketAddress</span><span class="o">])</span> <span class="k">extends</span> <span class="nc">RemoteServerLifeCycleEvent</span>
+<span class="k">case</span> <span class="k">class</span> <span class="nc">RemoteServerClientDisconnected</span><span class="o">(</span>
+  <span class="nd">@BeanProperty</span> <span class="k">val</span> <span class="n">server</span><span class="k">:</span> <span class="kt">RemoteServerModule</span><span class="o">,</span>
+  <span class="nd">@BeanProperty</span> <span class="k">val</span> <span class="n">clientAddress</span><span class="k">:</span> <span class="kt">Option</span><span class="o">[</span><span class="kt">InetSocketAddress</span><span class="o">])</span> <span class="k">extends</span> <span class="nc">RemoteServerLifeCycleEvent</span>
+<span class="k">case</span> <span class="k">class</span> <span class="nc">RemoteServerClientClosed</span><span class="o">(</span>
+  <span class="nd">@BeanProperty</span> <span class="k">val</span> <span class="n">server</span><span class="k">:</span> <span class="kt">RemoteServerModule</span><span class="o">,</span>
+  <span class="nd">@BeanProperty</span> <span class="k">val</span> <span class="n">clientAddress</span><span class="k">:</span> <span class="kt">Option</span><span class="o">[</span><span class="kt">InetSocketAddress</span><span class="o">])</span> <span class="k">extends</span> <span class="nc">RemoteServerLifeCycleEvent</span>
+<span class="k">case</span> <span class="k">class</span> <span class="nc">RemoteServerWriteFailed</span><span class="o">(</span>
+  <span class="nd">@BeanProperty</span> <span class="n">request</span><span class="k">:</span> <span class="kt">AnyRef</span><span class="o">,</span>
+  <span class="nd">@BeanProperty</span> <span class="n">cause</span><span class="k">:</span> <span class="kt">Throwable</span><span class="o">,</span>
+  <span class="nd">@BeanProperty</span> <span class="n">server</span><span class="k">:</span> <span class="kt">RemoteServerModule</span><span class="o">,</span>
+  <span class="nd">@BeanProperty</span> <span class="n">clientAddress</span><span class="k">:</span> <span class="kt">Option</span><span class="o">[</span><span class="kt">InetSocketAddress</span><span class="o">])</span> <span class="k">extends</span> <span class="nc">RemoteServerLifeCycleEvent</span>
+</pre></div>
+</div>
+<p>So a simple listener actor can look like this:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">import</span> <span class="nn">akka.actor.Actor</span>
+<span class="k">import</span> <span class="nn">akka.actor.Actor._</span>
+<span class="k">import</span> <span class="nn">akka.remoteinterface._</span>
+
+<span class="k">val</span> <span class="n">listener</span> <span class="k">=</span> <span class="n">actorOf</span><span class="o">(</span><span class="k">new</span> <span class="nc">Actor</span> <span class="o">{</span>
+  <span class="k">def</span> <span class="n">receive</span> <span class="k">=</span> <span class="o">{</span>
+    <span class="k">case</span> <span class="nc">RemoteServerStarted</span><span class="o">(</span><span class="n">server</span><span class="o">)</span>                           <span class="k">=&gt;</span> <span class="c1">//... act upon server start</span>
+    <span class="k">case</span> <span class="nc">RemoteServerShutdown</span><span class="o">(</span><span class="n">server</span><span class="o">)</span>                          <span class="k">=&gt;</span> <span class="c1">//... act upon server shutdown</span>
+    <span class="k">case</span> <span class="nc">RemoteServerError</span><span class="o">(</span><span class="n">cause</span><span class="o">,</span> <span class="n">server</span><span class="o">)</span>                      <span class="k">=&gt;</span> <span class="c1">//... act upon server error</span>
+    <span class="k">case</span> <span class="nc">RemoteServerClientConnected</span><span class="o">(</span><span class="n">server</span><span class="o">,</span> <span class="n">clientAddress</span><span class="o">)</span>    <span class="k">=&gt;</span> <span class="c1">//... act upon client connection</span>
+    <span class="k">case</span> <span class="nc">RemoteServerClientDisconnected</span><span class="o">(</span><span class="n">server</span><span class="o">,</span> <span class="n">clientAddress</span><span class="o">)</span> <span class="k">=&gt;</span> <span class="c1">//... act upon client disconnection</span>
+    <span class="k">case</span> <span class="nc">RemoteServerClientClosed</span><span class="o">(</span><span class="n">server</span><span class="o">,</span> <span class="n">clientAddress</span><span class="o">)</span>       <span class="k">=&gt;</span> <span class="c1">//... act upon client connection close</span>
+    <span class="k">case</span> <span class="nc">RemoteServerWriteFailed</span><span class="o">(</span><span class="n">request</span><span class="o">,</span> <span class="n">cause</span><span class="o">,</span> <span class="n">server</span><span class="o">,</span> <span class="n">clientAddress</span><span class="o">)</span> <span class="k">=&gt;</span> <span class="c1">//... act upon server write failure</span>
+  <span class="o">}</span>
+<span class="o">}).</span><span class="n">start</span><span class="o">()</span>
+</pre></div>
+</div>
+<p>Registration and de-registration can be done like this:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="n">remote</span><span class="o">.</span><span class="n">addListener</span><span class="o">(</span><span class="n">listener</span><span class="o">)</span>
+<span class="o">...</span>
+<span class="n">remote</span><span class="o">.</span><span class="n">removeListener</span><span class="o">(</span><span class="n">listener</span><span class="o">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="message-serialization">
+<h2>Message Serialization</h2>
+<p>All messages that are sent to remote actors needs to be serialized to binary format to be able to travel over the wire to the remote node. This is done by letting your messages extend one of the traits in the &#8216;akka.serialization.Serializable&#8217; object. If the messages don&#8217;t implement any specific serialization trait then the runtime will try to use standard Java serialization.</p>
+<p>Here are some examples, but full documentation can be found in the <a class="reference internal" href="serialization.html#serialization-scala"><em>Serialization (Scala)</em></a>.</p>
+<div class="section" id="scala-json">
+<h3>Scala JSON</h3>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">case</span> <span class="k">class</span> <span class="nc">MyMessage</span><span class="o">(</span><span class="n">id</span><span class="k">:</span> <span class="kt">String</span><span class="o">,</span> <span class="n">value</span><span class="k">:</span> <span class="kt">Tuple2</span><span class="o">[</span><span class="kt">String</span>, <span class="kt">Int</span><span class="o">])</span> <span class="k">extends</span> <span class="nc">Serializable</span><span class="o">.</span><span class="nc">ScalaJSON</span><span class="o">[</span><span class="kt">MyMessage</span><span class="o">]</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="protobuf">
+<h3>Protobuf</h3>
+<p>Protobuf message specification needs to be compiled with &#8216;protoc&#8217; compiler.</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="n">message</span> <span class="nc">ProtobufPOJO</span> <span class="o">{</span>
+  <span class="n">required</span> <span class="n">uint64</span> <span class="n">id</span> <span class="k">=</span> <span class="mi">1</span><span class="o">;</span>
+  <span class="n">required</span> <span class="n">string</span> <span class="n">name</span> <span class="k">=</span> <span class="mi">2</span><span class="o">;</span>
+  <span class="n">required</span> <span class="n">bool</span> <span class="n">status</span> <span class="k">=</span> <span class="mi">3</span><span class="o">;</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<p>Using the generated message builder to send the message to a remote actor:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">val</span> <span class="n">resultFuture</span> <span class="k">=</span> <span class="n">actor</span> <span class="o">?</span> <span class="nc">ProtobufPOJO</span><span class="o">.</span><span class="n">newBuilder</span>
+    <span class="o">.</span><span class="n">setId</span><span class="o">(</span><span class="mi">11</span><span class="o">)</span>
+    <span class="o">.</span><span class="n">setStatus</span><span class="o">(</span><span class="kc">true</span><span class="o">)</span>
+    <span class="o">.</span><span class="n">setName</span><span class="o">(</span><span class="s">&quot;Coltrane&quot;</span><span class="o">)</span>
+    <span class="o">.</span><span class="n">build</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+
+
+          </div>
+          <div class="span3"><p class="contents-title">Contents</p>
+              <div id="scroller-anchor">
+                <div id="scroller">
+                  <div id="toc"></div>
+                </div>
+              </div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="footer">
+  <div class="container">
+    <ul>
+      <li><h5>Akka</h5></li>
+      <li><a href="https://akka.io/docs">Documentation</a></li>
+      <li><a href="https://akka.io/downloads">Downloads</a></li>
+      <li><a href="https://akka.io/news">News</a></li>
+      <li><a href="http://letitcrash.com">Blog</a></li>
+    </ul>
+    <ul>
+      <li><h5>Contribute</h5></li>
+      <li><a href="http://github.com/akka/akka">Source Code</a></li>
+      <li><a href="http://groups.google.com/group/akka-user">Mailing List</a></li>      
+      <li><a href="http://www.assembla.com/spaces/akka/tickets">Report a Bug</a></li>      
+    </ul>
+    <ul>
+      <li><h5>Company</h5></li>
+      <li><a href="http://typesafe.com/products/typesafe-subscription">Commercial Support</a></li>
+      <li><a href="https://akka.io/team">Team</a></li>
+      <li><a href="mailto:info@typesafe.com">Contact</a></li>
+    </ul>
+    <ul>
+      <li><img src="../_static/watermark.png" align="center"/></li>
+    </ul>
+  </div>
+  <div class="container copyright">
+    <p style="float: left;">
+      © 2012 <a href="http://typesafe.com/">Typesafe Inc.</a> <span class="license">Akka is Open Source and available under the Apache 2 License.</span>
+    </p>
+    <p style="float: right; font-size: 12px;">
+      Last updated: Mar 08, 2012
+    </p>          
+  </div>
+</div>
+<script type="text/javascript">
+  $('#toc').toc();
+</script>
+  
+
+  </body>
+</html>

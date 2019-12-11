@@ -1,0 +1,482 @@
+
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" /><meta name="description" content="Akka is a toolkit for building highly concurrent, distributed, and resilient message-driven applications for Java and Scala."/><link rel="canonical" href="https://doc.akka.io/docs/akka/2.1/scala/howto.html"/>
+    
+    <title>HowTo: Common Patterns &mdash; Akka Documentation</title>
+    
+    <link rel="stylesheet" href="../_static/style.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/prettify.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/base.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
+    <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Exo:300,400,600,700" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '2.1.4',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+<script type="text/javascript" src="https://doc.akka.io/docs/akka/2.1.4/_static/warnOldDocs.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="../_static/toc.js"></script>
+    <script type="text/javascript" src="../_static/prettify.js"></script>
+    <script type="text/javascript" src="../_static/highlightCode.js"></script>
+    <script type="text/javascript" src="../_static/effects.core.js"></script>
+    <script type="text/javascript" src="../_static/effects.highlight.js"></script>
+    <script type="text/javascript" src="../_static/scrollTo.js"></script>
+    <script type="text/javascript" src="../_static/contentsFix.js"></script>
+    <script type="text/javascript" src="../_static/ga.js"></script>
+    <link rel="shortcut icon" href="../_static/favicon.ico"/>
+    <link rel="top" title="Akka Documentation" href="../index.html" />
+    <link rel="up" title="Scala API" href="index.html" />
+    <link rel="next" title="Modules" href="../modules/index.html" />
+    <link rel="prev" title="Durable Mailboxes (Scala)" href="durable-mailbox.html" />
+    <!--Google Analytics-->
+    <script type="text/javascript">
+      var _gaq = _gaq || [];
+      _gaq.push(['_setAccount', 'UA-21117439-1']);
+      _gaq.push(['_setDomainName', 'akka.io']);
+      _gaq.push(['_trackPageview']);
+      (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+      })()
+    </script>
+
+  </head>
+  <body>
+  <div class="navbar">
+    <div class="navbar-inner">
+      <div class="container">
+        <div class="navbar-logo">
+          <a href="https://akka.io"><img src="../_static/logo-small.png" /></a>
+        </div>    
+        <ul class="nav">
+          <li><a href="https://akka.io/docs">Documentation</a></li>
+          <li><a href="https://akka.io/faq">FAQ</a></li>
+          <li><a href="http://typesafe.com/stack/downloads/akka">Download</a></li>
+          <li><a href="http://groups.google.com/group/akka-user">Mailing List</a></li>
+          <li><a href="http://github.com/akka/akka">Code</a></li>           
+          <li><a href="http://typesafe.com/products/typesafe-subscription">Commercial Support</a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="main">
+    <div class="container">
+      <div class="page-title">HowTo: Common Patterns</div>
+      <div class="pdf-link"><a href="../Akka.pdf"><img src="../_static/pdf-icon.png" style="height: 40px;" /></a></div>
+    </div>
+    <div class="main-container">
+      <div class="container">
+        <div class="row">
+          <div class="span12">
+            <ul class="breadcrumb">           
+              <li>
+                 <span class="divider">|</span> <a href="../modules/index.html">Modules</a> <span class="divider">»</span>
+              </li>
+              <li>
+                <a href="../index.html">Contents</a>
+              </li>
+              <li>
+                <span class="divider">«</span> <a href="durable-mailbox.html">Durable Mailboxes (Scala)</a> <span class="divider">|</span>
+              </li>
+              <li>
+                Version 2.1.4
+              </li>
+            </ul>
+          </div>
+        </div>
+        <div class="row">
+          <div class="span9">
+            <div id="cse">Loading</div>
+          </div><div class="span9">
+            
+  <div class="section" id="howto-common-patterns">
+<span id="howto-scala"></span><h1>HowTo: Common Patterns</h1>
+<p>This section lists common actor patterns which have been found to be useful,
+elegant or instructive. Anything is welcome, example topics being message
+routing strategies, supervision patterns, restart handling, etc. As a special
+bonus, additions to this section are marked with the contributor’s name, and it
+would be nice if every Akka user who finds a recurring pattern in his or her
+code could share it for the profit of all. Where applicable it might also make
+sense to add to the <tt class="docutils literal"><span class="pre">akka.pattern</span></tt> package for creating an <a class="reference external" href="http://www.erlang.org/doc/man_index.html">OTP-like library</a>.</p>
+<div class="section" id="throttling-messages">
+<h2>Throttling Messages</h2>
+<p>Contributed by: Kaspar Fischer</p>
+<p>&quot;A message throttler that ensures that messages are not sent out at too high a rate.&quot;</p>
+<p>The pattern is described in <a class="reference external" href="http://letitcrash.com/post/28901663062/throttling-messages-in-akka-2">Throttling Messages in Akka 2</a>.</p>
+</div>
+<div class="section" id="balancing-workload-across-nodes">
+<h2>Balancing Workload Across Nodes</h2>
+<p>Contributed by: Derek Wyatt</p>
+<p>&quot;Often times, people want the functionality of the BalancingDispatcher with the
+stipulation that the Actors doing the work have distinct Mailboxes on remote
+nodes. In this post we’ll explore the implementation of such a concept.&quot;</p>
+<p>The pattern is described <a class="reference external" href="http://letitcrash.com/post/29044669086/balancing-workload-across-nodes-with-akka-2">Balancing Workload across Nodes with Akka 2</a>.</p>
+</div>
+<div class="section" id="ordered-termination">
+<h2>Ordered Termination</h2>
+<p>Contributed by: Derek Wyatt</p>
+<p>&quot;When an Actor stops, its children stop in an undefined order. Child termination is
+asynchronous and thus non-deterministic.</p>
+<p>If an Actor has children that have order dependencies, then you might need to ensure
+a particular shutdown order of those children so that their postStop() methods get
+called in the right order.&quot;</p>
+<p>The pattern is described <a class="reference external" href="http://letitcrash.com/post/29773618510/an-akka-2-terminator">An Akka 2 Terminator</a>.</p>
+</div>
+<div class="section" id="akka-amqp-proxies">
+<h2>Akka AMQP Proxies</h2>
+<p>Contributed by: Fabrice Drouin</p>
+<p>&quot;“AMQP proxies” is a simple way of integrating AMQP with Akka to distribute jobs across a network of computing nodes.
+You still write “local” code, have very little to configure, and end up with a distributed, elastic,
+fault-tolerant grid where computing nodes can be written in nearly every programming language.&quot;</p>
+<p>The pattern is described <a class="reference external" href="http://letitcrash.com/post/29988753572/akka-amqp-proxies">Akka AMQP Proxies</a>.</p>
+</div>
+<div class="section" id="shutdown-patterns-in-akka-2">
+<h2>Shutdown Patterns in Akka 2</h2>
+<p>Contributed by: Derek Wyatt</p>
+<p>“How do you tell Akka to shut down the ActorSystem when everything’s finished?
+It turns out that there’s no magical flag for this, no configuration setting, no special callback you can register for,
+and neither will the illustrious shutdown fairy grace your application with her glorious presence at that perfect moment.
+She’s just plain mean.</p>
+<p>In this post, we’ll discuss why this is the case and provide you with a simple option for shutting down “at the right time”,
+as well as a not-so-simple-option for doing the exact same thing.&quot;</p>
+<p>The pattern is described <a class="reference external" href="http://letitcrash.com/post/30165507578/shutdown-patterns-in-akka-2">Shutdown Patterns in Akka 2</a>.</p>
+</div>
+<div class="section" id="distributed-in-memory-graph-processing-with-akka">
+<h2>Distributed (in-memory) graph processing with Akka</h2>
+<p>Contributed by: Adelbert Chang</p>
+<p>&quot;Graphs have always been an interesting structure to study in both mathematics and computer science (among other fields),
+and have become even more interesting in the context of online social networks such as Facebook and Twitter,
+whose underlying network structures are nicely represented by graphs.&quot;</p>
+<p>The pattern is described <a class="reference external" href="http://letitcrash.com/post/30257014291/distributed-in-memory-graph-processing-with-akka">Distributed In-Memory Graph Processing with Akka</a>.</p>
+</div>
+<div class="section" id="case-study-an-auto-updating-cache-using-actors">
+<h2>Case Study: An Auto-Updating Cache Using Actors</h2>
+<p>Contributed by: Eric Pederson</p>
+<p>&quot;We recently needed to build a caching system in front of a slow backend system with the following requirements:</p>
+<p>The data in the backend system is constantly being updated so the caches need to be updated every N minutes.
+Requests to the backend system need to be throttled.
+The caching system we built used Akka actors and Scala’s support for functions as first class objects.&quot;</p>
+<p>The pattern is described <a class="reference external" href="http://letitcrash.com/post/30509298968/case-study-an-auto-updating-cache-using-actors">Case Study: An Auto-Updating Cache using Actors</a>.</p>
+</div>
+<div class="section" id="discovering-message-flows-in-actor-systems-with-the-spider-pattern">
+<h2>Discovering message flows in actor systems with the Spider Pattern</h2>
+<p>Contributed by: Raymond Roestenburg</p>
+<p>&quot;Building actor systems is fun but debugging them can be difficult, you mostly end up browsing through many log files
+on several machines to find out what’s going on. I’m sure you have browsed through logs and thought,
+“Hey, where did that message go?”, “Why did this message cause that effect” or “Why did this actor never get a message?”</p>
+<p>This is where the Spider pattern comes in.&quot;</p>
+<p>The pattern is described <a class="reference external" href="http://letitcrash.com/post/30585282971/discovering-message-flows-in-actor-systems-with-the">Discovering Message Flows in Actor System with the Spider Pattern</a>.</p>
+</div>
+<div class="section" id="scheduling-periodic-messages">
+<h2>Scheduling Periodic Messages</h2>
+<p>This pattern describes how to schedule periodic messages to yourself in two different
+ways.</p>
+<p>The first way is to set up periodic message scheduling in the constructor of the actor,
+and cancel that scheduled sending in <tt class="docutils literal"><span class="pre">postStop</span></tt> or else we might have multiple registered
+message sends to the same actor.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">With this approach the scheduled periodic message send will be restarted with the actor on restarts.
+This also means that the time period that elapses between two tick messages during a restart may drift
+off based on when you restart the scheduled message sends relative to the time that the last message was
+sent, and how long the initial delay is. Worst case scenario is <tt class="docutils literal"><span class="pre">interval</span></tt> plus <tt class="docutils literal"><span class="pre">initialDelay</span></tt>.</p>
+</div>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">class</span> <span class="nc">ScheduleInConstructor</span> <span class="k">extends</span> <span class="nc">Actor</span> <span class="o">{</span>
+  <span class="k">import</span> <span class="nn">context.dispatcher</span>
+  <span class="k">val</span> <span class="n">tick</span> <span class="k">=</span>
+    <span class="n">context</span><span class="o">.</span><span class="n">system</span><span class="o">.</span><span class="n">scheduler</span><span class="o">.</span><span class="n">schedule</span><span class="o">(</span><span class="mi">500</span> <span class="n">millis</span><span class="o">,</span> <span class="mi">1000</span> <span class="n">millis</span><span class="o">,</span> <span class="n">self</span><span class="o">,</span> <span class="s">&quot;tick&quot;</span><span class="o">)</span>
+
+  <span class="k">override</span> <span class="k">def</span> <span class="n">postStop</span><span class="o">()</span> <span class="k">=</span> <span class="n">tick</span><span class="o">.</span><span class="n">cancel</span><span class="o">()</span>
+
+  <span class="k">def</span> <span class="n">receive</span> <span class="k">=</span> <span class="o">{</span>
+    <span class="k">case</span> <span class="s">&quot;tick&quot;</span> <span class="k">⇒</span>
+      <span class="c1">// do something useful here</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<p>The second variant sets up an initial one shot message send in the <tt class="docutils literal"><span class="pre">preStart</span></tt> method
+of the actor, and the then the actor when it receives this message sets up a new one shot
+message send. You also have to override <tt class="docutils literal"><span class="pre">postRestart</span></tt> so we don't call <tt class="docutils literal"><span class="pre">preStart</span></tt>
+and schedule the initial message send again.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">With this approach we won't fill up the mailbox with tick messages if the actor is
+under pressure, but only schedule a new tick message when we have seen the previous one.</p>
+</div>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">class</span> <span class="nc">ScheduleInReceive</span> <span class="k">extends</span> <span class="nc">Actor</span> <span class="o">{</span>
+  <span class="k">import</span> <span class="nn">context._</span>
+
+  <span class="k">override</span> <span class="k">def</span> <span class="n">preStart</span><span class="o">()</span> <span class="k">=</span>
+    <span class="n">system</span><span class="o">.</span><span class="n">scheduler</span><span class="o">.</span><span class="n">scheduleOnce</span><span class="o">(</span><span class="mi">500</span> <span class="n">millis</span><span class="o">,</span> <span class="n">self</span><span class="o">,</span> <span class="s">&quot;tick&quot;</span><span class="o">)</span>
+
+  <span class="c1">// override postRestart so we don&#39;t call preStart and schedule a new message</span>
+  <span class="k">override</span> <span class="k">def</span> <span class="n">postRestart</span><span class="o">(</span><span class="n">reason</span><span class="k">:</span> <span class="kt">Throwable</span><span class="o">)</span> <span class="k">=</span> <span class="o">{}</span>
+
+  <span class="k">def</span> <span class="n">receive</span> <span class="k">=</span> <span class="o">{</span>
+    <span class="k">case</span> <span class="s">&quot;tick&quot;</span> <span class="k">⇒</span>
+      <span class="c1">// send another periodic tick after the specified delay</span>
+      <span class="n">system</span><span class="o">.</span><span class="n">scheduler</span><span class="o">.</span><span class="n">scheduleOnce</span><span class="o">(</span><span class="mi">1000</span> <span class="n">millis</span><span class="o">,</span> <span class="n">self</span><span class="o">,</span> <span class="s">&quot;tick&quot;</span><span class="o">)</span>
+      <span class="c1">// do something useful here</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="template-pattern">
+<h2>Template Pattern</h2>
+<p><em>Contributed by: N. N.</em></p>
+<p>This is an especially nice pattern, since it does even come with some empty example code:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">class</span> <span class="nc">ScalaTemplate</span> <span class="o">{</span>
+  <span class="n">println</span><span class="o">(</span><span class="s">&quot;Hello, Template!&quot;</span><span class="o">)</span>
+  <span class="c1">// uninteresting stuff ...</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Spread the word: this is the easiest way to get famous!</p>
+</div>
+<p>Please keep this pattern at the end of this file.</p>
+</div>
+</div>
+
+
+          </div>
+          <div class="span3"><p class="contents-title">Contents</p>
+              <div id="scroller-anchor">
+                <div id="scroller">
+                  <div id="toc"></div>
+                </div>
+              </div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="footer">
+  <div class="container">
+    <ul>
+      <li><h5>Akka</h5></li>
+      <li><a href="https://akka.io/docs">Documentation</a></li>
+      <li><a href="https://akka.io/faq">FAQ</a></li>
+      <li><a href="http://typesafe.com/stack/downloads/akka">Downloads</a></li>
+      <li><a href="https://akka.io/news">News</a></li>
+      <li><a href="http://letitcrash.com">Blog</a></li>
+    </ul>
+    <ul>
+      <li><h5>Contribute</h5></li>
+      <li><a href="https://akka.io/community">Community Projects</a></li>
+      <li><a href="http://github.com/akka/akka">Source Code</a></li>
+      <li><a href="http://groups.google.com/group/akka-user">Mailing List</a></li>      
+      <li><a href="https://doc.akka.io/docs/akka/current/project/issue-tracking.html">Report a Bug</a></li>      
+    </ul>
+    <ul>
+      <li><h5>Company</h5></li>
+      <li><a href="http://typesafe.com/products/typesafe-subscription">Commercial Support</a></li>
+      <li><a href="https://akka.io/team">Team</a></li>
+      <li><a href="mailto:info@typesafe.com">Contact</a></li>
+    </ul>
+    <ul>
+      <li><img src="../_static/watermark.png" align="center"/></li>
+    </ul>
+  </div>
+  <div class="container copyright">
+    <p style="float: left;">
+      © 2012 <a href="http://typesafe.com/">Typesafe Inc.</a> <span class="license">Akka is Open Source and available under the Apache 2 License.</span>
+    </p>
+    <p style="float: right; font-size: 12px;">
+      Last updated: May 14, 2013
+    </p>          
+  </div>
+</div>
+<script src="http://www.google.com/jsapi" type="text/javascript"></script>
+<script type="text/javascript">
+    google.load('search', '1', {language : 'en', style : google.loader.themes.MINIMALIST});
+    google.setOnLoadCallback(function() {
+    var customSearchOptions = {};  var customSearchControl = new google.search.CustomSearchControl(
+    '003065520604945464838:izzukx8-qba', customSearchOptions);
+    customSearchControl.setResultSetSize(google.search.Search.FILTERED_CSE_RESULTSET);
+    customSearchControl.draw('cse');
+    var path = window.location.pathname.split('/').slice(0,4);
+    if(window.location.hostname && path.length >= 4) {
+    var site = "site:" + window.location.hostname + path.join('/').toString();
+    customSearchControl.setSearchStartingCallback(this, function(c, s, q) { s.setQueryAddition(site); });
+    }
+    }, true);
+</script>
+<style type="text/css">
+    .gsc-control-cse {
+    font-family: Arial, sans-serif;
+    border-color: rgb(242, 242, 235);
+    background-color: rgb(242, 242, 235);
+    }
+    .gsc-control-cse .gsc-table-result {
+      font-family: Arial, sans-serif;
+      display: block;
+    }
+    input.gsc-input {
+    border-color: #BBBBBB;
+    }
+    input.gsc-search-button {
+    border-color: rgb(34, 57, 64);
+    background-color: rgb(68, 114, 129);
+    color: #FFFFFF;
+    }
+    .gsc-tabHeader.gsc-tabhInactive {
+    border-color: #777777;
+    background-color: #777777;
+    }
+    .gsc-tabHeader.gsc-tabhActive {
+    border-color: #333333;
+    background-color: #333333;
+    }
+    .gsc-tabsArea {
+    border-color: #333333;
+    }
+    .gsc-webResult.gsc-result,
+    .gsc-results .gsc-imageResult {
+      border-color: #666666;
+      background-color: #FFFFFF;
+      padding: 0.5em 0.5em;
+    }
+    .gsc-webResult.gsc-result:hover,
+    .gsc-imageResult:hover {
+      border-color: #AAAAAA;
+      background-color: #FFFFFF;
+      padding: 0.5em 0.5em;
+    }
+    .gsc-webResult.gsc-result.gsc-promotion:hover {
+    border-color: #AAAAAA;
+    background-color: #FFFFFF;
+    }
+    .gs-webResult.gs-result a.gs-title:link,
+    .gs-webResult.gs-result a.gs-title:link b,
+    .gs-imageResult a.gs-title:link,
+    .gs-imageResult a.gs-title:link b {
+    color: #444444;
+    }
+    .gs-webResult.gs-result a.gs-title:visited,
+    .gs-webResult.gs-result a.gs-title:visited b,
+    .gs-imageResult a.gs-title:visited,
+    .gs-imageResult a.gs-title:visited b {
+    color: #444444;
+    }
+    .gs-webResult.gs-result a.gs-title:hover,
+    .gs-webResult.gs-result a.gs-title:hover b,
+    .gs-imageResult a.gs-title:hover,
+    .gs-imageResult a.gs-title:hover b {
+    color: #444444;
+    }
+    .gs-webResult.gs-result a.gs-title:active,
+    .gs-webResult.gs-result a.gs-title:active b,
+    .gs-imageResult a.gs-title:active,
+    .gs-imageResult a.gs-title:active b {
+    color: #777777;
+    }
+    .gsc-cursor-page {
+    color: #444444;
+    }
+    a.gsc-trailing-more-results:link {
+    color: #444444;
+    }
+    .gs-webResult .gs-snippet,
+    .gs-imageResult .gs-snippet,
+    .gs-fileFormatType {
+    color: #333333;
+    }
+    .gs-webResult div.gs-visibleUrl,
+    .gs-imageResult div.gs-visibleUrl {
+    color: #000000;
+    }
+    .gs-webResult div.gs-visibleUrl-short {
+    color: #000000;
+    }
+    .gs-webResult div.gs-visibleUrl-short {
+    display: none;
+    }
+    .gs-webResult div.gs-visibleUrl-long {
+    display: block;
+    }
+    .gs-promotion div.gs-visibleUrl-short {
+    display: none;
+    }
+    .gs-promotion div.gs-visibleUrl-long {
+    display: block;
+    }
+    .gsc-cursor-box {
+    border-color: #FFFFFF;
+    }
+    .gsc-results .gsc-cursor-box .gsc-cursor-page {
+    border-color: #777777;
+    background-color: #FFFFFF;
+    color: #444444;
+    }
+    .gsc-results .gsc-cursor-box .gsc-cursor-current-page {
+    border-color: #333333;
+    background-color: #333333;
+    color: #444444;
+    }
+    .gsc-webResult.gsc-result.gsc-promotion {
+    border-color: #CCCCCC;
+    background-color: #E6E6E6;
+    }
+    .gsc-completion-title {
+    color: #444444;
+    }
+    .gsc-completion-snippet {
+    color: #333333;
+    }
+    .gs-promotion a.gs-title:link,
+    .gs-promotion a.gs-title:link *,
+    .gs-promotion .gs-snippet a:link {
+    color: #0000CC;
+    }
+    .gs-promotion a.gs-title:visited,
+    .gs-promotion a.gs-title:visited *,
+    .gs-promotion .gs-snippet a:visited {
+    color: #0000CC;
+    }
+    .gs-promotion a.gs-title:hover,
+    .gs-promotion a.gs-title:hover *,
+    .gs-promotion .gs-snippet a:hover {
+    color: #444444;
+    }
+    .gs-promotion a.gs-title:active,
+    .gs-promotion a.gs-title:active *,
+    .gs-promotion .gs-snippet a:active {
+    color: #00CC00;
+    }
+    .gs-promotion .gs-snippet,
+    .gs-promotion .gs-title .gs-promotion-title-right,
+    .gs-promotion .gs-title .gs-promotion-title-right *  {
+    color: #333333;
+    }
+    .gs-promotion .gs-visibleUrl,
+    .gs-promotion .gs-visibleUrl-short {
+    color: #00CC00;
+    }
+</style>
+<script type="text/javascript">
+  $('#toc').toc();
+</script>
+  
+
+  </body>
+</html>

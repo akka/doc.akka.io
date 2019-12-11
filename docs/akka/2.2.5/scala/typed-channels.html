@@ -1,0 +1,978 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" /><meta name="description" content="Akka is a toolkit for building highly concurrent, distributed, and resilient message-driven applications for Java and Scala."/><link rel="canonical" href="https://doc.akka.io/docs/akka/2.2/scala/typed-channels.html"/>
+    
+    <title>Typed Channels (EXPERIMENTAL) &mdash; Akka Documentation</title>
+    
+    <link rel="stylesheet" href="../_static/style.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/prettify.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/base.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
+    <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Exo:300,400,600,700" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '2.2.5',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+<script type="text/javascript" src="https://doc.akka.io/docs/akka/2.2.5/_static/warnOldDocs.js"></script>
+<script type="text/javascript" src="https://doc.akka.io/docs/akka/2.2.5/_static/warnOldDocs.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="../_static/toc.js"></script>
+    <script type="text/javascript" src="../_static/prettify.js"></script>
+    <script type="text/javascript" src="../_static/highlightCode.js"></script>
+    <script type="text/javascript" src="../_static/effects.core.js"></script>
+    <script type="text/javascript" src="../_static/effects.highlight.js"></script>
+    <script type="text/javascript" src="../_static/scrollTo.js"></script>
+    <script type="text/javascript" src="../_static/contentsFix.js"></script>
+    <script type="text/javascript" src="../_static/ga.js"></script>
+    <link rel="shortcut icon" href="../_static/favicon.ico"/>
+    <link rel="top" title="Akka Documentation" href="../index.html" />
+    <link rel="up" title="Actors" href="index-actors.html" />
+    <link rel="next" title="Typed Actors" href="typed-actors.html" />
+    <link rel="prev" title="Actors" href="actors.html" />
+    <!--Google Analytics-->
+    <script type="text/javascript">
+      var _gaq = _gaq || [];
+      _gaq.push(['_setAccount', 'UA-21117439-1']);
+      _gaq.push(['_setDomainName', 'akka.io']);
+      _gaq.push(['_trackPageview']);
+      (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+      })()
+    </script>
+
+  </head>
+  <body>
+  <div class="navbar">
+    <div class="navbar-inner">
+      <div class="container">
+        <div class="navbar-logo">
+          <a href="https://akka.io"><img src="../_static/logo-small.png" /></a>
+        </div>    
+        <ul class="nav">
+          <li><a href="https://akka.io/docs">Documentation</a></li>
+          <li><a href="https://akka.io/faq">FAQ</a></li>
+          <li><a href="http://typesafe.com/stack/downloads/akka">Download</a></li>
+          <li><a href="http://groups.google.com/group/akka-user">Mailing List</a></li>
+          <li><a href="http://github.com/akka/akka">Code</a></li>           
+          <li><a href="http://typesafe.com/products/typesafe-subscription">Commercial Support</a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="main">
+    <div class="container">
+      <div class="page-title">Typed Channels (EXPERIMENTAL)</div>
+      <div class="pdf-link"><a href="../AkkaScala.pdf" title="Akka Scala Documentation"><img src="../_static/pdf-scala-icon.png" style="height: 40px;" /></a></div>
+      <div class="pdf-link"><a href="../AkkaJava.pdf" title="Akka Java Documentation"><img src="../_static/pdf-java-icon.png" style="height: 40px;" /></a></div>
+    </div>
+    <div class="main-container">
+      <div class="container">
+        <div class="row">
+          <div class="span12">
+            <ul class="breadcrumb">           
+              <li>
+                 <span class="divider">|</span> <a href="typed-actors.html">Typed Actors</a> <span class="divider">»</span>
+              </li>
+              <li>
+                <a href="../index.html">Contents</a>
+              </li>
+              <li>
+                <span class="divider">«</span> <a href="actors.html">Actors</a> <span class="divider">|</span>
+              </li>
+              <li>
+                Version 2.2.5
+              </li>
+            </ul>
+          </div>
+        </div>
+        <div class="row">
+          <div class="span9">
+            <div id="cse">Loading</div>
+          </div><div class="span9">
+            
+  <div class="section" id="typed-channels-experimental">
+<span id="typed-channels"></span><h1>Typed Channels (EXPERIMENTAL)</h1>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last"><em>This is a preview of the upcoming Typed Channels support, its API may change
+during development up to the released version where the EXPERIMENTAL label is
+removed.</em></p>
+</div>
+<div class="section" id="motivation">
+<h2>Motivation</h2>
+<p>Actors derive great strength from their strong encapsulation, which enables
+internal restarts as well as changing behavior and also composition. The last
+one is enabled by being able to inject an actor into a message exchange
+transparently, because all either side ever sees is an <tt class="xref py py-class docutils literal"><span class="pre">ActorRef</span></tt>. The
+straight-forward way to implement this encapsulation is to keep the actor
+references untyped, and before the advent of macros in Scala 2.10 this was the
+only tractable way.</p>
+<p>As a motivation for change consider the following simple example:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">trait</span> <span class="nc">Request</span>
+<span class="k">case</span> <span class="k">class</span> <span class="nc">Command</span><span class="o">(</span><span class="n">msg</span><span class="k">:</span> <span class="kt">String</span><span class="o">)</span> <span class="k">extends</span> <span class="nc">Request</span>
+
+<span class="k">trait</span> <span class="nc">Reply</span>
+<span class="k">case</span> <span class="k">object</span> <span class="nc">CommandSuccess</span> <span class="k">extends</span> <span class="nc">Reply</span>
+<span class="k">case</span> <span class="k">class</span> <span class="nc">CommandFailure</span><span class="o">(</span><span class="n">msg</span><span class="k">:</span> <span class="kt">String</span><span class="o">)</span> <span class="k">extends</span> <span class="nc">Reply</span>
+</pre></div>
+</div>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">val</span> <span class="n">requestProcessor</span> <span class="k">=</span> <span class="n">someActor</span>
+<span class="n">requestProcessor</span> <span class="o">!</span> <span class="nc">Command</span>
+</pre></div>
+</div>
+<p>This is an error which is quite common, and the reason is that the compiler
+does not catch it and cannot warn about it. Now if there were some type
+restrictions on which messages the <tt class="docutils literal"><span class="pre">commandProcessor</span></tt> can process, that would
+be a different story:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">val</span> <span class="n">requestProcessor</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">ChannelRef</span><span class="o">[(</span><span class="kt">Request</span>, <span class="kt">Reply</span><span class="o">)</span> <span class="kt">:+:</span> <span class="kt">TNil</span><span class="o">](</span><span class="n">someActor</span><span class="o">)</span>
+<span class="n">requestProcessor</span> <span class="o">&lt;-!-</span> <span class="nc">Command</span> <span class="c1">// this does not compile</span>
+</pre></div>
+</div>
+<p>The <tt class="xref py py-class docutils literal"><span class="pre">ChannelRef</span></tt> wraps a normal untyped <tt class="xref py py-class docutils literal"><span class="pre">ActorRef</span></tt>, but it
+expresses a type constraint, namely that this channel accepts only messages of
+type <tt class="xref py py-class docutils literal"><span class="pre">Request</span></tt>, to which it may reply with messages of type
+<tt class="xref py py-class docutils literal"><span class="pre">Reply</span></tt>. The types do not express any guarantees on how many messages
+will be exchanged, whether they will be received or processed, or whether a
+reply will actually be sent. They only restrict those actions which are known
+to be doomed already at compile time. In this case the second line would flag
+an error, since the companion object <tt class="docutils literal"><span class="pre">Command</span></tt> is not an instance of type
+<tt class="xref py py-class docutils literal"><span class="pre">Request</span></tt>.</p>
+<p>While this example looks pretty simple, the implications are profound. In order
+to be useful, the system must be as reliable as you would expect a type system
+to be. This means that unless you step outside of it (i.e. doing the
+equivalent of <tt class="docutils literal"><span class="pre">.asInstanceOf[_]</span></tt>) you shall be protected, failures shall be
+recognized and flagged. There are a number of challenges included in this
+requirement, which are discussed in <a class="reference internal" href="#the-design-background">The Design Background</a> below.</p>
+</div>
+<div class="section" id="terminology">
+<h2>Terminology</h2>
+<dl class="describe">
+<dt>
+<tt class="descname">type Channel[I, O] = (I, O)</tt></dt>
+<dd><p>A Channel is a pair of an input type and and output type. The input type is
+the type of message accepted by the channel, the output type is the possible
+reply type and may be <tt class="docutils literal"><span class="pre">Nothing</span></tt> to signify that no reply is sent. The input
+type cannot be <tt class="docutils literal"><span class="pre">Nothing</span></tt>.</p>
+</dd></dl>
+
+<dl class="describe">
+<dt>
+<tt class="descname">type ChannelList</tt></dt>
+<dd><p>A ChannelList is an ordered collection of Channels, without further
+restriction on the input or output types of these. This means that a single
+input type may be associated with multiple output types within the same
+ChannelList.</p>
+</dd></dl>
+
+<dl class="describe">
+<dt>
+<tt class="descname">type TNil &lt;: ChannelList</tt></dt>
+<dd><p>The empty ChannelList.</p>
+</dd></dl>
+
+<dl class="describe">
+<dt>
+<tt class="descname">type :+:[Channel, ChannelList] &lt;: ChannelList</tt></dt>
+<dd><p>This binary type constructor is used to build up lists of Channels, for which
+infix notation will be most convenient:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="o">(</span><span class="nc">MsgA</span><span class="o">,</span> <span class="nc">MsgB</span><span class="o">)</span> <span class="o">:+:</span> <span class="o">(</span><span class="nc">MsgC</span><span class="o">,</span> <span class="nc">MsgD</span><span class="o">)</span> <span class="o">:+:</span> <span class="nc">TNil</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="describe">
+<dt>
+<tt class="descname">class ChannelRef[T &lt;: ChannelList]</tt></dt>
+<dd><p>A ChannelRef is what is referred to above as the channel reference, it bears
+the ChannelList which describes all input and output types and their relation
+for the referenced actor. It also contains the underlying <tt class="xref py py-class docutils literal"><span class="pre">ActorRef</span></tt>.</p>
+</dd></dl>
+
+<dl class="describe">
+<dt>
+<tt class="descname">trait Channels[P &lt;: ChannelList, C &lt;: ChannelList]</tt></dt>
+<dd><p>A mixin for the <tt class="xref py py-class docutils literal"><span class="pre">Actor</span></tt> trait which is parameterized in the channel
+requirements this actor has for its parentChannel (P) and its selfChannel (C)
+(corresponding to <tt class="docutils literal"><span class="pre">context.parent</span></tt> and <tt class="docutils literal"><span class="pre">self</span></tt> for untyped Actors,
+respectively).</p>
+</dd></dl>
+
+<dl class="describe">
+<dt>
+<tt class="descname">selfChannel</tt></dt>
+<dd><p>An <tt class="docutils literal"><span class="pre">Actor&nbsp;with&nbsp;Channels[P,&nbsp;C]</span></tt> has a <tt class="docutils literal"><span class="pre">selfChannel</span></tt> of type
+<tt class="docutils literal"><span class="pre">ChannelRef[C]</span></tt>. This is the same type of channel reference which is
+obtained by creating an instance of this actor.</p>
+</dd></dl>
+
+<dl class="describe">
+<dt>
+<tt class="descname">parentChannel</tt></dt>
+<dd><p>An <tt class="docutils literal"><span class="pre">Actor</span> <span class="pre">with</span> <span class="pre">Channels[P,</span> <span class="pre">C]</span></tt> has a <tt class="docutils literal"><span class="pre">parentChannel</span></tt> of type
+<tt class="docutils literal"><span class="pre">ChannelRef[P]</span></tt>.</p>
+</dd></dl>
+
+<dl class="describe">
+<dt>
+<tt class="descname">type ReplyChannels[T &lt;: ChannelList] &lt;: ChannelList</tt></dt>
+<dd><p>Within an <tt class="docutils literal"><span class="pre">Actor&nbsp;with&nbsp;Channels[_,&nbsp;_]</span></tt> which takes a fully generic channel,
+i.e. a type argument <tt class="docutils literal"><span class="pre">T</span> <span class="pre">&lt;:</span> <span class="pre">ChannelList</span></tt> which is part of its selfChannel
+type, this channel’s reply types are not known. The definition of this
+channel uses the ReplyChannels type to abstractly refer to this unknown set
+of channels in order to forward a reply from a <tt class="docutils literal"><span class="pre">ChannelRef[T]</span></tt> back to the
+original sender. This operation’s type-safety is ensured at the sender’s site
+by way of the ping-pong analysis described below.</p>
+</dd></dl>
+
+<dl class="describe">
+<dt>
+<tt class="descname">class WrappedMessage[T &lt;: ChannelList, LUB]</tt></dt>
+<dd><p>Scala’s type system cannot directly express type unions. Asking an actor with
+a given input type may result in multiple possible reply types, hence the
+<tt class="xref py py-class docutils literal"><span class="pre">Future</span></tt> holding this reply will contain the value wrapped inside a
+container which carries this type (only at compile-time). The type parameter
+LUB is the least upper bound of all input channels contained in the
+ChannelList T.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="sending-messages-across-channels">
+<h2>Sending Messages across Channels</h2>
+<p>Sending messages is best demonstrated in a quick overview of the basic operations:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">implicit</span> <span class="k">val</span> <span class="n">dummySender</span><span class="k">:</span> <span class="kt">ChannelRef</span><span class="o">[(</span><span class="kt">Any</span>, <span class="kt">Nothing</span><span class="o">)</span> <span class="kt">:+:</span> <span class="kt">TNil</span><span class="o">]</span> <span class="k">=</span> <span class="o">???</span>
+<span class="k">implicit</span> <span class="k">val</span> <span class="n">timeout</span><span class="k">:</span> <span class="kt">Timeout</span> <span class="o">=</span> <span class="o">???</span> <span class="c1">// for the ask operations</span>
+
+<span class="k">val</span> <span class="n">channelA</span><span class="k">:</span> <span class="kt">ChannelRef</span><span class="o">[(</span><span class="kt">MsgA</span>, <span class="kt">MsgB</span><span class="o">)</span> <span class="kt">:+:</span> <span class="kt">TNil</span><span class="o">]</span> <span class="k">=</span> <span class="o">???</span>
+<span class="k">val</span> <span class="n">channelA2</span><span class="k">:</span> <span class="kt">ChannelRef</span><span class="o">[(</span><span class="kt">MsgA</span>, <span class="kt">MsgB</span><span class="o">)</span> <span class="kt">:+:</span> <span class="o">(</span><span class="kt">MsgA</span>, <span class="kt">MsgC</span><span class="o">)</span> <span class="kt">:+:</span> <span class="kt">TNil</span><span class="o">]</span> <span class="k">=</span> <span class="o">???</span>
+<span class="k">val</span> <span class="n">channelB</span><span class="k">:</span> <span class="kt">ChannelRef</span><span class="o">[(</span><span class="kt">MsgB</span>, <span class="kt">MsgC</span><span class="o">)</span> <span class="kt">:+:</span> <span class="kt">TNil</span><span class="o">]</span> <span class="k">=</span> <span class="o">???</span>
+<span class="k">val</span> <span class="n">channelC</span><span class="k">:</span> <span class="kt">ChannelRef</span><span class="o">[(</span><span class="kt">MsgC</span>, <span class="kt">MsgD</span><span class="o">)</span> <span class="kt">:+:</span> <span class="kt">TNil</span><span class="o">]</span> <span class="k">=</span> <span class="o">???</span>
+
+<span class="k">val</span> <span class="n">a</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">MsgA</span>
+<span class="k">val</span> <span class="n">fA</span> <span class="k">=</span> <span class="nc">Future</span> <span class="o">{</span> <span class="k">new</span> <span class="nc">MsgA</span> <span class="o">}</span>
+
+<span class="n">channelA</span> <span class="o">&lt;-!-</span> <span class="n">a</span> <span class="c1">// send a to channelA</span>
+<span class="n">a</span> <span class="o">-!-&gt;</span> <span class="n">channelA</span> <span class="c1">// same thing as above</span>
+
+<span class="n">channelA</span> <span class="o">&lt;-!-</span> <span class="n">fA</span> <span class="c1">// eventually send the future’s value to channelA</span>
+<span class="n">fA</span> <span class="o">-!-&gt;</span> <span class="n">channelA</span> <span class="c1">// same thing as above</span>
+
+<span class="k">val</span> <span class="n">fB</span><span class="k">:</span> <span class="kt">Future</span><span class="o">[</span><span class="kt">MsgB</span><span class="o">]</span> <span class="k">=</span> <span class="n">channelA</span> <span class="o">&lt;-?-</span> <span class="n">a</span> <span class="c1">// ask the actor</span>
+<span class="n">a</span> <span class="o">-?-&gt;</span> <span class="n">channelA</span> <span class="c1">// same thing as above</span>
+
+<span class="c1">// ask the actor with multiple reply types</span>
+<span class="c1">// return type given in full for illustration</span>
+<span class="k">val</span> <span class="n">fM</span><span class="k">:</span> <span class="kt">Future</span><span class="o">[</span><span class="kt">WrappedMessage</span><span class="o">[</span> <span class="kt">//</span>
+<span class="o">(</span><span class="kt">MsgB</span>, <span class="kt">Nothing</span><span class="o">)</span> <span class="kt">:+:</span> <span class="o">(</span><span class="kt">MsgC</span>, <span class="kt">Nothing</span><span class="o">)</span> <span class="kt">:+:</span> <span class="kt">TNil</span>, <span class="kt">Msg</span><span class="o">]]</span> <span class="k">=</span> <span class="n">channelA2</span> <span class="o">&lt;-?-</span> <span class="n">a</span>
+<span class="k">val</span> <span class="n">fMunwrapped</span><span class="k">:</span> <span class="kt">Future</span><span class="o">[</span><span class="kt">Msg</span><span class="o">]</span> <span class="k">=</span> <span class="n">fM</span><span class="o">.</span><span class="n">lub</span>
+
+<span class="n">channelA</span> <span class="o">&lt;-?-</span> <span class="n">fA</span> <span class="c1">// eventually ask the actor, return the future</span>
+<span class="n">fA</span> <span class="o">-?-&gt;</span> <span class="n">channelA</span> <span class="c1">// same thing as above</span>
+
+<span class="c1">// chaining works as well</span>
+<span class="n">a</span> <span class="o">-?-&gt;</span> <span class="n">channelA</span> <span class="o">-?-&gt;</span> <span class="n">channelB</span> <span class="o">-!-&gt;</span> <span class="n">channelC</span>
+</pre></div>
+</div>
+<p>The first line is included so that the code compiles, since all message sends
+including <tt class="docutils literal"><span class="pre">!</span></tt> will check the implicitly found selfChannel for compatibility
+with the target channel’s reply types. In this case we want to demonstrate just
+the syntax of sending, hence the dummy sender which accepts everything and
+replies never.</p>
+<p>Presupposing three channel references of chainable types (and a fourth one for
+demonstrating multiple reply type), an input value <tt class="docutils literal"><span class="pre">a</span></tt> and a Future holding
+such a value, we demonstrate the two basic operations which are well known from
+untyped actors: tell/! and ask/?. The type of the Future returned by the ask
+operation on <tt class="docutils literal"><span class="pre">channelA2</span></tt> may seem surprising at first, but keeping track of
+all possible reply types is necessary to enable sending of replies to other
+actors which do support all possibilities. This is especially handy in
+situations like the one demonstrated on the last line.  What the last line does
+is the following:</p>
+<ul class="simple">
+<li>it asks channelA, which returns a Future</li>
+<li>a callback is installed on the Future which will use the reply value of
+channelA and ask channelB with it, returning another Future</li>
+<li>a callback is installed on that Future to send the reply value of channelB to
+channelC, returning a Future with that previously sent value (using <tt class="docutils literal"><span class="pre">andThen</span></tt>)</li>
+</ul>
+<p>This example also motivates the introduction of the “turned-around” syntax
+where messages flow more naturally from left to right, instead of the standard
+object-oriented view of having the tell method operate on the ActorRef given to
+the left.</p>
+<p>This example informally introduced what is more precisely specified in the
+following subsection.</p>
+<div class="section" id="the-rules">
+<h3>The Rules</h3>
+<p>Operations on typed channels are composable and obey a few simple rules:</p>
+<ul class="simple">
+<li>the message to be sent can be one of three things:<ul>
+<li>a <tt class="xref py py-class docutils literal"><span class="pre">Future[_]</span></tt>, in which case the contained value will be sent once
+available; the value will be unwrapped if it is a <tt class="xref py py-class docutils literal"><span class="pre">WrappedMessage[_,&nbsp;_]</span></tt></li>
+<li>a <tt class="xref py py-class docutils literal"><span class="pre">WrappedMessage[_,&nbsp;_]</span></tt>, which will be unwrapped (i.e. only the
+value is sent)</li>
+<li>everything else is sent as is</li>
+</ul>
+</li>
+<li>the operators are fully symmetric, i.e. <tt class="docutils literal"><span class="pre">-!-&gt;</span></tt> and <tt class="docutils literal"><span class="pre">&lt;-!-</span></tt> do the same
+thing provided the arguments also switch places</li>
+<li>sending with <tt class="docutils literal"><span class="pre">-?-&gt;</span></tt> or <tt class="docutils literal"><span class="pre">&lt;-?-</span></tt> returns a <tt class="docutils literal"><span class="pre">Future[WrappedMessage[_,&nbsp;_]]</span></tt>
+representing all possible reply channels if there is more than one (use
+<tt class="docutils literal"><span class="pre">.lub</span></tt> to get a <tt class="xref py py-class docutils literal"><span class="pre">Future[_]</span></tt> with the most precise single type for
+the value)</li>
+<li>sending a <tt class="xref py py-class docutils literal"><span class="pre">Future[_]</span></tt> with <tt class="docutils literal"><span class="pre">-!-&gt;</span></tt> or <tt class="docutils literal"><span class="pre">&lt;-!-</span></tt> returns a new
+<tt class="xref py py-class docutils literal"><span class="pre">Future[_]</span></tt> which will be completed with the value after it has been
+sent; sending a strict value returns that value</li>
+</ul>
+</div>
+</div>
+<div class="section" id="declaring-an-actor-with-channels">
+<h2>Declaring an Actor with Channels</h2>
+<p>The declaration of an Actor with Channels is done like this:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">class</span> <span class="nc">AC</span> <span class="k">extends</span> <span class="nc">Actor</span> <span class="k">with</span> <span class="nc">Channels</span><span class="o">[</span><span class="kt">TNil</span>, <span class="o">(</span><span class="kt">Request</span>, <span class="kt">Reply</span><span class="o">)</span> <span class="kt">:+:</span> <span class="kt">TNil</span><span class="o">]</span> <span class="o">{</span>
+  <span class="n">channel</span><span class="o">[</span><span class="kt">Request</span><span class="o">]</span> <span class="o">{</span> <span class="o">(</span><span class="n">req</span><span class="o">,</span> <span class="n">snd</span><span class="o">)</span> <span class="k">⇒</span>
+    <span class="n">req</span> <span class="k">match</span> <span class="o">{</span>
+      <span class="k">case</span> <span class="nc">Command</span><span class="o">(</span><span class="s">&quot;ping&quot;</span><span class="o">)</span> <span class="k">⇒</span> <span class="n">snd</span> <span class="o">&lt;-!-</span> <span class="nc">CommandSuccess</span>
+      <span class="k">case</span> <span class="k">_</span>               <span class="k">⇒</span>
+    <span class="o">}</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<p>It should be noted that it is impossible to declare channels which are not part
+of the channel list given as the second type argument to the <tt class="xref py py-class docutils literal"><span class="pre">Channels</span></tt>
+trait. It is also checked—albeit at runtime—that when the actor’s construction
+is complete (i.e. its constructor and <tt class="docutils literal"><span class="pre">preStart</span></tt> hook have run) every channel
+listed in the selfChannel type parameter has been declared. This can in general
+not be done at compile time, both due to the possibility of overriding
+subclasses as well as the problem that the compiler cannot determine whether a
+<tt class="docutils literal"><span class="pre">channel[]</span></tt> statement will be called in the course of execution due to
+external inputs (e.g. if conditionally executed).</p>
+<p>It should also be noted that the type of <tt class="docutils literal"><span class="pre">req</span></tt> in this example is
+<tt class="docutils literal"><span class="pre">Request</span></tt>, hence it would be a compile-time error to try to match against the
+<tt class="docutils literal"><span class="pre">Command</span></tt> companion object. The <tt class="docutils literal"><span class="pre">snd</span></tt> reference is the sender channel
+reference, which in this example is of type
+<tt class="docutils literal"><span class="pre">ChannelRef[(Reply,&nbsp;UnknownDoNotWriteMeDown)&nbsp;:+:&nbsp;TNil]</span></tt>, meaning that sending
+back a reply which is not of type <tt class="docutils literal"><span class="pre">Reply</span></tt> would be a compile-time error.</p>
+<p>The last thing to note is that an actor is not obliged to reply to an incoming
+message, even if that was successfully delivered to it: it might not be
+appropriate, or it might be impossible, the actor might have failed before
+executing the replying message send, etc. And as always, the <tt class="docutils literal"><span class="pre">snd</span></tt> reference
+may be used more than once, and even stored away for later. It must not leave
+the actor within it was created, however, because that would defeat the
+ping-pong check; this is the reason for the curious name of the fabricated
+reply type <tt class="docutils literal"><span class="pre">UnknownDoNotWriteMeDown</span></tt>; if you find yourself declaring that
+type as part of a message or similar you know that you are cheating.</p>
+<div class="section" id="declaration-of-subchannels">
+<h3>Declaration of Subchannels</h3>
+<p>It can be convenient to carve out subchannels for special treatment like so:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">class</span> <span class="nc">ACSub</span> <span class="k">extends</span> <span class="nc">Actor</span> <span class="k">with</span> <span class="nc">Channels</span><span class="o">[</span><span class="kt">TNil</span>, <span class="o">(</span><span class="kt">Request</span>, <span class="kt">Reply</span><span class="o">)</span> <span class="kt">:+:</span> <span class="kt">TNil</span><span class="o">]</span> <span class="o">{</span>
+  <span class="n">channel</span><span class="o">[</span><span class="kt">Command</span><span class="o">]</span> <span class="o">{</span> <span class="o">(</span><span class="n">cmd</span><span class="o">,</span> <span class="n">snd</span><span class="o">)</span> <span class="k">⇒</span> <span class="n">snd</span> <span class="o">&lt;-!-</span> <span class="nc">CommandSuccess</span> <span class="o">}</span>
+  <span class="n">channel</span><span class="o">[</span><span class="kt">Request</span><span class="o">]</span> <span class="o">{</span> <span class="o">(</span><span class="n">req</span><span class="o">,</span> <span class="n">snd</span><span class="o">)</span> <span class="k">⇒</span>
+    <span class="k">if</span> <span class="o">(</span><span class="nc">ThreadLocalRandom</span><span class="o">.</span><span class="n">current</span><span class="o">.</span><span class="n">nextBoolean</span><span class="o">)</span> <span class="n">snd</span> <span class="o">&lt;-!-</span> <span class="nc">CommandSuccess</span>
+    <span class="k">else</span> <span class="n">snd</span> <span class="o">&lt;-!-</span> <span class="nc">CommandFailure</span><span class="o">(</span><span class="s">&quot;no luck&quot;</span><span class="o">)</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<p>This means that all <tt class="docutils literal"><span class="pre">Command</span></tt> requests will be positively answered while all
+others may or may not be lucky. This dispatching between the two declarations
+does not depend on their order but is solely done based on which type is more
+specific—but see the restrictions imposed by JVM type erasure below.</p>
+</div>
+<div class="section" id="forwarding-messages">
+<h3>Forwarding Messages</h3>
+<p>Forwarding messages has been hinted at in the last sample already, but here is
+a more complete sample actor:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">import</span> <span class="nn">scala.reflect.runtime.universe.TypeTag</span>
+
+<span class="k">class</span> <span class="nc">Latch</span><span class="o">[</span><span class="kt">T1:</span> <span class="kt">TypeTag</span>, <span class="kt">T2:</span> <span class="kt">TypeTag</span><span class="o">](</span><span class="n">target</span><span class="k">:</span> <span class="kt">ChannelRef</span><span class="o">[(</span><span class="kt">T1</span>, <span class="kt">T2</span><span class="o">)</span> <span class="kt">:+:</span> <span class="kt">TNil</span><span class="o">])</span>
+  <span class="k">extends</span> <span class="nc">Actor</span> <span class="k">with</span> <span class="nc">Channels</span><span class="o">[</span><span class="kt">TNil</span>, <span class="o">(</span><span class="kt">Request</span>, <span class="kt">Reply</span><span class="o">)</span> <span class="kt">:+:</span> <span class="o">(</span><span class="kt">T1</span>, <span class="kt">T2</span><span class="o">)</span> <span class="kt">:+:</span> <span class="kt">TNil</span><span class="o">]</span> <span class="o">{</span>
+
+  <span class="k">implicit</span> <span class="k">val</span> <span class="n">timeout</span> <span class="k">=</span> <span class="nc">Timeout</span><span class="o">(</span><span class="mf">5.</span><span class="n">seconds</span><span class="o">)</span>
+
+  <span class="c1">// become ...</span>
+  <span class="n">channel</span><span class="o">[</span><span class="kt">T1</span><span class="o">]</span> <span class="o">{</span> <span class="o">(</span><span class="n">t</span><span class="o">,</span> <span class="n">snd</span><span class="o">)</span> <span class="k">⇒</span> <span class="n">t</span> <span class="o">-?-&gt;</span> <span class="n">target</span> <span class="o">-!-&gt;</span> <span class="n">snd</span> <span class="o">}</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<p>This actor declares a single-Channel parametric type which it forwards to a
+target actor, handing replies back to the original sender using the ask/pipe
+pattern.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">It is important not to forget the <tt class="docutils literal"><span class="pre">TypeTag</span></tt> context bound for all type
+arguments which are used in channel declarations, otherwise the not very
+helpful error “Predef is not an enclosing class” will haunt you.</p>
+</div>
+</div>
+<div class="section" id="changing-behavior-at-runtime">
+<h3>Changing Behavior at Runtime</h3>
+<p>The actor from the previous example gets a lot more interesting when
+implementing its control channel:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">import</span> <span class="nn">scala.reflect.runtime.universe.TypeTag</span>
+
+<span class="k">class</span> <span class="nc">Latch</span><span class="o">[</span><span class="kt">T1:</span> <span class="kt">TypeTag</span>, <span class="kt">T2:</span> <span class="kt">TypeTag</span><span class="o">](</span><span class="n">target</span><span class="k">:</span> <span class="kt">ChannelRef</span><span class="o">[(</span><span class="kt">T1</span>, <span class="kt">T2</span><span class="o">)</span> <span class="kt">:+:</span> <span class="kt">TNil</span><span class="o">])</span>
+  <span class="k">extends</span> <span class="nc">Actor</span> <span class="k">with</span> <span class="nc">Channels</span><span class="o">[</span><span class="kt">TNil</span>, <span class="o">(</span><span class="kt">Request</span>, <span class="kt">Reply</span><span class="o">)</span> <span class="kt">:+:</span> <span class="o">(</span><span class="kt">T1</span>, <span class="kt">T2</span><span class="o">)</span> <span class="kt">:+:</span> <span class="kt">TNil</span><span class="o">]</span> <span class="o">{</span>
+
+  <span class="k">implicit</span> <span class="k">val</span> <span class="n">timeout</span> <span class="k">=</span> <span class="nc">Timeout</span><span class="o">(</span><span class="mf">5.</span><span class="n">seconds</span><span class="o">)</span>
+
+  <span class="n">channel</span><span class="o">[</span><span class="kt">Request</span><span class="o">]</span> <span class="o">{</span>
+
+    <span class="k">case</span> <span class="o">(</span><span class="nc">Command</span><span class="o">(</span><span class="s">&quot;close&quot;</span><span class="o">),</span> <span class="n">snd</span><span class="o">)</span> <span class="k">⇒</span>
+      <span class="n">channel</span><span class="o">[</span><span class="kt">T1</span><span class="o">]</span> <span class="o">{</span> <span class="o">(</span><span class="n">t</span><span class="o">,</span> <span class="n">s</span><span class="o">)</span> <span class="k">⇒</span> <span class="n">t</span> <span class="o">-?-&gt;</span> <span class="n">target</span> <span class="o">-!-&gt;</span> <span class="n">s</span> <span class="o">}</span>
+      <span class="n">snd</span> <span class="o">&lt;-!-</span> <span class="nc">CommandSuccess</span>
+
+    <span class="k">case</span> <span class="o">(</span><span class="nc">Command</span><span class="o">(</span><span class="s">&quot;open&quot;</span><span class="o">),</span> <span class="n">snd</span><span class="o">)</span> <span class="k">⇒</span>
+      <span class="n">channel</span><span class="o">[</span><span class="kt">T1</span><span class="o">]</span> <span class="o">{</span> <span class="o">(</span><span class="k">_</span><span class="o">,</span> <span class="k">_</span><span class="o">)</span> <span class="k">⇒</span> <span class="o">}</span>
+      <span class="n">snd</span> <span class="o">&lt;-!-</span> <span class="nc">CommandSuccess</span>
+  <span class="o">}</span>
+
+  <span class="n">channel</span><span class="o">[</span><span class="kt">T1</span><span class="o">]</span> <span class="o">{</span> <span class="o">(</span><span class="n">t</span><span class="o">,</span> <span class="n">snd</span><span class="o">)</span> <span class="k">⇒</span> <span class="n">t</span> <span class="o">-?-&gt;</span> <span class="n">target</span> <span class="o">-!-&gt;</span> <span class="n">snd</span> <span class="o">}</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<p>This shows all elements of the toolkit in action: calling <tt class="docutils literal"><span class="pre">channel[T1]</span></tt> again
+during the lifetime of the actor will alter its behavior on that channel. In
+this case a latch or gate is modeled which when closed will permit the messages
+to flow through and when not will drop the messages to the floor.</p>
+</div>
+<div class="section" id="creating-actors-with-channels">
+<h3>Creating Actors with Channels</h3>
+<p>Creating top-level actors with channels is done using the <tt class="docutils literal"><span class="pre">ChannelExt</span></tt> extension:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">implicit</span> <span class="k">val</span> <span class="n">selfChannel</span><span class="k">:</span> <span class="kt">ChannelRef</span><span class="o">[(</span><span class="kt">Any</span>, <span class="kt">Nothing</span><span class="o">)</span> <span class="kt">:+:</span> <span class="kt">TNil</span><span class="o">]</span> <span class="k">=</span> <span class="nc">_self</span>
+<span class="k">val</span> <span class="n">target</span><span class="k">:</span> <span class="kt">ChannelRef</span><span class="o">[(</span><span class="kt">String</span>, <span class="kt">Int</span><span class="o">)</span> <span class="kt">:+:</span> <span class="kt">TNil</span><span class="o">]</span> <span class="k">=</span> <span class="nc">_target</span> <span class="c1">// some actor</span>
+
+<span class="c1">// type given just for demonstration purposes</span>
+<span class="k">val</span> <span class="n">latch</span><span class="k">:</span> <span class="kt">ChannelRef</span><span class="o">[(</span><span class="kt">Request</span>, <span class="kt">Reply</span><span class="o">)</span> <span class="kt">:+:</span> <span class="o">(</span><span class="kt">String</span>, <span class="kt">Int</span><span class="o">)</span> <span class="kt">:+:</span> <span class="kt">TNil</span><span class="o">]</span> <span class="k">=</span>
+  <span class="nc">ChannelExt</span><span class="o">(</span><span class="n">system</span><span class="o">).</span><span class="n">actorOf</span><span class="o">(</span><span class="k">new</span> <span class="nc">Latch</span><span class="o">(</span><span class="n">target</span><span class="o">),</span> <span class="s">&quot;latch&quot;</span><span class="o">)</span>
+
+<span class="s">&quot;hello&quot;</span> <span class="o">-!-&gt;</span> <span class="n">latch</span>
+<span class="c1">// processing ...</span>
+<span class="n">expectMsg</span><span class="o">(</span><span class="mi">5</span><span class="o">)</span> <span class="c1">// this is a TestKit-based example</span>
+
+<span class="nc">Command</span><span class="o">(</span><span class="s">&quot;open&quot;</span><span class="o">)</span> <span class="o">-!-&gt;</span> <span class="n">latch</span>
+<span class="n">expectMsg</span><span class="o">(</span><span class="nc">CommandSuccess</span><span class="o">)</span>
+
+<span class="s">&quot;world&quot;</span> <span class="o">-!-&gt;</span> <span class="n">latch</span>
+<span class="c1">// processing ...</span>
+<span class="n">expectNoMsg</span><span class="o">(</span><span class="mf">500.</span><span class="n">millis</span><span class="o">)</span>
+</pre></div>
+</div>
+<p>Inside an actor with channels children are created using the <tt class="docutils literal"><span class="pre">createChild</span></tt> method:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">case</span> <span class="k">class</span> <span class="nc">Stats</span><span class="o">(</span><span class="n">b</span><span class="k">:</span> <span class="kt">Request</span><span class="o">)</span>
+<span class="k">case</span> <span class="k">object</span> <span class="nc">GetChild</span>
+<span class="k">case</span> <span class="k">class</span> <span class="nc">ChildRef</span><span class="o">(</span><span class="n">child</span><span class="k">:</span> <span class="kt">ChannelRef</span><span class="o">[(</span><span class="kt">Request</span>, <span class="kt">Reply</span><span class="o">)</span> <span class="kt">:+:</span> <span class="kt">TNil</span><span class="o">])</span>
+
+<span class="k">class</span> <span class="nc">Child</span> <span class="k">extends</span> <span class="nc">Actor</span>
+  <span class="k">with</span> <span class="nc">Channels</span><span class="o">[(</span><span class="kt">Stats</span>, <span class="kt">Nothing</span><span class="o">)</span> <span class="kt">:+:</span> <span class="kt">TNil</span>, <span class="o">(</span><span class="kt">Request</span>, <span class="kt">Reply</span><span class="o">)</span> <span class="kt">:+:</span> <span class="kt">TNil</span><span class="o">]</span> <span class="o">{</span>
+
+  <span class="n">channel</span><span class="o">[</span><span class="kt">Request</span><span class="o">]</span> <span class="o">{</span> <span class="o">(</span><span class="n">x</span><span class="o">,</span> <span class="n">snd</span><span class="o">)</span> <span class="k">⇒</span>
+    <span class="n">parentChannel</span> <span class="o">&lt;-!-</span> <span class="nc">Stats</span><span class="o">(</span><span class="n">x</span><span class="o">)</span>
+    <span class="n">snd</span> <span class="o">&lt;-!-</span> <span class="nc">CommandSuccess</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+
+<span class="k">class</span> <span class="nc">Parent</span> <span class="k">extends</span> <span class="nc">Actor</span>
+  <span class="k">with</span> <span class="nc">Channels</span><span class="o">[</span><span class="kt">TNil</span>, <span class="o">(</span><span class="kt">Stats</span>, <span class="kt">Nothing</span><span class="o">)</span> <span class="kt">:+:</span> <span class="o">(</span><span class="kt">GetChild.</span><span class="k">type</span>, <span class="kt">ChildRef</span><span class="o">)</span> <span class="kt">:+:</span> <span class="kt">TNil</span><span class="o">]</span> <span class="o">{</span>
+
+  <span class="k">val</span> <span class="n">child</span> <span class="k">=</span> <span class="n">createChild</span><span class="o">(</span><span class="k">new</span> <span class="nc">Child</span><span class="o">)</span>
+
+  <span class="n">channel</span><span class="o">[</span><span class="kt">GetChild.</span><span class="k">type</span><span class="o">]</span> <span class="o">{</span> <span class="o">(</span><span class="k">_</span><span class="o">,</span> <span class="n">snd</span><span class="o">)</span> <span class="k">⇒</span> <span class="nc">ChildRef</span><span class="o">(</span><span class="n">child</span><span class="o">)</span> <span class="o">-!-&gt;</span> <span class="n">snd</span> <span class="o">}</span>
+
+  <span class="n">channel</span><span class="o">[</span><span class="kt">Stats</span><span class="o">]</span> <span class="o">{</span> <span class="o">(</span><span class="n">x</span><span class="o">,</span> <span class="k">_</span><span class="o">)</span> <span class="k">⇒</span>
+    <span class="c1">// collect some stats</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+
+  <span class="c1">// </span>
+  <span class="c1">// then it is used somewhat like this:</span>
+  <span class="c1">// </span>
+
+  <span class="k">val</span> <span class="n">parent</span> <span class="k">=</span> <span class="nc">ChannelExt</span><span class="o">(</span><span class="n">system</span><span class="o">).</span><span class="n">actorOf</span><span class="o">(</span><span class="k">new</span> <span class="nc">Parent</span><span class="o">,</span> <span class="s">&quot;parent&quot;</span><span class="o">)</span>
+  <span class="n">parent</span> <span class="o">&lt;-!-</span> <span class="nc">GetChild</span>
+  <span class="k">val</span> <span class="n">child</span> <span class="k">=</span> <span class="n">expectMsgType</span><span class="o">[</span><span class="kt">ChildRef</span><span class="o">].</span><span class="n">child</span> <span class="c1">// this assumes TestKit context</span>
+
+  <span class="n">child</span> <span class="o">&lt;-!-</span> <span class="nc">Command</span><span class="o">(</span><span class="s">&quot;hey there&quot;</span><span class="o">)</span>
+  <span class="n">expectMsg</span><span class="o">(</span><span class="nc">CommandSuccess</span><span class="o">)</span>
+</pre></div>
+</div>
+<p>In this example we create a simple child actor which responds to requests, but
+also keeps its parent informed about what it is doing. The parent channel
+within the child is thus declared to accept <tt class="xref py py-class docutils literal"><span class="pre">Stats</span></tt> messages, and the
+parent must consequently declare such a channel in order to be able to create
+such a child. The parent’s job then is to create the child, make it available
+to the outside via properly typed messages and collect the statistics coming in
+from the child.</p>
+</div>
+<div class="section" id="stepping-outside-of-type-safety">
+<h3>Stepping Outside of Type-Safety</h3>
+<p>In much the same was as Scala’s type system can be circumvented by using
+<tt class="docutils literal"><span class="pre">.asInstanceOf[_]</span></tt> typed channels can also be circumvented. Casting them to
+alter the type arguments would be an obvious way of doing that, but there are
+less obvious ways which are therefore enumerated here:</p>
+<ul class="simple">
+<li>explicitly constructing <tt class="xref py py-class docutils literal"><span class="pre">ChannelRef</span></tt> instances by hand allows using
+arbitrary types as arguments</li>
+<li>sending to the <tt class="docutils literal"><span class="pre">actorRef</span></tt> member of the <tt class="xref py py-class docutils literal"><span class="pre">ChannelRef</span></tt>; this is a
+normal untyped actor reference without any compile-time checks, which is the
+reason for choosing visibly different operator names for typed and untyped
+message send operations</li>
+<li>using the <tt class="docutils literal"><span class="pre">context.parent</span></tt> reference instead of <tt class="docutils literal"><span class="pre">parentChannel</span></tt></li>
+<li>using the untyped <tt class="docutils literal"><span class="pre">sender</span></tt> reference instead of the second argument to a
+channel’s behavior function</li>
+</ul>
+<p>Sending unforeseen messages will be flagged as a type error as long as none of
+these techniques are used within an application.</p>
+</div>
+<div class="section" id="implementation-restrictions">
+<h3>Implementation Restrictions</h3>
+<p>As described below, incoming messages are dispatched to declared channels based
+on their runtime class information.  This erasure-based dispatch of messages
+requires all declared channels to have unique JVM type representations, i.e. it
+is not possible to have two channel declarations with types <tt class="docutils literal"><span class="pre">List[A]</span></tt> and
+<tt class="docutils literal"><span class="pre">List[B]</span></tt> because both would at runtime only be known as <tt class="docutils literal"><span class="pre">List[_]</span></tt>.</p>
+<p>The specific dispatch mechanism also requires the declaration of all channels or
+subchannels during the actor’s construction, independent of whether they shall
+later change behavior or not. Changing behavior for a subchannel is only
+possible if that subchannel was declared up-front.</p>
+<p>TypeTags are currently (Scala 2.10.0) not serializable, hence narrowing of
+<tt class="xref py py-class docutils literal"><span class="pre">ActorRef</span></tt> does not work for remote references.</p>
+</div>
+</div>
+<div class="section" id="the-design-background">
+<h2>The Design Background</h2>
+<p>This section outlines the most prominent challenges encountered during the
+development of Typed Channels and the rationale for their solutions. It is not
+necessary to understand this material in order to use Typed Channels, but it
+may be useful to explain why certain things are as they are.</p>
+<div class="section" id="the-type-pollution-problem">
+<h3>The Type Pollution Problem</h3>
+<p>What if an actor accepts two different types of messages? It might be a main
+communications channel which is forwarded to worker actors for performing some
+long-running and/or dangerous task, plus an administrative channel for the
+routing of requests. Or it might be a generic message throttler which accepts a
+generic channel for passing it through (which delay where appropriate) and a
+management channel for setting the throttling rate. In the second case it is
+especially easy to see that those two channels will probably not be related,
+their types will not be derived from a meaningful common supertype; instead the
+least upper bound will probably be <tt class="xref py py-class docutils literal"><span class="pre">AnyRef</span></tt>. If a typed channel
+reference only had the capability to express a single type, this type would
+then be no restriction anymore. This loss of type safety caused by the need of
+handling multiple disjoint sets of types is called “type pollution”, the term
+was coined by Prof. Philip Wadler.</p>
+<p>One solution to this is to never expose references describing more than one
+channel at a time. But where would these references come from? It would be very
+difficult to make this construction process type-safe, and it would also be an
+inconvenient restriction, since message ordering guarantees only apply for the
+same sender–receive pair: if there are relations between the messages sent
+on multiple channels then implementing this mixed-channel communication would
+incur programmatic and runtime overhead compared to just sending to the same
+untyped reference.</p>
+<p>The other solution thus is to express multiple channel types by a single
+channel reference, which requires the implementation of type lists and
+computations on these. And as we will see below it also requires the
+specification of possibly multiple reply channels per input type, hence a type
+map. The implementation chosen uses type lists like this:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="o">(</span><span class="nc">MsgA</span><span class="o">,</span> <span class="nc">MsgB</span><span class="o">)</span> <span class="o">:+:</span> <span class="o">(</span><span class="nc">MsgC</span><span class="o">,</span> <span class="nc">MsgD</span><span class="o">)</span> <span class="o">:+:</span> <span class="nc">TNil</span>
+</pre></div>
+</div>
+<p>This type expresses two channels: type <tt class="docutils literal"><span class="pre">A</span></tt> may stimulate replies of type
+<tt class="docutils literal"><span class="pre">B</span></tt>, while type <tt class="docutils literal"><span class="pre">C</span></tt> may evoke replies of type <tt class="docutils literal"><span class="pre">D</span></tt>. The type operator
+<tt class="docutils literal"><span class="pre">:+:</span></tt> is a binary type constructor which forms a list of these channel
+definitions, and like every good list it ends with an empty tail <tt class="docutils literal"><span class="pre">TNil</span></tt>.</p>
+</div>
+<div class="section" id="the-reply-problem">
+<h3>The Reply Problem</h3>
+<p>Akka actors have the power to reply to any message they receive, which is also
+a message send and shall also be covered by typed channels. Since the sending
+actor is the one which will also receive the reply, this needs to be verified.
+The solution to this problem is that in addition to the <tt class="docutils literal"><span class="pre">self</span></tt> reference,
+which is implicitly picked up as the sender for untyped actor interactions,
+there is also a <tt class="docutils literal"><span class="pre">selfChannel</span></tt> which describes the typed channels handled by
+this actor. Thus at the call site of the message send it must be verified that
+this actor can actually handle the reply for that given message send.</p>
+</div>
+<div class="section" id="the-sender-ping-pong-problem">
+<h3>The Sender Ping-Pong Problem</h3>
+<p>After successfully sending a message to an actor over a typed channel, that
+actor will have a reference to the message’s sender, because normal Akka
+message processing rules apply. For this sender reference there must exist a
+typed channel reference which describes the possible reply types which are
+applicable for each of the incoming message channels. We will see below how
+this reference is provided in the code, the problem we want to highlight here
+is a different one: the nature of any sender reference is that it is highly
+dynamic, the compiler cannot possibly know who sent the message we are
+currently processing.</p>
+<p>But this does not mean that all hope is lost: the solution is to do <em>all</em>
+type-checking at the call site of the message send. The receiving actor just
+needs to declare its channel descriptions in its own type, and channel
+references are derived at construction from this type (implying the existence
+of a typed <tt class="docutils literal"><span class="pre">actorOf</span></tt>). Then the actor knows for each received message type
+which the allowed reply types are. The typed channel for the sender reference
+hence has the reply types for the current input channel as its own input types,
+but what should the reply types be? This is the ping-pong problem:</p>
+<ul class="simple">
+<li>ActorA sends MsgA to ActorB</li>
+<li>ActorB replies with MsgB</li>
+<li>ActorA replies with MsgC</li>
+</ul>
+<p>Every “reply” uses the sender channel, which is dynamic and hence only known
+partially. But ActorB did not know who sent the message it just replied to and
+hence it cannot check that it can process the possible replies following that
+message send. Only ActorA could have known, because it knows its own channels
+as well as ActorB’s channels completely. The solution is thus to recursively
+verify the message send, following all reply channels until all possible
+message types to be sent have been verified. This sounds horribly complex, but
+the algorithm for doing so actually has a worst-case complexity of O(N) where N
+is the number of input channels of ActorA or ActorB, whoever has fewer.</p>
+</div>
+<div class="section" id="the-parent-problem">
+<h3>The Parent Problem</h3>
+<p>There is one other actor reference which is available to every actor: its
+parent. Since the child–parent relationship is established permanently when the
+child is created by the parent, this problem is easily solvable by encoding the
+requirements of the child for its parent channel in its type signature and
+having the typed variant of <tt class="docutils literal"><span class="pre">actorOf</span></tt> verify this against the
+<tt class="docutils literal"><span class="pre">selfChannel</span></tt>.</p>
+<p>Anecdotally, since the guardian actor does not care at all about messages sent
+to it, top-level actors with typed channels must declare their parent channel
+to be empty.</p>
+</div>
+<div class="section" id="the-exposure-restriction-problem">
+<h3>The Exposure/Restriction Problem</h3>
+<p>An actor may provide more than one service, either itself or by proxy, each
+with their own set of channels. Only having references for the full set of
+channels leads to a too wide spread of capabilities: in the example of the
+message rate throttling actor its management channel is only meant to be used
+by the actor which inserted it, not by the two actors between it was inserted.
+Hence the manager will have to create a channel reference which excludes the
+management channels before handing out the reference to other actors.</p>
+<p>Another variant of this problem is an actor which handles a channel whose input
+type is a supertype for a number of derived channels. It should be allowed to
+use the “superchannel” in place of any of the subchannels, but not the other
+way around. The intuitive approach would be to model this by making the channel
+reference contravariant in its channel types and define those channel types
+accordingly. This does not work nicely, however, because Scala’s type system is
+not well-suited to modeling such calculations on unordered type lists; it might
+be possible but its implementation would be forbiddingly complex.</p>
+<p>Therefore this topic gained traction as macros became available: being able to
+write down type calculations using standard collections and their
+transformations reduces the implementation to a handful of lines. The “narrow”
+operation implemented this way allows narrowing of input channels and
+widening of output channels down to <tt class="docutils literal"><span class="pre">(Nothing,</span> <span class="pre">Any)</span></tt> (which is to say that
+channels may be narrowed or just plain removed from a channel list).</p>
+</div>
+<div class="section" id="the-forwarding-problem">
+<h3>The Forwarding Problem</h3>
+<p>One important feature of actors mentioned above is their composability which is
+enabled by being able to forward or delegate messages. It is the nature of this
+process that the sending party is not aware of the true destination of the
+message, it only sees the façade in front of it. Above we have seen that the
+sender ping-pong problem requires all verification to be performed at the
+sender’s end, but if the sender does not know the final recipient, how can it
+check that the message exchange is type-safe?</p>
+<p>The forwarding party—the middle-man—is also not in the position to make this
+call, since all it has is the incomplete sender channel which is lacking reply
+type information. The problem which arises lies precisely in these reply
+sequences: the ping-pong scheme was verified against the middle-man, and if the
+final recipient would reply to the forwarded request, that sender reference
+would belong to a different channel and there is no single location in the
+source code where all these pieces are known at compile time.</p>
+<p>The solution to this problem is to not allow forwarding in the normal untyped
+<tt class="xref py py-class docutils literal"><span class="pre">ActorRef</span></tt> sense. Replies must always be sent by the recipient of the
+original message in order for the type checks at the sender site to be
+effective. Since forwarding is an important communication pattern among actors,
+support for it is thus provided in the form of the <tt class="xref py py-meth docutils literal"><span class="pre">ask</span></tt> pattern combined
+with the <tt class="xref py py-meth docutils literal"><span class="pre">pipe</span></tt> pattern, which both are not add-ons but fully integrated
+operations among typed channels.</p>
+</div>
+<div class="section" id="the-jvm-erasure-problem">
+<h3>The JVM Erasure Problem</h3>
+<p>When an actor with typed channels receives a message, this message needs to be
+dispatched internally to the right channel, so that the right sender channel
+can be presented and so on. This dispatch needs to work with the information
+contained in the message, which due to the erasure of generic type information
+is an incomplete image of the true channel types. Those full types exist only
+at compile-time and reifying them into TypeTags at runtime for every message
+send would be prohibitively expensive. This means that channels which erase to
+the same JVM type cannot coexist within the same actor, messages would not be
+routable reliably in that case.</p>
+</div>
+<div class="section" id="the-actor-lookup-problem">
+<h3>The Actor Lookup Problem</h3>
+<p>Everything up to this point has assumed that channel references are passed from
+their point of creation to their point of use directly and in the regime of
+strong, unerased types. This can also happen between actors by embedding them
+in case classes with proper type information. But one particular useful feature
+of Akka actors is that they have a stable identity by which they can be found,
+a unique name. This name is represented as a <tt class="xref py py-class docutils literal"><span class="pre">String</span></tt> and naturally does
+not bear any type information concerning the actor’s channels. Thus, when
+looking up an actor with <tt class="docutils literal"><span class="pre">system.actorSelection(...)</span></tt> followed by an <tt class="docutils literal"><span class="pre">Identify</span></tt>
+request you will only get an untyped <tt class="xref py py-class docutils literal"><span class="pre">ActorRef</span></tt> and not a channel reference.
+This <tt class="xref py py-class docutils literal"><span class="pre">ActorRef</span></tt> can of course manually be wrapped in a channel reference
+bearing the desired channels, but this is not a type-safe operation.</p>
+<p>The solution in this case must be a runtime check. There is an operation to
+“narrow” an <tt class="xref py py-class docutils literal"><span class="pre">ActorRef</span></tt> to a channel reference of given type, which
+behind the scenes will send a message to the designated actor with a TypeTag
+representing the requested channels. The actor will check these against its own
+TypeTag and reply with the verification result. This check uses the same code
+as the compile-time “narrow” operation introduced above.</p>
+</div>
+</div>
+<div class="section" id="how-to-read-the-types">
+<h2>How to read The Types</h2>
+<p>In case of errors in your code the compiler will try to inform you in the most
+precise way it can, and that will then contain types like this:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="n">akka</span><span class="o">.</span><span class="n">channels</span><span class="o">.:+:[(</span><span class="kt">com.example.Request</span>, <span class="kt">com.example.Reply</span><span class="o">)</span>,
+  <span class="kt">akka.channels.:+:</span><span class="o">[(</span><span class="kt">com.example.Command</span>, <span class="kt">Nothing</span><span class="o">)</span>, <span class="kt">TNil</span><span class="o">]]</span>
+</pre></div>
+</div>
+<p>These types look unwieldy because of two things: they use fully qualified names
+for all the types (thankfully using the <tt class="docutils literal"><span class="pre">()</span></tt> sugar for <tt class="xref py py-class docutils literal"><span class="pre">Tuple2</span></tt>), and
+they do not employ infix notation. That same type there might look like this in
+your source code:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="o">(</span><span class="nc">Request</span><span class="o">,</span> <span class="nc">Reply</span><span class="o">)</span> <span class="o">:+:</span> <span class="o">(</span><span class="nc">Command</span><span class="o">,</span> <span class="nc">Nothing</span><span class="o">)</span> <span class="o">:+:</span> <span class="nc">TNil</span>
+</pre></div>
+</div>
+<p>As soon as someone finds the time, it would be nice if the IDEs learned to
+print types making use of the file’s import statements and infix notation.</p>
+</div>
+</div>
+
+
+          </div>
+          <div class="span3"><p class="contents-title">Contents</p>
+              <div id="scroller-anchor">
+                <div id="scroller">
+                  <div id="toc"></div>
+                </div>
+              </div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="footer">
+  <div class="container">
+    <ul>
+      <li><h5>Akka</h5></li>
+      <li><a href="https://akka.io/docs">Documentation</a></li>
+      <li><a href="https://akka.io/faq">FAQ</a></li>
+      <li><a href="http://typesafe.com/stack/downloads/akka">Downloads</a></li>
+      <li><a href="https://akka.io/news">News</a></li>
+      <li><a href="http://letitcrash.com">Blog</a></li>
+    </ul>
+    <ul>
+      <li><h5>Contribute</h5></li>
+      <li><a href="https://akka.io/community">Community Projects</a></li>
+      <li><a href="http://github.com/akka/akka">Source Code</a></li>
+      <li><a href="http://groups.google.com/group/akka-user">Mailing List</a></li>      
+      <li><a href="https://doc.akka.io/docs/akka/current/project/issue-tracking.html">Report a Bug</a></li>      
+    </ul>
+    <ul>
+      <li><h5>Company</h5></li>
+      <li><a href="http://typesafe.com/products/typesafe-subscription">Commercial Support</a></li>
+      <li><a href="https://akka.io/team">Team</a></li>
+      <li><a href="mailto:info@typesafe.com">Contact</a></li>
+    </ul>
+    <ul>
+      <li><img src="../_static/watermark.png" align="center"/></li>
+    </ul>
+  </div>
+  <div class="container copyright">
+    <p style="float: left;">
+      © 2013 <a href="http://typesafe.com/">Typesafe Inc.</a> <span class="license">Akka is Open Source and available under the Apache 2 License.</span>
+    </p>
+    <p style="float: right; font-size: 12px;">
+      Last updated: Feb 19, 2015
+    </p>          
+  </div>
+</div>
+<script src="http://www.google.com/jsapi" type="text/javascript"></script>
+<script type="text/javascript">
+    google.load('search', '1', {language : 'en', style : google.loader.themes.MINIMALIST});
+    google.setOnLoadCallback(function() {
+    var customSearchOptions = {};  var customSearchControl = new google.search.CustomSearchControl(
+    '003065520604945464838:izzukx8-qba', customSearchOptions);
+    customSearchControl.setResultSetSize(google.search.Search.FILTERED_CSE_RESULTSET);
+    customSearchControl.draw('cse');
+    var path = window.location.pathname.split('/').slice(0,4);
+    if(window.location.hostname && path.length >= 4) {
+    var site = "site:" + window.location.hostname + path.join('/').toString();
+    customSearchControl.setSearchStartingCallback(this, function(c, s, q) { s.setQueryAddition(site); });
+    }
+    }, true);
+</script>
+<style type="text/css">
+    .gsc-control-cse {
+    font-family: Arial, sans-serif;
+    border-color: rgb(242, 242, 235);
+    background-color: rgb(242, 242, 235);
+    }
+    .gsc-control-cse .gsc-table-result {
+      font-family: Arial, sans-serif;
+      display: block;
+    }
+    input.gsc-input {
+    border-color: #BBBBBB;
+    }
+    input.gsc-search-button {
+    border-color: rgb(34, 57, 64);
+    background-color: rgb(68, 114, 129);
+    color: #FFFFFF;
+    }
+    .gsc-tabHeader.gsc-tabhInactive {
+    border-color: #777777;
+    background-color: #777777;
+    }
+    .gsc-tabHeader.gsc-tabhActive {
+    border-color: #333333;
+    background-color: #333333;
+    }
+    .gsc-tabsArea {
+    border-color: #333333;
+    }
+    .gsc-webResult.gsc-result,
+    .gsc-results .gsc-imageResult {
+      border-color: #666666;
+      background-color: #FFFFFF;
+      padding: 0.5em 0.5em;
+    }
+    .gsc-webResult.gsc-result:hover,
+    .gsc-imageResult:hover {
+      border-color: #AAAAAA;
+      background-color: #FFFFFF;
+      padding: 0.5em 0.5em;
+    }
+    .gsc-webResult.gsc-result.gsc-promotion:hover {
+    border-color: #AAAAAA;
+    background-color: #FFFFFF;
+    }
+    .gs-webResult.gs-result a.gs-title:link,
+    .gs-webResult.gs-result a.gs-title:link b,
+    .gs-imageResult a.gs-title:link,
+    .gs-imageResult a.gs-title:link b {
+    color: #444444;
+    }
+    .gs-webResult.gs-result a.gs-title:visited,
+    .gs-webResult.gs-result a.gs-title:visited b,
+    .gs-imageResult a.gs-title:visited,
+    .gs-imageResult a.gs-title:visited b {
+    color: #444444;
+    }
+    .gs-webResult.gs-result a.gs-title:hover,
+    .gs-webResult.gs-result a.gs-title:hover b,
+    .gs-imageResult a.gs-title:hover,
+    .gs-imageResult a.gs-title:hover b {
+    color: #444444;
+    }
+    .gs-webResult.gs-result a.gs-title:active,
+    .gs-webResult.gs-result a.gs-title:active b,
+    .gs-imageResult a.gs-title:active,
+    .gs-imageResult a.gs-title:active b {
+    color: #777777;
+    }
+    .gsc-cursor-page {
+    color: #444444;
+    }
+    a.gsc-trailing-more-results:link {
+    color: #444444;
+    }
+    .gs-webResult .gs-snippet,
+    .gs-imageResult .gs-snippet,
+    .gs-fileFormatType {
+    color: #333333;
+    }
+    .gs-webResult div.gs-visibleUrl,
+    .gs-imageResult div.gs-visibleUrl {
+    color: #000000;
+    }
+    .gs-webResult div.gs-visibleUrl-short {
+    color: #000000;
+    }
+    .gs-webResult div.gs-visibleUrl-short {
+    display: none;
+    }
+    .gs-webResult div.gs-visibleUrl-long {
+    display: block;
+    }
+    .gs-promotion div.gs-visibleUrl-short {
+    display: none;
+    }
+    .gs-promotion div.gs-visibleUrl-long {
+    display: block;
+    }
+    .gsc-cursor-box {
+    border-color: #FFFFFF;
+    }
+    .gsc-results .gsc-cursor-box .gsc-cursor-page {
+    border-color: #777777;
+    background-color: #FFFFFF;
+    color: #444444;
+    }
+    .gsc-results .gsc-cursor-box .gsc-cursor-current-page {
+    border-color: #333333;
+    background-color: #333333;
+    color: #444444;
+    }
+    .gsc-webResult.gsc-result.gsc-promotion {
+    border-color: #CCCCCC;
+    background-color: #E6E6E6;
+    }
+    .gsc-completion-title {
+    color: #444444;
+    }
+    .gsc-completion-snippet {
+    color: #333333;
+    }
+    .gs-promotion a.gs-title:link,
+    .gs-promotion a.gs-title:link *,
+    .gs-promotion .gs-snippet a:link {
+    color: #0000CC;
+    }
+    .gs-promotion a.gs-title:visited,
+    .gs-promotion a.gs-title:visited *,
+    .gs-promotion .gs-snippet a:visited {
+    color: #0000CC;
+    }
+    .gs-promotion a.gs-title:hover,
+    .gs-promotion a.gs-title:hover *,
+    .gs-promotion .gs-snippet a:hover {
+    color: #444444;
+    }
+    .gs-promotion a.gs-title:active,
+    .gs-promotion a.gs-title:active *,
+    .gs-promotion .gs-snippet a:active {
+    color: #00CC00;
+    }
+    .gs-promotion .gs-snippet,
+    .gs-promotion .gs-title .gs-promotion-title-right,
+    .gs-promotion .gs-title .gs-promotion-title-right *  {
+    color: #333333;
+    }
+    .gs-promotion .gs-visibleUrl,
+    .gs-promotion .gs-visibleUrl-short {
+    color: #00CC00;
+    }
+</style>
+<script type="text/javascript">
+  $('#toc').toc();
+</script>
+  
+
+  </body>
+</html>

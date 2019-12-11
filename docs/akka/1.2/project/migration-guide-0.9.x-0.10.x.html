@@ -1,0 +1,120 @@
+
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Migration Guide 0.9.x to 0.10.x &mdash; Akka Documentation</title>
+    <link rel="stylesheet" href="../_static/akka.css" type="text/css" />
+<link rel="stylesheet" href="https://doc.akka.io/docs/akka/1.2/_static/akka.css" type="text/css"/>
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/print.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '1.2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+<script type="text/javascript" src="https://doc.akka.io/docs/akka/1.2/_static/warnOldDocs.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="../_static/theme_extras.js"></script>
+    <link rel="top" title="Akka Documentation" href="../index.html" />
+    <link rel="up" title="Migration Guides" href="migration-guides.html" />
+    <link rel="next" title="Migration Guide 0.8.x to 0.9.x" href="migration-guide-0.8.x-0.9.x.html" />
+    <link rel="prev" title="Migration guide from 0.10.x to 1.0.x" href="migration-guide-0.10.x-1.0.x.html" /> 
+  </head>
+  <body>
+      <div class="header"><a href="../index.html"><img class="leftlogo" src="../_static/logo.png" alt="Logo"/></a><h1 class="heading"><a href="../index.html"><span>Akka Documentation</span></a></h1>
+       <h2 class="heading"><a href="../index.html"><span>Version 1.2</span></a></h2>
+       <h2 class="rightheading"><span><a href="https://akka.io/docs/akka/1.2/Akka.pdf">PDF</a></span></h2>
+      </div>
+      <div class="topnav">
+      
+        <p>
+        «&#160;&#160;<a href="migration-guide-0.10.x-1.0.x.html">Migration guide from 0.10.x to 1.0.x</a>
+        &#160;&#160;::&#160;&#160;
+        <a class="uplink" href="../index.html">Contents</a>
+        &#160;&#160;::&#160;&#160;
+        <a href="migration-guide-0.8.x-0.9.x.html">Migration Guide 0.8.x to 0.9.x</a>&#160;&#160;»
+        </p>
+
+      </div>
+      <div class="content">
+        
+        
+  <div class="section" id="migration-guide-0-9-x-to-0-10-x">
+<h1>Migration Guide 0.9.x to 0.10.x<a class="headerlink" href="#migration-guide-0-9-x-to-0-10-x" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="module-akka-camel">
+<h2>Module akka-camel<a class="headerlink" href="#module-akka-camel" title="Permalink to this headline">¶</a></h2>
+<p>The following list summarizes the breaking changes since Akka 0.9.1.</p>
+<ul class="simple">
+<li>CamelService moved from package se.scalablesolutions.akka.camel.service one level up to se.scalablesolutions.akka.camel.</li>
+<li>CamelService.newInstance removed. For starting and stopping a CamelService, applications should use<ul>
+<li>CamelServiceManager.startCamelService and</li>
+<li>CamelServiceManager.stopCamelService.</li>
+</ul>
+</li>
+<li>Existing def receive = produce method definitions from Producer implementations must be removed (resolves compile error: method receive needs override modifier).</li>
+<li>The Producer.async method and the related Sync trait have been removed. This is now fully covered by Camel&#8217;s <a class="reference external" href="http://camel.apache.org/asynchronous-processing.html">asynchronous routing engine</a>.</li>
+<li>&#64;consume annotation can not placed any longer on actors (i.e. on type-level), only on typed actor methods. Consumer actors must mixin the Consumer trait.</li>
+<li>&#64;consume annotation moved to package se.scalablesolutions.akka.camel.</li>
+</ul>
+</div>
+<div class="section" id="logging">
+<h2>Logging<a class="headerlink" href="#logging" title="Permalink to this headline">¶</a></h2>
+<p>We&#8217;ve switched to Logback (SLF4J compatible) for the logging, if you&#8217;re having trouble seeing your log output you&#8217;ll need to make sure that there&#8217;s a logback.xml available on the classpath or you&#8217;ll need to specify the location of the logback.xml file via the system property, ex: -Dlogback.configurationFile=/path/to/logback.xml</p>
+</div>
+<div class="section" id="configuration">
+<h2>Configuration<a class="headerlink" href="#configuration" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li>The configuration is now JSON-style (see below).</li>
+<li>Now you can define the time-unit to be used throughout the config file:</li>
+</ul>
+<div class="highlight-ruby"><div class="highlight"><pre><span class="n">akka</span> <span class="p">{</span>
+  <span class="n">version</span> <span class="o">=</span> <span class="s2">&quot;0.10&quot;</span>
+  <span class="n">time</span><span class="o">-</span><span class="n">unit</span> <span class="o">=</span> <span class="s2">&quot;seconds&quot;</span>      <span class="c1"># default timeout time unit for all timeout properties throughout the config</span>
+
+  <span class="n">actor</span> <span class="p">{</span>
+    <span class="n">timeout</span> <span class="o">=</span> <span class="mi">5</span>              <span class="c1"># default timeout for future based invocations</span>
+    <span class="n">throughput</span> <span class="o">=</span> <span class="mi">5</span>           <span class="c1"># default throughput for ExecutorBasedEventDrivenDispatcher</span>
+  <span class="p">}</span>
+  <span class="o">.</span><span class="n">.</span><span class="o">.</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="remoteclient-events">
+<h2>RemoteClient events<a class="headerlink" href="#remoteclient-events" title="Permalink to this headline">¶</a></h2>
+<p>All events now has a reference to the RemoteClient instance instead of &#8216;hostname&#8217; and &#8216;port&#8217;. This is more flexible. Enables simpler reconnecting etc.</p>
+</div>
+</div>
+
+
+      </div>
+      <div class="bottomnav">
+      
+        <p>
+        «&#160;&#160;<a href="migration-guide-0.10.x-1.0.x.html">Migration guide from 0.10.x to 1.0.x</a>
+        &#160;&#160;::&#160;&#160;
+        <a class="uplink" href="../index.html">Contents</a>
+        &#160;&#160;::&#160;&#160;
+        <a href="migration-guide-0.8.x-0.9.x.html">Migration Guide 0.8.x to 0.9.x</a>&#160;&#160;»
+        </p>
+
+      </div>
+
+    <div class="footer">
+        &copy; Copyright 2011, Typesafe Inc.
+      Last updated on Sep 19, 2011.
+    </div>
+  </body>
+</html>

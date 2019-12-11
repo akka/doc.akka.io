@@ -1,0 +1,1492 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" /><meta name="description" content="Akka is a toolkit for building highly concurrent, distributed, and resilient message-driven applications for Java and Scala."/><link rel="canonical" href="https://doc.akka.io/docs/akka/2.3/java/persistence.html"/>
+    
+    <title>Persistence &mdash; Akka Documentation</title>
+    
+    <link rel="stylesheet" href="../_static/style.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/prettify.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/base.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
+    <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,600,700" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '2.3.16',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="../_static/toc.js"></script>
+    <script type="text/javascript" src="../_static/prettify.js"></script>
+    <script type="text/javascript" src="../_static/highlightCode.js"></script>
+    <script type="text/javascript" src="../_static/effects.core.js"></script>
+    <script type="text/javascript" src="../_static/effects.highlight.js"></script>
+    <script type="text/javascript" src="../_static/scrollTo.js"></script>
+    <script type="text/javascript" src="../_static/contentsFix.js"></script>
+    <script type="text/javascript" src="../_static/ga.js"></script>
+    <link rel="shortcut icon" href="../_static/favicon.ico"/>
+    <link rel="top" title="Akka Documentation" href="../index.html" />
+    <link rel="up" title="Actors" href="index-actors.html" />
+    <link rel="next" title="Testing Actor Systems" href="testing.html" />
+    <link rel="prev" title="Building Finite State Machine Actors" href="fsm.html" />
+    <!--Google Analytics-->
+    <script type="text/javascript">
+      var _gaq = _gaq || [];
+      _gaq.push(['_setAccount', 'UA-21117439-1']);
+      _gaq.push(['_setDomainName', 'akka.io']);
+      _gaq.push(['_trackPageview']);
+      (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+      })()
+    </script>
+    <!--Google Analytics & Marketo-->
+    <script type="text/javascript">
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+      (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+      m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+      ga('create', 'UA-23127719-1', 'typesafe.com', {'allowLinker': true, 'name': 'tsTracker'});
+      ga('tsTracker.require', 'linker');
+      ga('tsTracker.linker:autoLink', ['typesafe.com','playframework.com','scala-lang.org','scaladays.org','spray.io','akka.io','scala-sbt.org','scala-ide.org']);
+      ga('tsTracker.send', 'pageview');
+      
+      (function() {
+          var didInit = false;
+          function initMunchkin() {
+          if(didInit === false) {
+            didInit = true;
+            Munchkin.init('558-NCX-702');
+          }
+          }
+          var s = document.createElement('script');
+          s.type = 'text/javascript';
+          s.async = true;
+          s.src = '//munchkin.marketo.net/munchkin.js';
+          s.onreadystatechange = function() {
+          if (this.readyState == 'complete' || this.readyState == 'loaded') {
+            initMunchkin();
+          }
+          };
+          s.onload = initMunchkin;
+          document.getElementsByTagName('head')[0].appendChild(s);
+        })();
+    </script>
+
+  </head>
+  <body role="document">
+  <div class="navbar">
+    <div class="navbar-inner">
+      <div class="container">
+        <div class="navbar-logo">
+          <a href="https://akka.io"><img class="svg-logo" src="../_static/akka_full_color.svg" /></a>
+        </div>    
+        <ul class="nav">
+          <li><a href="https://akka.io/docs">Documentation</a></li>
+          <li><a href="https://akka.io/faq">FAQ</a></li>
+          <li><a href="https://akka.io/downloads">Download</a></li>
+          <li><a href="http://groups.google.com/group/akka-user">Mailing List</a></li>
+          <li><a href="http://github.com/akka/akka">Code</a></li>           
+          <li><a href="http://www.typesafe.com/how/subscription">Commercial Support</a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="main">
+    <div class="container">
+      <div class="page-title">Persistence</div>
+      <div class="pdf-link"><a href="../AkkaScala.pdf" title="Akka Scala Documentation"><img src="../_static/pdf-scala-icon.png" style="height: 40px;" /></a></div>
+      <div class="pdf-link"><a href="../AkkaJava.pdf" title="Akka Java Documentation"><img src="../_static/pdf-java-icon.png" style="height: 40px;" /></a></div>
+    </div>
+    <div class="main-container">
+      <div class="container">
+        <div class="row">
+          <div class="span12">
+            <ul class="breadcrumb">           
+              <li>
+                 <span class="divider">|</span> <a href="testing.html">Testing Actor Systems</a> <span class="divider">»</span>
+              </li>
+              <li>
+                <a href="../index.html">Contents</a>
+              </li>
+              <li>
+                <span class="divider">«</span> <a href="fsm.html">Building Finite State Machine Actors</a> <span class="divider">|</span>
+              </li>
+              <li>
+                Version 2.3.16
+              </li>
+            </ul>
+          </div>
+        </div>
+        <div class="row">
+          <div class="span9">
+            <div id="cse">Loading</div>
+          </div><div class="span9">
+            
+  <div class="section" id="persistence">
+<span id="persistence-java"></span><h1>Persistence</h1>
+<p>Akka persistence enables stateful actors to persist their internal state so that it can be recovered when an actor
+is started, restarted after a JVM crash or by a supervisor, or migrated in a cluster. The key concept behind Akka
+persistence is that only changes to an actor's internal state are persisted but never its current state directly
+(except for optional snapshots). These changes are only ever appended to storage, nothing is ever mutated, which
+allows for very high transaction rates and efficient replication. Stateful actors are recovered by replaying stored
+changes to these actors from which they can rebuild internal state. This can be either the full history of changes
+or starting from a snapshot which can dramatically reduce recovery times. Akka persistence also provides point-to-point
+communication with at-least-once message delivery semantics.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Java 8 lambda expressions are also supported. (See section <a class="reference internal" href="lambda-persistence.html#persistence-lambda-java"><span class="std std-ref">Persistence (Java with Lambda Support)</span></a>)</p>
+</div>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">This module is marked as <strong>“experimental”</strong> as of its introduction in Akka 2.3.0. We will continue to
+improve this API based on our users’ feedback, which implies that while we try to keep incompatible
+changes to a minimum the binary compatibility guarantee for maintenance releases does not apply to the
+contents of the <code class="docutils literal"><span class="pre">akka.persistence</span></code> package.</p>
+</div>
+<p>Akka persistence is inspired by and the official replacement of the <a class="reference external" href="https://github.com/eligosource/eventsourced">eventsourced</a> library. It follows the same
+concepts and architecture of <a class="reference external" href="https://github.com/eligosource/eventsourced">eventsourced</a> but significantly differs on API and implementation level. See also
+<a class="reference internal" href="../project/migration-guide-eventsourced-2.3.x.html#migration-eventsourced-2-3"><span class="std std-ref">Migration Guide Eventsourced to Akka Persistence 2.3.x</span></a></p>
+<div class="section" id="changes-in-akka-2-3-4">
+<h2>Changes in Akka 2.3.4</h2>
+<p>In Akka 2.3.4 several of the concepts of the earlier versions were collapsed and simplified.
+In essence; <code class="docutils literal"><span class="pre">Processor</span></code> and <code class="docutils literal"><span class="pre">EventsourcedProcessor</span></code> are replaced by <code class="docutils literal"><span class="pre">PersistentActor</span></code>. <code class="docutils literal"><span class="pre">Channel</span></code>
+and <code class="docutils literal"><span class="pre">PersistentChannel</span></code> are replaced by <code class="docutils literal"><span class="pre">AtLeastOnceDelivery</span></code>. <code class="docutils literal"><span class="pre">View</span></code> is replaced by <code class="docutils literal"><span class="pre">PersistentView</span></code>.</p>
+<p>See full details of the changes in the <a class="reference internal" href="../project/migration-guide-persistence-experimental-2.3.x-2.4.x.html#migration-guide-persistence-experimental-2-3-x-2-4-x"><span class="std std-ref">Migration Guide Akka Persistence (experimental) 2.3.3 to 2.3.4 (and 2.4.x)</span></a>.
+The old classes are still included, and deprecated, for a while to make the transition smooth.
+In case you need the old documentation it is located <a class="reference external" href="https://doc.akka.io/docs/akka/2.3.3/java/persistence.html">here</a>.</p>
+</div>
+<div class="section" id="dependencies">
+<h2>Dependencies</h2>
+<p>Akka persistence is a separate jar file. Make sure that you have the following dependency in your project:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span></span><span class="o">&lt;</span><span class="n">dependency</span><span class="o">&gt;</span>
+  <span class="o">&lt;</span><span class="n">groupId</span><span class="o">&gt;</span><span class="n">com</span><span class="o">.</span><span class="n">typesafe</span><span class="o">.</span><span class="n">akka</span><span class="o">&lt;/</span><span class="n">groupId</span><span class="o">&gt;</span>
+  <span class="o">&lt;</span><span class="n">artifactId</span><span class="o">&gt;</span><span class="n">akka</span><span class="o">-</span><span class="n">persistence</span><span class="o">-</span><span class="n">experimental_2</span><span class="o">.</span><span class="mi">10</span><span class="o">&lt;/</span><span class="n">artifactId</span><span class="o">&gt;</span>
+  <span class="o">&lt;</span><span class="n">version</span><span class="o">&gt;</span><span class="mf">2.3</span><span class="o">.</span><span class="mi">16</span><span class="o">&lt;/</span><span class="n">version</span><span class="o">&gt;</span>
+<span class="o">&lt;/</span><span class="n">dependency</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="architecture">
+<h2>Architecture</h2>
+<ul class="simple">
+<li><em>UntypedPersistentActor</em>: Is a persistent, stateful actor. It is able to persist events to a journal and can react to
+them in a thread-safe manner. It can be used to implement both <em>command</em> as well as <em>event sourced</em> actors.
+When a persistent actor is started or restarted, journaled messages are replayed to that actor, so that it can
+recover internal state from these messages.</li>
+<li><em>UntypedPersistentView</em>: A view is a persistent, stateful actor that receives journaled messages that have been written by another
+persistent actor. A view itself does not journal new messages, instead, it updates internal state only from a persistent actor's
+replicated message stream.</li>
+<li><em>UntypedPersistentActorAtLeastOnceDelivery</em>: To send messages with at-least-once delivery semantics to destinations, also in
+case of sender and receiver JVM crashes.</li>
+<li><em>Journal</em>: A journal stores the sequence of messages sent to a persistent actor. An application can control which messages
+are journaled and which are received by the persistent actor without being journaled. The storage backend of a journal is
+pluggable. The default journal storage plugin writes to the local filesystem, replicated journals are available as
+<a class="reference external" href="https://akka.io/community/">Community plugins</a>.</li>
+<li><em>Snapshot store</em>: A snapshot store persists snapshots of a persistent actor's or a view's internal state. Snapshots are
+used for optimizing recovery times. The storage backend of a snapshot store is pluggable. The default snapshot
+storage plugin writes to the local filesystem.</li>
+</ul>
+</div>
+<div class="section" id="event-sourcing">
+<span id="event-sourcing-java"></span><h2>Event sourcing</h2>
+<p>The basic idea behind <a class="reference external" href="http://martinfowler.com/eaaDev/EventSourcing.html">Event Sourcing</a> is quite simple. A persistent actor receives a (non-persistent) command
+which is first validated if it can be applied to the current state. Here, validation can mean anything, from simple
+inspection of a command message's fields up to a conversation with several external services, for example.
+If validation succeeds, events are generated from the command, representing the effect of the command. These events
+are then persisted and, after successful persistence, used to change the actor's state. When the persistent actor
+needs to be recovered, only the persisted events are replayed of which we know that they can be successfully applied.
+In other words, events cannot fail when being replayed to a persistent actor, in contrast to commands. Event sourced
+actors may of course also process commands that do not change application state, such as query commands, for example.</p>
+<p>Akka persistence supports event sourcing with the <code class="docutils literal"><span class="pre">UntypedPersistentActor</span></code> abstract class. An actor that extends this
+class uses the <code class="docutils literal"><span class="pre">persist</span></code> method to persist and handle events. The behavior of an <code class="docutils literal"><span class="pre">UntypedPersistentActor</span></code>
+is defined by implementing <code class="docutils literal"><span class="pre">receiveRecover</span></code> and <code class="docutils literal"><span class="pre">receiveCommand</span></code>. This is demonstrated in the following example.</p>
+<div class="highlight-scala"><div class="highlight"><pre><span></span><span class="k">import</span> <span class="nn">akka.actor.ActorRef</span><span class="o">;</span>
+<span class="k">import</span> <span class="nn">akka.actor.ActorSystem</span><span class="o">;</span>
+<span class="k">import</span> <span class="nn">akka.actor.Props</span><span class="o">;</span>
+<span class="k">import</span> <span class="nn">akka.japi.Procedure</span><span class="o">;</span>
+<span class="k">import</span> <span class="nn">akka.persistence.SnapshotOffer</span><span class="o">;</span>
+<span class="k">import</span> <span class="nn">akka.persistence.UntypedPersistentActor</span><span class="o">;</span>
+
+<span class="k">import</span> <span class="nn">java.io.Serializable</span><span class="o">;</span>
+<span class="k">import</span> <span class="nn">java.util.ArrayList</span><span class="o">;</span>
+<span class="k">import</span> <span class="nn">static</span> <span class="n">java</span><span class="o">.</span><span class="n">util</span><span class="o">.</span><span class="nc">Arrays</span><span class="o">.</span><span class="n">asList</span><span class="o">;</span>
+
+<span class="k">class</span> <span class="nc">Cmd</span> <span class="n">implements</span> <span class="nc">Serializable</span> <span class="o">{</span>
+    <span class="k">private</span> <span class="k">final</span> <span class="nc">String</span> <span class="n">data</span><span class="o">;</span>
+
+    <span class="n">public</span> <span class="nc">Cmd</span><span class="o">(</span><span class="nc">String</span> <span class="n">data</span><span class="o">)</span> <span class="o">{</span>
+        <span class="k">this</span><span class="o">.</span><span class="n">data</span> <span class="k">=</span> <span class="n">data</span><span class="o">;</span>
+    <span class="o">}</span>
+
+    <span class="n">public</span> <span class="nc">String</span> <span class="n">getData</span><span class="o">()</span> <span class="o">{</span>
+        <span class="k">return</span> <span class="n">data</span><span class="o">;</span>
+    <span class="o">}</span>
+<span class="o">}</span>
+
+<span class="k">class</span> <span class="nc">Evt</span> <span class="n">implements</span> <span class="nc">Serializable</span> <span class="o">{</span>
+    <span class="k">private</span> <span class="k">final</span> <span class="nc">String</span> <span class="n">data</span><span class="o">;</span>
+
+    <span class="n">public</span> <span class="nc">Evt</span><span class="o">(</span><span class="nc">String</span> <span class="n">data</span><span class="o">)</span> <span class="o">{</span>
+        <span class="k">this</span><span class="o">.</span><span class="n">data</span> <span class="k">=</span> <span class="n">data</span><span class="o">;</span>
+    <span class="o">}</span>
+
+    <span class="n">public</span> <span class="nc">String</span> <span class="n">getData</span><span class="o">()</span> <span class="o">{</span>
+        <span class="k">return</span> <span class="n">data</span><span class="o">;</span>
+    <span class="o">}</span>
+<span class="o">}</span>
+
+<span class="k">class</span> <span class="nc">ExampleState</span> <span class="n">implements</span> <span class="nc">Serializable</span> <span class="o">{</span>
+    <span class="k">private</span> <span class="k">final</span> <span class="nc">ArrayList</span><span class="o">&lt;</span><span class="nc">String</span><span class="o">&gt;</span> <span class="n">events</span><span class="o">;</span>
+
+    <span class="n">public</span> <span class="nc">ExampleState</span><span class="o">()</span> <span class="o">{</span>
+        <span class="k">this</span><span class="o">(</span><span class="k">new</span> <span class="nc">ArrayList</span><span class="o">&lt;</span><span class="nc">String</span><span class="o">&gt;());</span>
+    <span class="o">}</span>
+
+    <span class="n">public</span> <span class="nc">ExampleState</span><span class="o">(</span><span class="nc">ArrayList</span><span class="o">&lt;</span><span class="nc">String</span><span class="o">&gt;</span> <span class="n">events</span><span class="o">)</span> <span class="o">{</span>
+        <span class="k">this</span><span class="o">.</span><span class="n">events</span> <span class="k">=</span> <span class="n">events</span><span class="o">;</span>
+    <span class="o">}</span>
+
+    <span class="n">public</span> <span class="nc">ExampleState</span> <span class="n">copy</span><span class="o">()</span> <span class="o">{</span>
+        <span class="k">return</span> <span class="k">new</span> <span class="nc">ExampleState</span><span class="o">(</span><span class="k">new</span> <span class="nc">ArrayList</span><span class="o">&lt;</span><span class="nc">String</span><span class="o">&gt;(</span><span class="n">events</span><span class="o">));</span>
+    <span class="o">}</span>
+
+    <span class="n">public</span> <span class="n">void</span> <span class="n">update</span><span class="o">(</span><span class="nc">Evt</span> <span class="n">evt</span><span class="o">)</span> <span class="o">{</span>
+        <span class="n">events</span><span class="o">.</span><span class="n">add</span><span class="o">(</span><span class="n">evt</span><span class="o">.</span><span class="n">getData</span><span class="o">());</span>
+    <span class="o">}</span>
+
+    <span class="n">public</span> <span class="n">int</span> <span class="n">size</span><span class="o">()</span> <span class="o">{</span>
+        <span class="k">return</span> <span class="n">events</span><span class="o">.</span><span class="n">size</span><span class="o">();</span>
+    <span class="o">}</span>
+
+    <span class="nd">@Override</span>
+    <span class="n">public</span> <span class="nc">String</span> <span class="n">toString</span><span class="o">()</span> <span class="o">{</span>
+        <span class="k">return</span> <span class="n">events</span><span class="o">.</span><span class="n">toString</span><span class="o">();</span>
+    <span class="o">}</span>
+<span class="o">}</span>
+
+<span class="k">class</span> <span class="nc">ExamplePersistentActor</span> <span class="k">extends</span> <span class="nc">UntypedPersistentActor</span> <span class="o">{</span>
+    <span class="nd">@Override</span>
+    <span class="n">public</span> <span class="nc">String</span> <span class="n">persistenceId</span><span class="o">()</span> <span class="o">{</span> <span class="k">return</span> <span class="s">&quot;sample-id-1&quot;</span><span class="o">;</span> <span class="o">}</span>
+
+    <span class="k">private</span> <span class="nc">ExampleState</span> <span class="n">state</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">ExampleState</span><span class="o">();</span>
+
+    <span class="n">public</span> <span class="n">int</span> <span class="n">getNumEvents</span><span class="o">()</span> <span class="o">{</span>
+        <span class="k">return</span> <span class="n">state</span><span class="o">.</span><span class="n">size</span><span class="o">();</span>
+    <span class="o">}</span>
+
+    <span class="nd">@Override</span>
+    <span class="n">public</span> <span class="n">void</span> <span class="n">onReceiveRecover</span><span class="o">(</span><span class="nc">Object</span> <span class="n">msg</span><span class="o">)</span> <span class="o">{</span>
+        <span class="k">if</span> <span class="o">(</span><span class="n">msg</span> <span class="n">instanceof</span> <span class="nc">Evt</span><span class="o">)</span> <span class="o">{</span>
+            <span class="n">state</span><span class="o">.</span><span class="n">update</span><span class="o">((</span><span class="nc">Evt</span><span class="o">)</span> <span class="n">msg</span><span class="o">);</span>
+        <span class="o">}</span> <span class="k">else</span> <span class="k">if</span> <span class="o">(</span><span class="n">msg</span> <span class="n">instanceof</span> <span class="nc">SnapshotOffer</span><span class="o">)</span> <span class="o">{</span>
+            <span class="n">state</span> <span class="k">=</span> <span class="o">(</span><span class="nc">ExampleState</span><span class="o">)((</span><span class="nc">SnapshotOffer</span><span class="o">)</span><span class="n">msg</span><span class="o">).</span><span class="n">snapshot</span><span class="o">();</span>
+        <span class="o">}</span> <span class="k">else</span> <span class="o">{</span>
+          <span class="n">unhandled</span><span class="o">(</span><span class="n">msg</span><span class="o">);</span>
+        <span class="o">}</span>
+    <span class="o">}</span>
+
+    <span class="nd">@Override</span>
+    <span class="n">public</span> <span class="n">void</span> <span class="n">onReceiveCommand</span><span class="o">(</span><span class="nc">Object</span> <span class="n">msg</span><span class="o">)</span> <span class="o">{</span>
+        <span class="k">if</span> <span class="o">(</span><span class="n">msg</span> <span class="n">instanceof</span> <span class="nc">Cmd</span><span class="o">)</span> <span class="o">{</span>
+            <span class="k">final</span> <span class="nc">String</span> <span class="n">data</span> <span class="k">=</span> <span class="o">((</span><span class="nc">Cmd</span><span class="o">)</span><span class="n">msg</span><span class="o">).</span><span class="n">getData</span><span class="o">();</span>
+            <span class="k">final</span> <span class="nc">Evt</span> <span class="n">evt1</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">Evt</span><span class="o">(</span><span class="n">data</span> <span class="o">+</span> <span class="s">&quot;-&quot;</span> <span class="o">+</span> <span class="n">getNumEvents</span><span class="o">());</span>
+            <span class="k">final</span> <span class="nc">Evt</span> <span class="n">evt2</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">Evt</span><span class="o">(</span><span class="n">data</span> <span class="o">+</span> <span class="s">&quot;-&quot;</span> <span class="o">+</span> <span class="o">(</span><span class="n">getNumEvents</span><span class="o">()</span> <span class="o">+</span> <span class="mi">1</span><span class="o">));</span>
+            <span class="n">persist</span><span class="o">(</span><span class="n">asList</span><span class="o">(</span><span class="n">evt1</span><span class="o">,</span> <span class="n">evt2</span><span class="o">),</span> <span class="k">new</span> <span class="nc">Procedure</span><span class="o">&lt;</span><span class="nc">Evt</span><span class="o">&gt;()</span> <span class="o">{</span>
+                <span class="n">public</span> <span class="n">void</span> <span class="n">apply</span><span class="o">(</span><span class="nc">Evt</span> <span class="n">evt</span><span class="o">)</span> <span class="n">throws</span> <span class="nc">Exception</span> <span class="o">{</span>
+                    <span class="n">state</span><span class="o">.</span><span class="n">update</span><span class="o">(</span><span class="n">evt</span><span class="o">);</span>
+                    <span class="k">if</span> <span class="o">(</span><span class="n">evt</span><span class="o">.</span><span class="n">equals</span><span class="o">(</span><span class="n">evt2</span><span class="o">))</span> <span class="o">{</span>
+                        <span class="n">getContext</span><span class="o">().</span><span class="n">system</span><span class="o">().</span><span class="n">eventStream</span><span class="o">().</span><span class="n">publish</span><span class="o">(</span><span class="n">evt</span><span class="o">);</span>
+                    <span class="o">}</span>
+                <span class="o">}</span>
+            <span class="o">});</span>
+        <span class="o">}</span> <span class="k">else</span> <span class="k">if</span> <span class="o">(</span><span class="n">msg</span><span class="o">.</span><span class="n">equals</span><span class="o">(</span><span class="s">&quot;snap&quot;</span><span class="o">))</span> <span class="o">{</span>
+            <span class="c1">// IMPORTANT: create a copy of snapshot</span>
+            <span class="c1">// because ExampleState is mutable !!!</span>
+            <span class="n">saveSnapshot</span><span class="o">(</span><span class="n">state</span><span class="o">.</span><span class="n">copy</span><span class="o">());</span>
+        <span class="o">}</span> <span class="k">else</span> <span class="k">if</span> <span class="o">(</span><span class="n">msg</span><span class="o">.</span><span class="n">equals</span><span class="o">(</span><span class="s">&quot;print&quot;</span><span class="o">))</span> <span class="o">{</span>
+            <span class="nc">System</span><span class="o">.</span><span class="n">out</span><span class="o">.</span><span class="n">println</span><span class="o">(</span><span class="n">state</span><span class="o">);</span>
+        <span class="o">}</span> <span class="k">else</span> <span class="o">{</span>
+          <span class="n">unhandled</span><span class="o">(</span><span class="n">msg</span><span class="o">);</span>
+        <span class="o">}</span>
+    <span class="o">}</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<p>The example defines two data types, <code class="docutils literal"><span class="pre">Cmd</span></code> and <code class="docutils literal"><span class="pre">Evt</span></code> to represent commands and events, respectively. The
+<code class="docutils literal"><span class="pre">state</span></code> of the <code class="docutils literal"><span class="pre">ExamplePersistentActor</span></code> is a list of persisted event data contained in <code class="docutils literal"><span class="pre">ExampleState</span></code>.</p>
+<p>The persistent actor's <code class="docutils literal"><span class="pre">onReceiveRecover</span></code> method defines how <code class="docutils literal"><span class="pre">state</span></code> is updated during recovery by handling <code class="docutils literal"><span class="pre">Evt</span></code>
+and <code class="docutils literal"><span class="pre">SnapshotOffer</span></code> messages. The persistent actor's <code class="docutils literal"><span class="pre">onReceiveCommand</span></code> method is a command handler. In this example,
+a command is handled by generating two events which are then persisted and handled. Events are persisted by calling
+<code class="docutils literal"><span class="pre">persist</span></code> with an event (or a sequence of events) as first argument and an event handler as second argument.</p>
+<p>The <code class="docutils literal"><span class="pre">persist</span></code> method persists events asynchronously and the event handler is executed for successfully persisted
+events. Successfully persisted events are internally sent back to the persistent actor as individual messages that trigger
+event handler executions. An event handler may close over persistent actor state and mutate it. The sender of a persisted
+event is the sender of the corresponding command. This allows event handlers to reply to the sender of a command
+(not shown).</p>
+<p>The main responsibility of an event handler is changing persistent actor state using event data and notifying others
+about successful state changes by publishing events.</p>
+<p>When persisting events with <code class="docutils literal"><span class="pre">persist</span></code> it is guaranteed that the persistent actor will not receive further commands between
+the <code class="docutils literal"><span class="pre">persist</span></code> call and the execution(s) of the associated event handler. This also holds for multiple <code class="docutils literal"><span class="pre">persist</span></code>
+calls in context of a single command.</p>
+<p>The easiest way to run this example yourself is to download <a class="reference external" href="http://www.typesafe.com/platform/getstarted">Typesafe Activator</a>
+and open the tutorial named <a class="reference external" href="http://www.typesafe.com/activator/template/akka-sample-persistence-java">Akka Persistence Samples with Java</a>.
+It contains instructions on how to run the <code class="docutils literal"><span class="pre">PersistentActorExample</span></code>.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">It's also possible to switch between different command handlers during normal processing and recovery
+with <code class="docutils literal"><span class="pre">getContext().become()</span></code> and <code class="docutils literal"><span class="pre">getContext().unbecome()</span></code>. To get the actor into the same state after
+recovery you need to take special care to perform the same state transitions with <code class="docutils literal"><span class="pre">become</span></code> and
+<code class="docutils literal"><span class="pre">unbecome</span></code> in the <code class="docutils literal"><span class="pre">receiveRecover</span></code> method as you would have done in the command handler.</p>
+</div>
+<div class="section" id="identifiers">
+<h3>Identifiers</h3>
+<p>A persistent actor must have an identifier that doesn't change across different actor incarnations.
+The identifier must be defined with the <code class="docutils literal"><span class="pre">persistenceId</span></code> method.</p>
+<div class="highlight-scala"><div class="highlight"><pre><span></span><span class="nd">@Override</span>
+<span class="n">public</span> <span class="nc">String</span> <span class="n">persistenceId</span><span class="o">()</span> <span class="o">{</span>
+    <span class="k">return</span> <span class="s">&quot;my-stable-persistence-id&quot;</span><span class="o">;</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="recovery">
+<span id="recovery-java"></span><h3>Recovery</h3>
+<p>By default, a persistent actor is automatically recovered on start and on restart by replaying journaled messages.
+New messages sent to a persistent actor during recovery do not interfere with replayed messages. New messages will
+only be received by a persistent actor after recovery completes.</p>
+<div class="section" id="recovery-customization">
+<h4>Recovery customization</h4>
+<p>Automated recovery on start can be disabled by overriding <code class="docutils literal"><span class="pre">preStart</span></code> with an empty implementation.</p>
+<div class="highlight-scala"><div class="highlight"><pre><span></span><span class="nd">@Override</span>
+<span class="n">public</span> <span class="n">void</span> <span class="n">preStart</span><span class="o">()</span> <span class="o">{}</span>
+</pre></div>
+</div>
+<p>In this case, a persistent actor must be recovered explicitly by sending it a <code class="docutils literal"><span class="pre">Recover</span></code> message.</p>
+<div class="highlight-scala"><div class="highlight"><pre><span></span><span class="n">processor</span><span class="o">.</span><span class="n">tell</span><span class="o">(</span><span class="nc">Recover</span><span class="o">.</span><span class="n">create</span><span class="o">(),</span> <span class="kc">null</span><span class="o">);</span>
+</pre></div>
+</div>
+<p>If not overridden, <code class="docutils literal"><span class="pre">preStart</span></code> sends a <code class="docutils literal"><span class="pre">Recover</span></code> message to <code class="docutils literal"><span class="pre">getSelf()</span></code>. Applications may also override
+<code class="docutils literal"><span class="pre">preStart</span></code> to define further <code class="docutils literal"><span class="pre">Recover</span></code> parameters such as an upper sequence number bound, for example.</p>
+<div class="highlight-scala"><div class="highlight"><pre><span></span><span class="nd">@Override</span>
+<span class="n">public</span> <span class="n">void</span> <span class="n">preStart</span><span class="o">()</span> <span class="o">{</span>
+    <span class="n">getSelf</span><span class="o">().</span><span class="n">tell</span><span class="o">(</span><span class="nc">Recover</span><span class="o">.</span><span class="n">create</span><span class="o">(</span><span class="mi">457L</span><span class="o">),</span> <span class="kc">null</span><span class="o">);</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<p>Upper sequence number bounds can be used to recover a persistent actor to past state instead of current state. Automated
+recovery on restart can be disabled by overriding <code class="docutils literal"><span class="pre">preRestart</span></code> with an empty implementation.</p>
+<div class="highlight-scala"><div class="highlight"><pre><span></span><span class="nd">@Override</span>
+<span class="n">public</span> <span class="n">void</span> <span class="n">preRestart</span><span class="o">(</span><span class="nc">Throwable</span> <span class="n">reason</span><span class="o">,</span> <span class="nc">Option</span><span class="o">&lt;</span><span class="nc">Object</span><span class="o">&gt;</span> <span class="n">message</span><span class="o">)</span> <span class="o">{}</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="recovery-status">
+<h4>Recovery status</h4>
+<p>A persistent actor can query its own recovery status via the methods</p>
+<div class="highlight-scala"><div class="highlight"><pre><span></span><span class="n">public</span> <span class="n">boolean</span> <span class="n">recoveryRunning</span><span class="o">();</span>
+<span class="n">public</span> <span class="n">boolean</span> <span class="n">recoveryFinished</span><span class="o">();</span>
+</pre></div>
+</div>
+<p>Sometimes there is a need for performing additional initialization when the
+recovery has completed, before processing any other message sent to the persistent actor.
+The persistent actor will receive a special <code class="xref py py-class docutils literal"><span class="pre">RecoveryCompleted</span></code> message right after recovery
+and before any other received messages.</p>
+<p>If there is a problem with recovering the state of the actor from the journal, the actor will be
+sent a <code class="xref py py-class docutils literal"><span class="pre">RecoveryFailure</span></code> message that it can choose to handle in <code class="docutils literal"><span class="pre">receiveRecover</span></code>. If the
+actor doesn't handle the <code class="xref py py-class docutils literal"><span class="pre">RecoveryFailure</span></code> message it will be stopped.</p>
+<div class="highlight-scala"><div class="highlight"><pre><span></span>          
+            <span class="nd">@Override</span>
+            <span class="n">public</span> <span class="n">void</span> <span class="n">onReceiveRecover</span><span class="o">(</span><span class="nc">Object</span> <span class="n">message</span><span class="o">)</span> <span class="o">{</span>
+	      <span class="k">if</span> <span class="o">(</span><span class="n">message</span> <span class="n">instanceof</span> <span class="nc">RecoveryCompleted</span><span class="o">)</span> <span class="o">{</span>
+	          <span class="n">recoveryCompleted</span><span class="o">();</span>
+	      <span class="o">}</span>
+              <span class="c1">// ...</span>
+            <span class="o">}</span>
+            
+            <span class="nd">@Override</span>
+            <span class="n">public</span> <span class="n">void</span> <span class="n">onReceiveCommand</span><span class="o">(</span><span class="nc">Object</span> <span class="n">message</span><span class="o">)</span> <span class="n">throws</span> <span class="nc">Exception</span> <span class="o">{</span>
+                <span class="k">if</span> <span class="o">(</span><span class="n">message</span> <span class="n">instanceof</span> <span class="nc">String</span><span class="o">)</span> <span class="o">{</span>
+                  <span class="c1">// ...</span>
+                <span class="o">}</span> <span class="k">else</span> <span class="o">{</span>
+                    <span class="n">unhandled</span><span class="o">(</span><span class="n">message</span><span class="o">);</span>
+                <span class="o">}</span>
+            <span class="o">}</span>
+            
+            <span class="k">private</span> <span class="n">void</span> <span class="n">recoveryCompleted</span><span class="o">()</span> <span class="o">{</span>
+                <span class="c1">// perform init after recovery, before any other messages</span>
+                <span class="c1">// ...</span>
+            <span class="o">}</span>
+            
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="relaxed-local-consistency-requirements-and-high-throughput-use-cases">
+<span id="persist-async-java"></span><h3>Relaxed local consistency requirements and high throughput use-cases</h3>
+<p>If faced with relaxed local consistency requirements and high throughput demands sometimes <code class="docutils literal"><span class="pre">PersistentActor</span></code> and it's
+<code class="docutils literal"><span class="pre">persist</span></code> may not be enough in terms of consuming incoming Commands at a high rate, because it has to wait until all
+Events related to a given Command are processed in order to start processing the next Command. While this abstraction is
+very useful for most cases, sometimes you may be faced with relaxed requirements about consistency – for example you may
+want to process commands as fast as you can, assuming that Event will eventually be persisted and handled properly in
+the background and retroactively reacting to persistence failures if needed.</p>
+<p>The <code class="docutils literal"><span class="pre">persistAsync</span></code> method provides a tool for implementing high-throughput persistent actors. It will <em>not</em>
+stash incoming Commands while the Journal is still working on persisting and/or user code is executing event callbacks.</p>
+<p>In the below example, the event callbacks may be called &quot;at any time&quot;, even after the next Command has been processed.
+The ordering between events is still guaranteed (&quot;evt-b-1&quot; will be sent after &quot;evt-a-2&quot;, which will be sent after &quot;evt-a-1&quot; etc.).</p>
+<div class="highlight-scala"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">MyPersistentActor</span> <span class="k">extends</span> <span class="nc">UntypedPersistentActor</span> <span class="o">{</span>
+    <span class="nd">@Override</span>
+    <span class="n">public</span> <span class="nc">String</span> <span class="n">persistenceId</span><span class="o">()</span> <span class="o">{</span> <span class="k">return</span> <span class="s">&quot;some-persistence-id&quot;</span><span class="o">;</span> <span class="o">}</span>
+
+    <span class="nd">@Override</span>
+    <span class="n">public</span> <span class="n">void</span> <span class="n">onReceiveRecover</span><span class="o">(</span><span class="nc">Object</span> <span class="n">msg</span><span class="o">)</span> <span class="o">{</span>
+        <span class="c1">// handle recovery here</span>
+    <span class="o">}</span>
+
+    <span class="nd">@Override</span>
+    <span class="n">public</span> <span class="n">void</span> <span class="n">onReceiveCommand</span><span class="o">(</span><span class="nc">Object</span> <span class="n">msg</span><span class="o">)</span> <span class="o">{</span>
+        <span class="n">sender</span><span class="o">().</span><span class="n">tell</span><span class="o">(</span><span class="n">msg</span><span class="o">,</span> <span class="n">getSelf</span><span class="o">());</span>
+
+        <span class="n">persistAsync</span><span class="o">(</span><span class="nc">String</span><span class="o">.</span><span class="n">format</span><span class="o">(</span><span class="s">&quot;evt-%s-1&quot;</span><span class="o">,</span> <span class="n">msg</span><span class="o">),</span> <span class="k">new</span> <span class="nc">Procedure</span><span class="o">&lt;</span><span class="nc">String</span><span class="o">&gt;(){</span>
+            <span class="nd">@Override</span>
+            <span class="n">public</span> <span class="n">void</span> <span class="n">apply</span><span class="o">(</span><span class="nc">String</span> <span class="n">event</span><span class="o">)</span> <span class="n">throws</span> <span class="nc">Exception</span> <span class="o">{</span>
+                <span class="n">sender</span><span class="o">().</span><span class="n">tell</span><span class="o">(</span><span class="n">event</span><span class="o">,</span> <span class="n">self</span><span class="o">());</span>
+            <span class="o">}</span>
+        <span class="o">});</span>
+        <span class="n">persistAsync</span><span class="o">(</span><span class="nc">String</span><span class="o">.</span><span class="n">format</span><span class="o">(</span><span class="s">&quot;evt-%s-2&quot;</span><span class="o">,</span> <span class="n">msg</span><span class="o">),</span> <span class="k">new</span> <span class="nc">Procedure</span><span class="o">&lt;</span><span class="nc">String</span><span class="o">&gt;(){</span>
+            <span class="nd">@Override</span>
+            <span class="n">public</span> <span class="n">void</span> <span class="n">apply</span><span class="o">(</span><span class="nc">String</span> <span class="n">event</span><span class="o">)</span> <span class="n">throws</span> <span class="nc">Exception</span> <span class="o">{</span>
+                <span class="n">sender</span><span class="o">().</span><span class="n">tell</span><span class="o">(</span><span class="n">event</span><span class="o">,</span> <span class="n">self</span><span class="o">());</span>
+            <span class="o">}</span>
+        <span class="o">});</span>
+    <span class="o">}</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">In order to implement the pattern known as &quot;<em>command sourcing</em>&quot; simply <code class="docutils literal"><span class="pre">persistAsync</span></code> all incoming events right away,
+and handle them in the callback.</p>
+</div>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">The callback will not be invoked if the actor is restarted (or stopped) in between the call to
+<code class="docutils literal"><span class="pre">persistAsync</span></code> and the journal has confirmed the write.</p>
+</div>
+</div>
+<div class="section" id="deferring-actions-until-preceding-persist-handlers-have-executed">
+<span id="defer-java"></span><h3>Deferring actions until preceding persist handlers have executed</h3>
+<p>Sometimes when working with <code class="docutils literal"><span class="pre">persistAsync</span></code> you may find that it would be nice to define some actions in terms of
+''happens-after the previous <code class="docutils literal"><span class="pre">persistAsync</span></code> handlers have been invoked''. <code class="docutils literal"><span class="pre">PersistentActor</span></code> provides an utility method
+called <code class="docutils literal"><span class="pre">defer</span></code>, which works similarily to <code class="docutils literal"><span class="pre">persistAsync</span></code> yet does not persist the passed in event. It is recommended to
+use it for <em>read</em> operations, and actions which do not have corresponding events in your domain model.</p>
+<p>Using this method is very similar to the persist family of methods, yet it does <strong>not</strong> persist the passed in event.
+It will be kept in memory and used when invoking the handler.</p>
+<div class="highlight-scala"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">MyPersistentActor</span> <span class="k">extends</span> <span class="nc">UntypedPersistentActor</span> <span class="o">{</span>
+    <span class="nd">@Override</span>
+    <span class="n">public</span> <span class="nc">String</span> <span class="n">persistenceId</span><span class="o">()</span> <span class="o">{</span> <span class="k">return</span> <span class="s">&quot;some-persistence-id&quot;</span><span class="o">;</span> <span class="o">}</span>
+
+    <span class="nd">@Override</span>
+    <span class="n">public</span> <span class="n">void</span> <span class="n">onReceiveRecover</span><span class="o">(</span><span class="nc">Object</span> <span class="n">msg</span><span class="o">)</span> <span class="o">{</span>
+        <span class="c1">// handle recovery here</span>
+    <span class="o">}</span>
+
+    <span class="nd">@Override</span>
+    <span class="n">public</span> <span class="n">void</span> <span class="n">onReceiveCommand</span><span class="o">(</span><span class="nc">Object</span> <span class="n">msg</span><span class="o">)</span> <span class="o">{</span>
+        <span class="k">final</span> <span class="nc">Procedure</span><span class="o">&lt;</span><span class="nc">String</span><span class="o">&gt;</span> <span class="n">replyToSender</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">Procedure</span><span class="o">&lt;</span><span class="nc">String</span><span class="o">&gt;()</span> <span class="o">{</span>
+            <span class="nd">@Override</span>
+            <span class="n">public</span> <span class="n">void</span> <span class="n">apply</span><span class="o">(</span><span class="nc">String</span> <span class="n">event</span><span class="o">)</span> <span class="n">throws</span> <span class="nc">Exception</span> <span class="o">{</span>
+                <span class="n">sender</span><span class="o">().</span><span class="n">tell</span><span class="o">(</span><span class="n">event</span><span class="o">,</span> <span class="n">self</span><span class="o">());</span>
+            <span class="o">}</span>
+        <span class="o">};</span>
+
+        <span class="n">persistAsync</span><span class="o">(</span><span class="nc">String</span><span class="o">.</span><span class="n">format</span><span class="o">(</span><span class="s">&quot;evt-%s-1&quot;</span><span class="o">,</span> <span class="n">msg</span><span class="o">),</span> <span class="n">replyToSender</span><span class="o">);</span>
+        <span class="n">persistAsync</span><span class="o">(</span><span class="nc">String</span><span class="o">.</span><span class="n">format</span><span class="o">(</span><span class="s">&quot;evt-%s-2&quot;</span><span class="o">,</span> <span class="n">msg</span><span class="o">),</span> <span class="n">replyToSender</span><span class="o">);</span>
+        <span class="n">defer</span><span class="o">(</span><span class="nc">String</span><span class="o">.</span><span class="n">format</span><span class="o">(</span><span class="s">&quot;evt-%s-3&quot;</span><span class="o">,</span> <span class="n">msg</span><span class="o">),</span> <span class="n">replyToSender</span><span class="o">);</span>
+    <span class="o">}</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<p>Notice that the <code class="docutils literal"><span class="pre">sender()</span></code> is <strong>safe</strong> to access in the handler callback, and will be pointing to the original sender
+of the command for which this <code class="docutils literal"><span class="pre">defer</span></code> handler was called.</p>
+<div class="highlight-scala"><div class="highlight"><pre><span></span><span class="k">final</span> <span class="nc">ActorRef</span> <span class="n">processor</span> <span class="k">=</span> <span class="n">system</span><span class="o">.</span><span class="n">actorOf</span><span class="o">(</span><span class="nc">Props</span><span class="o">.</span><span class="n">create</span><span class="o">(</span><span class="nc">MyPersistentActor</span><span class="o">.</span><span class="n">class</span><span class="o">));</span>
+<span class="n">processor</span><span class="o">.</span><span class="n">tell</span><span class="o">(</span><span class="s">&quot;a&quot;</span><span class="o">,</span> <span class="kc">null</span><span class="o">);</span>
+<span class="n">processor</span><span class="o">.</span><span class="n">tell</span><span class="o">(</span><span class="s">&quot;b&quot;</span><span class="o">,</span> <span class="kc">null</span><span class="o">);</span>
+
+<span class="c1">// order of received messages:</span>
+<span class="c1">// a</span>
+<span class="c1">// b</span>
+<span class="c1">// evt-a-1</span>
+<span class="c1">// evt-a-2</span>
+<span class="c1">// evt-a-3</span>
+<span class="c1">// evt-b-1</span>
+<span class="c1">// evt-b-2</span>
+<span class="c1">// evt-b-3</span>
+</pre></div>
+</div>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">The callback will not be invoked if the actor is restarted (or stopped) in between the call to
+<code class="docutils literal"><span class="pre">defer</span></code> and the journal has processed and confirmed all preceding writes.</p>
+</div>
+</div>
+<div class="section" id="batch-writes">
+<h3>Batch writes</h3>
+<p>To optimize throughput, a persistent actor internally batches events to be stored under high load before
+writing them to the journal (as a single batch). The batch size dynamically grows from 1 under low and moderate loads
+to a configurable maximum size (default is <code class="docutils literal"><span class="pre">200</span></code>) under high load. When using <code class="docutils literal"><span class="pre">persistAsync</span></code> this increases
+the maximum throughput dramatically.</p>
+<div class="highlight-scala"><div class="highlight"><pre><span></span><span class="n">akka</span><span class="o">.</span><span class="n">persistence</span><span class="o">.</span><span class="n">journal</span><span class="o">.</span><span class="n">max</span><span class="o">-</span><span class="n">message</span><span class="o">-</span><span class="n">batch</span><span class="o">-</span><span class="n">size</span> <span class="k">=</span> <span class="mi">200</span>
+</pre></div>
+</div>
+<p>A new batch write is triggered by a persistent actor as soon as a batch reaches the maximum size or if the journal completed
+writing the previous batch. Batch writes are never timer-based which keeps latencies at a minimum.</p>
+<p>The batches are also used internally to ensure atomic writes of events. All events that are persisted in context
+of a single command are written as a single batch to the journal (even if <code class="docutils literal"><span class="pre">persist</span></code> is called multiple times per command).
+The recovery of an <code class="docutils literal"><span class="pre">UntypedPersistentActor</span></code> will therefore never be done partially (with only a subset of events persisted by a
+single command).</p>
+</div>
+<div class="section" id="message-deletion">
+<h3>Message deletion</h3>
+<p>To delete all messages (journaled by a single persistent actor) up to a specified sequence number,
+persistent actors may call the <code class="docutils literal"><span class="pre">deleteMessages</span></code> method.</p>
+<p>An optional <code class="docutils literal"><span class="pre">permanent</span></code> parameter specifies whether the message shall be permanently
+deleted from the journal or only marked as deleted. In both cases, the message won't be replayed. Later extensions
+to Akka persistence will allow to replay messages that have been marked as deleted which can be useful for debugging
+purposes, for example.</p>
+</div>
+</div>
+<div class="section" id="persistent-views">
+<span id="persistent-views-java"></span><h2>Persistent Views</h2>
+<p>Persistent views can be implemented by extending the <code class="docutils literal"><span class="pre">UntypedPersistentView</span></code> trait  and implementing the <code class="docutils literal"><span class="pre">onReceive</span></code>
+and the <code class="docutils literal"><span class="pre">persistenceId</span></code> methods.</p>
+<div class="highlight-scala"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">MyView</span> <span class="k">extends</span> <span class="nc">UntypedPersistentView</span> <span class="o">{</span>
+    <span class="nd">@Override</span>
+    <span class="n">public</span> <span class="nc">String</span> <span class="n">persistenceId</span><span class="o">()</span> <span class="o">{</span> <span class="k">return</span> <span class="s">&quot;some-persistence-id&quot;</span><span class="o">;</span> <span class="o">}</span>
+    
+    <span class="nd">@Override</span>
+    <span class="n">public</span> <span class="nc">String</span> <span class="n">viewId</span><span class="o">()</span> <span class="o">{</span> <span class="k">return</span> <span class="s">&quot;my-stable-persistence-view-id&quot;</span><span class="o">;</span> <span class="o">}</span>
+
+    <span class="nd">@Override</span>
+    <span class="n">public</span> <span class="n">void</span> <span class="n">onReceive</span><span class="o">(</span><span class="nc">Object</span> <span class="n">message</span><span class="o">)</span> <span class="n">throws</span> <span class="nc">Exception</span> <span class="o">{</span>
+        <span class="k">if</span> <span class="o">(</span><span class="n">isPersistent</span><span class="o">())</span> <span class="o">{</span>
+            <span class="c1">// handle message from Journal...</span>
+        <span class="o">}</span> <span class="k">else</span> <span class="k">if</span> <span class="o">(</span><span class="n">message</span> <span class="n">instanceof</span> <span class="nc">String</span><span class="o">)</span> <span class="o">{</span>
+            <span class="c1">// handle message from user...</span>
+        <span class="o">}</span> <span class="k">else</span> <span class="o">{</span>
+          <span class="n">unhandled</span><span class="o">(</span><span class="n">message</span><span class="o">);</span>
+        <span class="o">}</span>
+    <span class="o">}</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<p>The <code class="docutils literal"><span class="pre">persistenceId</span></code> identifies the persistent actor from which the view receives journaled messages. It is not necessary
+the referenced persistent actor is actually running. Views read messages from a persistent actor's journal directly. When a
+persistent actor is started later and begins to write new messages, the corresponding view is updated automatically, by
+default.</p>
+<p>It is possible to determine if a message was sent from the Journal or from another actor in user-land by calling the <code class="docutils literal"><span class="pre">isPersistent</span></code>
+method. Having that said, very often you don't need this information at all and can simply apply the same logic to both cases
+(skip the <code class="docutils literal"><span class="pre">if</span> <span class="pre">isPersistent</span></code> check).</p>
+<div class="section" id="updates">
+<h3>Updates</h3>
+<p>The default update interval of all persistent views of an actor system is configurable:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span></span><span class="n">akka</span><span class="o">.</span><span class="n">persistence</span><span class="o">.</span><span class="n">view</span><span class="o">.</span><span class="n">auto</span><span class="o">-</span><span class="n">update</span><span class="o">-</span><span class="n">interval</span> <span class="k">=</span> <span class="mi">5</span><span class="n">s</span>
+</pre></div>
+</div>
+<p><code class="docutils literal"><span class="pre">UntypedPersistentView</span></code> implementation classes may also override the <code class="docutils literal"><span class="pre">autoUpdateInterval</span></code> method to return a custom update
+interval for a specific view class or view instance. Applications may also trigger additional updates at
+any time by sending a view an <code class="docutils literal"><span class="pre">Update</span></code> message.</p>
+<div class="highlight-scala"><div class="highlight"><pre><span></span><span class="k">final</span> <span class="nc">ActorRef</span> <span class="n">view</span> <span class="k">=</span> <span class="n">system</span><span class="o">.</span><span class="n">actorOf</span><span class="o">(</span><span class="nc">Props</span><span class="o">.</span><span class="n">create</span><span class="o">(</span><span class="nc">MyView</span><span class="o">.</span><span class="n">class</span><span class="o">));</span>
+<span class="n">view</span><span class="o">.</span><span class="n">tell</span><span class="o">(</span><span class="nc">Update</span><span class="o">.</span><span class="n">create</span><span class="o">(</span><span class="kc">true</span><span class="o">),</span> <span class="kc">null</span><span class="o">);</span>
+</pre></div>
+</div>
+<p>If the <code class="docutils literal"><span class="pre">await</span></code> parameter is set to <code class="docutils literal"><span class="pre">true</span></code>, messages that follow the <code class="docutils literal"><span class="pre">Update</span></code> request are processed when the
+incremental message replay, triggered by that update request, completed. If set to <code class="docutils literal"><span class="pre">false</span></code> (default), messages
+following the update request may interleave with the replayed message stream. Automated updates always run with
+<code class="docutils literal"><span class="pre">await</span> <span class="pre">=</span> <span class="pre">false</span></code>.</p>
+<p>Automated updates of all persistent views of an actor system can be turned off by configuration:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span></span><span class="n">akka</span><span class="o">.</span><span class="n">persistence</span><span class="o">.</span><span class="n">view</span><span class="o">.</span><span class="n">auto</span><span class="o">-</span><span class="n">update</span> <span class="k">=</span> <span class="n">off</span>
+</pre></div>
+</div>
+<p>Implementation classes may override the configured default value by overriding the <code class="docutils literal"><span class="pre">autoUpdate</span></code> method. To
+limit the number of replayed messages per update request, applications can configure a custom
+<code class="docutils literal"><span class="pre">akka.persistence.view.auto-update-replay-max</span></code> value or override the <code class="docutils literal"><span class="pre">autoUpdateReplayMax</span></code> method. The number
+of replayed messages for manual updates can be limited with the <code class="docutils literal"><span class="pre">replayMax</span></code> parameter of the <code class="docutils literal"><span class="pre">Update</span></code> message.</p>
+</div>
+<div class="section" id="id2">
+<h3>Recovery</h3>
+<p>Initial recovery of persistent views works in the very same way as for a persistent actor (i.e. by sending a <code class="docutils literal"><span class="pre">Recover</span></code> message
+to self). The maximum number of replayed messages during initial recovery is determined by <code class="docutils literal"><span class="pre">autoUpdateReplayMax</span></code>.
+Further possibilities to customize initial recovery are explained in section <a class="reference internal" href="#recovery-java"><span class="std std-ref">Recovery</span></a>.</p>
+</div>
+<div class="section" id="persistence-identifiers-java">
+<span id="id3"></span><h3>Identifiers</h3>
+<p>A persistent view must have an identifier that doesn't change across different actor incarnations.
+The identifier must be defined with the <code class="docutils literal"><span class="pre">viewId</span></code> method.</p>
+<p>The <code class="docutils literal"><span class="pre">viewId</span></code> must differ from the referenced <code class="docutils literal"><span class="pre">persistenceId</span></code>, unless <a class="reference internal" href="#snapshots-java"><span class="std std-ref">Snapshots</span></a> of a view and its
+persistent actor shall be shared (which is what applications usually do not want).</p>
+</div>
+</div>
+<div class="section" id="snapshots">
+<span id="snapshots-java"></span><h2>Snapshots</h2>
+<p>Snapshots can dramatically reduce recovery times of persistent actor and views. The following discusses snapshots
+in context of persistent actor but this is also applicable to persistent views.</p>
+<p>Persistent actor can save snapshots of internal state by calling the  <code class="docutils literal"><span class="pre">saveSnapshot</span></code> method. If saving of a snapshot
+succeeds, the persistent actor receives a <code class="docutils literal"><span class="pre">SaveSnapshotSuccess</span></code> message, otherwise a <code class="docutils literal"><span class="pre">SaveSnapshotFailure</span></code> message</p>
+<div class="highlight-scala"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">MyProcessor</span> <span class="k">extends</span> <span class="nc">UntypedProcessor</span> <span class="o">{</span>
+    <span class="k">private</span> <span class="nc">Object</span> <span class="n">state</span><span class="o">;</span>
+
+    <span class="nd">@Override</span>
+    <span class="n">public</span> <span class="n">void</span> <span class="n">onReceive</span><span class="o">(</span><span class="nc">Object</span> <span class="n">message</span><span class="o">)</span> <span class="n">throws</span> <span class="nc">Exception</span> <span class="o">{</span>
+        <span class="k">if</span> <span class="o">(</span><span class="n">message</span><span class="o">.</span><span class="n">equals</span><span class="o">(</span><span class="s">&quot;snap&quot;</span><span class="o">))</span> <span class="o">{</span>
+            <span class="n">saveSnapshot</span><span class="o">(</span><span class="n">state</span><span class="o">);</span>
+        <span class="o">}</span> <span class="k">else</span> <span class="k">if</span> <span class="o">(</span><span class="n">message</span> <span class="n">instanceof</span> <span class="nc">SaveSnapshotSuccess</span><span class="o">)</span> <span class="o">{</span>
+            <span class="nc">SnapshotMetadata</span> <span class="n">metadata</span> <span class="k">=</span> <span class="o">((</span><span class="nc">SaveSnapshotSuccess</span><span class="o">)</span><span class="n">message</span><span class="o">).</span><span class="n">metadata</span><span class="o">();</span>
+            <span class="c1">// ...</span>
+        <span class="o">}</span> <span class="k">else</span> <span class="k">if</span> <span class="o">(</span><span class="n">message</span> <span class="n">instanceof</span> <span class="nc">SaveSnapshotFailure</span><span class="o">)</span> <span class="o">{</span>
+            <span class="nc">SnapshotMetadata</span> <span class="n">metadata</span> <span class="k">=</span> <span class="o">((</span><span class="nc">SaveSnapshotFailure</span><span class="o">)</span><span class="n">message</span><span class="o">).</span><span class="n">metadata</span><span class="o">();</span>
+            <span class="c1">// ...</span>
+        <span class="o">}</span>
+    <span class="o">}</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<p>During recovery, the persistent actor is offered a previously saved snapshot via a <code class="docutils literal"><span class="pre">SnapshotOffer</span></code> message from
+which it can initialize internal state.</p>
+<div class="highlight-scala"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">MyProcessor</span> <span class="k">extends</span> <span class="nc">UntypedProcessor</span> <span class="o">{</span>
+    <span class="k">private</span> <span class="nc">Object</span> <span class="n">state</span><span class="o">;</span>
+
+    <span class="nd">@Override</span>
+    <span class="n">public</span> <span class="n">void</span> <span class="n">onReceive</span><span class="o">(</span><span class="nc">Object</span> <span class="n">message</span><span class="o">)</span> <span class="n">throws</span> <span class="nc">Exception</span> <span class="o">{</span>
+        <span class="k">if</span> <span class="o">(</span><span class="n">message</span> <span class="n">instanceof</span> <span class="nc">SnapshotOffer</span><span class="o">)</span> <span class="o">{</span>
+            <span class="n">state</span> <span class="k">=</span> <span class="o">((</span><span class="nc">SnapshotOffer</span><span class="o">)</span><span class="n">message</span><span class="o">).</span><span class="n">snapshot</span><span class="o">();</span>
+            <span class="c1">// ...</span>
+        <span class="o">}</span> <span class="k">else</span> <span class="k">if</span> <span class="o">(</span><span class="n">message</span> <span class="n">instanceof</span> <span class="nc">Persistent</span><span class="o">)</span> <span class="o">{</span>
+            <span class="c1">// ...</span>
+        <span class="o">}</span>
+    <span class="o">}</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<p>The replayed messages that follow the <code class="docutils literal"><span class="pre">SnapshotOffer</span></code> message, if any, are younger than the offered snapshot.
+They finally recover the persistent actor to its current (i.e. latest) state.</p>
+<p>In general, a persistent actor is only offered a snapshot if that persistent actor has previously saved one or more snapshots
+and at least one of these snapshots matches the <code class="docutils literal"><span class="pre">SnapshotSelectionCriteria</span></code> that can be specified for recovery.</p>
+<div class="highlight-scala"><div class="highlight"><pre><span></span><span class="n">processor</span><span class="o">.</span><span class="n">tell</span><span class="o">(</span><span class="nc">Recover</span><span class="o">.</span><span class="n">create</span><span class="o">(</span><span class="nc">SnapshotSelectionCriteria</span><span class="o">.</span><span class="n">create</span><span class="o">(</span><span class="mi">457L</span><span class="o">,</span> <span class="nc">System</span><span class="o">.</span><span class="n">currentTimeMillis</span><span class="o">())),</span> <span class="kc">null</span><span class="o">);</span>
+</pre></div>
+</div>
+<p>If not specified, they default to <code class="docutils literal"><span class="pre">SnapshotSelectionCriteria.latest()</span></code> which selects the latest (= youngest) snapshot.
+To disable snapshot-based recovery, applications should use <code class="docutils literal"><span class="pre">SnapshotSelectionCriteria.none()</span></code>. A recovery where no
+saved snapshot matches the specified <code class="docutils literal"><span class="pre">SnapshotSelectionCriteria</span></code> will replay all journaled messages.</p>
+<div class="section" id="snapshot-deletion">
+<h3>Snapshot deletion</h3>
+<p>A persistent actor can delete individual snapshots by calling the <code class="docutils literal"><span class="pre">deleteSnapshot</span></code> method with the sequence number and the
+timestamp of a snapshot as argument. To bulk-delete snapshots matching <code class="docutils literal"><span class="pre">SnapshotSelectionCriteria</span></code>, persistent actors should
+use the <code class="docutils literal"><span class="pre">deleteSnapshots</span></code> method.</p>
+</div>
+</div>
+<div class="section" id="at-least-once-delivery">
+<span id="at-least-once-delivery-java"></span><h2>At-Least-Once Delivery</h2>
+<p>To send messages with at-least-once delivery semantics to destinations you can extend the <code class="docutils literal"><span class="pre">UntypedPersistentActorWithAtLeastOnceDelivery</span></code>
+class instead of <code class="docutils literal"><span class="pre">UntypedPersistentActor</span></code> on the sending side.  It takes care of re-sending messages when they
+have not been confirmed within a configurable timeout.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p>At-least-once delivery implies that original message send order is not always preserved
+and the destination may receive duplicate messages.  That means that the
+semantics do not match those of a normal <code class="xref py py-class docutils literal"><span class="pre">ActorRef</span></code> send operation:</p>
+<ul class="simple">
+<li>it is not at-most-once delivery</li>
+<li>message order for the same sender–receiver pair is not preserved due to
+possible resends</li>
+<li>after a crash and restart of the destination messages are still
+delivered—to the new actor incarnation</li>
+</ul>
+<p class="last">These semantics is similar to what an <code class="xref py py-class docutils literal"><span class="pre">ActorPath</span></code> represents (see
+<a class="reference internal" href="../scala/actors.html#actor-lifecycle-scala"><span class="std std-ref">Actor Lifecycle</span></a>), therefore you need to supply a path and not a
+reference when delivering messages. The messages are sent to the path with
+an actor selection.</p>
+</div>
+<p>Use the <code class="docutils literal"><span class="pre">deliver</span></code> method to send a message to a destination. Call the <code class="docutils literal"><span class="pre">confirmDelivery</span></code> method
+when the destination has replied with a confirmation message.</p>
+<div class="highlight-scala"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">Msg</span> <span class="n">implements</span> <span class="nc">Serializable</span> <span class="o">{</span>
+  <span class="n">public</span> <span class="k">final</span> <span class="n">long</span> <span class="n">deliveryId</span><span class="o">;</span>
+  <span class="n">public</span> <span class="k">final</span> <span class="nc">String</span> <span class="n">s</span><span class="o">;</span>
+  
+  <span class="n">public</span> <span class="nc">Msg</span><span class="o">(</span><span class="n">long</span> <span class="n">deliveryId</span><span class="o">,</span> <span class="nc">String</span> <span class="n">s</span><span class="o">)</span> <span class="o">{</span>
+    <span class="k">this</span><span class="o">.</span><span class="n">deliveryId</span> <span class="k">=</span> <span class="n">deliveryId</span><span class="o">;</span>
+    <span class="k">this</span><span class="o">.</span><span class="n">s</span> <span class="k">=</span> <span class="n">s</span><span class="o">;</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+
+<span class="k">class</span> <span class="nc">Confirm</span> <span class="n">implements</span> <span class="nc">Serializable</span> <span class="o">{</span>
+  <span class="n">public</span> <span class="k">final</span> <span class="n">long</span> <span class="n">deliveryId</span><span class="o">;</span>
+  
+  <span class="n">public</span> <span class="nc">Confirm</span><span class="o">(</span><span class="n">long</span> <span class="n">deliveryId</span><span class="o">)</span> <span class="o">{</span>
+    <span class="k">this</span><span class="o">.</span><span class="n">deliveryId</span> <span class="k">=</span> <span class="n">deliveryId</span><span class="o">;</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+
+  
+<span class="k">class</span> <span class="nc">MsgSent</span> <span class="n">implements</span> <span class="nc">Serializable</span> <span class="o">{</span>
+  <span class="n">public</span> <span class="k">final</span> <span class="nc">String</span> <span class="n">s</span><span class="o">;</span>
+  
+  <span class="n">public</span> <span class="nc">MsgSent</span><span class="o">(</span><span class="nc">String</span> <span class="n">s</span><span class="o">)</span> <span class="o">{</span>
+    <span class="k">this</span><span class="o">.</span><span class="n">s</span> <span class="k">=</span> <span class="n">s</span><span class="o">;</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+<span class="k">class</span> <span class="nc">MsgConfirmed</span> <span class="n">implements</span> <span class="nc">Serializable</span> <span class="o">{</span>
+  <span class="n">public</span> <span class="k">final</span> <span class="n">long</span> <span class="n">deliveryId</span><span class="o">;</span>
+  
+  <span class="n">public</span> <span class="nc">MsgConfirmed</span><span class="o">(</span><span class="n">long</span> <span class="n">deliveryId</span><span class="o">)</span> <span class="o">{</span>
+    <span class="k">this</span><span class="o">.</span><span class="n">deliveryId</span> <span class="k">=</span> <span class="n">deliveryId</span><span class="o">;</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+
+<span class="k">class</span> <span class="nc">MyPersistentActor</span> <span class="k">extends</span> <span class="nc">UntypedPersistentActorWithAtLeastOnceDelivery</span> <span class="o">{</span>
+  <span class="k">private</span> <span class="k">final</span> <span class="nc">ActorPath</span> <span class="n">destination</span><span class="o">;</span>
+
+  <span class="n">public</span> <span class="nc">MyPersistentActor</span><span class="o">(</span><span class="nc">ActorPath</span> <span class="n">destination</span><span class="o">)</span> <span class="o">{</span>
+      <span class="k">this</span><span class="o">.</span><span class="n">destination</span> <span class="k">=</span> <span class="n">destination</span><span class="o">;</span>
+  <span class="o">}</span>
+
+  <span class="n">public</span> <span class="n">void</span> <span class="n">onReceiveCommand</span><span class="o">(</span><span class="nc">Object</span> <span class="n">message</span><span class="o">)</span> <span class="o">{</span>
+    <span class="k">if</span> <span class="o">(</span><span class="n">message</span> <span class="n">instanceof</span> <span class="nc">String</span><span class="o">)</span> <span class="o">{</span>
+      <span class="nc">String</span> <span class="n">s</span> <span class="k">=</span> <span class="o">(</span><span class="nc">String</span><span class="o">)</span> <span class="n">message</span><span class="o">;</span>
+      <span class="n">persist</span><span class="o">(</span><span class="k">new</span> <span class="nc">MsgSent</span><span class="o">(</span><span class="n">s</span><span class="o">),</span> <span class="k">new</span> <span class="nc">Procedure</span><span class="o">&lt;</span><span class="nc">MsgSent</span><span class="o">&gt;()</span> <span class="o">{</span>
+        <span class="n">public</span> <span class="n">void</span> <span class="n">apply</span><span class="o">(</span><span class="nc">MsgSent</span> <span class="n">evt</span><span class="o">)</span> <span class="o">{</span>
+          <span class="n">updateState</span><span class="o">(</span><span class="n">evt</span><span class="o">);</span>
+        <span class="o">}</span>
+      <span class="o">});</span>
+    <span class="o">}</span> <span class="k">else</span> <span class="k">if</span> <span class="o">(</span><span class="n">message</span> <span class="n">instanceof</span> <span class="nc">Confirm</span><span class="o">)</span> <span class="o">{</span>
+      <span class="nc">Confirm</span> <span class="n">confirm</span> <span class="k">=</span> <span class="o">(</span><span class="nc">Confirm</span><span class="o">)</span> <span class="n">message</span><span class="o">;</span>
+      <span class="n">persist</span><span class="o">(</span><span class="k">new</span> <span class="nc">MsgConfirmed</span><span class="o">(</span><span class="n">confirm</span><span class="o">.</span><span class="n">deliveryId</span><span class="o">),</span> <span class="k">new</span> <span class="nc">Procedure</span><span class="o">&lt;</span><span class="nc">MsgConfirmed</span><span class="o">&gt;()</span> <span class="o">{</span>
+        <span class="n">public</span> <span class="n">void</span> <span class="n">apply</span><span class="o">(</span><span class="nc">MsgConfirmed</span> <span class="n">evt</span><span class="o">)</span> <span class="o">{</span>
+          <span class="n">updateState</span><span class="o">(</span><span class="n">evt</span><span class="o">);</span>
+        <span class="o">}</span>
+      <span class="o">});</span>
+    <span class="o">}</span> <span class="k">else</span> <span class="o">{</span>
+      <span class="n">unhandled</span><span class="o">(</span><span class="n">message</span><span class="o">);</span>
+    <span class="o">}</span>
+  <span class="o">}</span>
+  
+  <span class="n">public</span> <span class="n">void</span> <span class="n">onReceiveRecover</span><span class="o">(</span><span class="nc">Object</span> <span class="n">event</span><span class="o">)</span> <span class="o">{</span>
+    <span class="n">updateState</span><span class="o">(</span><span class="n">event</span><span class="o">);</span>
+  <span class="o">}</span>
+  
+  <span class="n">void</span> <span class="n">updateState</span><span class="o">(</span><span class="nc">Object</span> <span class="n">event</span><span class="o">)</span> <span class="o">{</span>
+    <span class="k">if</span> <span class="o">(</span><span class="n">event</span> <span class="n">instanceof</span> <span class="nc">MsgSent</span><span class="o">)</span> <span class="o">{</span>
+      <span class="k">final</span> <span class="nc">MsgSent</span> <span class="n">evt</span> <span class="k">=</span> <span class="o">(</span><span class="nc">MsgSent</span><span class="o">)</span> <span class="n">event</span><span class="o">;</span>
+      <span class="n">deliver</span><span class="o">(</span><span class="n">destination</span><span class="o">,</span> <span class="k">new</span> <span class="nc">Function</span><span class="o">&lt;</span><span class="nc">Long</span><span class="o">,</span> <span class="nc">Object</span><span class="o">&gt;()</span> <span class="o">{</span>
+        <span class="n">public</span> <span class="nc">Object</span> <span class="n">apply</span><span class="o">(</span><span class="nc">Long</span> <span class="n">deliveryId</span><span class="o">)</span> <span class="o">{</span>
+          <span class="k">return</span> <span class="k">new</span> <span class="nc">Msg</span><span class="o">(</span><span class="n">deliveryId</span><span class="o">,</span> <span class="n">evt</span><span class="o">.</span><span class="n">s</span><span class="o">);</span>
+        <span class="o">}</span>
+      <span class="o">});</span>
+    <span class="o">}</span> <span class="k">else</span> <span class="k">if</span> <span class="o">(</span><span class="n">event</span> <span class="n">instanceof</span> <span class="nc">MsgConfirmed</span><span class="o">)</span> <span class="o">{</span>
+      <span class="k">final</span> <span class="nc">MsgConfirmed</span> <span class="n">evt</span> <span class="k">=</span> <span class="o">(</span><span class="nc">MsgConfirmed</span><span class="o">)</span> <span class="n">event</span><span class="o">;</span>
+      <span class="n">confirmDelivery</span><span class="o">(</span><span class="n">evt</span><span class="o">.</span><span class="n">deliveryId</span><span class="o">);</span>
+    <span class="o">}</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+
+<span class="k">class</span> <span class="nc">MyDestination</span> <span class="k">extends</span> <span class="nc">UntypedActor</span> <span class="o">{</span>
+  <span class="n">public</span> <span class="n">void</span> <span class="n">onReceive</span><span class="o">(</span><span class="nc">Object</span> <span class="n">message</span><span class="o">)</span> <span class="n">throws</span> <span class="nc">Exception</span> <span class="o">{</span>
+    <span class="k">if</span> <span class="o">(</span><span class="n">message</span> <span class="n">instanceof</span> <span class="nc">Msg</span><span class="o">)</span> <span class="o">{</span>
+      <span class="nc">Msg</span> <span class="n">msg</span> <span class="k">=</span> <span class="o">(</span><span class="nc">Msg</span><span class="o">)</span> <span class="n">message</span><span class="o">;</span>
+      <span class="c1">// ...</span>
+      <span class="n">getSender</span><span class="o">().</span><span class="n">tell</span><span class="o">(</span><span class="k">new</span> <span class="nc">Confirm</span><span class="o">(</span><span class="n">msg</span><span class="o">.</span><span class="n">deliveryId</span><span class="o">),</span> <span class="n">getSelf</span><span class="o">());</span>
+    <span class="o">}</span> <span class="k">else</span> <span class="o">{</span>
+      <span class="n">unhandled</span><span class="o">(</span><span class="n">message</span><span class="o">);</span>
+    <span class="o">}</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<p>Correlation between <code class="docutils literal"><span class="pre">deliver</span></code> and <code class="docutils literal"><span class="pre">confirmDelivery</span></code> is performed with the <code class="docutils literal"><span class="pre">deliveryId</span></code> that is provided
+as parameter to the <code class="docutils literal"><span class="pre">deliveryIdToMessage</span></code> function. The <code class="docutils literal"><span class="pre">deliveryId</span></code> is typically passed in the message to the
+destination, which replies with a message containing the same <code class="docutils literal"><span class="pre">deliveryId</span></code>.</p>
+<p>The <code class="docutils literal"><span class="pre">deliveryId</span></code> is a strictly monotonically increasing sequence number without gaps. The same sequence is
+used for all destinations of the actor, i.e. when sending to multiple destinations the destinations will see
+gaps in the sequence if no translation is performed.</p>
+<p>The <code class="docutils literal"><span class="pre">UntypedPersistentActorWithAtLeastOnceDelivery</span></code> class has a state consisting of unconfirmed messages and a
+sequence number. It does not store this state itself. You must persist events corresponding to the
+<code class="docutils literal"><span class="pre">deliver</span></code> and <code class="docutils literal"><span class="pre">confirmDelivery</span></code> invocations from your <code class="docutils literal"><span class="pre">PersistentActor</span></code> so that the state can
+be restored by calling the same methods during the recovery phase of the <code class="docutils literal"><span class="pre">PersistentActor</span></code>. Sometimes
+these events can be derived from other business level events, and sometimes you must create separate events.
+During recovery calls to <code class="docutils literal"><span class="pre">deliver</span></code> will not send out the message, but it will be sent later
+if no matching <code class="docutils literal"><span class="pre">confirmDelivery</span></code> was performed.</p>
+<p>Support for snapshots is provided by <code class="docutils literal"><span class="pre">getDeliverySnapshot</span></code> and <code class="docutils literal"><span class="pre">setDeliverySnapshot</span></code>.
+The <code class="docutils literal"><span class="pre">AtLeastOnceDeliverySnapshot</span></code> contains the full delivery state, including unconfirmed messages.
+If you need a custom snapshot for other parts of the actor state you must also include the
+<code class="docutils literal"><span class="pre">AtLeastOnceDeliverySnapshot</span></code>. It is serialized using protobuf with the ordinary Akka
+serialization mechanism. It is easiest to include the bytes of the <code class="docutils literal"><span class="pre">AtLeastOnceDeliverySnapshot</span></code>
+as a blob in your custom snapshot.</p>
+<p>The interval between redelivery attempts is defined by the <code class="docutils literal"><span class="pre">redeliverInterval</span></code> method.
+The default value can be configured with the <code class="docutils literal"><span class="pre">akka.persistence.at-least-once-delivery.redeliver-interval</span></code>
+configuration key. The method can be overridden by implementation classes to return non-default values.</p>
+<p>After a number of delivery attempts a <code class="docutils literal"><span class="pre">AtLeastOnceDelivery.UnconfirmedWarning</span></code> message
+will be sent to <code class="docutils literal"><span class="pre">self</span></code>. The re-sending will still continue, but you can choose to call
+<code class="docutils literal"><span class="pre">confirmDelivery</span></code> to cancel the re-sending. The number of delivery attempts before emitting the
+warning is defined by the <code class="docutils literal"><span class="pre">warnAfterNumberOfUnconfirmedAttempts</span></code> method. The default value can be
+configured with the <code class="docutils literal"><span class="pre">akka.persistence.at-least-once-delivery.warn-after-number-of-unconfirmed-attempts</span></code>
+configuration key. The method can be overridden by implementation classes to return non-default values.</p>
+<p>The <code class="docutils literal"><span class="pre">UntypedPersistentActorWithAtLeastOnceDelivery</span></code> class holds messages in memory until their successful delivery has been confirmed.
+The limit of maximum number of unconfirmed messages that the actor is allowed to hold in memory
+is defined by the <code class="docutils literal"><span class="pre">maxUnconfirmedMessages</span></code> method. If this limit is exceed the <code class="docutils literal"><span class="pre">deliver</span></code> method will
+not accept more messages and it will throw <code class="docutils literal"><span class="pre">AtLeastOnceDelivery.MaxUnconfirmedMessagesExceededException</span></code>.
+The default value can be configured with the <code class="docutils literal"><span class="pre">akka.persistence.at-least-once-delivery.max-unconfirmed-messages</span></code>
+configuration key. The method can be overridden by implementation classes to return non-default values.</p>
+</div>
+<div class="section" id="storage-plugins">
+<h2>Storage plugins</h2>
+<p>Storage backends for journals and snapshot stores are pluggable in Akka persistence. The default journal plugin
+writes messages to LevelDB (see <a class="reference internal" href="#local-leveldb-journal-java"><span class="std std-ref">Local LevelDB journal</span></a>). The default snapshot store plugin writes snapshots
+as individual files to the local filesystem (see <a class="reference internal" href="#local-snapshot-store-java"><span class="std std-ref">Local snapshot store</span></a>). Applications can provide their own
+plugins by implementing a plugin API and activate them by configuration. Plugin development requires the following
+imports:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span></span><span class="k">import</span> <span class="nn">akka.actor.</span><span class="o">*;</span>
+<span class="k">import</span> <span class="nn">akka.japi.Option</span><span class="o">;</span>
+<span class="k">import</span> <span class="nn">akka.japi.Procedure</span><span class="o">;</span>
+<span class="k">import</span> <span class="nn">akka.persistence.</span><span class="o">*;</span>
+<span class="k">import</span> <span class="nn">akka.persistence.japi.journal.JavaJournalSpec</span><span class="o">;</span>
+<span class="k">import</span> <span class="nn">akka.persistence.japi.snapshot.JavaSnapshotStoreSpec</span><span class="o">;</span>
+<span class="k">import</span> <span class="nn">akka.persistence.journal.japi.AsyncWriteJournal</span><span class="o">;</span>
+<span class="k">import</span> <span class="nn">akka.persistence.journal.leveldb.SharedLeveldbJournal</span><span class="o">;</span>
+<span class="k">import</span> <span class="nn">akka.persistence.journal.leveldb.SharedLeveldbStore</span><span class="o">;</span>
+<span class="k">import</span> <span class="nn">akka.persistence.snapshot.japi.SnapshotStore</span><span class="o">;</span>
+<span class="k">import</span> <span class="nn">com.typesafe.config.Config</span><span class="o">;</span>
+<span class="k">import</span> <span class="nn">com.typesafe.config.ConfigFactory</span><span class="o">;</span>
+<span class="k">import</span> <span class="nn">org.iq80.leveldb.util.FileUtils</span><span class="o">;</span>
+<span class="k">import</span> <span class="nn">scala.concurrent.Future</span><span class="o">;</span>
+
+<span class="k">import</span> <span class="nn">java.io.File</span><span class="o">;</span>
+<span class="k">import</span> <span class="nn">java.util.ArrayList</span><span class="o">;</span>
+<span class="k">import</span> <span class="nn">java.util.List</span><span class="o">;</span>
+</pre></div>
+</div>
+<div class="section" id="journal-plugin-api">
+<h3>Journal plugin API</h3>
+<p>A journal plugin either extends <code class="docutils literal"><span class="pre">SyncWriteJournal</span></code> or <code class="docutils literal"><span class="pre">AsyncWriteJournal</span></code>.  <code class="docutils literal"><span class="pre">SyncWriteJournal</span></code> is an
+actor that should be extended when the storage backend API only supports synchronous, blocking writes. In this
+case, the methods to be implemented are:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span></span><span class="cm">/**</span>
+<span class="cm"> * Java API, Plugin API: synchronously writes a batch of persistent messages to the</span>
+<span class="cm"> * journal. The batch write must be atomic i.e. either all persistent messages in the</span>
+<span class="cm"> * batch are written or none.</span>
+<span class="cm"> */</span>
+<span class="n">void</span> <span class="n">doWriteMessages</span><span class="o">(</span><span class="nc">Iterable</span><span class="o">&lt;</span><span class="nc">PersistentRepr</span><span class="o">&gt;</span> <span class="n">messages</span><span class="o">);</span>
+
+<span class="cm">/**</span>
+<span class="cm"> * Java API, Plugin API: synchronously writes a batch of delivery confirmations to</span>
+<span class="cm"> * the journal.</span>
+<span class="cm"> * </span>
+<span class="cm"> * @deprecated doWriteConfirmations will be removed, since Channels will be removed (since 2.3.4)</span>
+<span class="cm"> */</span>
+<span class="nd">@Deprecated</span> <span class="n">void</span> <span class="n">doWriteConfirmations</span><span class="o">(</span><span class="nc">Iterable</span><span class="o">&lt;</span><span class="nc">PersistentConfirmation</span><span class="o">&gt;</span> <span class="n">confirmations</span><span class="o">);</span>
+
+<span class="cm">/**</span>
+<span class="cm"> * Java API, Plugin API: synchronously deletes messages identified by `messageIds`</span>
+<span class="cm"> * from the journal. If `permanent` is set to `false`, the persistent messages are</span>
+<span class="cm"> * marked as deleted, otherwise they are permanently deleted.</span>
+<span class="cm"> * </span>
+<span class="cm"> * @deprecated doDeleteMessages will be removed (since 2.3.4)</span>
+<span class="cm"> */</span>
+<span class="nd">@Deprecated</span> <span class="n">void</span> <span class="n">doDeleteMessages</span><span class="o">(</span><span class="nc">Iterable</span><span class="o">&lt;</span><span class="nc">PersistentId</span><span class="o">&gt;</span> <span class="n">messageIds</span><span class="o">,</span> <span class="n">boolean</span> <span class="n">permanent</span><span class="o">);</span>
+
+<span class="cm">/**</span>
+<span class="cm"> * Java API, Plugin API: synchronously deletes all persistent messages up to</span>
+<span class="cm"> * `toSequenceNr`. If `permanent` is set to `false`, the persistent messages are</span>
+<span class="cm"> * marked as deleted, otherwise they are permanently deleted.</span>
+<span class="cm"> *</span>
+<span class="cm"> * @see AsyncRecoveryPlugin</span>
+<span class="cm"> */</span>
+<span class="n">void</span> <span class="n">doDeleteMessagesTo</span><span class="o">(</span><span class="nc">String</span> <span class="n">persistenceId</span><span class="o">,</span> <span class="n">long</span> <span class="n">toSequenceNr</span><span class="o">,</span> <span class="n">boolean</span> <span class="n">permanent</span><span class="o">);</span>
+</pre></div>
+</div>
+<p><code class="docutils literal"><span class="pre">AsyncWriteJournal</span></code> is an actor that should be extended if the storage backend API supports asynchronous,
+non-blocking writes. In this case, the methods to be implemented are:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span></span><span class="cm">/**</span>
+<span class="cm"> * Java API, Plugin API: synchronously writes a batch of persistent messages to the</span>
+<span class="cm"> * journal. The batch write must be atomic i.e. either all persistent messages in the</span>
+<span class="cm"> * batch are written or none.</span>
+<span class="cm"> */</span>
+<span class="nc">Future</span><span class="o">&lt;</span><span class="nc">Void</span><span class="o">&gt;</span> <span class="n">doAsyncWriteMessages</span><span class="o">(</span><span class="nc">Iterable</span><span class="o">&lt;</span><span class="nc">PersistentRepr</span><span class="o">&gt;</span> <span class="n">messages</span><span class="o">);</span>
+
+<span class="cm">/**</span>
+<span class="cm"> * Java API, Plugin API: synchronously writes a batch of delivery confirmations to</span>
+<span class="cm"> * the journal.</span>
+<span class="cm"> * </span>
+<span class="cm"> * @deprecated doAsyncWriteConfirmations will be removed, since Channels will be removed (since 2.3.4)</span>
+<span class="cm"> */</span>
+<span class="nd">@Deprecated</span> <span class="nc">Future</span><span class="o">&lt;</span><span class="nc">Void</span><span class="o">&gt;</span> <span class="n">doAsyncWriteConfirmations</span><span class="o">(</span><span class="nc">Iterable</span><span class="o">&lt;</span><span class="nc">PersistentConfirmation</span><span class="o">&gt;</span> <span class="n">confirmations</span><span class="o">);</span>
+
+<span class="cm">/**</span>
+<span class="cm"> * Java API, Plugin API: synchronously deletes messages identified by `messageIds`</span>
+<span class="cm"> * from the journal. If `permanent` is set to `false`, the persistent messages are</span>
+<span class="cm"> * marked as deleted, otherwise they are permanently deleted.</span>
+<span class="cm"> * </span>
+<span class="cm"> * @deprecated doAsyncDeleteMessages will be removed (since 2.3.4)</span>
+<span class="cm"> */</span>
+<span class="nd">@Deprecated</span> <span class="nc">Future</span><span class="o">&lt;</span><span class="nc">Void</span><span class="o">&gt;</span> <span class="n">doAsyncDeleteMessages</span><span class="o">(</span><span class="nc">Iterable</span><span class="o">&lt;</span><span class="nc">PersistentId</span><span class="o">&gt;</span> <span class="n">messageIds</span><span class="o">,</span> <span class="n">boolean</span> <span class="n">permanent</span><span class="o">);</span>
+
+<span class="cm">/**</span>
+<span class="cm"> * Java API, Plugin API: synchronously deletes all persistent messages up to</span>
+<span class="cm"> * `toSequenceNr`. If `permanent` is set to `false`, the persistent messages are</span>
+<span class="cm"> * marked as deleted, otherwise they are permanently deleted.</span>
+<span class="cm"> *</span>
+<span class="cm"> * @see AsyncRecoveryPlugin</span>
+<span class="cm"> */</span>
+<span class="nc">Future</span><span class="o">&lt;</span><span class="nc">Void</span><span class="o">&gt;</span> <span class="n">doAsyncDeleteMessagesTo</span><span class="o">(</span><span class="nc">String</span> <span class="n">persistenceId</span><span class="o">,</span> <span class="n">long</span> <span class="n">toSequenceNr</span><span class="o">,</span> <span class="n">boolean</span> <span class="n">permanent</span><span class="o">);</span>
+</pre></div>
+</div>
+<p>Message replays and sequence number recovery are always asynchronous, therefore, any journal plugin must implement:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span></span><span class="cm">/**</span>
+<span class="cm"> * Java API, Plugin API: asynchronously replays persistent messages.</span>
+<span class="cm"> * Implementations replay a message by calling `replayCallback`. The returned</span>
+<span class="cm"> * future must be completed when all messages (matching the sequence number</span>
+<span class="cm"> * bounds) have been replayed. The future must be completed with a failure if</span>
+<span class="cm"> * any of the persistent messages could not be replayed.</span>
+<span class="cm"> *</span>
+<span class="cm"> * The `replayCallback` must also be called with messages that have been marked</span>
+<span class="cm"> * as deleted. In this case a replayed message&#39;s `deleted` method must return</span>
+<span class="cm"> * `true`.</span>
+<span class="cm"> *</span>
+<span class="cm"> * The channel ids of delivery confirmations that are available for a replayed</span>
+<span class="cm"> * message must be contained in that message&#39;s `confirms` sequence.</span>
+<span class="cm"> *</span>
+<span class="cm"> * @param persistenceId processor id.</span>
+<span class="cm"> * @param fromSequenceNr sequence number where replay should start (inclusive).</span>
+<span class="cm"> * @param toSequenceNr sequence number where replay should end (inclusive).</span>
+<span class="cm"> * @param max maximum number of messages to be replayed.</span>
+<span class="cm"> * @param replayCallback called to replay a single message. Can be called from any</span>
+<span class="cm"> *                       thread.</span>
+<span class="cm"> */</span>
+<span class="nc">Future</span><span class="o">&lt;</span><span class="nc">Void</span><span class="o">&gt;</span> <span class="n">doAsyncReplayMessages</span><span class="o">(</span><span class="nc">String</span> <span class="n">persistenceId</span><span class="o">,</span> <span class="n">long</span> <span class="n">fromSequenceNr</span><span class="o">,</span> <span class="n">long</span> <span class="n">toSequenceNr</span><span class="o">,</span> <span class="n">long</span> <span class="n">max</span><span class="o">,</span> <span class="nc">Procedure</span><span class="o">&lt;</span><span class="nc">PersistentRepr</span><span class="o">&gt;</span> <span class="n">replayCallback</span><span class="o">);</span>
+
+<span class="cm">/**</span>
+<span class="cm"> * Java API, Plugin API: asynchronously reads the highest stored sequence number</span>
+<span class="cm"> * for the given `persistenceId`.</span>
+<span class="cm"> *</span>
+<span class="cm"> * @param persistenceId processor id.</span>
+<span class="cm"> * @param fromSequenceNr hint where to start searching for the highest sequence</span>
+<span class="cm"> *                       number.</span>
+<span class="cm"> */</span>
+<span class="nc">Future</span><span class="o">&lt;</span><span class="nc">Long</span><span class="o">&gt;</span> <span class="n">doAsyncReadHighestSequenceNr</span><span class="o">(</span><span class="nc">String</span> <span class="n">persistenceId</span><span class="o">,</span> <span class="n">long</span> <span class="n">fromSequenceNr</span><span class="o">);</span>
+</pre></div>
+</div>
+<p>A journal plugin can be activated with the following minimal configuration:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span></span><span class="k">#</span> <span class="nc">Path</span> <span class="n">to</span> <span class="n">the</span> <span class="n">journal</span> <span class="n">plugin</span> <span class="n">to</span> <span class="n">be</span> <span class="n">used</span>
+<span class="n">akka</span><span class="o">.</span><span class="n">persistence</span><span class="o">.</span><span class="n">journal</span><span class="o">.</span><span class="n">plugin</span> <span class="k">=</span> <span class="s">&quot;my-journal&quot;</span>
+
+<span class="k">#</span> <span class="nc">My</span> <span class="n">custom</span> <span class="n">journal</span> <span class="n">plugin</span>
+<span class="n">my</span><span class="o">-</span><span class="n">journal</span> <span class="o">{</span>
+  <span class="k">#</span> <span class="nc">Class</span> <span class="n">name</span> <span class="n">of</span> <span class="n">the</span> <span class="n">plugin</span><span class="o">.</span>
+  <span class="k">class</span> <span class="nc">=</span> <span class="s">&quot;docs.persistence.MyJournal&quot;</span>
+  <span class="k">#</span> <span class="nc">Dispatcher</span> <span class="k">for</span> <span class="n">the</span> <span class="n">plugin</span> <span class="n">actor</span><span class="o">.</span>
+  <span class="n">plugin</span><span class="o">-</span><span class="n">dispatcher</span> <span class="k">=</span> <span class="s">&quot;akka.actor.default-dispatcher&quot;</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<p>The specified plugin <code class="docutils literal"><span class="pre">class</span></code> must have a no-arg constructor. The <code class="docutils literal"><span class="pre">plugin-dispatcher</span></code> is the dispatcher
+used for the plugin actor. If not specified, it defaults to <code class="docutils literal"><span class="pre">akka.persistence.dispatchers.default-plugin-dispatcher</span></code>
+for <code class="docutils literal"><span class="pre">SyncWriteJournal</span></code> plugins and <code class="docutils literal"><span class="pre">akka.actor.default-dispatcher</span></code> for <code class="docutils literal"><span class="pre">AsyncWriteJournal</span></code> plugins.</p>
+</div>
+<div class="section" id="snapshot-store-plugin-api">
+<h3>Snapshot store plugin API</h3>
+<p>A snapshot store plugin must extend the <code class="docutils literal"><span class="pre">SnapshotStore</span></code> actor and implement the following methods:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span></span><span class="cm">/**</span>
+<span class="cm"> * Java API, Plugin API: asynchronously loads a snapshot.</span>
+<span class="cm"> *</span>
+<span class="cm"> * @param persistenceId processor id.</span>
+<span class="cm"> * @param criteria selection criteria for loading.</span>
+<span class="cm"> */</span>
+<span class="nc">Future</span><span class="o">&lt;</span><span class="nc">Option</span><span class="o">&lt;</span><span class="nc">SelectedSnapshot</span><span class="o">&gt;&gt;</span> <span class="n">doLoadAsync</span><span class="o">(</span><span class="nc">String</span> <span class="n">persistenceId</span><span class="o">,</span> <span class="nc">SnapshotSelectionCriteria</span> <span class="n">criteria</span><span class="o">);</span>
+
+<span class="cm">/**</span>
+<span class="cm"> * Java API, Plugin API: asynchronously saves a snapshot.</span>
+<span class="cm"> *</span>
+<span class="cm"> * @param metadata snapshot metadata.</span>
+<span class="cm"> * @param snapshot snapshot.</span>
+<span class="cm"> */</span>
+<span class="nc">Future</span><span class="o">&lt;</span><span class="nc">Void</span><span class="o">&gt;</span> <span class="n">doSaveAsync</span><span class="o">(</span><span class="nc">SnapshotMetadata</span> <span class="n">metadata</span><span class="o">,</span> <span class="nc">Object</span> <span class="n">snapshot</span><span class="o">);</span>
+
+<span class="cm">/**</span>
+<span class="cm"> * Java API, Plugin API: called after successful saving of a snapshot.</span>
+<span class="cm"> *</span>
+<span class="cm"> * @param metadata snapshot metadata.</span>
+<span class="cm"> */</span>
+<span class="n">void</span> <span class="n">onSaved</span><span class="o">(</span><span class="nc">SnapshotMetadata</span> <span class="n">metadata</span><span class="o">)</span> <span class="n">throws</span> <span class="nc">Exception</span><span class="o">;</span>
+
+<span class="cm">/**</span>
+<span class="cm"> * Java API, Plugin API: deletes the snapshot identified by `metadata`.</span>
+<span class="cm"> *</span>
+<span class="cm"> * @param metadata snapshot metadata.</span>
+<span class="cm"> */</span>
+<span class="n">void</span> <span class="n">doDelete</span><span class="o">(</span><span class="nc">SnapshotMetadata</span> <span class="n">metadata</span><span class="o">)</span> <span class="n">throws</span> <span class="nc">Exception</span><span class="o">;</span>
+
+<span class="cm">/**</span>
+<span class="cm"> * Java API, Plugin API: deletes all snapshots matching `criteria`.</span>
+<span class="cm"> *</span>
+<span class="cm"> * @param persistenceId processor id.</span>
+<span class="cm"> * @param criteria selection criteria for deleting.</span>
+<span class="cm"> */</span>
+<span class="n">void</span> <span class="n">doDelete</span><span class="o">(</span><span class="nc">String</span> <span class="n">persistenceId</span><span class="o">,</span> <span class="nc">SnapshotSelectionCriteria</span> <span class="n">criteria</span><span class="o">)</span> <span class="n">throws</span> <span class="nc">Exception</span><span class="o">;</span>
+</pre></div>
+</div>
+<p>A snapshot store plugin can be activated with the following minimal configuration:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span></span><span class="k">#</span> <span class="nc">Path</span> <span class="n">to</span> <span class="n">the</span> <span class="n">snapshot</span> <span class="n">store</span> <span class="n">plugin</span> <span class="n">to</span> <span class="n">be</span> <span class="n">used</span>
+<span class="n">akka</span><span class="o">.</span><span class="n">persistence</span><span class="o">.</span><span class="n">snapshot</span><span class="o">-</span><span class="n">store</span><span class="o">.</span><span class="n">plugin</span> <span class="k">=</span> <span class="s">&quot;my-snapshot-store&quot;</span>
+
+<span class="k">#</span> <span class="nc">My</span> <span class="n">custom</span> <span class="n">snapshot</span> <span class="n">store</span> <span class="n">plugin</span>
+<span class="n">my</span><span class="o">-</span><span class="n">snapshot</span><span class="o">-</span><span class="n">store</span> <span class="o">{</span>
+  <span class="k">#</span> <span class="nc">Class</span> <span class="n">name</span> <span class="n">of</span> <span class="n">the</span> <span class="n">plugin</span><span class="o">.</span>
+  <span class="k">class</span> <span class="nc">=</span> <span class="s">&quot;docs.persistence.MySnapshotStore&quot;</span>
+  <span class="k">#</span> <span class="nc">Dispatcher</span> <span class="k">for</span> <span class="n">the</span> <span class="n">plugin</span> <span class="n">actor</span><span class="o">.</span>
+  <span class="n">plugin</span><span class="o">-</span><span class="n">dispatcher</span> <span class="k">=</span> <span class="s">&quot;akka.persistence.dispatchers.default-plugin-dispatcher&quot;</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<p>The specified plugin <code class="docutils literal"><span class="pre">class</span></code> must have a no-arg constructor. The <code class="docutils literal"><span class="pre">plugin-dispatcher</span></code> is the dispatcher
+used for the plugin actor. If not specified, it defaults to <code class="docutils literal"><span class="pre">akka.persistence.dispatchers.default-plugin-dispatcher</span></code>.</p>
+</div>
+<div class="section" id="plugin-tck">
+<h3>Plugin TCK</h3>
+<p>In order to help developers build correct and high quality storage plugins, we provide an Technology Compatibility Kit (<a class="reference external" href="http://en.wikipedia.org/wiki/Technology_Compatibility_Kit">TCK</a> for short).</p>
+<p>The TCK is usable from Java as well as Scala projects, for Java you need to include the akka-persistence-tck-experimental dependency:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span></span><span class="o">&lt;</span><span class="n">dependency</span><span class="o">&gt;</span>
+  <span class="o">&lt;</span><span class="n">groupId</span><span class="o">&gt;</span><span class="n">com</span><span class="o">.</span><span class="n">typesafe</span><span class="o">.</span><span class="n">akka</span><span class="o">&lt;/</span><span class="n">groupId</span><span class="o">&gt;</span>
+  <span class="o">&lt;</span><span class="n">artifactId</span><span class="o">&gt;</span><span class="n">akka</span><span class="o">-</span><span class="n">persistence</span><span class="o">-</span><span class="n">tck</span><span class="o">-</span><span class="n">experimental_$</span><span class="o">{</span><span class="n">scala</span><span class="o">.</span><span class="n">version</span><span class="o">}&lt;/</span><span class="n">artifactId</span><span class="o">&gt;</span>
+  <span class="o">&lt;</span><span class="n">version</span><span class="o">&gt;</span><span class="mf">2.3</span><span class="o">.</span><span class="mi">5</span><span class="o">&lt;/</span><span class="n">version</span><span class="o">&gt;</span>
+  <span class="o">&lt;</span><span class="n">scope</span><span class="o">&gt;</span><span class="n">test</span><span class="o">&lt;/</span><span class="n">scope</span><span class="o">&gt;</span>
+<span class="o">&lt;/</span><span class="n">dependency</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+<p>To include the Journal TCK tests in your test suite simply extend the provided <code class="docutils literal"><span class="pre">JavaJournalSpec</span></code>:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">MyJournalSpecTest</span> <span class="k">extends</span> <span class="nc">JavaJournalSpec</span> <span class="o">{</span>
+
+    <span class="n">public</span> <span class="nc">MyJournalSpecTest</span><span class="o">()</span> <span class="o">{</span>
+        <span class="k">super</span><span class="o">(</span><span class="nc">ConfigFactory</span><span class="o">.</span><span class="n">parseString</span><span class="o">(</span>
+                <span class="s">&quot;persistence.journal.plugin = &quot;</span> <span class="o">+</span>
+                <span class="s">&quot;\&quot;akka.persistence.journal.leveldb-shared\&quot;&quot;</span><span class="o">));</span>
+    <span class="o">}</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<p>We also provide a simple benchmarking class <code class="docutils literal"><span class="pre">JavaJournalPerfSpec</span></code> which includes all the tests that <code class="docutils literal"><span class="pre">JavaJournalSpec</span></code>
+has, and also performs some longer operations on the Journal while printing it's performance stats. While it is NOT aimed
+to provide a proper benchmarking environment it can be used to get a rough feel about your journals performance in the most
+typical scenarios.</p>
+<p>In order to include the <code class="docutils literal"><span class="pre">SnapshotStore</span></code> TCK tests in your test suite simply extend the <code class="docutils literal"><span class="pre">SnapshotStoreSpec</span></code>:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">MySnapshotStoreTest</span> <span class="k">extends</span> <span class="nc">JavaSnapshotStoreSpec</span> <span class="o">{</span>
+
+    <span class="n">public</span> <span class="nc">MySnapshotStoreTest</span><span class="o">()</span> <span class="o">{</span>
+        <span class="k">super</span><span class="o">(</span><span class="nc">ConfigFactory</span><span class="o">.</span><span class="n">parseString</span><span class="o">(</span>
+                <span class="s">&quot;akka.persistence.snapshot-store.plugin = &quot;</span> <span class="o">+</span>
+                <span class="s">&quot;\&quot;akka.persistence.snapshot-store.local\&quot;&quot;</span><span class="o">));</span>
+    <span class="o">}</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<p>In case your plugin requires some setting up (starting a mock database, removing temporary files etc.) you can override the
+<code class="docutils literal"><span class="pre">beforeAll</span></code> and <code class="docutils literal"><span class="pre">afterAll</span></code> methods to hook into the tests lifecycle:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">MyJournalSpecTest</span> <span class="k">extends</span> <span class="nc">JavaJournalSpec</span> <span class="o">{</span>
+
+    <span class="nc">List</span><span class="o">&lt;</span><span class="nc">File</span><span class="o">&gt;</span> <span class="n">storageLocations</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">ArrayList</span><span class="o">&lt;</span><span class="nc">File</span><span class="o">&gt;();</span>
+
+    <span class="n">public</span> <span class="nc">MyJournalSpecTest</span><span class="o">()</span> <span class="o">{</span>
+        <span class="k">super</span><span class="o">(</span><span class="nc">ConfigFactory</span><span class="o">.</span><span class="n">parseString</span><span class="o">(</span>
+                <span class="s">&quot;persistence.journal.plugin = &quot;</span> <span class="o">+</span>
+                <span class="s">&quot;\&quot;akka.persistence.journal.leveldb-shared\&quot;&quot;</span><span class="o">));</span>
+
+        <span class="nc">Config</span> <span class="n">config</span> <span class="k">=</span> <span class="n">system</span><span class="o">().</span><span class="n">settings</span><span class="o">().</span><span class="n">config</span><span class="o">();</span>
+        <span class="n">storageLocations</span><span class="o">.</span><span class="n">add</span><span class="o">(</span><span class="k">new</span> <span class="nc">File</span><span class="o">(</span>
+            <span class="n">config</span><span class="o">.</span><span class="n">getString</span><span class="o">(</span><span class="s">&quot;akka.persistence.journal.leveldb.dir&quot;</span><span class="o">)));</span>
+        <span class="n">storageLocations</span><span class="o">.</span><span class="n">add</span><span class="o">(</span><span class="k">new</span> <span class="nc">File</span><span class="o">(</span>
+            <span class="n">config</span><span class="o">.</span><span class="n">getString</span><span class="o">(</span><span class="s">&quot;akka.persistence.snapshot-store.local.dir&quot;</span><span class="o">)));</span>
+    <span class="o">}</span>
+
+    <span class="nd">@Override</span>
+    <span class="n">public</span> <span class="n">void</span> <span class="n">beforeAll</span><span class="o">()</span> <span class="o">{</span>
+        <span class="k">for</span> <span class="o">(</span><span class="nc">File</span> <span class="n">storageLocation</span> <span class="k">:</span> <span class="kt">storageLocations</span><span class="o">)</span> <span class="o">{</span>
+            <span class="nc">FileUtils</span><span class="o">.</span><span class="n">deleteRecursively</span><span class="o">(</span><span class="n">storageLocation</span><span class="o">);</span>
+        <span class="o">}</span>
+        <span class="k">super</span><span class="o">.</span><span class="n">beforeAll</span><span class="o">();</span>
+    <span class="o">}</span>
+
+    <span class="nd">@Override</span>
+    <span class="n">public</span> <span class="n">void</span> <span class="n">afterAll</span><span class="o">()</span> <span class="o">{</span>
+        <span class="k">super</span><span class="o">.</span><span class="n">afterAll</span><span class="o">();</span>
+        <span class="k">for</span> <span class="o">(</span><span class="nc">File</span> <span class="n">storageLocation</span> <span class="k">:</span> <span class="kt">storageLocations</span><span class="o">)</span> <span class="o">{</span>
+            <span class="nc">FileUtils</span><span class="o">.</span><span class="n">deleteRecursively</span><span class="o">(</span><span class="n">storageLocation</span><span class="o">);</span>
+        <span class="o">}</span>
+    <span class="o">}</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<p>We <em>highly recommend</em> including these specifications in your test suite, as they cover a broad range of cases you
+might have otherwise forgotten to test for when writing a plugin from scratch.</p>
+</div>
+</div>
+<div class="section" id="pre-packaged-plugins">
+<h2>Pre-packaged plugins</h2>
+<div class="section" id="local-leveldb-journal">
+<span id="local-leveldb-journal-java"></span><h3>Local LevelDB journal</h3>
+<p>The default journal plugin is <code class="docutils literal"><span class="pre">akka.persistence.journal.leveldb</span></code> which writes messages to a local LevelDB
+instance. The default location of the LevelDB files is a directory named <code class="docutils literal"><span class="pre">journal</span></code> in the current working
+directory. This location can be changed by configuration where the specified path can be relative or absolute:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span></span><span class="n">akka</span><span class="o">.</span><span class="n">persistence</span><span class="o">.</span><span class="n">journal</span><span class="o">.</span><span class="n">leveldb</span><span class="o">.</span><span class="n">dir</span> <span class="k">=</span> <span class="s">&quot;target/journal&quot;</span>
+</pre></div>
+</div>
+<p>With this plugin, each actor system runs its own private LevelDB instance.</p>
+</div>
+<div class="section" id="shared-leveldb-journal">
+<span id="shared-leveldb-journal-java"></span><h3>Shared LevelDB journal</h3>
+<p>A LevelDB instance can also be shared by multiple actor systems (on the same or on different nodes). This, for
+example, allows persistent actors to failover to a backup node and continue using the shared journal instance from the
+backup node.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">A shared LevelDB instance is a single point of failure and should therefore only be used for testing
+purposes. Highly-available, replicated journal are available as <a class="reference external" href="https://akka.io/community/">Community plugins</a>.</p>
+</div>
+<p>A shared LevelDB instance is started by instantiating the <code class="docutils literal"><span class="pre">SharedLeveldbStore</span></code> actor.</p>
+<div class="highlight-scala"><div class="highlight"><pre><span></span><span class="k">final</span> <span class="nc">ActorRef</span> <span class="n">store</span> <span class="k">=</span> <span class="n">system</span><span class="o">.</span><span class="n">actorOf</span><span class="o">(</span><span class="nc">Props</span><span class="o">.</span><span class="n">create</span><span class="o">(</span><span class="nc">SharedLeveldbStore</span><span class="o">.</span><span class="n">class</span><span class="o">),</span> <span class="s">&quot;store&quot;</span><span class="o">);</span>
+</pre></div>
+</div>
+<p>By default, the shared instance writes journaled messages to a local directory named <code class="docutils literal"><span class="pre">journal</span></code> in the current
+working directory. The storage location can be changed by configuration:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span></span><span class="n">akka</span><span class="o">.</span><span class="n">persistence</span><span class="o">.</span><span class="n">journal</span><span class="o">.</span><span class="n">leveldb</span><span class="o">-</span><span class="n">shared</span><span class="o">.</span><span class="n">store</span><span class="o">.</span><span class="n">dir</span> <span class="k">=</span> <span class="s">&quot;target/shared&quot;</span>
+</pre></div>
+</div>
+<p>Actor systems that use a shared LevelDB store must activate the <code class="docutils literal"><span class="pre">akka.persistence.journal.leveldb-shared</span></code>
+plugin.</p>
+<div class="highlight-scala"><div class="highlight"><pre><span></span><span class="n">akka</span><span class="o">.</span><span class="n">persistence</span><span class="o">.</span><span class="n">journal</span><span class="o">.</span><span class="n">plugin</span> <span class="k">=</span> <span class="s">&quot;akka.persistence.journal.leveldb-shared&quot;</span>
+</pre></div>
+</div>
+<p>This plugin must be initialized by injecting the (remote) <code class="docutils literal"><span class="pre">SharedLeveldbStore</span></code> actor reference. Injection is
+done by calling the <code class="docutils literal"><span class="pre">SharedLeveldbJournal.setStore</span></code> method with the actor reference as argument.</p>
+<div class="highlight-scala"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">SharedStorageUsage</span> <span class="k">extends</span> <span class="nc">UntypedActor</span> <span class="o">{</span>
+    <span class="nd">@Override</span>
+    <span class="n">public</span> <span class="n">void</span> <span class="n">preStart</span><span class="o">()</span> <span class="n">throws</span> <span class="nc">Exception</span> <span class="o">{</span>
+        <span class="nc">String</span> <span class="n">path</span> <span class="k">=</span> <span class="s">&quot;akka.tcp://example@127.0.0.1:2552/user/store&quot;</span><span class="o">;</span>
+        <span class="nc">ActorSelection</span> <span class="n">selection</span> <span class="k">=</span> <span class="n">getContext</span><span class="o">().</span><span class="n">actorSelection</span><span class="o">(</span><span class="n">path</span><span class="o">);</span>
+        <span class="n">selection</span><span class="o">.</span><span class="n">tell</span><span class="o">(</span><span class="k">new</span> <span class="nc">Identify</span><span class="o">(</span><span class="mi">1</span><span class="o">),</span> <span class="n">getSelf</span><span class="o">());</span>
+    <span class="o">}</span>
+
+    <span class="nd">@Override</span>
+    <span class="n">public</span> <span class="n">void</span> <span class="n">onReceive</span><span class="o">(</span><span class="nc">Object</span> <span class="n">message</span><span class="o">)</span> <span class="n">throws</span> <span class="nc">Exception</span> <span class="o">{</span>
+        <span class="k">if</span> <span class="o">(</span><span class="n">message</span> <span class="n">instanceof</span> <span class="nc">ActorIdentity</span><span class="o">)</span> <span class="o">{</span>
+            <span class="nc">ActorIdentity</span> <span class="n">identity</span> <span class="k">=</span> <span class="o">(</span><span class="nc">ActorIdentity</span><span class="o">)</span> <span class="n">message</span><span class="o">;</span>
+            <span class="k">if</span> <span class="o">(</span><span class="n">identity</span><span class="o">.</span><span class="n">correlationId</span><span class="o">().</span><span class="n">equals</span><span class="o">(</span><span class="mi">1</span><span class="o">))</span> <span class="o">{</span>
+                <span class="nc">ActorRef</span> <span class="n">store</span> <span class="k">=</span> <span class="n">identity</span><span class="o">.</span><span class="n">getRef</span><span class="o">();</span>
+                <span class="k">if</span> <span class="o">(</span><span class="n">store</span> <span class="o">!=</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
+                    <span class="nc">SharedLeveldbJournal</span><span class="o">.</span><span class="n">setStore</span><span class="o">(</span><span class="n">store</span><span class="o">,</span> <span class="n">getContext</span><span class="o">().</span><span class="n">system</span><span class="o">());</span>
+                <span class="o">}</span>
+            <span class="o">}</span>
+        <span class="o">}</span>
+    <span class="o">}</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<p>Internal journal commands (sent by persistent actors) are buffered until injection completes. Injection is idempotent
+i.e. only the first injection is used.</p>
+</div>
+<div class="section" id="local-snapshot-store">
+<span id="local-snapshot-store-java"></span><h3>Local snapshot store</h3>
+<p>The default snapshot store plugin is <code class="docutils literal"><span class="pre">akka.persistence.snapshot-store.local</span></code>. It writes snapshot files to
+the local filesystem. The default storage location is a directory named <code class="docutils literal"><span class="pre">snapshots</span></code> in the current working
+directory. This can be changed by configuration where the specified path can be relative or absolute:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span></span><span class="n">akka</span><span class="o">.</span><span class="n">persistence</span><span class="o">.</span><span class="n">snapshot</span><span class="o">-</span><span class="n">store</span><span class="o">.</span><span class="n">local</span><span class="o">.</span><span class="n">dir</span> <span class="k">=</span> <span class="s">&quot;target/snapshots&quot;</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="custom-serialization">
+<h2>Custom serialization</h2>
+<p>Serialization of snapshots and payloads of <code class="docutils literal"><span class="pre">Persistent</span></code> messages is configurable with Akka's
+<a class="reference internal" href="serialization.html#serialization-java"><span class="std std-ref">Serialization</span></a> infrastructure. For example, if an application wants to serialize</p>
+<ul class="simple">
+<li>payloads of type <code class="docutils literal"><span class="pre">MyPayload</span></code> with a custom <code class="docutils literal"><span class="pre">MyPayloadSerializer</span></code> and</li>
+<li>snapshots of type <code class="docutils literal"><span class="pre">MySnapshot</span></code> with a custom <code class="docutils literal"><span class="pre">MySnapshotSerializer</span></code></li>
+</ul>
+<p>it must add</p>
+<div class="highlight-scala"><div class="highlight"><pre><span></span><span class="n">akka</span><span class="o">.</span><span class="n">actor</span> <span class="o">{</span>
+  <span class="n">serializers</span> <span class="o">{</span>
+    <span class="n">my</span><span class="o">-</span><span class="n">payload</span> <span class="k">=</span> <span class="s">&quot;docs.persistence.MyPayloadSerializer&quot;</span>
+    <span class="n">my</span><span class="o">-</span><span class="n">snapshot</span> <span class="k">=</span> <span class="s">&quot;docs.persistence.MySnapshotSerializer&quot;</span>
+  <span class="o">}</span>
+  <span class="n">serialization</span><span class="o">-</span><span class="n">bindings</span> <span class="o">{</span>
+    <span class="s">&quot;docs.persistence.MyPayload&quot;</span> <span class="k">=</span> <span class="n">my</span><span class="o">-</span><span class="n">payload</span>
+    <span class="s">&quot;docs.persistence.MySnapshot&quot;</span> <span class="k">=</span> <span class="n">my</span><span class="o">-</span><span class="n">snapshot</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<p>to the application configuration. If not specified, a default serializer is used.</p>
+</div>
+<div class="section" id="testing">
+<h2>Testing</h2>
+<p>When running tests with LevelDB default settings in <code class="docutils literal"><span class="pre">sbt</span></code>, make sure to set <code class="docutils literal"><span class="pre">fork</span> <span class="pre">:=</span> <span class="pre">true</span></code> in your sbt project
+otherwise, you'll see an <code class="docutils literal"><span class="pre">UnsatisfiedLinkError</span></code>. Alternatively, you can switch to a LevelDB Java port by setting</p>
+<div class="highlight-scala"><div class="highlight"><pre><span></span><span class="n">akka</span><span class="o">.</span><span class="n">persistence</span><span class="o">.</span><span class="n">journal</span><span class="o">.</span><span class="n">leveldb</span><span class="o">.</span><span class="n">native</span> <span class="k">=</span> <span class="n">off</span>
+</pre></div>
+</div>
+<p>or</p>
+<div class="highlight-scala"><div class="highlight"><pre><span></span><span class="n">akka</span><span class="o">.</span><span class="n">persistence</span><span class="o">.</span><span class="n">journal</span><span class="o">.</span><span class="n">leveldb</span><span class="o">-</span><span class="n">shared</span><span class="o">.</span><span class="n">store</span><span class="o">.</span><span class="n">native</span> <span class="k">=</span> <span class="n">off</span>
+</pre></div>
+</div>
+<p>in your Akka configuration. The LevelDB Java port is for testing purposes only.</p>
+</div>
+<div class="section" id="configuration">
+<h2>Configuration</h2>
+<p>There are several configuration properties for the persistence module, please refer
+to the <a class="reference internal" href="../general/configuration.html#config-akka-persistence"><span class="std std-ref">reference configuration</span></a>.</p>
+</div>
+</div>
+
+
+          </div>
+          <div class="span3"><p class="contents-title">Contents</p>
+              <div id="scroller-anchor">
+                <div id="scroller">
+                  <div id="toc"></div>
+                </div>
+              </div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="footer">
+  <div class="container">
+    <ul>
+      <li><h5>Akka</h5></li>
+      <li><a href="https://akka.io/docs">Documentation</a></li>
+      <li><a href="https://akka.io/faq">FAQ</a></li>
+      <li><a href="https://akka.io/downloads">Downloads</a></li>
+      <li><a href="https://akka.io/news">News</a></li>
+      <li><a href="http://letitcrash.com">Blog</a></li>
+    </ul>
+    <ul>
+      <li><h5>Contribute</h5></li>
+      <li><a href="https://akka.io/community">Community Projects</a></li>
+      <li><a href="http://github.com/akka/akka">Source Code</a></li>
+      <li><a href="http://groups.google.com/group/akka-user">Mailing List</a></li>      
+      <li><a href="https://doc.akka.io/docs/akka/current/project/issue-tracking.html">Report a Bug</a></li>      
+    </ul>
+    <ul>
+      <li><h5>Company</h5></li>
+      <li><a href="http://www.typesafe.com/how/subscription">Commercial Support</a></li>
+      <li><a href="https://akka.io/team">Team</a></li>
+      <li><a href="mailto:info@typesafe.com">Contact</a></li>
+    </ul>
+    <ul>
+      <li><img src="../_static/akka_icon_reverse.svg" align="center"/></li>
+    </ul>
+  </div>
+  <div class="container copyright">
+    <p style="float: left;">
+      © 2014 <a href="http://www.typesafe.com/">Typesafe Inc.</a> <span class="license">Akka is Open Source and available under the Apache 2 License.</span>
+    </p>
+    <p style="float: right; font-size: 12px;">
+      Last updated: Oct 28, 2016
+    </p>          
+  </div>
+</div>
+<script src="http://www.google.com/jsapi" type="text/javascript"></script>
+<script type="text/javascript">
+    google.load('search', '1', {language : 'en', style : google.loader.themes.MINIMALIST});
+    google.setOnLoadCallback(function() {
+    var customSearchOptions = {};  var customSearchControl = new google.search.CustomSearchControl(
+    '003065520604945464838:izzukx8-qba', customSearchOptions);
+    customSearchControl.setResultSetSize(google.search.Search.FILTERED_CSE_RESULTSET);
+    customSearchControl.draw('cse');
+    var path = window.location.pathname.split('/').slice(0,4);
+    if(window.location.hostname && path.length >= 4) {
+    var site = "site:" + window.location.hostname + path.join('/').toString();
+    customSearchControl.setSearchStartingCallback(this, function(c, s, q) { s.setQueryAddition(site); });
+    }
+    }, true);
+</script>
+<style type="text/css">
+    .gsc-control-cse {
+    font-family: Arial, sans-serif;
+    border-color: rgb(242, 242, 235);
+    background-color: rgb(242, 242, 235);
+    }
+    .gsc-control-cse .gsc-table-result {
+      font-family: Arial, sans-serif;
+      display: block;
+    }
+    input.gsc-input {
+    border-color: #BBBBBB;
+    }
+    input.gsc-search-button {
+    border-color: rgb(34, 57, 64);
+    background-color: rgb(68, 114, 129);
+    color: #FFFFFF;
+    }
+    .gsc-tabHeader.gsc-tabhInactive {
+    border-color: #777777;
+    background-color: #777777;
+    }
+    .gsc-tabHeader.gsc-tabhActive {
+    border-color: #333333;
+    background-color: #333333;
+    }
+    .gsc-tabsArea {
+    border-color: #333333;
+    }
+    .gsc-webResult.gsc-result,
+    .gsc-results .gsc-imageResult {
+      border-color: #666666;
+      background-color: #FFFFFF;
+      padding: 0.5em 0.5em;
+    }
+    .gsc-webResult.gsc-result:hover,
+    .gsc-imageResult:hover {
+      border-color: #AAAAAA;
+      background-color: #FFFFFF;
+      padding: 0.5em 0.5em;
+    }
+    .gsc-webResult.gsc-result.gsc-promotion:hover {
+    border-color: #AAAAAA;
+    background-color: #FFFFFF;
+    }
+    .gs-webResult.gs-result a.gs-title:link,
+    .gs-webResult.gs-result a.gs-title:link b,
+    .gs-imageResult a.gs-title:link,
+    .gs-imageResult a.gs-title:link b {
+    color: #444444;
+    }
+    .gs-webResult.gs-result a.gs-title:visited,
+    .gs-webResult.gs-result a.gs-title:visited b,
+    .gs-imageResult a.gs-title:visited,
+    .gs-imageResult a.gs-title:visited b {
+    color: #444444;
+    }
+    .gs-webResult.gs-result a.gs-title:hover,
+    .gs-webResult.gs-result a.gs-title:hover b,
+    .gs-imageResult a.gs-title:hover,
+    .gs-imageResult a.gs-title:hover b {
+    color: #444444;
+    }
+    .gs-webResult.gs-result a.gs-title:active,
+    .gs-webResult.gs-result a.gs-title:active b,
+    .gs-imageResult a.gs-title:active,
+    .gs-imageResult a.gs-title:active b {
+    color: #777777;
+    }
+    .gsc-cursor-page {
+    color: #444444;
+    }
+    a.gsc-trailing-more-results:link {
+    color: #444444;
+    }
+    .gs-webResult .gs-snippet,
+    .gs-imageResult .gs-snippet,
+    .gs-fileFormatType {
+    color: #333333;
+    }
+    .gs-webResult div.gs-visibleUrl,
+    .gs-imageResult div.gs-visibleUrl {
+    color: #000000;
+    }
+    .gs-webResult div.gs-visibleUrl-short {
+    color: #000000;
+    }
+    .gs-webResult div.gs-visibleUrl-short {
+    display: none;
+    }
+    .gs-webResult div.gs-visibleUrl-long {
+    display: block;
+    }
+    .gs-promotion div.gs-visibleUrl-short {
+    display: none;
+    }
+    .gs-promotion div.gs-visibleUrl-long {
+    display: block;
+    }
+    .gsc-cursor-box {
+    border-color: #FFFFFF;
+    }
+    .gsc-results .gsc-cursor-box .gsc-cursor-page {
+    border-color: #777777;
+    background-color: #FFFFFF;
+    color: #444444;
+    }
+    .gsc-results .gsc-cursor-box .gsc-cursor-current-page {
+    border-color: #333333;
+    background-color: #333333;
+    color: #444444;
+    }
+    .gsc-webResult.gsc-result.gsc-promotion {
+    border-color: #CCCCCC;
+    background-color: #E6E6E6;
+    }
+    .gsc-completion-title {
+    color: #444444;
+    }
+    .gsc-completion-snippet {
+    color: #333333;
+    }
+    .gs-promotion a.gs-title:link,
+    .gs-promotion a.gs-title:link *,
+    .gs-promotion .gs-snippet a:link {
+    color: #0000CC;
+    }
+    .gs-promotion a.gs-title:visited,
+    .gs-promotion a.gs-title:visited *,
+    .gs-promotion .gs-snippet a:visited {
+    color: #0000CC;
+    }
+    .gs-promotion a.gs-title:hover,
+    .gs-promotion a.gs-title:hover *,
+    .gs-promotion .gs-snippet a:hover {
+    color: #444444;
+    }
+    .gs-promotion a.gs-title:active,
+    .gs-promotion a.gs-title:active *,
+    .gs-promotion .gs-snippet a:active {
+    color: #00CC00;
+    }
+    .gs-promotion .gs-snippet,
+    .gs-promotion .gs-title .gs-promotion-title-right,
+    .gs-promotion .gs-title .gs-promotion-title-right *  {
+    color: #333333;
+    }
+    .gs-promotion .gs-visibleUrl,
+    .gs-promotion .gs-visibleUrl-short {
+    color: #00CC00;
+    }
+</style>
+<script type="text/javascript">
+  var $toc = $('#toc');
+  $toc.toc();
+
+  // change hash when TOC link clicked:
+  $toc.find("a").click(function() { window.location.hash = $(this).attr('href'); });
+
+  // show clickable section sign when section header hovered:
+  $('.section h2,.section h3,.section h4,.section h5').each(function(i, el) {
+      var $el = $(el);
+      $el.prepend($("<a class='section-marker' href='#" + $el.attr("id") + "'>&sect;</a>"))
+  });
+</script>
+  
+
+  </body>
+</html>

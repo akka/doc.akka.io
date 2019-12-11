@@ -1,0 +1,633 @@
+
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Getting Started Tutorial (Scala): First Chapter &mdash; Akka Documentation</title>
+    <link rel="stylesheet" href="../_static/style.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/prettify.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/base.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
+    <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Exo:300,400,600,700" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '1.3.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+<script type="text/javascript" src="https://doc.akka.io/docs/akka/1.3.1/_static/warnOldDocs.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="../_static/toc.js"></script>
+    <script type="text/javascript" src="../_static/prettify.js"></script>
+    <script type="text/javascript" src="../_static/highlightCode.js"></script>
+    <script type="text/javascript" src="../_static/effects.core.js"></script>
+    <script type="text/javascript" src="../_static/effects.highlight.js"></script>
+    <script type="text/javascript" src="../_static/scrollTo.js"></script>
+    <script type="text/javascript" src="../_static/contentsFix.js"></script>
+    <link rel="shortcut icon" href="../_static/favicon.ico"/>
+    <link rel="top" title="Akka Documentation" href="../index.html" />
+    <link rel="up" title="Introduction" href="index.html" />
+    <link rel="next" title="Getting Started Tutorial (Scala with Eclipse): First Chapter" href="getting-started-first-scala-eclipse.html" />
+    <link rel="prev" title="Getting Started" href="getting-started.html" /> 
+  </head>
+  <body>
+  <div class="navbar">
+    <div class="navbar-inner">
+      <div class="container">
+        <div class="navbar-logo">
+          <a href="https://akka.io"><img src="../_static/logo-small.png" /></a>
+        </div>    
+        <ul class="nav">
+          <li><a href="https://akka.io/docs">Documentation</a></li>
+          <li><a href="https://akka.io/downloads">Download</a></li>
+          <li><a href="http://groups.google.com/group/akka-user">Mailing List</a></li>
+          <li><a href="http://github.com/akka/akka">Code</a></li>           
+          <li><a href="http://typesafe.com/products/typesafe-subscription">Commercial Support</a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="main">
+    <div class="container">
+      <div class="page-title">Getting Started Tutorial (Scala): First Chapter</div><div class="pdf-link"><a href="https://doc.akka.io/docs/akka/1.3.1/Akka.pdf"><img src="../_static/pdf-icon.png" style="height: 40px;" /></a></div></div>
+    <div class="main-container">
+      <div class="container">
+        <div class="row">
+          <div class="span12">
+            <ul class="breadcrumb">           
+              <li>
+                 <span class="divider">|</span> <a href="getting-started-first-scala-eclipse.html">Getting Started Tutorial (Scala with Eclipse): First Chapter</a> <span class="divider">»</span>
+              </li>
+              <li>
+                <a href="../index.html">Contents</a>
+              </li>
+              <li>
+                <span class="divider">«</span> <a href="getting-started.html">Getting Started</a> <span class="divider">|</span>
+              </li>
+              <li>
+                Version 1.3.1
+              </li>
+            </ul>         
+          </div>
+        </div>
+        <div class="row">
+          <div class="span9">
+            
+  <div class="section" id="getting-started-tutorial-scala-first-chapter">
+<span id="getting-started-first-scala"></span><h1>Getting Started Tutorial (Scala): First Chapter</h1>
+<div class="section" id="introduction">
+<h2>Introduction</h2>
+<p>Welcome to the first tutorial on how to get started with Akka and Scala. We assume that you already know what Akka and Scala are and will now focus on the steps necessary to start your first project.</p>
+<p>There are two variations of this first tutorial:</p>
+<ul class="simple">
+<li>creating a standalone project and run it from the command line</li>
+<li>creating a SBT (Simple Build Tool) project and running it from within SBT</li>
+</ul>
+<p>Since they are so similar we will present them both.</p>
+<p>The sample application that we will create is using actors to calculate the value of Pi. Calculating Pi is a CPU intensive operation and we will utilize Akka Actors to write a concurrent solution that scales out to multi-core processors. This sample will be extended in future tutorials to use Akka Remote Actors to scale out on multiple machines in a cluster.</p>
+<p>We will be using an algorithm that is called &#8220;embarrassingly parallel&#8221; which just means that each job is completely isolated and not coupled with any other job. Since this algorithm is so parallelizable it suits the actor model very well.</p>
+<p>Here is the formula for the algorithm we will use:</p>
+<img alt="../_images/pi-formula.png" src="../_images/pi-formula.png" />
+<p>In this particular algorithm the master splits the series into chunks which are sent out to each worker actor to be processed. When each worker has processed its chunk it sends a result back to the master which aggregates the total result.</p>
+</div>
+<div class="section" id="tutorial-source-code">
+<h2>Tutorial source code</h2>
+<p>If you want don&#8217;t want to type in the code and/or set up an SBT project then you can check out the full tutorial from the Akka GitHub repository. It is in the <tt class="docutils literal"><span class="pre">akka-tutorials/akka-tutorial-first</span></tt> module. You can also browse it online <a class="reference external" href="https://github.com/akka/akka/tree/master/akka-tutorials/akka-tutorial-first">here</a>, with the actual source code <a class="reference external" href="https://github.com/akka/akka/blob/master/akka-tutorials/akka-tutorial-first/src/main/scala/Pi.scala">here</a>.</p>
+<p>To check out the code using Git invoke the following:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="n">$</span> <span class="n">git</span> <span class="n">clone</span> <span class="n">git</span><span class="o">://</span><span class="n">github</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">akka</span><span class="o">/</span><span class="n">akka</span><span class="o">.</span><span class="n">git</span>
+</pre></div>
+</div>
+<p>Then you can navigate down to the tutorial:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="n">$</span> <span class="n">cd</span> <span class="n">akka</span><span class="o">/</span><span class="n">akka</span><span class="o">-</span><span class="n">tutorials</span><span class="o">/</span><span class="n">akka</span><span class="o">-</span><span class="n">tutorial</span><span class="o">-</span><span class="n">first</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="prerequisites">
+<h2>Prerequisites</h2>
+<p>This tutorial assumes that you have Java 1.6 or later installed on you machine and <tt class="docutils literal"><span class="pre">java</span></tt> on your <tt class="docutils literal"><span class="pre">PATH</span></tt>. You also need to know how to run commands in a shell (ZSH, Bash, DOS etc.) and a decent text editor or IDE to type in the Scala code.</p>
+<p>You need to make sure that <tt class="docutils literal"><span class="pre">$JAVA_HOME</span></tt> environment variable is set to the root of the Java distribution. You also need to make sure that the <tt class="docutils literal"><span class="pre">$JAVA_HOME/bin</span></tt> is on your <tt class="docutils literal"><span class="pre">PATH</span></tt>:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="n">$</span> <span class="n">export</span> <span class="nc">JAVA_HOME</span><span class="o">=..</span><span class="n">root</span> <span class="n">of</span> <span class="n">java</span> <span class="n">distribution</span><span class="o">..</span>
+<span class="n">$</span> <span class="n">export</span> <span class="nc">PATH</span><span class="o">=</span><span class="nc">$PATH</span><span class="k">:</span><span class="kt">$JAVA_HOME/bin</span>
+</pre></div>
+</div>
+<p>You can test your installation by invoking <tt class="docutils literal"><span class="pre">java</span></tt>:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="n">$</span> <span class="n">java</span> <span class="o">-</span><span class="n">version</span>
+<span class="n">java</span> <span class="n">version</span> <span class="s">&quot;1.6.0_24&quot;</span>
+<span class="nc">Java</span><span class="o">(</span><span class="nc">TM</span><span class="o">)</span> <span class="nc">SE</span> <span class="nc">Runtime</span> <span class="nc">Environment</span> <span class="o">(</span><span class="n">build</span> <span class="mf">1.6</span><span class="o">.</span><span class="mi">0</span><span class="n">_24</span><span class="o">-</span><span class="n">b07</span><span class="o">-</span><span class="mi">334</span><span class="o">-</span><span class="mi">10</span><span class="n">M3326</span><span class="o">)</span>
+<span class="nc">Java</span> <span class="nc">HotSpot</span><span class="o">(</span><span class="nc">TM</span><span class="o">)</span> <span class="mi">64</span><span class="o">-</span><span class="nc">Bit</span> <span class="nc">Server</span> <span class="nc">VM</span> <span class="o">(</span><span class="n">build</span> <span class="mf">19.1</span><span class="o">-</span><span class="n">b02</span><span class="o">-</span><span class="mi">334</span><span class="o">,</span> <span class="n">mixed</span> <span class="n">mode</span><span class="o">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="downloading-and-installing-akka">
+<h2>Downloading and installing Akka</h2>
+<p>To build and run the tutorial sample from the command line, you have to download
+Akka. If you prefer to use SBT to build and run the sample then you can skip
+this section and jump to the next one.</p>
+<p>Let&#8217;s get the <tt class="docutils literal"><span class="pre">akka-actors-1.3.1.zip</span></tt> distribution of Akka from
+<a class="reference external" href="https://akka.io/downloads/">https://akka.io/downloads/</a> which includes everything we need for this
+tutorial. Once you have downloaded the distribution unzip it in the folder you
+would like to have Akka installed in. In my case I choose to install it in
+<tt class="docutils literal"><span class="pre">/Users/jboner/tools/</span></tt>, simply by unzipping it to this directory.</p>
+<p>You need to do one more thing in order to install Akka properly: set the
+<tt class="docutils literal"><span class="pre">AKKA_HOME</span></tt> environment variable to the root of the distribution. In my case
+I&#8217;m opening up a shell, navigating down to the distribution, and setting the
+<tt class="docutils literal"><span class="pre">AKKA_HOME</span></tt> variable:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="n">$</span> <span class="n">cd</span> <span class="o">/</span><span class="nc">Users</span><span class="o">/</span><span class="n">jboner</span><span class="o">/</span><span class="n">tools</span><span class="o">/</span><span class="n">akka</span><span class="o">-</span><span class="n">actors</span><span class="o">-</span><span class="mf">1.3</span><span class="o">.</span><span class="mi">1</span>
+<span class="n">$</span> <span class="n">export</span> <span class="nc">AKKA_HOME</span><span class="o">=</span><span class="n">`pwd`</span>
+<span class="n">$</span> <span class="n">echo</span> <span class="nc">$AKKA_HOME</span>
+<span class="o">/</span><span class="nc">Users</span><span class="o">/</span><span class="n">jboner</span><span class="o">/</span><span class="n">tools</span><span class="o">/</span><span class="n">akka</span><span class="o">-</span><span class="n">actors</span><span class="o">-</span><span class="mf">1.3</span><span class="o">.</span><span class="mi">1</span>
+</pre></div>
+</div>
+<p>The distribution looks like this:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="n">$</span> <span class="n">ls</span> <span class="o">-</span><span class="mi">1</span>
+<span class="n">config</span>
+<span class="n">doc</span>
+<span class="n">lib</span>
+<span class="n">src</span>
+</pre></div>
+</div>
+<ul class="simple">
+<li>In the <tt class="docutils literal"><span class="pre">config</span></tt> directory we have the Akka conf files.</li>
+<li>In the <tt class="docutils literal"><span class="pre">doc</span></tt> directory we have the documentation, API, doc JARs, and also
+the source files for the tutorials.</li>
+<li>In the <tt class="docutils literal"><span class="pre">lib</span></tt> directory we have the Scala and Akka JARs.</li>
+<li>In the <tt class="docutils literal"><span class="pre">src</span></tt> directory we have the source JARs for Akka.</li>
+</ul>
+<p>The only JAR we will need for this tutorial (apart from the
+<tt class="docutils literal"><span class="pre">scala-library.jar</span></tt> JAR) is the <tt class="docutils literal"><span class="pre">akka-actor-1.3.1.jar</span></tt> JAR in the <tt class="docutils literal"><span class="pre">lib/akka</span></tt>
+directory. This is a self-contained JAR with zero dependencies and contains
+everything we need to write a system using Actors.</p>
+<p>Akka is very modular and has many JARs for containing different features. The core distribution has seven modules:</p>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">akka-actor-1.3.1.jar</span></tt> &#8211; Standard Actors</li>
+<li><tt class="docutils literal"><span class="pre">akka-typed-actor-1.3.1.jar</span></tt> &#8211; Typed Actors</li>
+<li><tt class="docutils literal"><span class="pre">akka-remote-1.3.1.jar</span></tt> &#8211; Remote Actors</li>
+<li><tt class="docutils literal"><span class="pre">akka-stm-1.3.1.jar</span></tt> &#8211; STM (Software Transactional Memory), transactors and transactional datastructures</li>
+<li><tt class="docutils literal"><span class="pre">akka-http-1.3.1.jar</span></tt> &#8211; Akka Mist for continuation-based asynchronous HTTP and also Jersey integration</li>
+<li><tt class="docutils literal"><span class="pre">akka-slf4j-1.3.1.jar</span></tt> &#8211; SLF4J Event Handler Listener for logging with SLF4J</li>
+<li><tt class="docutils literal"><span class="pre">akka-testkit-1.3.1.jar</span></tt> &#8211; Toolkit for testing Actors</li>
+</ul>
+<p>We also have Akka Modules containing add-on modules outside the core of
+Akka. You can download the Akka Modules distribution from <a class="reference external" href="https://akka.io/downloads/">https://akka.io/downloads/</a>. It contains Akka
+core as well. We will not be needing any modules there today, but for your
+information the module JARs are these:</p>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">akka-kernel-1.3.1.jar</span></tt> &#8211; Akka microkernel for running a bare-bones mini application server (embeds Jetty etc.)</li>
+<li><tt class="docutils literal"><span class="pre">akka-amqp-1.3.1.jar</span></tt> &#8211; AMQP integration</li>
+<li><tt class="docutils literal"><span class="pre">akka-camel-1.3.1.jar</span></tt> &#8211; Apache Camel Actors integration (it&#8217;s the best way to have your Akka application communicate with the rest of the world)</li>
+<li><tt class="docutils literal"><span class="pre">akka-camel-typed-1.3.1.jar</span></tt> &#8211; Apache Camel Typed Actors integration</li>
+<li><tt class="docutils literal"><span class="pre">akka-scalaz-1.3.1.jar</span></tt> &#8211; Support for the Scalaz library</li>
+<li><tt class="docutils literal"><span class="pre">akka-spring-1.3.1.jar</span></tt> &#8211; Spring framework integration</li>
+<li><tt class="docutils literal"><span class="pre">akka-osgi-dependencies-bundle-1.3.1.jar</span></tt> &#8211; OSGi support</li>
+</ul>
+</div>
+<div class="section" id="downloading-and-installing-scala">
+<h2>Downloading and installing Scala</h2>
+<p>To build and run the tutorial sample from the command line, you have to install the Scala distribution. If you prefer to use SBT to build and run the sample then you can skip this section and jump to the next one.</p>
+<p>Scala can be downloaded from <a class="reference external" href="http://www.scala-lang.org/downloads">http://www.scala-lang.org/downloads</a>. Browse there and download the Scala 2.9.1 release. If you pick the <tt class="docutils literal"><span class="pre">tgz</span></tt> or <tt class="docutils literal"><span class="pre">zip</span></tt> distribution then just unzip it where you want it installed. If you pick the IzPack Installer then double click on it and follow the instructions.</p>
+<p>You also need to make sure that the <tt class="docutils literal"><span class="pre">scala-2.9.1/bin</span></tt> (if that is the directory where you installed Scala) is on your <tt class="docutils literal"><span class="pre">PATH</span></tt>:</p>
+<div class="highlight-scala"><pre>$ export PATH=$PATH:scala-2.9.1/bin</pre>
+</div>
+<p>You can test your installation by invoking scala:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="n">$</span> <span class="n">scala</span> <span class="o">-</span><span class="n">version</span>
+<span class="nc">Scala</span> <span class="n">code</span> <span class="n">runner</span> <span class="n">version</span> <span class="mf">2.9</span><span class="o">.</span><span class="mf">1.f</span><span class="n">inal</span> <span class="o">--</span> <span class="nc">Copyright</span> <span class="mi">2002</span><span class="o">-</span><span class="mi">2011</span><span class="o">,</span> <span class="nc">LAMP</span><span class="o">/</span><span class="nc">EPFL</span>
+</pre></div>
+</div>
+<p>Looks like we are all good. Finally let&#8217;s create a source file <tt class="docutils literal"><span class="pre">Pi.scala</span></tt> for the tutorial and put it in the root of the Akka distribution in the <tt class="docutils literal"><span class="pre">tutorial</span></tt> directory (you have to create it first).</p>
+<p>Some tools require you to set the <tt class="docutils literal"><span class="pre">SCALA_HOME</span></tt> environment variable to the root of the Scala distribution, however Akka does not require that.</p>
+</div>
+<div class="section" id="downloading-and-installing-sbt">
+<span id="getting-started-first-scala-download-sbt"></span><h2>Downloading and installing SBT</h2>
+<p>SBT, short for &#8216;Simple Build Tool&#8217; is an excellent build system written in Scala. It uses Scala to write the build scripts which gives you a lot of power. It has a plugin architecture with many plugins available, something that we will take advantage of soon. SBT is the preferred way of building software in Scala and is probably the easiest way of getting through this tutorial. If you want to use SBT for this tutorial then follow the following instructions, if not you can skip this section and the next.</p>
+<p>To install SBT and create a project for this tutorial it is easiest to follow the instructions on <a class="reference external" href="https://github.com/harrah/xsbt/wiki/Setup">https://github.com/harrah/xsbt/wiki/Setup</a>.</p>
+<p>Now we need to create our first Akka project. You could add the dependencies manually to the build script, but the easiest way is to use Akka&#8217;s SBT Plugin, covered in the next section.</p>
+</div>
+<div class="section" id="creating-an-akka-sbt-project">
+<h2>Creating an Akka SBT project</h2>
+<p>If you have not already done so, now is the time to create an SBT project for our tutorial. You do that by adding the following content to <tt class="docutils literal"><span class="pre">build.sbt</span></tt> file in the directory you want to create your project in:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="n">name</span> <span class="o">:=</span> <span class="s">&quot;My Project&quot;</span>
+
+<span class="n">version</span> <span class="o">:=</span> <span class="s">&quot;1.0&quot;</span>
+
+<span class="n">scalaVersion</span> <span class="o">:=</span> <span class="s">&quot;2.9.1&quot;</span>
+
+<span class="n">resolvers</span> <span class="o">+=</span> <span class="s">&quot;Typesafe Repository&quot;</span> <span class="n">at</span> <span class="s">&quot;http://repo.typesafe.com/typesafe/releases/&quot;</span>
+
+<span class="n">libraryDependencies</span> <span class="o">+=</span> <span class="s">&quot;se.scalablesolutions.akka&quot;</span> <span class="o">%</span> <span class="s">&quot;akka-actor&quot;</span> <span class="o">%</span> <span class="s">&quot;1.3.1&quot;</span>
+</pre></div>
+</div>
+<p>Create a directory <tt class="docutils literal"><span class="pre">src/main/scala</span></tt> in which you will store the Scala source files.</p>
+<p>Not needed in this tutorial, but if you would like to use additional Akka modules beyond <tt class="docutils literal"><span class="pre">akka-actor</span></tt>, you can add these as <tt class="docutils literal"><span class="pre">libraryDependencies</span></tt> in <tt class="docutils literal"><span class="pre">build.sbt</span></tt>. Note that there must be a blank line between each. Here is an example adding <tt class="docutils literal"><span class="pre">akka-remote</span></tt> and <tt class="docutils literal"><span class="pre">akka-stm</span></tt>:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="n">libraryDependencies</span> <span class="o">+=</span> <span class="s">&quot;se.scalablesolutions.akka&quot;</span> <span class="o">%</span> <span class="s">&quot;akka-actor&quot;</span> <span class="o">%</span> <span class="s">&quot;1.3.1&quot;</span>
+
+<span class="n">libraryDependencies</span> <span class="o">+=</span> <span class="s">&quot;se.scalablesolutions.akka&quot;</span> <span class="o">%</span> <span class="s">&quot;akka-remote&quot;</span> <span class="o">%</span> <span class="s">&quot;1.3.1&quot;</span>
+
+<span class="n">libraryDependencies</span> <span class="o">+=</span> <span class="s">&quot;se.scalablesolutions.akka&quot;</span> <span class="o">%</span> <span class="s">&quot;akka-stm&quot;</span> <span class="o">%</span> <span class="s">&quot;1.3.1&quot;</span>
+</pre></div>
+</div>
+<p>So, now we are all set.</p>
+<p>SBT itself needs a whole bunch of dependencies but our project will only need one; <tt class="docutils literal"><span class="pre">akka-actor-1.3.1.jar</span></tt>. SBT will download that as well.</p>
+</div>
+<div class="section" id="start-writing-the-code">
+<h2>Start writing the code</h2>
+<p>Now it&#8217;s about time to start hacking.</p>
+<p>We start by creating a <tt class="docutils literal"><span class="pre">Pi.scala</span></tt> file and adding these import statements at the top of the file:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">package</span> <span class="nn">akka.tutorial.first.scala</span>
+
+<span class="k">import</span> <span class="nn">akka.actor.</span><span class="o">{</span><span class="nc">Actor</span><span class="o">,</span> <span class="nc">PoisonPill</span><span class="o">}</span>
+<span class="k">import</span> <span class="nn">Actor._</span>
+<span class="k">import</span> <span class="nn">akka.routing.</span><span class="o">{</span><span class="nc">Routing</span><span class="o">,</span> <span class="nc">CyclicIterator</span><span class="o">}</span>
+<span class="k">import</span> <span class="nn">Routing._</span>
+<span class="k">import</span> <span class="nn">akka.dispatch.Dispatchers</span>
+
+<span class="k">import</span> <span class="nn">java.util.concurrent.CountDownLatch</span>
+</pre></div>
+</div>
+<p>If you are using SBT in this tutorial then create the file in the <tt class="docutils literal"><span class="pre">src/main/scala</span></tt> directory.</p>
+<p>If you are using the command line tools then create the file wherever you want. I will create it in a directory called <tt class="docutils literal"><span class="pre">tutorial</span></tt> at the root of the Akka distribution, e.g. in <tt class="docutils literal"><span class="pre">$AKKA_HOME/tutorial/Pi.scala</span></tt>.</p>
+</div>
+<div class="section" id="creating-the-messages">
+<h2>Creating the messages</h2>
+<p>The design we are aiming for is to have one <tt class="docutils literal"><span class="pre">Master</span></tt> actor initiating the computation, creating a set of <tt class="docutils literal"><span class="pre">Worker</span></tt> actors. Then it splits up the work into discrete chunks, and sends these chunks to the different workers in a round-robin fashion. The master waits until all the workers have completed their work and sent back results for aggregation. When computation is completed the master prints out the result, shuts down all workers and then itself.</p>
+<p>With this in mind, let&#8217;s now create the messages that we want to have flowing in the system. We need three different messages:</p>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">Calculate</span></tt> &#8211; sent to the <tt class="docutils literal"><span class="pre">Master</span></tt> actor to start the calculation</li>
+<li><tt class="docutils literal"><span class="pre">Work</span></tt> &#8211; sent from the <tt class="docutils literal"><span class="pre">Master</span></tt> actor to the <tt class="docutils literal"><span class="pre">Worker</span></tt> actors containing the work assignment</li>
+<li><tt class="docutils literal"><span class="pre">Result</span></tt> &#8211; sent from the <tt class="docutils literal"><span class="pre">Worker</span></tt> actors to the <tt class="docutils literal"><span class="pre">Master</span></tt> actor containing the result from the worker&#8217;s calculation</li>
+</ul>
+<p>Messages sent to actors should always be immutable to avoid sharing mutable state. In scala we have &#8216;case classes&#8217; which make excellent messages. So let&#8217;s start by creating three messages as case classes.  We also create a common base trait for our messages (that we define as being <tt class="docutils literal"><span class="pre">sealed</span></tt> in order to prevent creating messages outside our control):</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">sealed</span> <span class="k">trait</span> <span class="nc">PiMessage</span>
+
+<span class="k">case</span> <span class="k">object</span> <span class="nc">Calculate</span> <span class="k">extends</span> <span class="nc">PiMessage</span>
+
+<span class="k">case</span> <span class="k">class</span> <span class="nc">Work</span><span class="o">(</span><span class="n">start</span><span class="k">:</span> <span class="kt">Int</span><span class="o">,</span> <span class="n">nrOfElements</span><span class="k">:</span> <span class="kt">Int</span><span class="o">)</span> <span class="k">extends</span> <span class="nc">PiMessage</span>
+
+<span class="k">case</span> <span class="k">class</span> <span class="nc">Result</span><span class="o">(</span><span class="n">value</span><span class="k">:</span> <span class="kt">Double</span><span class="o">)</span> <span class="k">extends</span> <span class="nc">PiMessage</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="creating-the-worker">
+<h2>Creating the worker</h2>
+<p>Now we can create the worker actor.  This is done by mixing in the <tt class="docutils literal"><span class="pre">Actor</span></tt> trait and defining the <tt class="docutils literal"><span class="pre">receive</span></tt> method. The <tt class="docutils literal"><span class="pre">receive</span></tt> method defines our message handler. We expect it to be able to handle the <tt class="docutils literal"><span class="pre">Work</span></tt> message so we need to add a handler for this message:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">class</span> <span class="nc">Worker</span> <span class="k">extends</span> <span class="nc">Actor</span> <span class="o">{</span>
+  <span class="k">def</span> <span class="n">receive</span> <span class="k">=</span> <span class="o">{</span>
+    <span class="k">case</span> <span class="nc">Work</span><span class="o">(</span><span class="n">start</span><span class="o">,</span> <span class="n">nrOfElements</span><span class="o">)</span> <span class="k">=&gt;</span>
+      <span class="n">self</span> <span class="n">reply</span> <span class="nc">Result</span><span class="o">(</span><span class="n">calculatePiFor</span><span class="o">(</span><span class="n">start</span><span class="o">,</span> <span class="n">nrOfElements</span><span class="o">))</span> <span class="c1">// perform the work</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<p>As you can see we have now created an <tt class="docutils literal"><span class="pre">Actor</span></tt> with a <tt class="docutils literal"><span class="pre">receive</span></tt> method as a handler for the <tt class="docutils literal"><span class="pre">Work</span></tt> message. In this handler we invoke the <tt class="docutils literal"><span class="pre">calculatePiFor(..)</span></tt> method, wrap the result in a <tt class="docutils literal"><span class="pre">Result</span></tt> message and send it back to the original sender using <tt class="docutils literal"><span class="pre">self.reply</span></tt>. In Akka the sender reference is implicitly passed along with the message so that the receiver can always reply or store away the sender reference for future use.</p>
+<p>The only thing missing in our <tt class="docutils literal"><span class="pre">Worker</span></tt> actor is the implementation on the <tt class="docutils literal"><span class="pre">calculatePiFor(..)</span></tt> method. While there are many ways we can implement this algorithm in Scala, in this introductory tutorial we have chosen an imperative style using a for comprehension and an accumulator:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">def</span> <span class="n">calculatePiFor</span><span class="o">(</span><span class="n">start</span><span class="k">:</span> <span class="kt">Int</span><span class="o">,</span> <span class="n">nrOfElements</span><span class="k">:</span> <span class="kt">Int</span><span class="o">)</span><span class="k">:</span> <span class="kt">Double</span> <span class="o">=</span> <span class="o">{</span>
+  <span class="k">var</span> <span class="n">acc</span> <span class="k">=</span> <span class="mf">0.0</span>
+  <span class="k">for</span> <span class="o">(</span><span class="n">i</span> <span class="k">&lt;-</span> <span class="n">start</span> <span class="n">until</span> <span class="o">(</span><span class="n">start</span> <span class="o">+</span> <span class="n">nrOfElements</span><span class="o">))</span>
+    <span class="n">acc</span> <span class="o">+=</span> <span class="mf">4.0</span> <span class="o">*</span> <span class="o">(</span><span class="mi">1</span> <span class="o">-</span> <span class="o">(</span><span class="n">i</span> <span class="o">%</span> <span class="mi">2</span><span class="o">)</span> <span class="o">*</span> <span class="mi">2</span><span class="o">)</span> <span class="o">/</span> <span class="o">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="o">)</span>
+  <span class="n">acc</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="creating-the-master">
+<h2>Creating the master</h2>
+<p>The master actor is a little bit more involved. In its constructor we need to create the workers (the <tt class="docutils literal"><span class="pre">Worker</span></tt> actors) and start them. We will also wrap them in a load-balancing router to make it easier to spread out the work evenly between the workers. Let&#8217;s do that first:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="c1">// create the workers</span>
+<span class="k">val</span> <span class="n">workers</span> <span class="k">=</span> <span class="nc">Vector</span><span class="o">.</span><span class="n">fill</span><span class="o">(</span><span class="n">nrOfWorkers</span><span class="o">)(</span><span class="n">actorOf</span><span class="o">[</span><span class="kt">Worker</span><span class="o">].</span><span class="n">start</span><span class="o">())</span>
+
+<span class="c1">// wrap them with a load-balancing router</span>
+<span class="k">val</span> <span class="n">router</span> <span class="k">=</span> <span class="nc">Routing</span><span class="o">.</span><span class="n">loadBalancerActor</span><span class="o">(</span><span class="nc">CyclicIterator</span><span class="o">(</span><span class="n">workers</span><span class="o">)).</span><span class="n">start</span><span class="o">()</span>
+</pre></div>
+</div>
+<p>As you can see we are using the <tt class="docutils literal"><span class="pre">actorOf</span></tt> factory method to create actors, this method returns as an <tt class="docutils literal"><span class="pre">ActorRef</span></tt> which is a reference to our newly created actor.  This method is available in the <tt class="docutils literal"><span class="pre">Actor</span></tt> object but is usually imported:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">import</span> <span class="nn">akka.actor.Actor.actorOf</span>
+</pre></div>
+</div>
+<p>There are two versions of <tt class="docutils literal"><span class="pre">actorOf</span></tt>; one of them taking a actor type and the other one an instance of an actor. The former one (<tt class="docutils literal"><span class="pre">actorOf[MyActor]</span></tt>) is used when the actor class has a no-argument constructor while the second one (<tt class="docutils literal"><span class="pre">actorOf(new</span> <span class="pre">MyActor(..))</span></tt>) is used when the actor class has a constructor that takes arguments. This is the only way to create an instance of an Actor and the <tt class="docutils literal"><span class="pre">actorOf</span></tt> method ensures this. The latter version is using call-by-name and lazily creates the actor within the scope of the <tt class="docutils literal"><span class="pre">actorOf</span></tt> method. The <tt class="docutils literal"><span class="pre">actorOf</span></tt> method instantiates the actor and returns, not an instance to the actor, but an instance to an <tt class="docutils literal"><span class="pre">ActorRef</span></tt>. This reference is the handle through which you communicate with the actor. It is immutable, serializable and location-aware meaning that it &#8220;remembers&#8221; its original actor even if it is sent to other nodes across the network and can be seen as the equivalent to the Erlang actor&#8217;s PID.</p>
+<p>The actor&#8217;s life-cycle is:</p>
+<ul class="simple">
+<li>Created &#8211; <tt class="docutils literal"><span class="pre">Actor.actorOf[MyActor]</span></tt> &#8211; can <strong>not</strong> receive messages</li>
+<li>Started &#8211; <tt class="docutils literal"><span class="pre">actorRef.start()</span></tt> &#8211; can receive messages</li>
+<li>Stopped &#8211; <tt class="docutils literal"><span class="pre">actorRef.stop()</span></tt> &#8211; can <strong>not</strong> receive messages</li>
+</ul>
+<p>Once the actor has been stopped it is dead and can not be started again.</p>
+<p>Now we have a router that is representing all our workers in a single abstraction. If you paid attention to the code above, you saw that we were using the <tt class="docutils literal"><span class="pre">nrOfWorkers</span></tt> variable. This variable and others we have to pass to the <tt class="docutils literal"><span class="pre">Master</span></tt> actor in its constructor. So now let&#8217;s create the master actor. We have to pass in three integer variables:</p>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">nrOfWorkers</span></tt> &#8211; defining how many workers we should start up</li>
+<li><tt class="docutils literal"><span class="pre">nrOfMessages</span></tt> &#8211; defining how many number chunks to send out to the workers</li>
+<li><tt class="docutils literal"><span class="pre">nrOfElements</span></tt> &#8211; defining how big the number chunks sent to each worker should be</li>
+</ul>
+<p>Here is the master actor:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">class</span> <span class="nc">Master</span><span class="o">(</span>
+  <span class="n">nrOfWorkers</span><span class="k">:</span> <span class="kt">Int</span><span class="o">,</span> <span class="n">nrOfMessages</span><span class="k">:</span> <span class="kt">Int</span><span class="o">,</span> <span class="n">nrOfElements</span><span class="k">:</span> <span class="kt">Int</span><span class="o">,</span> <span class="n">latch</span><span class="k">:</span> <span class="kt">CountDownLatch</span><span class="o">)</span>
+  <span class="k">extends</span> <span class="nc">Actor</span> <span class="o">{</span>
+
+  <span class="k">var</span> <span class="n">pi</span><span class="k">:</span> <span class="kt">Double</span> <span class="o">=</span> <span class="k">_</span>
+  <span class="k">var</span> <span class="n">nrOfResults</span><span class="k">:</span> <span class="kt">Int</span> <span class="o">=</span> <span class="k">_</span>
+  <span class="k">var</span> <span class="n">start</span><span class="k">:</span> <span class="kt">Long</span> <span class="o">=</span> <span class="k">_</span>
+
+  <span class="c1">// create the workers</span>
+  <span class="k">val</span> <span class="n">workers</span> <span class="k">=</span> <span class="nc">Vector</span><span class="o">.</span><span class="n">fill</span><span class="o">(</span><span class="n">nrOfWorkers</span><span class="o">)(</span><span class="n">actorOf</span><span class="o">[</span><span class="kt">Worker</span><span class="o">].</span><span class="n">start</span><span class="o">())</span>
+
+  <span class="c1">// wrap them with a load-balancing router</span>
+  <span class="k">val</span> <span class="n">router</span> <span class="k">=</span> <span class="nc">Routing</span><span class="o">.</span><span class="n">loadBalancerActor</span><span class="o">(</span><span class="nc">CyclicIterator</span><span class="o">(</span><span class="n">workers</span><span class="o">)).</span><span class="n">start</span><span class="o">()</span>
+
+  <span class="k">def</span> <span class="n">receive</span> <span class="k">=</span> <span class="o">{</span> <span class="o">...</span> <span class="o">}</span>
+
+  <span class="k">override</span> <span class="k">def</span> <span class="n">preStart</span><span class="o">()</span> <span class="o">{</span>
+    <span class="n">start</span> <span class="k">=</span> <span class="nc">System</span><span class="o">.</span><span class="n">currentTimeMillis</span>
+  <span class="o">}</span>
+
+  <span class="k">override</span> <span class="k">def</span> <span class="n">postStop</span><span class="o">()</span> <span class="o">{</span>
+    <span class="c1">// tell the world that the calculation is complete</span>
+    <span class="n">println</span><span class="o">(</span>
+      <span class="s">&quot;\n\tPi estimate: \t\t%s\n\tCalculation time: \t%s millis&quot;</span>
+      <span class="o">.</span><span class="n">format</span><span class="o">(</span><span class="n">pi</span><span class="o">,</span> <span class="o">(</span><span class="nc">System</span><span class="o">.</span><span class="n">currentTimeMillis</span> <span class="o">-</span> <span class="n">start</span><span class="o">)))</span>
+    <span class="n">latch</span><span class="o">.</span><span class="n">countDown</span><span class="o">()</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<p>A couple of things are worth explaining further.</p>
+<p>First, we are passing in a <tt class="docutils literal"><span class="pre">java.util.concurrent.CountDownLatch</span></tt> to the <tt class="docutils literal"><span class="pre">Master</span></tt> actor. This latch is only used for plumbing (in this specific tutorial), to have a simple way of letting the outside world knowing when the master can deliver the result and shut down. In more idiomatic Akka code, as we will see in part two of this tutorial series, we would not use a latch but other abstractions and functions like <tt class="docutils literal"><span class="pre">Channel</span></tt>, <tt class="docutils literal"><span class="pre">Future</span></tt> and <tt class="docutils literal"><span class="pre">?</span></tt> to achieve the same thing in a non-blocking way. But for simplicity let&#8217;s stick to a <tt class="docutils literal"><span class="pre">CountDownLatch</span></tt> for now.</p>
+<p>Second, we are adding a couple of life-cycle callback methods; <tt class="docutils literal"><span class="pre">preStart</span></tt> and <tt class="docutils literal"><span class="pre">postStop</span></tt>. In the <tt class="docutils literal"><span class="pre">preStart</span></tt> callback we are recording the time when the actor is started and in the <tt class="docutils literal"><span class="pre">postStop</span></tt> callback we are printing out the result (the approximation of Pi) and the time it took to calculate it. In this call we also invoke <tt class="docutils literal"><span class="pre">latch.countDown</span></tt> to tell the outside world that we are done.</p>
+<p>But we are not done yet. We are missing the message handler for the <tt class="docutils literal"><span class="pre">Master</span></tt> actor. This message handler needs to be able to react to two different messages:</p>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">Calculate</span></tt> &#8211; which should start the calculation</li>
+<li><tt class="docutils literal"><span class="pre">Result</span></tt> &#8211; which should aggregate the different results</li>
+</ul>
+<p>The <tt class="docutils literal"><span class="pre">Calculate</span></tt> handler is sending out work to all the <tt class="docutils literal"><span class="pre">Worker</span></tt> actors and after doing that it also sends a <tt class="docutils literal"><span class="pre">Broadcast(PoisonPill)</span></tt> message to the router, which will send out the <tt class="docutils literal"><span class="pre">PoisonPill</span></tt> message to all the actors it is representing (in our case all the <tt class="docutils literal"><span class="pre">Worker</span></tt> actors). <tt class="docutils literal"><span class="pre">PoisonPill</span></tt> is a special kind of message that tells the receiver to shut itself down using the normal shutdown method; <tt class="docutils literal"><span class="pre">self.stop</span></tt>. We also send a <tt class="docutils literal"><span class="pre">PoisonPill</span></tt> to the router itself (since it&#8217;s also an actor that we want to shut down).</p>
+<p>The <tt class="docutils literal"><span class="pre">Result</span></tt> handler is simpler, here we get the value from the <tt class="docutils literal"><span class="pre">Result</span></tt> message and aggregate it to our <tt class="docutils literal"><span class="pre">pi</span></tt> member variable. We also keep track of how many results we have received back, and if that matches the number of tasks sent out, the <tt class="docutils literal"><span class="pre">Master</span></tt> actor considers itself done and shuts down.</p>
+<p>Let&#8217;s capture this in code:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="c1">// message handler</span>
+<span class="k">def</span> <span class="n">receive</span> <span class="k">=</span> <span class="o">{</span>
+  <span class="k">case</span> <span class="nc">Calculate</span> <span class="k">=&gt;</span>
+    <span class="c1">// schedule work</span>
+    <span class="k">for</span> <span class="o">(</span><span class="n">i</span> <span class="k">&lt;-</span> <span class="mi">0</span> <span class="n">until</span> <span class="n">nrOfMessages</span><span class="o">)</span> <span class="n">router</span> <span class="o">!</span> <span class="nc">Work</span><span class="o">(</span><span class="n">i</span> <span class="o">*</span> <span class="n">nrOfElements</span><span class="o">,</span> <span class="n">nrOfElements</span><span class="o">)</span>
+
+    <span class="c1">// send a PoisonPill to all workers telling them to shut down themselves</span>
+    <span class="n">router</span> <span class="o">!</span> <span class="nc">Broadcast</span><span class="o">(</span><span class="nc">PoisonPill</span><span class="o">)</span>
+
+    <span class="c1">// send a PoisonPill to the router, telling him to shut himself down</span>
+    <span class="n">router</span> <span class="o">!</span> <span class="nc">PoisonPill</span>
+
+  <span class="k">case</span> <span class="nc">Result</span><span class="o">(</span><span class="n">value</span><span class="o">)</span> <span class="k">=&gt;</span>
+    <span class="c1">// handle result from the worker</span>
+    <span class="n">pi</span> <span class="o">+=</span> <span class="n">value</span>
+    <span class="n">nrOfResults</span> <span class="o">+=</span> <span class="mi">1</span>
+    <span class="k">if</span> <span class="o">(</span><span class="n">nrOfResults</span> <span class="o">==</span> <span class="n">nrOfMessages</span><span class="o">)</span> <span class="n">self</span><span class="o">.</span><span class="n">stop</span><span class="o">()</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="bootstrap-the-calculation">
+<h2>Bootstrap the calculation</h2>
+<p>Now the only thing that is left to implement is the runner that should bootstrap and run the calculation for us. We do that by creating an object that we call <tt class="docutils literal"><span class="pre">Pi</span></tt>, here we can extend the <tt class="docutils literal"><span class="pre">App</span></tt> trait in Scala, which means that we will be able to run this as an application directly from the command line.</p>
+<p>The <tt class="docutils literal"><span class="pre">Pi</span></tt> object is a perfect container module for our actors and messages, so let&#8217;s put them all there. We also create a method <tt class="docutils literal"><span class="pre">calculate</span></tt> in which we start up the <tt class="docutils literal"><span class="pre">Master</span></tt> actor and wait for it to finish:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">object</span> <span class="nc">Pi</span> <span class="k">extends</span> <span class="nc">App</span> <span class="o">{</span>
+
+  <span class="n">calculate</span><span class="o">(</span><span class="n">nrOfWorkers</span> <span class="k">=</span> <span class="mi">4</span><span class="o">,</span> <span class="n">nrOfElements</span> <span class="k">=</span> <span class="mi">10000</span><span class="o">,</span> <span class="n">nrOfMessages</span> <span class="k">=</span> <span class="mi">10000</span><span class="o">)</span>
+
+  <span class="o">...</span> <span class="c1">// actors and messages</span>
+
+  <span class="k">def</span> <span class="n">calculate</span><span class="o">(</span><span class="n">nrOfWorkers</span><span class="k">:</span> <span class="kt">Int</span><span class="o">,</span> <span class="n">nrOfElements</span><span class="k">:</span> <span class="kt">Int</span><span class="o">,</span> <span class="n">nrOfMessages</span><span class="k">:</span> <span class="kt">Int</span><span class="o">)</span> <span class="o">{</span>
+
+    <span class="c1">// this latch is only plumbing to know when the calculation is completed</span>
+    <span class="k">val</span> <span class="n">latch</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">CountDownLatch</span><span class="o">(</span><span class="mi">1</span><span class="o">)</span>
+
+    <span class="c1">// create the master</span>
+    <span class="k">val</span> <span class="n">master</span> <span class="k">=</span> <span class="n">actorOf</span><span class="o">(</span>
+      <span class="k">new</span> <span class="nc">Master</span><span class="o">(</span><span class="n">nrOfWorkers</span><span class="o">,</span> <span class="n">nrOfMessages</span><span class="o">,</span> <span class="n">nrOfElements</span><span class="o">,</span> <span class="n">latch</span><span class="o">)).</span><span class="n">start</span><span class="o">()</span>
+
+    <span class="c1">// start the calculation</span>
+    <span class="n">master</span> <span class="o">!</span> <span class="nc">Calculate</span>
+
+    <span class="c1">// wait for master to shut down</span>
+    <span class="n">latch</span><span class="o">.</span><span class="n">await</span><span class="o">()</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<p>That&#8217;s it. Now we are done.</p>
+<p>But before we package it up and run it, let&#8217;s take a look at the full code now, with package declaration, imports and all:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">package</span> <span class="nn">akka.tutorial.first.scala</span>
+
+<span class="k">import</span> <span class="nn">akka.actor.</span><span class="o">{</span><span class="nc">Actor</span><span class="o">,</span> <span class="nc">PoisonPill</span><span class="o">}</span>
+<span class="k">import</span> <span class="nn">Actor._</span>
+<span class="k">import</span> <span class="nn">akka.routing.</span><span class="o">{</span><span class="nc">Routing</span><span class="o">,</span> <span class="nc">CyclicIterator</span><span class="o">}</span>
+<span class="k">import</span> <span class="nn">Routing._</span>
+
+<span class="k">import</span> <span class="nn">java.util.concurrent.CountDownLatch</span>
+
+<span class="k">object</span> <span class="nc">Pi</span> <span class="k">extends</span> <span class="nc">App</span> <span class="o">{</span>
+
+  <span class="n">calculate</span><span class="o">(</span><span class="n">nrOfWorkers</span> <span class="k">=</span> <span class="mi">4</span><span class="o">,</span> <span class="n">nrOfElements</span> <span class="k">=</span> <span class="mi">10000</span><span class="o">,</span> <span class="n">nrOfMessages</span> <span class="k">=</span> <span class="mi">10000</span><span class="o">)</span>
+
+  <span class="c1">// ====================</span>
+  <span class="c1">// ===== Messages =====</span>
+  <span class="c1">// ====================</span>
+  <span class="k">sealed</span> <span class="k">trait</span> <span class="nc">PiMessage</span>
+  <span class="k">case</span> <span class="k">object</span> <span class="nc">Calculate</span> <span class="k">extends</span> <span class="nc">PiMessage</span>
+  <span class="k">case</span> <span class="k">class</span> <span class="nc">Work</span><span class="o">(</span><span class="n">start</span><span class="k">:</span> <span class="kt">Int</span><span class="o">,</span> <span class="n">nrOfElements</span><span class="k">:</span> <span class="kt">Int</span><span class="o">)</span> <span class="k">extends</span> <span class="nc">PiMessage</span>
+  <span class="k">case</span> <span class="k">class</span> <span class="nc">Result</span><span class="o">(</span><span class="n">value</span><span class="k">:</span> <span class="kt">Double</span><span class="o">)</span> <span class="k">extends</span> <span class="nc">PiMessage</span>
+
+  <span class="c1">// ==================</span>
+  <span class="c1">// ===== Worker =====</span>
+  <span class="c1">// ==================</span>
+  <span class="k">class</span> <span class="nc">Worker</span> <span class="k">extends</span> <span class="nc">Actor</span> <span class="o">{</span>
+
+    <span class="c1">// define the work</span>
+    <span class="k">def</span> <span class="n">calculatePiFor</span><span class="o">(</span><span class="n">start</span><span class="k">:</span> <span class="kt">Int</span><span class="o">,</span> <span class="n">nrOfElements</span><span class="k">:</span> <span class="kt">Int</span><span class="o">)</span><span class="k">:</span> <span class="kt">Double</span> <span class="o">=</span> <span class="o">{</span>
+      <span class="k">var</span> <span class="n">acc</span> <span class="k">=</span> <span class="mf">0.0</span>
+      <span class="k">for</span> <span class="o">(</span><span class="n">i</span> <span class="k">&lt;-</span> <span class="n">start</span> <span class="n">until</span> <span class="o">(</span><span class="n">start</span> <span class="o">+</span> <span class="n">nrOfElements</span><span class="o">))</span>
+        <span class="n">acc</span> <span class="o">+=</span> <span class="mf">4.0</span> <span class="o">*</span> <span class="o">(</span><span class="mi">1</span> <span class="o">-</span> <span class="o">(</span><span class="n">i</span> <span class="o">%</span> <span class="mi">2</span><span class="o">)</span> <span class="o">*</span> <span class="mi">2</span><span class="o">)</span> <span class="o">/</span> <span class="o">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="o">)</span>
+      <span class="n">acc</span>
+    <span class="o">}</span>
+
+    <span class="k">def</span> <span class="n">receive</span> <span class="k">=</span> <span class="o">{</span>
+      <span class="k">case</span> <span class="nc">Work</span><span class="o">(</span><span class="n">start</span><span class="o">,</span> <span class="n">nrOfElements</span><span class="o">)</span> <span class="k">=&gt;</span>
+        <span class="n">self</span> <span class="n">reply</span> <span class="nc">Result</span><span class="o">(</span><span class="n">calculatePiFor</span><span class="o">(</span><span class="n">start</span><span class="o">,</span> <span class="n">nrOfElements</span><span class="o">))</span> <span class="c1">// perform the work</span>
+    <span class="o">}</span>
+  <span class="o">}</span>
+
+  <span class="c1">// ==================</span>
+  <span class="c1">// ===== Master =====</span>
+  <span class="c1">// ==================</span>
+  <span class="k">class</span> <span class="nc">Master</span><span class="o">(</span>
+    <span class="n">nrOfWorkers</span><span class="k">:</span> <span class="kt">Int</span><span class="o">,</span> <span class="n">nrOfMessages</span><span class="k">:</span> <span class="kt">Int</span><span class="o">,</span> <span class="n">nrOfElements</span><span class="k">:</span> <span class="kt">Int</span><span class="o">,</span> <span class="n">latch</span><span class="k">:</span> <span class="kt">CountDownLatch</span><span class="o">)</span>
+    <span class="k">extends</span> <span class="nc">Actor</span> <span class="o">{</span>
+
+    <span class="k">var</span> <span class="n">pi</span><span class="k">:</span> <span class="kt">Double</span> <span class="o">=</span> <span class="k">_</span>
+    <span class="k">var</span> <span class="n">nrOfResults</span><span class="k">:</span> <span class="kt">Int</span> <span class="o">=</span> <span class="k">_</span>
+    <span class="k">var</span> <span class="n">start</span><span class="k">:</span> <span class="kt">Long</span> <span class="o">=</span> <span class="k">_</span>
+
+    <span class="c1">// create the workers</span>
+    <span class="k">val</span> <span class="n">workers</span> <span class="k">=</span> <span class="nc">Vector</span><span class="o">.</span><span class="n">fill</span><span class="o">(</span><span class="n">nrOfWorkers</span><span class="o">)(</span><span class="n">actorOf</span><span class="o">[</span><span class="kt">Worker</span><span class="o">].</span><span class="n">start</span><span class="o">())</span>
+
+    <span class="c1">// wrap them with a load-balancing router</span>
+    <span class="k">val</span> <span class="n">router</span> <span class="k">=</span> <span class="nc">Routing</span><span class="o">.</span><span class="n">loadBalancerActor</span><span class="o">(</span><span class="nc">CyclicIterator</span><span class="o">(</span><span class="n">workers</span><span class="o">)).</span><span class="n">start</span><span class="o">()</span>
+
+    <span class="c1">// message handler</span>
+    <span class="k">def</span> <span class="n">receive</span> <span class="k">=</span> <span class="o">{</span>
+      <span class="k">case</span> <span class="nc">Calculate</span> <span class="k">=&gt;</span>
+        <span class="c1">// schedule work</span>
+        <span class="c1">//for (start &lt;- 0 until nrOfMessages) router ! Work(start, nrOfElements)</span>
+        <span class="k">for</span> <span class="o">(</span><span class="n">i</span> <span class="k">&lt;-</span> <span class="mi">0</span> <span class="n">until</span> <span class="n">nrOfMessages</span><span class="o">)</span> <span class="n">router</span> <span class="o">!</span> <span class="nc">Work</span><span class="o">(</span><span class="n">i</span> <span class="o">*</span> <span class="n">nrOfElements</span><span class="o">,</span> <span class="n">nrOfElements</span><span class="o">)</span>
+
+        <span class="c1">// send a PoisonPill to all workers telling them to shut down themselves</span>
+        <span class="n">router</span> <span class="o">!</span> <span class="nc">Broadcast</span><span class="o">(</span><span class="nc">PoisonPill</span><span class="o">)</span>
+
+        <span class="c1">// send a PoisonPill to the router, telling him to shut himself down</span>
+        <span class="n">router</span> <span class="o">!</span> <span class="nc">PoisonPill</span>
+
+      <span class="k">case</span> <span class="nc">Result</span><span class="o">(</span><span class="n">value</span><span class="o">)</span> <span class="k">=&gt;</span>
+        <span class="c1">// handle result from the worker</span>
+        <span class="n">pi</span> <span class="o">+=</span> <span class="n">value</span>
+        <span class="n">nrOfResults</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">if</span> <span class="o">(</span><span class="n">nrOfResults</span> <span class="o">==</span> <span class="n">nrOfMessages</span><span class="o">)</span> <span class="n">self</span><span class="o">.</span><span class="n">stop</span><span class="o">()</span>
+    <span class="o">}</span>
+
+    <span class="k">override</span> <span class="k">def</span> <span class="n">preStart</span><span class="o">()</span> <span class="o">{</span>
+      <span class="n">start</span> <span class="k">=</span> <span class="nc">System</span><span class="o">.</span><span class="n">currentTimeMillis</span>
+    <span class="o">}</span>
+
+    <span class="k">override</span> <span class="k">def</span> <span class="n">postStop</span><span class="o">()</span> <span class="o">{</span>
+      <span class="c1">// tell the world that the calculation is complete</span>
+      <span class="n">println</span><span class="o">(</span>
+        <span class="s">&quot;\n\tPi estimate: \t\t%s\n\tCalculation time: \t%s millis&quot;</span>
+        <span class="o">.</span><span class="n">format</span><span class="o">(</span><span class="n">pi</span><span class="o">,</span> <span class="o">(</span><span class="nc">System</span><span class="o">.</span><span class="n">currentTimeMillis</span> <span class="o">-</span> <span class="n">start</span><span class="o">)))</span>
+      <span class="n">latch</span><span class="o">.</span><span class="n">countDown</span><span class="o">()</span>
+    <span class="o">}</span>
+  <span class="o">}</span>
+
+  <span class="c1">// ==================</span>
+  <span class="c1">// ===== Run it =====</span>
+  <span class="c1">// ==================</span>
+  <span class="k">def</span> <span class="n">calculate</span><span class="o">(</span><span class="n">nrOfWorkers</span><span class="k">:</span> <span class="kt">Int</span><span class="o">,</span> <span class="n">nrOfElements</span><span class="k">:</span> <span class="kt">Int</span><span class="o">,</span> <span class="n">nrOfMessages</span><span class="k">:</span> <span class="kt">Int</span><span class="o">)</span> <span class="o">{</span>
+
+    <span class="c1">// this latch is only plumbing to know when the calculation is completed</span>
+    <span class="k">val</span> <span class="n">latch</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">CountDownLatch</span><span class="o">(</span><span class="mi">1</span><span class="o">)</span>
+
+    <span class="c1">// create the master</span>
+    <span class="k">val</span> <span class="n">master</span> <span class="k">=</span> <span class="n">actorOf</span><span class="o">(</span>
+      <span class="k">new</span> <span class="nc">Master</span><span class="o">(</span><span class="n">nrOfWorkers</span><span class="o">,</span> <span class="n">nrOfMessages</span><span class="o">,</span> <span class="n">nrOfElements</span><span class="o">,</span> <span class="n">latch</span><span class="o">)).</span><span class="n">start</span><span class="o">()</span>
+
+    <span class="c1">// start the calculation</span>
+    <span class="n">master</span> <span class="o">!</span> <span class="nc">Calculate</span>
+
+    <span class="c1">// wait for master to shut down</span>
+    <span class="n">latch</span><span class="o">.</span><span class="n">await</span><span class="o">()</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="run-it-as-a-command-line-application">
+<h2>Run it as a command line application</h2>
+<p>If you have not typed in (or copied) the code for the tutorial as <tt class="docutils literal"><span class="pre">$AKKA_HOME/tutorial/Pi.scala</span></tt> then now is the time. When that&#8217;s done open up a shell and step in to the Akka distribution (<tt class="docutils literal"><span class="pre">cd</span> <span class="pre">$AKKA_HOME</span></tt>).</p>
+<p>First we need to compile the source file. That is done with Scala&#8217;s compiler <tt class="docutils literal"><span class="pre">scalac</span></tt>. Our application depends on the <tt class="docutils literal"><span class="pre">akka-actor-1.3.1.jar</span></tt> JAR file, so let&#8217;s add that to the compiler classpath when we compile the source:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="n">$</span> <span class="n">scalac</span> <span class="o">-</span><span class="n">cp</span> <span class="n">lib</span><span class="o">/</span><span class="n">akka</span><span class="o">/</span><span class="n">akka</span><span class="o">-</span><span class="n">actor</span><span class="o">-</span><span class="mf">1.3</span><span class="o">.</span><span class="mf">1.</span><span class="n">jar</span> <span class="n">tutorial</span><span class="o">/</span><span class="nc">Pi</span><span class="o">.</span><span class="n">scala</span>
+</pre></div>
+</div>
+<p>When we have compiled the source file we are ready to run the application. This is done with <tt class="docutils literal"><span class="pre">java</span></tt> but yet again we need to add the <tt class="docutils literal"><span class="pre">akka-actor-1.3.1.jar</span></tt> JAR file to the classpath, and this time we also need to add the Scala runtime library <tt class="docutils literal"><span class="pre">scala-library.jar</span></tt> and the classes we compiled ourselves:</p>
+<div class="highlight-scala"><pre>$ java \
+    -cp lib/scala-library.jar:lib/akka/akka-actor-1.3.1.jar:. \
+    akka.tutorial.first.scala.Pi
+AKKA_HOME is defined as [/Users/jboner/tools/akka-actors-1.3.1]
+loading config from [/Users/jboner/tools/akka-actors-1.3.1/config/akka.conf].
+
+Pi estimate:        3.1435501812459323
+Calculation time:   858 millis</pre>
+</div>
+<p>Yippee! It is working.</p>
+<p>If you have not defined the <tt class="docutils literal"><span class="pre">AKKA_HOME</span></tt> environment variable then Akka can&#8217;t find the <tt class="docutils literal"><span class="pre">akka.conf</span></tt> configuration file and will print out a <tt class="docutils literal"><span class="pre">Can’t</span> <span class="pre">load</span> <span class="pre">akka.conf</span></tt> warning. This is ok since it will then just use the defaults.</p>
+</div>
+<div class="section" id="run-it-inside-sbt">
+<h2>Run it inside SBT</h2>
+<p>If you used SBT, then you can run the application directly inside SBT. First you need to compile the project:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="n">$</span> <span class="n">sbt</span>
+<span class="o">&gt;</span> <span class="n">compile</span>
+<span class="o">...</span>
+</pre></div>
+</div>
+<p>When this in done we can run our application directly inside SBT:</p>
+<div class="highlight-scala"><pre>&gt; run
+...
+Pi estimate:        3.1435501812459323
+Calculation time:   942 millis</pre>
+</div>
+<p>Yippee! It is working.</p>
+<p>If you have not defined an the <tt class="docutils literal"><span class="pre">AKKA_HOME</span></tt> environment variable then Akka can&#8217;t find the <tt class="docutils literal"><span class="pre">akka.conf</span></tt> configuration file and will print out a <tt class="docutils literal"><span class="pre">Can’t</span> <span class="pre">load</span> <span class="pre">akka.conf</span></tt> warning. This is ok since it will then just use the defaults.</p>
+</div>
+<div class="section" id="conclusion">
+<h2>Conclusion</h2>
+<p>We have learned how to create our first Akka project using Akka&#8217;s actors to speed up a computation-intensive problem by scaling out on multi-core processors (also known as scaling up). We have also learned to compile and run an Akka project using either the tools on the command line or the SBT build system.</p>
+<p>If you have a multi-core machine then I encourage you to try out different number of workers (number of working actors) by tweaking the <tt class="docutils literal"><span class="pre">nrOfWorkers</span></tt> variable to for example; 2, 4, 6, 8 etc. to see performance improvement by scaling up.</p>
+<p>Now we are ready to take on more advanced problems. In the next tutorial we will build on this one, refactor it into more idiomatic Akka and Scala code, and introduce a few new concepts and abstractions. Whenever you feel ready, join me in the <a class="reference external" href="TODO">Getting Started Tutorial: Second Chapter</a>.</p>
+<p>Happy hakking.</p>
+</div>
+</div>
+
+
+          </div>
+          <div class="span3"><p class="contents-title">Contents</p>
+              <div id="scroller-anchor">
+                <div id="scroller">
+                  <div id="toc"></div>
+                </div>
+              </div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="footer">
+  <div class="container">
+    <ul>
+      <li><h5>Akka</h5></li>
+      <li><a href="https://akka.io/docs">Documentation</a></li>
+      <li><a href="https://akka.io/downloads">Downloads</a></li>
+      <li><a href="https://akka.io/news">News</a></li>
+      <li><a href="http://letitcrash.com">Blog</a></li>
+    </ul>
+    <ul>
+      <li><h5>Contribute</h5></li>
+      <li><a href="http://github.com/akka/akka">Source Code</a></li>
+      <li><a href="http://groups.google.com/group/akka-user">Mailing List</a></li>      
+      <li><a href="http://www.assembla.com/spaces/akka/tickets">Report a Bug</a></li>      
+    </ul>
+    <ul>
+      <li><h5>Company</h5></li>
+      <li><a href="http://typesafe.com/products/typesafe-subscription">Commercial Support</a></li>
+      <li><a href="https://akka.io/team">Team</a></li>
+      <li><a href="mailto:info@typesafe.com">Contact</a></li>
+    </ul>
+    <ul>
+      <li><img src="../_static/watermark.png" align="center"/></li>
+    </ul>
+  </div>
+  <div class="container copyright">
+    <p style="float: left;">
+      © 2012 <a href="http://typesafe.com/">Typesafe Inc.</a> <span class="license">Akka is Open Source and available under the Apache 2 License.</span>
+    </p>
+    <p style="float: right; font-size: 12px;">
+      Last updated: Mar 08, 2012
+    </p>          
+  </div>
+</div>
+<script type="text/javascript">
+  $('#toc').toc();
+</script>
+  
+
+  </body>
+</html>

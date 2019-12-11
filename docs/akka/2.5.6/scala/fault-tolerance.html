@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<html class="no-js" lang="en">
+
+<head>
+<title>Fault Tolerance &bull; Akka Documentation</title>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta name="description" content="Akka is a toolkit for building highly concurrent, distributed, and resilient message-driven applications for Java and Scala."/>
+<link rel="canonical" href="https://doc.akka.io/docs/akka/current/fault-tolerance.html"/>
+<script type="text/javascript" src="../lib/jquery/jquery.min.js"></script>
+<script type="text/javascript" src="../lib/foundation/dist/js/foundation.min.js"></script>
+<link rel="stylesheet" type="text/css" href="../lib/normalize.css/normalize.css"/>
+<link rel="stylesheet" type="text/css" href="../lib/foundation/dist/css/foundation.min.css"/>
+<link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/docsearch.js/2/docsearch.min.css" />
+<link rel="stylesheet" type="text/css" href="../css/icons.css"/>
+<link rel="stylesheet" type="text/css" href="../css/page.css"/>
+<link rel="shortcut icon" href="../images/favicon.ico" />
+<link rel="apple-touch-icon" sizes="180x180" href="../images/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="../images/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="../images/favicon-16x16.png">
+<link rel="manifest" href="../images/manifest.json">
+<meta name="msapplication-TileImage" content="../images/mstile-150x150.png">
+<meta name="msapplication-TileColor" content="#15a9ce">
+<meta name="theme-color" content="#15a9ce">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<!--Google Analytics-->
+<script type="text/javascript">
+var _gaq = _gaq || [];
+_gaq.push(['_setAccount', 'UA-21117439-1']);
+_gaq.push(['_setDomainName', 'akka.io']);
+_gaq.push(['_trackPageview']);
+(function() {
+var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+})()
+</script>
+<!--Google Analytics & Marketo-->
+<script type="text/javascript">
+(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+ga('create', 'UA-23127719-1', 'lightbend.com', {'allowLinker': true, 'name': 'tsTracker'});
+ga('tsTracker.require', 'linker');
+ga('tsTracker.linker:autoLink', ['lightbend.com','playframework.com','scala-lang.org','scaladays.org','spray.io','akka.io','scala-sbt.org','scala-ide.org']);
+ga('tsTracker.send', 'pageview');
+(function() {
+var didInit = false;
+function initMunchkin() {
+if(didInit === false) {
+didInit = true;
+Munchkin.init('558-NCX-702');
+}
+}
+var s = document.createElement('script');
+s.type = 'text/javascript';
+s.async = true;
+s.src = '//munchkin.marketo.net/munchkin.js';
+s.onreadystatechange = function() {
+if (this.readyState == 'complete' || this.readyState == 'loaded') {
+initMunchkin();
+}
+};
+s.onload = initMunchkin;
+document.getElementsByTagName('head')[0].appendChild(s);
+})();
+</script>
+
+</head>
+
+<body id="underlay" data-toggler="nav-open">
+
+<header class="site-header hide-for-large">
+<div class="sticky-header clearfix">
+<a href="https://akka.io"><img class="logo" src="../images/akka-logo-reverse.svg"></a>
+
+<button class="menu-icon float-right" type="button" data-toggle="underlay overlay"></button>
+</div>
+<div id="overlay" class="overlay-nav" data-toggler="nav-open">
+<header class="nav-header">
+<div class="nav-header-title">
+<h1><a href="../scala/index.html">Akka Documentation</a></h1>
+</div>
+<div class="nav-header-version">
+Version 2.5.6
+</div>
+<div class="nav-header-groups">
+<select class="supergroup" name="Languages"><option class="group" value="group-scala">Scala</option><option class="group" value="group-java">Java</option></select>
+</div>
+<div id="overlay-search-container" class="nav-header-search">
+<input id="overlay-search" type="search" class="search" placeholder="Search"/>
+</div>
+</header>
+<nav class="nav-toc">
+<ul>
+  <li><a href="../scala/security/index.html" class="page">Security Announcements</a></li>
+  <li><a href="../scala/guide/index.html" class="page">Getting Started Guide</a></li>
+  <li><a href="../scala/general/index.html" class="page">General Concepts</a></li>
+  <li><a href="../scala/index-actors.html" class="page">Actors</a>
+  <ul>
+    <li><a href="../scala/actors.html" class="page">Actors</a></li>
+    <li><a href="../scala/typed.html" class="page">Akka Typed</a></li>
+    <li><a href="../scala/fault-tolerance.html#fault-tolerance" class="active page">Fault Tolerance</a>
+    <ul>
+      <li><a href="../scala/fault-tolerance.html#fault-handling-in-practice" class="header">Fault Handling in Practice</a></li>
+      <li><a href="../scala/fault-tolerance.html#creating-a-supervisor-strategy" class="header">Creating a Supervisor Strategy</a></li>
+      <li><a href="../scala/fault-tolerance.html#supervision-of-top-level-actors" class="header">Supervision of Top-Level Actors</a></li>
+      <li><a href="../scala/fault-tolerance.html#test-application" class="header">Test Application</a></li>
+    </ul></li>
+    <li><a href="../scala/dispatchers.html" class="page">Dispatchers</a></li>
+    <li><a href="../scala/mailboxes.html" class="page">Mailboxes</a></li>
+    <li><a href="../scala/routing.html" class="page">Routing</a></li>
+    <li><a href="../scala/fsm.html" class="page">FSM</a></li>
+    <li><a href="../scala/persistence.html" class="page">Persistence</a></li>
+    <li><a href="../scala/persistence-schema-evolution.html" class="page">Persistence - Schema Evolution</a></li>
+    <li><a href="../scala/persistence-query.html" class="page">Persistence Query</a></li>
+    <li><a href="../scala/persistence-query-leveldb.html" class="page">Persistence Query for LevelDB</a></li>
+    <li><a href="../scala/testing.html" class="page">Testing Actor Systems</a></li>
+    <li><a href="../scala/typed-actors.html" class="page">Typed Actors</a></li>
+  </ul></li>
+  <li><a href="../scala/index-network.html" class="page">Networking</a></li>
+  <li><a href="../scala/stream/index.html" class="page">Streams</a></li>
+  <li><a href="../scala/index-futures.html" class="page">Futures and Agents</a></li>
+  <li><a href="../scala/index-utilities.html" class="page">Utilities</a></li>
+  <li><a href="../scala/common/other-modules.html" class="page">Other Akka modules</a></li>
+  <li><a href="../scala/howto.html" class="page">HowTo: Common Patterns</a></li>
+  <li><a href="../scala/project/index.html" class="page">Project Information</a></li>
+  <li><a href="../scala/additional/index.html" class="page">Additional Information</a></li>
+</ul>
+</nav>
+</div>
+</header>
+
+<aside class="show-for-large">
+<header class="nav-header fixed-sidebar-header">
+<div class="nav-header-title">
+<h1><a href="../scala/index.html">Akka Documentation</a></h1>
+</div>
+<div class="nav-header-version">
+Version 2.5.6
+</div>
+<div class="nav-header-groups">
+<select class="supergroup" name="Languages"><option class="group" value="group-scala">Scala</option><option class="group" value="group-java">Java</option></select>
+</div>
+<div class="nav-header-search">
+<input id="search" type="search" class="search" placeholder="Search"/>
+</div>
+</header>
+<nav class="site-nav fixed-sidebar-contents">
+<div class="nav-toc">
+<ul>
+  <li><a href="../scala/security/index.html" class="page">Security Announcements</a></li>
+  <li><a href="../scala/guide/index.html" class="page">Getting Started Guide</a></li>
+  <li><a href="../scala/general/index.html" class="page">General Concepts</a></li>
+  <li><a href="../scala/index-actors.html" class="page">Actors</a>
+  <ul>
+    <li><a href="../scala/actors.html" class="page">Actors</a></li>
+    <li><a href="../scala/typed.html" class="page">Akka Typed</a></li>
+    <li><a href="../scala/fault-tolerance.html#fault-tolerance" class="active page">Fault Tolerance</a>
+    <ul>
+      <li><a href="../scala/fault-tolerance.html#fault-handling-in-practice" class="header">Fault Handling in Practice</a></li>
+      <li><a href="../scala/fault-tolerance.html#creating-a-supervisor-strategy" class="header">Creating a Supervisor Strategy</a></li>
+      <li><a href="../scala/fault-tolerance.html#supervision-of-top-level-actors" class="header">Supervision of Top-Level Actors</a></li>
+      <li><a href="../scala/fault-tolerance.html#test-application" class="header">Test Application</a></li>
+    </ul></li>
+    <li><a href="../scala/dispatchers.html" class="page">Dispatchers</a></li>
+    <li><a href="../scala/mailboxes.html" class="page">Mailboxes</a></li>
+    <li><a href="../scala/routing.html" class="page">Routing</a></li>
+    <li><a href="../scala/fsm.html" class="page">FSM</a></li>
+    <li><a href="../scala/persistence.html" class="page">Persistence</a></li>
+    <li><a href="../scala/persistence-schema-evolution.html" class="page">Persistence - Schema Evolution</a></li>
+    <li><a href="../scala/persistence-query.html" class="page">Persistence Query</a></li>
+    <li><a href="../scala/persistence-query-leveldb.html" class="page">Persistence Query for LevelDB</a></li>
+    <li><a href="../scala/testing.html" class="page">Testing Actor Systems</a></li>
+    <li><a href="../scala/typed-actors.html" class="page">Typed Actors</a></li>
+  </ul></li>
+  <li><a href="../scala/index-network.html" class="page">Networking</a></li>
+  <li><a href="../scala/stream/index.html" class="page">Streams</a></li>
+  <li><a href="../scala/index-futures.html" class="page">Futures and Agents</a></li>
+  <li><a href="../scala/index-utilities.html" class="page">Utilities</a></li>
+  <li><a href="../scala/common/other-modules.html" class="page">Other Akka modules</a></li>
+  <li><a href="../scala/howto.html" class="page">HowTo: Common Patterns</a></li>
+  <li><a href="../scala/project/index.html" class="page">Project Information</a></li>
+  <li><a href="../scala/additional/index.html" class="page">Additional Information</a></li>
+</ul>
+</div>
+</nav>
+<footer class="nav-footer fixed-sidebar-footer">
+<a href="https://akka.io"><img class="logo" src="../images/akka-logo-reverse.svg"></a>
+
+</footer>
+</aside>
+
+<main class="fixed-shift-for-large expanded row">
+<section class="site-content small-12 column">
+
+<article class="page-content row">
+<div class="small-12 large-9 column" id="docs">
+<h1><a href="#fault-tolerance" name="fault-tolerance" class="anchor"><span class="anchor-link"></span></a>Fault Tolerance</h1>
+<p>As explained in <a href="general/actor-systems.html">Actor Systems</a> each actor is the supervisor of its children, and as such each actor defines fault handling supervisor strategy. This strategy cannot be changed afterwards as it is an integral part of the actor system’s structure.</p>
+<h2><a href="#fault-handling-in-practice" name="fault-handling-in-practice" class="anchor"><span class="anchor-link"></span></a>Fault Handling in Practice</h2>
+<p>First, let us look at a sample that illustrates one way to handle data store errors, which is a typical source of failure in real world applications. Of course it depends on the actual application what is possible to do when the data store is unavailable, but in this sample we use a best effort re-connect approach.</p>
+<p>Read the following source code. The inlined comments explain the different pieces of the fault handling and why they are added. It is also highly recommended to run this sample as it is easy to follow the log output to understand what is happening at runtime.</p>
+<h2><a href="#creating-a-supervisor-strategy" name="creating-a-supervisor-strategy" class="anchor"><span class="anchor-link"></span></a>Creating a Supervisor Strategy</h2>
+<p>The following sections explain the fault handling mechanism and alternatives in more depth.</p>
+<p>For the sake of demonstration let us consider the following strategy:</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-scala">import akka.actor.OneForOneStrategy
+import akka.actor.SupervisorStrategy._
+import scala.concurrent.duration._
+
+override val supervisorStrategy =
+  OneForOneStrategy(maxNrOfRetries = 10, withinTimeRange = 1 minute) {
+    case _: ArithmeticException =&gt; Resume
+    case _: NullPointerException =&gt; Restart
+    case _: IllegalArgumentException =&gt; Stop
+    case _: Exception =&gt; Escalate
+  }</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-java">private static SupervisorStrategy strategy =
+  new OneForOneStrategy(10, Duration.create(1, TimeUnit.MINUTES), DeciderBuilder.
+    match(ArithmeticException.class, e -&gt; resume()).
+    match(NullPointerException.class, e -&gt; restart()).
+    match(IllegalArgumentException.class, e -&gt; stop()).
+    matchAny(o -&gt; escalate()).build());
+
+@Override
+public SupervisorStrategy supervisorStrategy() {
+  return strategy;
+}
+</code></pre></dd>
+</dl>
+<p>We have chosen a few well-known exception types in order to demonstrate the application of the fault handling directives described in <a href="general/supervision.html">supervision</a>. First off, it is a one-for-one strategy, meaning that each child is treated separately (an all-for-one strategy works very similarly, the only difference is that any decision is applied to all children of the supervisor, not only the failing one). In the above example, <code>10</code> and <span class="group-scala"><code>1 minute</code></span><span class="group-java"><code>Duration.create(1, TimeUnit.MINUTES)</code></span> are passed to the <code>maxNrOfRetries</code> and <code>withinTimeRange</code> parameters respectively, which means that the strategy restarts a child up to 10 restarts per minute. The child actor is stopped if the restart count exceeds <code>maxNrOfRetries</code> during the <code>withinTimeRange</code> duration.</p>
+<p>Also, there are special values for these parameters. If you specify:</p>
+<ul>
+  <li><code>-1</code> to <code>maxNrOfRetries</code>, and <span class="group-scala"><code>Duration.inf</code></span><span class="group-java"><code>Duration.Inf()</code></span> to <code>withinTimeRange</code>
+    <ul>
+      <li>then the child is always restarted without any limit</li>
+    </ul>
+  </li>
+  <li><code>-1</code> to <code>maxNrOfRetries</code>, and a non-infinite <code>Duration</code> to <code>withinTimeRange</code>
+    <ul>
+      <li><code>maxNrOfRetries</code> is treated as <code>1</code></li>
+    </ul>
+  </li>
+  <li>a non-negative number to <code>maxNrOfRetries</code> and <span class="group-scala"><code>Duration.inf</code></span><span class="group-java"><code>Duration.Inf()</code></span> to <code>withinTimeRange</code>
+    <ul>
+      <li><code>withinTimeRange</code> is treated as infinite duration (i.e.) no matter how long it takes, once the restart count exceeds <code>maxNrOfRetries</code>, the child actor is stopped</li>
+    </ul>
+  </li>
+</ul>
+<p>The match statement which forms the bulk of the body<br/><span class="group-scala">is of type <code>Decider</code> which is a <code>PartialFunction[Throwable, Directive]</code>.</span> <span class="group-java">consists of <code>PFBuilder</code> returned by <code>DeciderBuilder</code>&rsquo;s <code>match</code> method, where the builder is finished by the <code>build</code> method.</span> This is the piece which maps child failure types to their corresponding directives.</p><div class="callout note "><div class="callout-title">Note</div>
+<p>If the strategy is declared inside the supervising actor (as opposed to <span class="group-scala">within a companion object</span><span class="group-java">a separate class</span>) its decider has access to all internal state of the actor in a thread-safe fashion, including obtaining a reference to the currently failed child (available as the <span class="group-scala"><code>sender</code></span><span class="group-java"><code>getSender()</code></span> of the failure message).</p></div>
+<h3><a href="#default-supervisor-strategy" name="default-supervisor-strategy" class="anchor"><span class="anchor-link"></span></a>Default Supervisor Strategy</h3>
+<p><code>Escalate</code> is used if the defined strategy doesn&rsquo;t cover the exception that was thrown.</p>
+<p>When the supervisor strategy is not defined for an actor the following exceptions are handled by default:</p>
+<ul>
+  <li><code>ActorInitializationException</code> will stop the failing child actor</li>
+  <li><code>ActorKilledException</code> will stop the failing child actor</li>
+  <li><code>DeathPactException</code> will stop the failing child actor</li>
+  <li><code>Exception</code> will restart the failing child actor</li>
+  <li>Other types of <code>Throwable</code> will be escalated to parent actor</li>
+</ul>
+<p>If the exception escalate all the way up to the root guardian it will handle it in the same way as the default strategy defined above.</p><div class="group-scala">
+<p>You can combine your own strategy with the default strategy:</p>
+<pre class="prettyprint"><code class="language-scala">import akka.actor.OneForOneStrategy
+import akka.actor.SupervisorStrategy._
+import scala.concurrent.duration._
+
+override val supervisorStrategy =
+  OneForOneStrategy(maxNrOfRetries = 10, withinTimeRange = 1 minute) {
+    case _: ArithmeticException =&gt; Resume
+    case t =&gt;
+      super.supervisorStrategy.decider.applyOrElse(t, (_: Any) =&gt; Escalate)
+  }</code></pre></div>
+<h3><a href="#stopping-supervisor-strategy" name="stopping-supervisor-strategy" class="anchor"><span class="anchor-link"></span></a>Stopping Supervisor Strategy</h3>
+<p>Closer to the Erlang way is the strategy to just stop children when they fail and then take corrective action in the supervisor when DeathWatch signals the loss of the child. This strategy is also provided pre-packaged as <code>SupervisorStrategy.stoppingStrategy</code> with an accompanying <code>StoppingSupervisorStrategy</code> configurator to be used when you want the <code>&quot;/user&quot;</code> guardian to apply it.</p>
+<h3><a href="#logging-of-actor-failures" name="logging-of-actor-failures" class="anchor"><span class="anchor-link"></span></a>Logging of Actor Failures</h3>
+<p>By default the <code>SupervisorStrategy</code> logs failures unless they are escalated. Escalated failures are supposed to be handled, and potentially logged, at a level higher in the hierarchy.</p>
+<p>You can mute the default logging of a <code>SupervisorStrategy</code> by setting <code>loggingEnabled</code> to <code>false</code> when instantiating it. Customized logging can be done inside the <code>Decider</code>. Note that the reference to the currently failed child is available as the <code>sender</code> when the <code>SupervisorStrategy</code> is declared inside the supervising actor.</p>
+<p>You may also customize the logging in your own <code>SupervisorStrategy</code> implementation by overriding the <code>logFailure</code> method.</p>
+<h2><a href="#supervision-of-top-level-actors" name="supervision-of-top-level-actors" class="anchor"><span class="anchor-link"></span></a>Supervision of Top-Level Actors</h2>
+<p>Toplevel actors means those which are created using <code>system.actorOf()</code>, and they are children of the <a href="general/supervision.html#user-guardian">User Guardian</a>. There are no special rules applied in this case, the guardian simply applies the configured strategy.</p>
+<h2><a href="#test-application" name="test-application" class="anchor"><span class="anchor-link"></span></a>Test Application</h2>
+<p>The following section shows the effects of the different directives in practice, where a test setup is needed. First off, we need a suitable supervisor:</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-scala">import akka.actor.Actor
+
+class Supervisor extends Actor {
+  import akka.actor.OneForOneStrategy
+  import akka.actor.SupervisorStrategy._
+  import scala.concurrent.duration._
+
+  override val supervisorStrategy =
+    OneForOneStrategy(maxNrOfRetries = 10, withinTimeRange = 1 minute) {
+      case _: ArithmeticException =&gt; Resume
+      case _: NullPointerException =&gt; Restart
+      case _: IllegalArgumentException =&gt; Stop
+      case _: Exception =&gt; Escalate
+    }
+
+  def receive = {
+    case p: Props =&gt; sender() ! context.actorOf(p)
+  }
+}</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-java">import akka.japi.pf.DeciderBuilder;
+import static akka.actor.SupervisorStrategy.resume;
+import static akka.actor.SupervisorStrategy.restart;
+import static akka.actor.SupervisorStrategy.stop;
+import static akka.actor.SupervisorStrategy.escalate;
+
+  public class Supervisor extends AbstractActor {
+
+    private static SupervisorStrategy strategy =
+      new OneForOneStrategy(10, Duration.create(1, TimeUnit.MINUTES), DeciderBuilder.
+        match(ArithmeticException.class, e -&gt; resume()).
+        match(NullPointerException.class, e -&gt; restart()).
+        match(IllegalArgumentException.class, e -&gt; stop()).
+        matchAny(o -&gt; escalate()).build());
+
+    @Override
+    public SupervisorStrategy supervisorStrategy() {
+      return strategy;
+    }
+
+
+    @Override
+    public Receive createReceive() {
+      return receiveBuilder()
+        .match(Props.class, props -&gt; {
+          getSender().tell(getContext().actorOf(props), getSelf());
+        })
+        .build();
+    }
+  }
+</code></pre></dd>
+</dl>
+<p>This supervisor will be used to create a child, with which we can experiment:</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-scala">import akka.actor.Actor
+
+class Child extends Actor {
+  var state = 0
+  def receive = {
+    case ex: Exception =&gt; throw ex
+    case x: Int =&gt; state = x
+    case &quot;get&quot; =&gt; sender() ! state
+  }
+}</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-java">public class Child extends AbstractActor {
+  int state = 0;
+
+  @Override
+  public Receive createReceive() {
+    return receiveBuilder()
+      .match(Exception.class, exception -&gt; { throw exception; })
+      .match(Integer.class, i -&gt; state = i)
+      .matchEquals(&quot;get&quot;, s -&gt; getSender().tell(state, getSelf()))
+      .build();
+  }
+}
+</code></pre></dd>
+</dl>
+<p>The test is easier by using the utilities described in <span class="group-scala"><a href="testing.html">Testing Actor Systems</a></span><span class="group-java"><a href="testing.html">TestKit</a></span>, where <code>TestProbe</code> provides an actor ref useful for receiving and inspecting replies.</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-scala">import com.typesafe.config.{ Config, ConfigFactory }
+import org.scalatest.{ FlatSpecLike, Matchers, BeforeAndAfterAll }
+import akka.testkit.{ TestActors, TestKit, ImplicitSender, EventFilter }
+
+class FaultHandlingDocSpec(_system: ActorSystem) extends TestKit(_system)
+  with ImplicitSender with FlatSpecLike with Matchers with BeforeAndAfterAll {
+
+  def this() = this(ActorSystem(
+    &quot;FaultHandlingDocSpec&quot;,
+    ConfigFactory.parseString(&quot;&quot;&quot;
+      akka {
+        loggers = [&quot;akka.testkit.TestEventListener&quot;]
+        loglevel = &quot;WARNING&quot;
+      }
+      &quot;&quot;&quot;)))
+
+  override def afterAll {
+    TestKit.shutdownActorSystem(system)
+  }
+
+  &quot;A supervisor&quot; must &quot;apply the chosen strategy for its child&quot; in {
+    // code here
+  }
+}</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-java">import akka.testkit.TestProbe;
+import akka.testkit.ErrorFilter;
+import akka.testkit.EventFilter;
+import akka.testkit.TestEvent;
+import scala.concurrent.duration.Duration;
+import static java.util.concurrent.TimeUnit.SECONDS;
+import static akka.japi.Util.immutableSeq;
+import scala.concurrent.Await;
+
+public class FaultHandlingTest extends AbstractJavaTest {
+  static ActorSystem system;
+  Duration timeout = Duration.create(5, SECONDS);
+
+  @BeforeClass
+  public static void start() {
+    system = ActorSystem.create(&quot;FaultHandlingTest&quot;, config);
+  }
+
+  @AfterClass
+  public static void cleanup() {
+    TestKit.shutdownActorSystem(system);
+    system = null;
+  }
+
+  @Test
+  public void mustEmploySupervisorStrategy() throws Exception {
+    // code here
+  }
+
+}</code></pre></dd>
+</dl>
+<p>Let us create actors:</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-scala">val supervisor = system.actorOf(Props[Supervisor], &quot;supervisor&quot;)
+
+supervisor ! Props[Child]
+val child = expectMsgType[ActorRef] // retrieve answer from TestKit’s testActor</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-java">Props superprops = Props.create(Supervisor.class);
+ActorRef supervisor = system.actorOf(superprops, &quot;supervisor&quot;);
+ActorRef child = (ActorRef) Await.result(ask(supervisor,
+  Props.create(Child.class), 5000), timeout);</code></pre></dd>
+</dl>
+<p>The first test shall demonstrate the <code>Resume</code> directive, so we try it out by setting some non-initial state in the actor and have it fail:</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-scala">child ! 42 // set state to 42
+child ! &quot;get&quot;
+expectMsg(42)
+
+child ! new ArithmeticException // crash it
+child ! &quot;get&quot;
+expectMsg(42)</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-java">child.tell(42, ActorRef.noSender());
+assert Await.result(ask(child, &quot;get&quot;, 5000), timeout).equals(42);
+child.tell(new ArithmeticException(), ActorRef.noSender());
+assert Await.result(ask(child, &quot;get&quot;, 5000), timeout).equals(42);</code></pre></dd>
+</dl>
+<p>As you can see the value 42 survives the fault handling directive. Now, if we change the failure to a more serious <code>NullPointerException</code>, that will no longer be the case:</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-scala">child ! new NullPointerException // crash it harder
+child ! &quot;get&quot;
+expectMsg(0)</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-java">child.tell(new NullPointerException(), ActorRef.noSender());
+assert Await.result(ask(child, &quot;get&quot;, 5000), timeout).equals(0);</code></pre></dd>
+</dl>
+<p>And finally in case of the fatal <code>IllegalArgumentException</code> the child will be terminated by the supervisor:</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-scala">watch(child) // have testActor watch “child”
+child ! new IllegalArgumentException // break it
+expectMsgPF() { case Terminated(`child`) =&gt; () }</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-java">final TestProbe probe = new TestProbe(system);
+probe.watch(child);
+child.tell(new IllegalArgumentException(), ActorRef.noSender());
+probe.expectMsgClass(Terminated.class);</code></pre></dd>
+</dl>
+<p>Up to now the supervisor was completely unaffected by the child’s failure, because the directives set did handle it. In case of an <code>Exception</code>, this is not true anymore and the supervisor escalates the failure.</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-scala">supervisor ! Props[Child] // create new child
+val child2 = expectMsgType[ActorRef]
+watch(child2)
+child2 ! &quot;get&quot; // verify it is alive
+expectMsg(0)
+
+child2 ! new Exception(&quot;CRASH&quot;) // escalate failure
+expectMsgPF() {
+  case t @ Terminated(`child2`) if t.existenceConfirmed =&gt; ()
+}</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-java">child = (ActorRef) Await.result(ask(supervisor,
+  Props.create(Child.class), 5000), timeout);
+probe.watch(child);
+assert Await.result(ask(child, &quot;get&quot;, 5000), timeout).equals(0);
+child.tell(new Exception(), ActorRef.noSender());
+probe.expectMsgClass(Terminated.class);</code></pre></dd>
+</dl>
+<p>The supervisor itself is supervised by the top-level actor provided by the <code>ActorSystem</code>, which has the default policy to restart in case of all <code>Exception</code> cases (with the notable exceptions of <code>ActorInitializationException</code> and <code>ActorKilledException</code>). Since the default directive in case of a restart is to kill all children, we expected our poor child not to survive this failure.</p>
+<p>In case this is not desired (which depends on the use case), we need to use a different supervisor which overrides this behavior.</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-scala">class Supervisor2 extends Actor {
+  import akka.actor.OneForOneStrategy
+  import akka.actor.SupervisorStrategy._
+  import scala.concurrent.duration._
+
+  override val supervisorStrategy =
+    OneForOneStrategy(maxNrOfRetries = 10, withinTimeRange = 1 minute) {
+      case _: ArithmeticException =&gt; Resume
+      case _: NullPointerException =&gt; Restart
+      case _: IllegalArgumentException =&gt; Stop
+      case _: Exception =&gt; Escalate
+    }
+
+  def receive = {
+    case p: Props =&gt; sender() ! context.actorOf(p)
+  }
+  // override default to kill all children during restart
+  override def preRestart(cause: Throwable, msg: Option[Any]) {}
+}</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-java">public class Supervisor2 extends AbstractActor {
+
+  private static SupervisorStrategy strategy =
+    new OneForOneStrategy(10, Duration.create(1, TimeUnit.MINUTES), DeciderBuilder.
+      match(ArithmeticException.class, e -&gt; resume()).
+      match(NullPointerException.class, e -&gt; restart()).
+      match(IllegalArgumentException.class, e -&gt; stop()).
+      matchAny(o -&gt; escalate()).build());
+
+  @Override
+  public SupervisorStrategy supervisorStrategy() {
+    return strategy;
+  }
+
+
+  @Override
+  public Receive createReceive() {
+    return receiveBuilder()
+      .match(Props.class, props -&gt; {
+        getSender().tell(getContext().actorOf(props), getSelf());
+      })
+      .build();
+  }
+
+  @Override
+  public void preRestart(Throwable cause, Optional&lt;Object&gt; msg) {
+    // do not kill all children, which is the default here
+  }
+}
+</code></pre></dd>
+</dl>
+<p>With this parent, the child survives the escalated restart, as demonstrated in the last test:</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-scala">val supervisor2 = system.actorOf(Props[Supervisor2], &quot;supervisor2&quot;)
+
+supervisor2 ! Props[Child]
+val child3 = expectMsgType[ActorRef]
+
+child3 ! 23
+child3 ! &quot;get&quot;
+expectMsg(23)
+
+child3 ! new Exception(&quot;CRASH&quot;)
+child3 ! &quot;get&quot;
+expectMsg(0)</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-java">superprops = Props.create(Supervisor2.class);
+supervisor = system.actorOf(superprops);
+child = (ActorRef) Await.result(ask(supervisor,
+  Props.create(Child.class), 5000), timeout);
+child.tell(23, ActorRef.noSender());
+assert Await.result(ask(child, &quot;get&quot;, 5000), timeout).equals(23);
+child.tell(new Exception(), ActorRef.noSender());
+assert Await.result(ask(child, &quot;get&quot;, 5000), timeout).equals(0);</code></pre></dd>
+</dl>
+</div>
+</article>
+
+<div class="row">
+<div class="small-12 large-9 column">
+<section class="nav-prev-next row">
+<div class="nav-prev small-6 column">
+<a href="../scala/typed.html"><i class="icon-prev"></i> <span class="link-prev">Akka Typed</span></a>
+</div>
+<div class="nav-next small-6 column clearfix">
+<a class="float-right" href="../scala/dispatchers.html">Dispatchers <i class="icon-next"></i></a>
+</div>
+</section>
+</div>
+</div>
+
+<div class="source-github row">
+The source code for this page can be found <a href="http://github.com/akka/akka/tree/master/akka-docs/src/main/paradox/scala/fault-tolerance.md">here</a>.
+</div>
+
+
+<footer class="page-footer row clearfix">
+<img class="akka-icon float-left show-for-medium" src="../images/akka-icon.svg">
+<section class="copyright">
+<div>&copy; 2011-2017 <a href="https://www.lightbend.com">Lightbend</a></div>
+<div>Akka is Open Source and available under the Apache 2 License.</div>
+</section>
+</footer>
+
+</section>
+</main>
+
+<script type="text/javascript" src="../js/scrollsneak.js"></script>
+<script type="text/javascript">jQuery(document).foundation();</script>
+<script type="text/javascript" src="../js/groups.js"></script>
+<script type="text/javascript" src="../js/page.js"></script>
+<script type="text/javascript" src="../js/magellan.js"></script>
+
+<style type="text/css">@import "../lib/prettify/prettify.css";</style>
+<script type="text/javascript" src="../lib/prettify/prettify.js"></script>
+<script type="text/javascript" src="../lib/prettify/lang-scala.js"></script>
+<script type="text/javascript">jQuery(function(){window.prettyPrint && prettyPrint()});</script>
+
+<!-- Algolia docs search -->
+<script type="text/javascript" src="https://cdn.jsdelivr.net/docsearch.js/2/docsearch.min.js"></script>
+<style>.algolia-autocomplete { display: block !important }</style>
+<script type="text/javascript">
+var lang = "scala";
+var path = window.location.pathname;
+if (path.includes("/java/") || path.includes("java.html")) {
+lang = "java";
+}
+
+docsearch({
+apiKey: '543bad5ad786495d9ccd445ed34ed082',
+indexName: 'akka_io',
+inputSelector: '#search',
+algoliaOptions: {
+hitsPerPage: 5,
+facetFilters: ["language:" + lang]
+}
+});
+
+docsearch({
+apiKey: '543bad5ad786495d9ccd445ed34ed082',
+indexName: 'akka_io',
+inputSelector: '#overlay-search',
+algoliaOptions: {
+hitsPerPage: 5,
+facetFilters: ["language:" + lang]
+}
+});
+
+// set up "/" as global shortcut for focusing on search
+jQuery(document).keypress(function (event) {
+if (event.keyCode == 47) {
+jQuery("#search").focus();
+return false; // swallow key event, otherwise the / char would be input into the search box
+}
+});
+</script>
+
+
+</body>
+</html>
