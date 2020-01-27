@@ -1,0 +1,429 @@
+
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Custom Directives &mdash; Akka Documentation</title>
+    
+    <link rel="stylesheet" href="../../../../_static/style.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../_static/prettify.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../_static/base.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../_static/docs.css" type="text/css" />
+    <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,600,700" type="text/css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/docsearch.js/1/docsearch.min.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../../',
+        VERSION:     '2.4-bin-rp-16s01p05',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="../../../../_static/toc.js"></script>
+    <script type="text/javascript" src="../../../../_static/prettify.js"></script>
+    <script type="text/javascript" src="../../../../_static/highlightCode.js"></script>
+    <script type="text/javascript" src="../../../../_static/effects.core.js"></script>
+    <script type="text/javascript" src="../../../../_static/effects.highlight.js"></script>
+    <script type="text/javascript" src="../../../../_static/scrollTo.js"></script>
+    <script type="text/javascript" src="../../../../_static/contentsFix.js"></script>
+    <script type="text/javascript" src="../../../../_static/ga.js"></script>
+    <script type="text/javascript" src="../../../../_static/warnOldDocs.js"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/docsearch.js/1/docsearch.min.js"></script>
+    <link rel="shortcut icon" href="../../../../_static/favicon.ico"/>
+    <link rel="top" title="Akka Documentation" href="../../../../index.html" />
+    <link rel="up" title="Directives" href="index.html" />
+    <link rel="next" title="Rejections" href="../rejections.html" />
+    <link rel="prev" title="withRequestTimeoutResponse" href="timeout-directives/withRequestTimeoutResponse.html" />
+
+
+  </head>
+  <body>
+  <div class="navbar">
+    <div class="navbar-inner">
+      <div class="container">
+        <div class="navbar-logo">
+          <a href="https://akka.io"><img class="svg-logo" src="../../../../_static/akka_full_color.svg" /></a>
+        </div>    
+        <ul class="nav">
+          <li><a href="https://akka.io/docs">Documentation</a></li>
+          <li><a href="https://akka.io/faq">FAQ</a></li>
+          <li><a href="https://akka.io/downloads">Download</a></li>
+          <li><a href="http://groups.google.com/group/akka-user">Mailing List</a></li>
+          <li><a href="http://github.com/akka/akka">Code</a></li>           
+          <li><a href="http://www.lightbend.com/how/subscription">Commercial Support</a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="main">
+    <div class="container">
+      <div class="page-title">Custom Directives</div>
+      <div class="pdf-link"><a href="../../../../AkkaScala.pdf" title="Akka Scala Documentation"><img src="../../../../_static/pdf-scala-icon.png" style="height: 40px;" /></a></div>
+      <div class="pdf-link"><a href="../../../../AkkaJava.pdf" title="Akka Java Documentation"><img src="../../../../_static/pdf-java-icon.png" style="height: 40px;" /></a></div>
+    </div>
+    <div class="main-container">
+      <div class="container">
+        <div class="row">
+          <div class="span12">
+            <ul class="breadcrumb">           
+              <li>
+                 <span class="divider">|</span> <a href="../rejections.html">Rejections</a> <span class="divider">»</span>
+              </li>
+              <li>
+                <a href="../../../../java.html">Java Contents</a> <span class="divider">|</span> <a href="../../../../scala.html">Scala Contents</a>
+              </li>
+              <li>
+                <span class="divider">«</span> <a href="timeout-directives/withRequestTimeoutResponse.html">withRequestTimeoutResponse</a> <span class="divider">|</span>
+              </li>
+              <li style="float: left">
+                Version 2.4-bin-rp-16s01p05
+              </li>
+              <li style="float: left">
+                <input type="search" id="search" class="form-control" />
+              </li>
+            </ul>
+          </div>
+        </div>
+        <div class="row"><div class="span9">
+            
+  <div class="section" id="custom-directives">
+<span id="id1"></span><h1>Custom Directives</h1>
+<p>Part of the power of akka-http directives comes from the ease with which it’s possible to define
+custom directives at differing levels of abstraction.</p>
+<p>There are essentially three ways of creating custom directives:</p>
+<ol class="arabic simple">
+<li>By introducing new “labels” for configurations of existing directives</li>
+<li>By transforming existing directives</li>
+<li>By writing a directive “from scratch”</li>
+</ol>
+<div class="section" id="configuration-labeling">
+<h2>Configuration Labeling</h2>
+<p>The easiest way to create a custom directive is to simply assign a new name for a certain configuration
+of one or more existing directives. In fact, most of the predefined akka-http directives can be considered
+named configurations of more low-level directives.</p>
+<p>The basic technique is explained in the chapter about Composing Directives, where, for example, a new directive
+<tt class="docutils literal"><span class="pre">getOrPut</span></tt> is defined like this:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">val</span> <span class="n">getOrPut</span> <span class="k">=</span> <span class="n">get</span> <span class="o">|</span> <span class="n">put</span>
+
+<span class="c1">// tests:</span>
+<span class="k">val</span> <span class="n">route</span> <span class="k">=</span> <span class="n">getOrPut</span> <span class="o">{</span> <span class="n">complete</span><span class="o">(</span><span class="s">&quot;ok&quot;</span><span class="o">)</span> <span class="o">}</span>
+
+<span class="nc">Get</span><span class="o">(</span><span class="s">&quot;/&quot;</span><span class="o">)</span> <span class="o">~&gt;</span> <span class="n">route</span> <span class="o">~&gt;</span> <span class="n">check</span> <span class="o">{</span>
+  <span class="n">responseAs</span><span class="o">[</span><span class="kt">String</span><span class="o">]</span> <span class="n">shouldEqual</span> <span class="s">&quot;ok&quot;</span>
+<span class="o">}</span>
+
+<span class="nc">Put</span><span class="o">(</span><span class="s">&quot;/&quot;</span><span class="o">)</span> <span class="o">~&gt;</span> <span class="n">route</span> <span class="o">~&gt;</span> <span class="n">check</span> <span class="o">{</span>
+  <span class="n">responseAs</span><span class="o">[</span><span class="kt">String</span><span class="o">]</span> <span class="n">shouldEqual</span> <span class="s">&quot;ok&quot;</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<p>Another example is the <a class="reference internal" href="method-directives/index.html#methoddirectives"><em>MethodDirectives</em></a> which are simply instances of a preconfigured <a class="reference internal" href="method-directives/method.html#method"><em>method</em></a> directive.
+The low-level directives that most often form the basis of higher-level “named configuration” directives are grouped
+together in the <a class="reference internal" href="basic-directives/index.html#basicdirectives"><em>BasicDirectives</em></a> trait.</p>
+</div>
+<div class="section" id="transforming-directives">
+<h2>Transforming Directives</h2>
+<p>The second option for creating new directives is to transform an existing one using one of the
+“transformation methods”, which are defined on the <a class="reference external" href="http://github.com/akka/akka/tree/v2.4-bin-rp-16s01p05/akka-http/src/main/scala/akka/http/scaladsl/server/Directive.scala">Directive</a> class, the base class of all “regular” directives.</p>
+<p>Apart from the combinator operators (<tt class="docutils literal"><span class="pre">|</span></tt> and <tt class="docutils literal"><span class="pre">&amp;</span></tt>) and the case-class extractor (<tt class="docutils literal"><span class="pre">as[T]</span></tt>)
+there following transformations is also defined on all <tt class="docutils literal"><span class="pre">Directive</span></tt> instances:</p>
+<blockquote>
+<div><ul class="simple">
+<li><a class="reference internal" href="#map-tmap"><em>map and tmap</em></a></li>
+<li><a class="reference internal" href="#flatmap-tflatmap"><em>flatMap and tflatMap</em></a></li>
+<li><a class="reference internal" href="#require-trequire"><em>require and trequire</em></a></li>
+<li><a class="reference internal" href="#recover-recoverpf"><em>recover and recoverPF</em></a></li>
+</ul>
+</div></blockquote>
+<div class="section" id="map-and-tmap">
+<span id="map-tmap"></span><h3>map and tmap</h3>
+<p>If the Directive is a single-value <tt class="docutils literal"><span class="pre">Directive</span></tt>, the <tt class="docutils literal"><span class="pre">map</span></tt> method allows
+for simple transformations:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">val</span> <span class="n">textParam</span><span class="k">:</span> <span class="kt">Directive1</span><span class="o">[</span><span class="kt">String</span><span class="o">]</span> <span class="k">=</span>
+  <span class="n">parameter</span><span class="o">(</span><span class="s">&quot;text&quot;</span><span class="o">.</span><span class="n">as</span><span class="o">[</span><span class="kt">String</span><span class="o">])</span>
+
+<span class="k">val</span> <span class="n">lengthDirective</span><span class="k">:</span> <span class="kt">Directive1</span><span class="o">[</span><span class="kt">Int</span><span class="o">]</span> <span class="k">=</span>
+  <span class="n">textParam</span><span class="o">.</span><span class="n">map</span><span class="o">(</span><span class="n">text</span> <span class="k">=&gt;</span> <span class="n">text</span><span class="o">.</span><span class="n">length</span><span class="o">)</span>
+
+<span class="c1">// tests:</span>
+<span class="nc">Get</span><span class="o">(</span><span class="s">&quot;/?text=abcdefg&quot;</span><span class="o">)</span> <span class="o">~&gt;</span> <span class="n">lengthDirective</span><span class="o">(</span><span class="n">x</span> <span class="k">=&gt;</span> <span class="n">complete</span><span class="o">(</span><span class="n">x</span><span class="o">.</span><span class="n">toString</span><span class="o">))</span> <span class="o">~&gt;</span> <span class="n">check</span> <span class="o">{</span>
+  <span class="n">responseAs</span><span class="o">[</span><span class="kt">String</span><span class="o">]</span> <span class="o">===</span> <span class="s">&quot;7&quot;</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<p>One example of a predefined directive relying on <tt class="docutils literal"><span class="pre">map</span></tt> is the <a class="reference external" href="http://github.com/akka/akka/tree/v2.4-bin-rp-16s01p05/akka-http/src/main/scala/akka/http/scaladsl/server/directives/HeaderDirectives.scala#L67">optionalHeaderValue</a> directive.</p>
+<p>The tmap modifier has this signature (somewhat simplified):</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">def</span> <span class="n">tmap</span><span class="o">[</span><span class="kt">R</span><span class="o">](</span><span class="n">f</span><span class="k">:</span> <span class="kt">L</span> <span class="k">⇒</span> <span class="kt">R</span><span class="o">)</span><span class="k">:</span> <span class="kt">Directive</span><span class="o">[</span><span class="kt">Out</span><span class="o">]</span>
+</pre></div>
+</div>
+<p>It can be used to transform the <tt class="docutils literal"><span class="pre">Tuple</span></tt> of extractions into another <tt class="docutils literal"><span class="pre">Tuple</span></tt>.
+The number and/or types of the extractions can be changed arbitrarily. For example
+if <tt class="docutils literal"><span class="pre">R</span></tt> is <tt class="docutils literal"><span class="pre">Tuple2[A,</span> <span class="pre">B]</span></tt> then the result will be a <tt class="docutils literal"><span class="pre">Directive[(A,</span> <span class="pre">B)]</span></tt>. Here is a
+somewhat contrived example:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">val</span> <span class="n">twoIntParameters</span><span class="k">:</span> <span class="kt">Directive</span><span class="o">[(</span><span class="kt">Int</span>, <span class="kt">Int</span><span class="o">)]</span> <span class="k">=</span>
+  <span class="n">parameters</span><span class="o">((</span><span class="s">&quot;a&quot;</span><span class="o">.</span><span class="n">as</span><span class="o">[</span><span class="kt">Int</span><span class="o">],</span> <span class="s">&quot;b&quot;</span><span class="o">.</span><span class="n">as</span><span class="o">[</span><span class="kt">Int</span><span class="o">]))</span>
+
+<span class="k">val</span> <span class="n">myDirective</span><span class="k">:</span> <span class="kt">Directive1</span><span class="o">[</span><span class="kt">String</span><span class="o">]</span> <span class="k">=</span>
+  <span class="n">twoIntParameters</span><span class="o">.</span><span class="n">tmap</span> <span class="o">{</span>
+    <span class="k">case</span> <span class="o">(</span><span class="n">a</span><span class="o">,</span> <span class="n">b</span><span class="o">)</span> <span class="k">=&gt;</span> <span class="o">(</span><span class="n">a</span> <span class="o">+</span> <span class="n">b</span><span class="o">).</span><span class="n">toString</span>
+  <span class="o">}</span>
+
+<span class="c1">// tests:</span>
+<span class="nc">Get</span><span class="o">(</span><span class="s">&quot;/?a=2&amp;b=5&quot;</span><span class="o">)</span> <span class="o">~&gt;</span> <span class="n">myDirective</span><span class="o">(</span><span class="n">x</span> <span class="k">=&gt;</span> <span class="n">complete</span><span class="o">(</span><span class="n">x</span><span class="o">))</span> <span class="o">~&gt;</span> <span class="n">check</span> <span class="o">{</span>
+  <span class="n">responseAs</span><span class="o">[</span><span class="kt">String</span><span class="o">]</span> <span class="o">===</span> <span class="s">&quot;7&quot;</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="flatmap-and-tflatmap">
+<span id="flatmap-tflatmap"></span><h3>flatMap and tflatMap</h3>
+<p>With map and tmap you can transform the values a directive extracts
+but you cannot change the “extracting” nature of the directive.
+For example, if you have a directive extracting an <tt class="docutils literal"><span class="pre">Int</span></tt> you can use map to turn
+it into a directive that extracts that <tt class="docutils literal"><span class="pre">Int</span></tt> and doubles it, but you cannot transform
+it into a directive, that doubles all positive <tt class="docutils literal"><span class="pre">Int</span></tt> values and rejects all others.</p>
+<p>In order to do the latter you need <tt class="docutils literal"><span class="pre">flatMap</span></tt> or <tt class="docutils literal"><span class="pre">tflatMap</span></tt>. The <tt class="docutils literal"><span class="pre">tflatMap</span></tt>
+modifier has this signature:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">def</span> <span class="n">tflatMap</span><span class="o">[</span><span class="kt">R:</span> <span class="kt">Tuple</span><span class="o">](</span><span class="n">f</span><span class="k">:</span> <span class="kt">L</span> <span class="k">⇒</span> <span class="kt">Directive</span><span class="o">[</span><span class="kt">R</span><span class="o">])</span><span class="k">:</span> <span class="kt">Directive</span><span class="o">[</span><span class="kt">R</span><span class="o">]</span>
+</pre></div>
+</div>
+<p>The given function produces a new directive depending on the Tuple of extractions
+of the underlying one. As in the case of <a class="reference internal" href="#map-tmap"><em>map and tmap</em></a> there is also a single-value
+variant called <tt class="docutils literal"><span class="pre">flatMap</span></tt>, which simplifies the operation for Directives only extracting one single value.</p>
+<p>Here is the (contrived) example from above, which doubles positive Int values and rejects all others:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">val</span> <span class="n">intParameter</span><span class="k">:</span> <span class="kt">Directive1</span><span class="o">[</span><span class="kt">Int</span><span class="o">]</span> <span class="k">=</span> <span class="n">parameter</span><span class="o">(</span><span class="s">&quot;a&quot;</span><span class="o">.</span><span class="n">as</span><span class="o">[</span><span class="kt">Int</span><span class="o">])</span>
+
+<span class="k">val</span> <span class="n">myDirective</span><span class="k">:</span> <span class="kt">Directive1</span><span class="o">[</span><span class="kt">Int</span><span class="o">]</span> <span class="k">=</span>
+  <span class="n">intParameter</span><span class="o">.</span><span class="n">flatMap</span> <span class="o">{</span>
+    <span class="k">case</span> <span class="n">a</span> <span class="k">if</span> <span class="n">a</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">=&gt;</span> <span class="n">provide</span><span class="o">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">a</span><span class="o">)</span>
+    <span class="k">case</span> <span class="k">_</span>          <span class="k">=&gt;</span> <span class="n">reject</span>
+  <span class="o">}</span>
+
+<span class="c1">// tests:</span>
+<span class="nc">Get</span><span class="o">(</span><span class="s">&quot;/?a=21&quot;</span><span class="o">)</span> <span class="o">~&gt;</span> <span class="n">myDirective</span><span class="o">(</span><span class="n">i</span> <span class="k">=&gt;</span> <span class="n">complete</span><span class="o">(</span><span class="n">i</span><span class="o">.</span><span class="n">toString</span><span class="o">))</span> <span class="o">~&gt;</span> <span class="n">check</span> <span class="o">{</span>
+  <span class="n">responseAs</span><span class="o">[</span><span class="kt">String</span><span class="o">]</span> <span class="o">===</span> <span class="s">&quot;42&quot;</span>
+<span class="o">}</span>
+<span class="nc">Get</span><span class="o">(</span><span class="s">&quot;/?a=-18&quot;</span><span class="o">)</span> <span class="o">~&gt;</span> <span class="n">myDirective</span><span class="o">(</span><span class="n">i</span> <span class="k">=&gt;</span> <span class="n">complete</span><span class="o">(</span><span class="n">i</span><span class="o">.</span><span class="n">toString</span><span class="o">))</span> <span class="o">~&gt;</span> <span class="n">check</span> <span class="o">{</span>
+  <span class="n">handled</span> <span class="o">===</span> <span class="kc">false</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<p>A common pattern that relies on flatMap is to first extract a value
+from the RequestContext with the extract directive and then flatMap with
+some kind of filtering logic. For example, this is the implementation
+of the method directive:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="cm">/**</span>
+<span class="cm"> * Rejects all requests whose HTTP method does not match the given one.</span>
+<span class="cm"> *</span>
+<span class="cm"> * @group method</span>
+<span class="cm"> */</span>
+<span class="k">def</span> <span class="n">method</span><span class="o">(</span><span class="n">httpMethod</span><span class="k">:</span> <span class="kt">HttpMethod</span><span class="o">)</span><span class="k">:</span> <span class="kt">Directive0</span> <span class="o">=</span>
+  <span class="n">extractMethod</span><span class="o">.</span><span class="n">flatMap</span><span class="o">[</span><span class="kt">Unit</span><span class="o">]</span> <span class="o">{</span>
+    <span class="k">case</span> <span class="n">`httpMethod`</span> <span class="k">⇒</span> <span class="n">pass</span>
+    <span class="k">case</span> <span class="k">_</span>            <span class="k">⇒</span> <span class="n">reject</span><span class="o">(</span><span class="nc">MethodRejection</span><span class="o">(</span><span class="n">httpMethod</span><span class="o">))</span>
+  <span class="o">}</span> <span class="o">&amp;</span> <span class="n">cancelRejections</span><span class="o">(</span><span class="n">classOf</span><span class="o">[</span><span class="kt">MethodRejection</span><span class="o">])</span>
+</pre></div>
+</div>
+<p>The explicit type parameter <tt class="docutils literal"><span class="pre">[Unit]</span></tt> on the flatMap i`s needed in this case
+because the result of the flatMap is directly concatenated with the
+<tt class="docutils literal"><span class="pre">cancelAllRejections</span></tt> directive, thereby preventing “outside-in”
+inference of the type parameter value.</p>
+</div>
+<div class="section" id="require-and-trequire">
+<span id="require-trequire"></span><h3>require and trequire</h3>
+<p>The require modifier transforms a single-extraction directive into a directive
+without extractions, which filters the requests according the a predicate function.
+All requests, for which the predicate is false are rejected, all others pass unchanged.</p>
+<p>The signature of require is this:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">def</span> <span class="n">require</span><span class="o">(</span><span class="n">predicate</span><span class="k">:</span> <span class="kt">T</span> <span class="k">⇒</span> <span class="kt">Boolean</span><span class="o">,</span> <span class="n">rejections</span><span class="k">:</span> <span class="kt">Rejection*</span><span class="o">)</span><span class="k">:</span> <span class="kt">Directive0</span>
+</pre></div>
+</div>
+<p>One example of a predefined directive relying on require is the first overload of the host directive:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="cm">/**</span>
+<span class="cm"> * Rejects all requests for whose host name the given predicate function returns false.</span>
+<span class="cm"> *</span>
+<span class="cm"> * @group host</span>
+<span class="cm"> */</span>
+<span class="k">def</span> <span class="n">host</span><span class="o">(</span><span class="n">predicate</span><span class="k">:</span> <span class="kt">String</span> <span class="k">⇒</span> <span class="kt">Boolean</span><span class="o">)</span><span class="k">:</span> <span class="kt">Directive0</span> <span class="o">=</span> <span class="n">extractHost</span><span class="o">.</span><span class="n">require</span><span class="o">(</span><span class="n">predicate</span><span class="o">)</span>
+</pre></div>
+</div>
+<p>You can only call require on single-extraction directives. The trequire modifier is the
+more general variant, which takes a predicate of type <tt class="docutils literal"><span class="pre">Tuple</span> <span class="pre">=&gt;</span> <span class="pre">Boolean</span></tt>.
+It can therefore also be used on directives with several extractions.</p>
+</div>
+<div class="section" id="recover-and-recoverpf">
+<span id="recover-recoverpf"></span><h3>recover and recoverPF</h3>
+<p>The <tt class="docutils literal"><span class="pre">recover</span></tt> modifier allows you “catch” rejections produced by the underlying
+directive and, instead of rejecting, produce an alternative directive with the same type(s) of extractions.</p>
+<p>The signature of recover is this:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">def</span> <span class="n">recover</span><span class="o">[</span><span class="kt">R</span> <span class="k">&gt;:</span> <span class="kt">L:</span> <span class="kt">Tuple</span><span class="o">](</span><span class="n">recovery</span><span class="k">:</span> <span class="kt">Seq</span><span class="o">[</span><span class="kt">Rejection</span><span class="o">]</span> <span class="k">⇒</span> <span class="nc">Directive</span><span class="o">[</span><span class="kt">R</span><span class="o">])</span><span class="k">:</span> <span class="kt">Directive</span><span class="o">[</span><span class="kt">R</span><span class="o">]</span> <span class="k">=</span>
+</pre></div>
+</div>
+<p>In many cases the very similar <tt class="docutils literal"><span class="pre">recoverPF</span></tt> modifier might be little bit
+easier to use since it doesn’t require the handling of all rejections:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">def</span> <span class="n">recoverPF</span><span class="o">[</span><span class="kt">R</span> <span class="k">&gt;:</span> <span class="kt">L:</span> <span class="kt">Tuple</span><span class="o">](</span>
+  <span class="n">recovery</span><span class="k">:</span> <span class="kt">PartialFunction</span><span class="o">[</span><span class="kt">Seq</span><span class="o">[</span><span class="kt">Rejection</span><span class="o">]</span>, <span class="kt">Directive</span><span class="o">[</span><span class="kt">R</span><span class="o">]])</span><span class="k">:</span> <span class="kt">Directive</span><span class="o">[</span><span class="kt">R</span><span class="o">]</span>
+</pre></div>
+</div>
+<p>One example of a predefined directive relying <tt class="docutils literal"><span class="pre">recoverPF</span></tt> is the optionalHeaderValue directive:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="cm">/**</span>
+<span class="cm"> * Extracts an optional HTTP header value using the given function.</span>
+<span class="cm"> * If the given function throws an exception the request is rejected</span>
+<span class="cm"> * with a [[akka.http.scaladsl.server.MalformedHeaderRejection]].</span>
+<span class="cm"> *</span>
+<span class="cm"> * @group header</span>
+<span class="cm"> */</span>
+<span class="k">def</span> <span class="n">optionalHeaderValue</span><span class="o">[</span><span class="kt">T</span><span class="o">](</span><span class="n">f</span><span class="k">:</span> <span class="kt">HttpHeader</span> <span class="k">⇒</span> <span class="kt">Option</span><span class="o">[</span><span class="kt">T</span><span class="o">])</span><span class="k">:</span> <span class="kt">Directive1</span><span class="o">[</span><span class="kt">Option</span><span class="o">[</span><span class="kt">T</span><span class="o">]]</span> <span class="k">=</span>
+  <span class="n">headerValue</span><span class="o">(</span><span class="n">f</span><span class="o">).</span><span class="n">map</span><span class="o">(</span><span class="nc">Some</span><span class="o">(</span><span class="k">_</span><span class="o">)</span><span class="k">:</span> <span class="kt">Option</span><span class="o">[</span><span class="kt">T</span><span class="o">]).</span><span class="n">recoverPF</span> <span class="o">{</span>
+    <span class="k">case</span> <span class="nc">Nil</span> <span class="k">⇒</span> <span class="n">provide</span><span class="o">(</span><span class="nc">None</span><span class="o">)</span>
+  <span class="o">}</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="directives-from-scratch">
+<h2>Directives from Scratch</h2>
+<p>The third option for creating custom directives is to do it “from scratch”,
+by directly subclassing the Directive class. The Directive is defined like this
+(leaving away operators and modifiers):</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">abstract</span> <span class="k">class</span> <span class="nc">Directive</span><span class="o">[</span><span class="kt">L</span><span class="o">](</span><span class="k">implicit</span> <span class="k">val</span> <span class="n">ev</span><span class="k">:</span> <span class="kt">Tuple</span><span class="o">[</span><span class="kt">L</span><span class="o">])</span> <span class="o">{</span>
+
+  <span class="cm">/**</span>
+<span class="cm">   * Calls the inner route with a tuple of extracted values of type `L`.</span>
+<span class="cm">   *</span>
+<span class="cm">   * `tapply` is short for &quot;tuple-apply&quot;. Usually, you will use the regular `apply` method instead,</span>
+<span class="cm">   * which is added by an implicit conversion (see `Directive.addDirectiveApply`).</span>
+<span class="cm">   */</span>
+  <span class="k">def</span> <span class="n">tapply</span><span class="o">(</span><span class="n">f</span><span class="k">:</span> <span class="kt">L</span> <span class="k">⇒</span> <span class="kt">Route</span><span class="o">)</span><span class="k">:</span> <span class="kt">Route</span>
+</pre></div>
+</div>
+<p>It only has one abstract member that you need to implement, the happly method, which creates
+the Route the directives presents to the outside from its inner Route building function
+(taking the extractions as parameter).</p>
+<p>Extractions are kept as a Tuple. Here are a few examples:</p>
+<p>A <tt class="docutils literal"><span class="pre">Directive[Unit]</span></tt> extracts nothing (like the get directive).
+Because this type is used quite frequently akka-http defines a type alias for it:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">type</span> <span class="kt">Directive0</span> <span class="o">=</span> <span class="nc">Directive</span><span class="o">[</span><span class="kt">Unit</span><span class="o">]</span>
+</pre></div>
+</div>
+<p>A <tt class="docutils literal"><span class="pre">Directive[(String)]</span></tt> extracts one String value (like the hostName directive). The type alias for it is:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">type</span> <span class="kt">Directive1</span><span class="o">[</span><span class="kt">T</span><span class="o">]</span> <span class="k">=</span> <span class="nc">Directive</span><span class="o">[</span><span class="kt">Tuple1</span><span class="o">[</span><span class="kt">T</span><span class="o">]]</span>
+</pre></div>
+</div>
+<p>A Directive[(Int, String)] extracts an <tt class="docutils literal"><span class="pre">Int</span></tt> value and a <tt class="docutils literal"><span class="pre">String</span></tt> value
+(like a <tt class="docutils literal"><span class="pre">parameters('a.as[Int],</span> <span class="pre">'b.as[String])</span></tt> directive).</p>
+<p>Keeping extractions as <tt class="docutils literal"><span class="pre">Tuples</span></tt> has a lot of advantages, mainly great flexibility
+while upholding full type safety and “inferability”. However, the number of times
+where you’ll really have to fall back to defining a directive from scratch should
+be very small. In fact, if you find yourself in a position where a “from scratch”
+directive is your only option, we’d like to hear about it,
+so we can provide a higher-level “something” for other users.</p>
+</div>
+</div>
+
+
+          </div>
+          <div class="span3"><p class="contents-title">Contents</p>
+              <div id="scroller-anchor">
+                <div id="scroller">
+                  <div id="toc"></div>
+                </div>
+              </div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="footer">
+  <div class="container">
+    <ul>
+      <li><h5>Akka</h5></li>
+      <li><a href="https://akka.io/docs">Documentation</a></li>
+      <li><a href="https://akka.io/faq">FAQ</a></li>
+      <li><a href="https://akka.io/downloads">Downloads</a></li>
+      <li><a href="https://akka.io/news">News</a></li>
+      <li><a href="http://letitcrash.com">Blog</a></li>
+    </ul>
+    <ul>
+      <li><h5>Contribute</h5></li>
+      <li><a href="https://akka.io/community">Community Projects</a></li>
+      <li><a href="http://github.com/akka/akka">Source Code</a></li>
+      <li><a href="http://groups.google.com/group/akka-user">Mailing List</a></li>      
+      <li><a href="https://doc.akka.io/docs/akka/current/project/issue-tracking.html">Report a Bug</a></li>      
+    </ul>
+    <ul>
+      <li><h5>Company</h5></li>
+      <li><a href="http://www.lightbend.com/how/subscription">Commercial Support</a></li>
+      <li><a href="https://akka.io/team">Team</a></li>
+      <li><a href="mailto:info@lightbend.com">Contact</a></li>
+    </ul>
+    <ul>
+      <li><img src="../../../../_static/akka_icon_reverse.svg" align="center"/></li>
+    </ul>
+  </div>
+  <div class="container copyright">
+    <p style="float: left;">
+      © 2015 <a href="http://www.lightbend.com/">Lightbend Inc.</a> <span class="license">Akka is Open Source and available under the Apache 2 License.</span>
+    </p>
+    <p style="float: right; font-size: 12px;">
+      Last updated: Apr 14, 2016
+    </p>          
+  </div>
+</div>
+<script type="text/javascript">
+  var $toc = $('#toc');
+  $toc.toc();
+
+  // show clickable section sign when section header hovered:
+  $('.section h2,.section h3,.section h4,.section h5').each(function(i, el) {
+      var $el = $(el);
+      $el.prepend($("<a class='section-marker' href='#" + $el.attr("id") + "'>&sect;</a>"))
+  });
+</script>
+
+<!-- Algolia docs search -->
+<script type="text/javascript">
+  var version = DOCUMENTATION_OPTIONS.VERSION;
+
+  var lang = "scala";
+  var path = window.location.pathname;
+  if (path.includes("/java/") || path.includes("java.html")) lang = "java";
+
+  console.log("Search configured for:", lang, "@", version);
+
+  docsearch({
+    apiKey: '543bad5ad786495d9ccd445ed34ed082',
+    indexName: 'akka_io',
+    inputSelector: '#search',
+    algoliaOptions: {
+      hitsPerPage: 10,
+      facetFilters: '[' +
+      '["language:' + lang + '","language:general"]' +
+      ',"version:2.4.2"]'
+    }
+  });
+
+  // set up "/" as global shortcut for focusing on search
+  $(document).keypress(function (event) {
+    if (event.keyCode == 47) {
+      $("#q").focus();
+      return false; // swallow key event, otherwise the / char would be input into the search box
+    }
+  });
+</script>
+
+  
+
+  </body>
+</html>

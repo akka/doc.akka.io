@@ -1,0 +1,372 @@
+
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Persistence Query for LevelDB &mdash; Akka Documentation</title>
+    
+    <link rel="stylesheet" href="../_static/style.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/prettify.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/base.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
+    <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,600,700" type="text/css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/docsearch.js/1/docsearch.min.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '2.4-bin-rp-16s01p05',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="../_static/toc.js"></script>
+    <script type="text/javascript" src="../_static/prettify.js"></script>
+    <script type="text/javascript" src="../_static/highlightCode.js"></script>
+    <script type="text/javascript" src="../_static/effects.core.js"></script>
+    <script type="text/javascript" src="../_static/effects.highlight.js"></script>
+    <script type="text/javascript" src="../_static/scrollTo.js"></script>
+    <script type="text/javascript" src="../_static/contentsFix.js"></script>
+    <script type="text/javascript" src="../_static/ga.js"></script>
+    <script type="text/javascript" src="../_static/warnOldDocs.js"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/docsearch.js/1/docsearch.min.js"></script>
+    <link rel="shortcut icon" href="../_static/favicon.ico"/>
+    <link rel="top" title="Akka Documentation" href="../index.html" />
+    <link rel="up" title="Actors" href="index-actors.html" />
+    <link rel="next" title="Testing Actor Systems" href="testing.html" />
+    <link rel="prev" title="Persistence Query" href="persistence-query.html" />
+
+
+  </head>
+  <body>
+  <div class="navbar">
+    <div class="navbar-inner">
+      <div class="container">
+        <div class="navbar-logo">
+          <a href="https://akka.io"><img class="svg-logo" src="../_static/akka_full_color.svg" /></a>
+        </div>    
+        <ul class="nav">
+          <li><a href="https://akka.io/docs">Documentation</a></li>
+          <li><a href="https://akka.io/faq">FAQ</a></li>
+          <li><a href="https://akka.io/downloads">Download</a></li>
+          <li><a href="http://groups.google.com/group/akka-user">Mailing List</a></li>
+          <li><a href="http://github.com/akka/akka">Code</a></li>           
+          <li><a href="http://www.lightbend.com/how/subscription">Commercial Support</a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="main">
+    <div class="container">
+      <div class="page-title">Persistence Query for LevelDB</div>
+      <div class="pdf-link"><a href="../AkkaScala.pdf" title="Akka Scala Documentation"><img src="../_static/pdf-scala-icon.png" style="height: 40px;" /></a></div>
+      <div class="pdf-link"><a href="../AkkaJava.pdf" title="Akka Java Documentation"><img src="../_static/pdf-java-icon.png" style="height: 40px;" /></a></div>
+    </div>
+    <div class="main-container">
+      <div class="container">
+        <div class="row">
+          <div class="span12">
+            <ul class="breadcrumb">           
+              <li>
+                 <span class="divider">|</span> <a href="testing.html">Testing Actor Systems</a> <span class="divider">»</span>
+              </li>
+              <li>
+                <a href="../java.html">Java Contents</a> <span class="divider">|</span> <a href="../scala.html">Scala Contents</a>
+              </li>
+              <li>
+                <span class="divider">«</span> <a href="persistence-query.html">Persistence Query</a> <span class="divider">|</span>
+              </li>
+              <li style="float: left">
+                Version 2.4-bin-rp-16s01p05
+              </li>
+              <li style="float: left">
+                <input type="search" id="search" class="form-control" />
+              </li>
+            </ul>
+          </div>
+        </div>
+        <div class="row"><div class="span9">
+            
+  <div class="section" id="persistence-query-for-leveldb">
+<span id="persistence-query-leveldb-scala"></span><h1>Persistence Query for LevelDB</h1>
+<p>This is documentation for the LevelDB implementation of the <a class="reference internal" href="persistence-query.html#persistence-query-scala"><em>Persistence Query</em></a> API.
+Note that implementations for other journals may have different semantics.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">This module is marked as <strong>“experimental”</strong> as of its introduction in Akka 2.4.0. We will continue to
+improve this API based on our users’ feedback, which implies that while we try to keep incompatible
+changes to a minimum the binary compatibility guarantee for maintenance releases does not apply to the
+contents of the <tt class="docutils literal"><span class="pre">akka.persistence.query</span></tt> package.</p>
+</div>
+<div class="section" id="dependencies">
+<h2>Dependencies</h2>
+<p>Akka persistence LevelDB query implementation is bundled in the <tt class="docutils literal"><span class="pre">akka-persistence-query-experimental</span></tt> artifact.
+Make sure that you have the following dependency in your project:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="s">&quot;com.typesafe.akka&quot;</span> <span class="o">%%</span> <span class="s">&quot;akka-persistence-query-experimental&quot;</span> <span class="o">%</span> <span class="s">&quot;2.4-bin-rp-16s01p05&quot;</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="how-to-get-the-readjournal">
+<h2>How to get the ReadJournal</h2>
+<p>The <tt class="docutils literal"><span class="pre">ReadJournal</span></tt> is retrieved via the <tt class="docutils literal"><span class="pre">akka.persistence.query.PersistenceQuery</span></tt>
+extension:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">import</span> <span class="nn">akka.persistence.query.PersistenceQuery</span>
+<span class="k">import</span> <span class="nn">akka.persistence.query.journal.leveldb.scaladsl.LeveldbReadJournal</span>
+
+<span class="k">val</span> <span class="n">queries</span> <span class="k">=</span> <span class="nc">PersistenceQuery</span><span class="o">(</span><span class="n">system</span><span class="o">).</span><span class="n">readJournalFor</span><span class="o">[</span><span class="kt">LeveldbReadJournal</span><span class="o">](</span>
+  <span class="nc">LeveldbReadJournal</span><span class="o">.</span><span class="nc">Identifier</span><span class="o">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="supported-queries">
+<h2>Supported Queries</h2>
+<div class="section" id="eventsbypersistenceidquery-and-currenteventsbypersistenceidquery">
+<h3>EventsByPersistenceIdQuery and CurrentEventsByPersistenceIdQuery</h3>
+<p><tt class="docutils literal"><span class="pre">eventsByPersistenceId</span></tt> is used for retrieving events for a specific <tt class="docutils literal"><span class="pre">PersistentActor</span></tt>
+identified by <tt class="docutils literal"><span class="pre">persistenceId</span></tt>.</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">implicit</span> <span class="k">val</span> <span class="n">mat</span> <span class="k">=</span> <span class="nc">ActorMaterializer</span><span class="o">()(</span><span class="n">system</span><span class="o">)</span>
+<span class="k">val</span> <span class="n">queries</span> <span class="k">=</span> <span class="nc">PersistenceQuery</span><span class="o">(</span><span class="n">system</span><span class="o">).</span><span class="n">readJournalFor</span><span class="o">[</span><span class="kt">LeveldbReadJournal</span><span class="o">](</span>
+  <span class="nc">LeveldbReadJournal</span><span class="o">.</span><span class="nc">Identifier</span><span class="o">)</span>
+
+<span class="k">val</span> <span class="n">src</span><span class="k">:</span> <span class="kt">Source</span><span class="o">[</span><span class="kt">EventEnvelope</span>, <span class="kt">NotUsed</span><span class="o">]</span> <span class="k">=</span>
+  <span class="n">queries</span><span class="o">.</span><span class="n">eventsByPersistenceId</span><span class="o">(</span><span class="s">&quot;some-persistence-id&quot;</span><span class="o">,</span> <span class="mi">0L</span><span class="o">,</span> <span class="nc">Long</span><span class="o">.</span><span class="nc">MaxValue</span><span class="o">)</span>
+
+<span class="k">val</span> <span class="n">events</span><span class="k">:</span> <span class="kt">Source</span><span class="o">[</span><span class="kt">Any</span>, <span class="kt">NotUsed</span><span class="o">]</span> <span class="k">=</span> <span class="n">src</span><span class="o">.</span><span class="n">map</span><span class="o">(</span><span class="k">_</span><span class="o">.</span><span class="n">event</span><span class="o">)</span>
+</pre></div>
+</div>
+<p>You can retrieve a subset of all events by specifying <tt class="docutils literal"><span class="pre">fromSequenceNr</span></tt> and <tt class="docutils literal"><span class="pre">toSequenceNr</span></tt>
+or use <tt class="docutils literal"><span class="pre">0L</span></tt> and <tt class="docutils literal"><span class="pre">Long.MaxValue</span></tt> respectively to retrieve all events. Note that
+the corresponding sequence number of each event is provided in the <tt class="docutils literal"><span class="pre">EventEnvelope</span></tt>,
+which makes it possible to resume the stream at a later point from a given sequence number.</p>
+<p>The returned event stream is ordered by sequence number, i.e. the same order as the
+<tt class="docutils literal"><span class="pre">PersistentActor</span></tt> persisted the events. The same prefix of stream elements (in same order)
+are returned for multiple executions of the query, except for when events have been deleted.</p>
+<p>The stream is not completed when it reaches the end of the currently stored events,
+but it continues to push new events when new events are persisted.
+Corresponding query that is completed when it reaches the end of the currently
+stored events is provided by <tt class="docutils literal"><span class="pre">currentEventsByPersistenceId</span></tt>.</p>
+<p>The LevelDB write journal is notifying the query side as soon as events are persisted, but for
+efficiency reasons the query side retrieves the events in batches that sometimes can
+be delayed up to the configured <tt class="docutils literal"><span class="pre">refresh-interval</span></tt> or given <tt class="docutils literal"><span class="pre">RefreshInterval</span></tt>
+hint.</p>
+<p>The stream is completed with failure if there is a failure in executing the query in the
+backend journal.</p>
+</div>
+<div class="section" id="allpersistenceidsquery-and-currentpersistenceidsquery">
+<h3>AllPersistenceIdsQuery and CurrentPersistenceIdsQuery</h3>
+<p><tt class="docutils literal"><span class="pre">allPersistenceIds</span></tt> is used for retrieving all <tt class="docutils literal"><span class="pre">persistenceIds</span></tt> of all persistent actors.</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">implicit</span> <span class="k">val</span> <span class="n">mat</span> <span class="k">=</span> <span class="nc">ActorMaterializer</span><span class="o">()(</span><span class="n">system</span><span class="o">)</span>
+<span class="k">val</span> <span class="n">queries</span> <span class="k">=</span> <span class="nc">PersistenceQuery</span><span class="o">(</span><span class="n">system</span><span class="o">).</span><span class="n">readJournalFor</span><span class="o">[</span><span class="kt">LeveldbReadJournal</span><span class="o">](</span>
+  <span class="nc">LeveldbReadJournal</span><span class="o">.</span><span class="nc">Identifier</span><span class="o">)</span>
+
+<span class="k">val</span> <span class="n">src</span><span class="k">:</span> <span class="kt">Source</span><span class="o">[</span><span class="kt">String</span>, <span class="kt">NotUsed</span><span class="o">]</span> <span class="k">=</span> <span class="n">queries</span><span class="o">.</span><span class="n">allPersistenceIds</span><span class="o">()</span>
+</pre></div>
+</div>
+<p>The returned event stream is unordered and you can expect different order for multiple
+executions of the query.</p>
+<p>The stream is not completed when it reaches the end of the currently used <cite>persistenceIds</cite>,
+but it continues to push new <cite>persistenceIds</cite> when new persistent actors are created.
+Corresponding query that is completed when it reaches the end of the
+currently used <cite>persistenceIds</cite> is provided by <tt class="docutils literal"><span class="pre">currentPersistenceIds</span></tt>.</p>
+<p>The LevelDB write journal is notifying the query side as soon as new <tt class="docutils literal"><span class="pre">persistenceIds</span></tt> are
+created and there is no periodic polling or batching involved in this query.</p>
+<p>The stream is completed with failure if there is a failure in executing the query in the
+backend journal.</p>
+</div>
+<div class="section" id="eventsbytag-and-currenteventsbytag">
+<h3>EventsByTag and CurrentEventsByTag</h3>
+<p><tt class="docutils literal"><span class="pre">eventsByTag</span></tt> is used for retrieving events that were marked with a given tag, e.g.
+all domain events of an Aggregate Root type.</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">implicit</span> <span class="k">val</span> <span class="n">mat</span> <span class="k">=</span> <span class="nc">ActorMaterializer</span><span class="o">()(</span><span class="n">system</span><span class="o">)</span>
+<span class="k">val</span> <span class="n">queries</span> <span class="k">=</span> <span class="nc">PersistenceQuery</span><span class="o">(</span><span class="n">system</span><span class="o">).</span><span class="n">readJournalFor</span><span class="o">[</span><span class="kt">LeveldbReadJournal</span><span class="o">](</span>
+  <span class="nc">LeveldbReadJournal</span><span class="o">.</span><span class="nc">Identifier</span><span class="o">)</span>
+
+<span class="k">val</span> <span class="n">src</span><span class="k">:</span> <span class="kt">Source</span><span class="o">[</span><span class="kt">EventEnvelope</span>, <span class="kt">NotUsed</span><span class="o">]</span> <span class="k">=</span>
+  <span class="n">queries</span><span class="o">.</span><span class="n">eventsByTag</span><span class="o">(</span><span class="n">tag</span> <span class="k">=</span> <span class="s">&quot;green&quot;</span><span class="o">,</span> <span class="n">offset</span> <span class="k">=</span> <span class="mi">0L</span><span class="o">)</span>
+</pre></div>
+</div>
+<p>To tag events you create an <a class="reference internal" href="persistence.html#event-adapters-scala"><em>Event Adapters</em></a> that wraps the events in a <tt class="docutils literal"><span class="pre">akka.persistence.journal.Tagged</span></tt>
+with the given <tt class="docutils literal"><span class="pre">tags</span></tt>.</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">import</span> <span class="nn">akka.persistence.journal.WriteEventAdapter</span>
+<span class="k">import</span> <span class="nn">akka.persistence.journal.Tagged</span>
+
+<span class="k">class</span> <span class="nc">MyTaggingEventAdapter</span> <span class="k">extends</span> <span class="nc">WriteEventAdapter</span> <span class="o">{</span>
+  <span class="k">val</span> <span class="n">colors</span> <span class="k">=</span> <span class="nc">Set</span><span class="o">(</span><span class="s">&quot;green&quot;</span><span class="o">,</span> <span class="s">&quot;black&quot;</span><span class="o">,</span> <span class="s">&quot;blue&quot;</span><span class="o">)</span>
+  <span class="k">override</span> <span class="k">def</span> <span class="n">toJournal</span><span class="o">(</span><span class="n">event</span><span class="k">:</span> <span class="kt">Any</span><span class="o">)</span><span class="k">:</span> <span class="kt">Any</span> <span class="o">=</span> <span class="n">event</span> <span class="k">match</span> <span class="o">{</span>
+    <span class="k">case</span> <span class="n">s</span><span class="k">:</span> <span class="kt">String</span> <span class="k">⇒</span>
+      <span class="kt">var</span> <span class="kt">tags</span> <span class="o">=</span> <span class="n">colors</span><span class="o">.</span><span class="n">foldLeft</span><span class="o">(</span><span class="nc">Set</span><span class="o">.</span><span class="n">empty</span><span class="o">[</span><span class="kt">String</span><span class="o">])</span> <span class="o">{</span> <span class="o">(</span><span class="n">acc</span><span class="o">,</span> <span class="n">c</span><span class="o">)</span> <span class="k">⇒</span>
+        <span class="k">if</span> <span class="o">(</span><span class="n">s</span><span class="o">.</span><span class="n">contains</span><span class="o">(</span><span class="n">c</span><span class="o">))</span> <span class="n">acc</span> <span class="o">+</span> <span class="n">c</span> <span class="k">else</span> <span class="n">acc</span>
+      <span class="o">}</span>
+      <span class="k">if</span> <span class="o">(</span><span class="n">tags</span><span class="o">.</span><span class="n">isEmpty</span><span class="o">)</span> <span class="n">event</span>
+      <span class="k">else</span> <span class="nc">Tagged</span><span class="o">(</span><span class="n">event</span><span class="o">,</span> <span class="n">tags</span><span class="o">)</span>
+    <span class="k">case</span> <span class="k">_</span> <span class="k">⇒</span> <span class="n">event</span>
+  <span class="o">}</span>
+
+  <span class="k">override</span> <span class="k">def</span> <span class="n">manifest</span><span class="o">(</span><span class="n">event</span><span class="k">:</span> <span class="kt">Any</span><span class="o">)</span><span class="k">:</span> <span class="kt">String</span> <span class="o">=</span> <span class="s">&quot;&quot;</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<p>You can retrieve a subset of all events by specifying <tt class="docutils literal"><span class="pre">offset</span></tt>, or use <tt class="docutils literal"><span class="pre">0L</span></tt> to retrieve all
+events with a given tag. The <tt class="docutils literal"><span class="pre">offset</span></tt> corresponds to an ordered sequence number for the specific tag.
+Note that the corresponding offset of each event is provided in the <tt class="docutils literal"><span class="pre">EventEnvelope</span></tt>, which makes it possible
+to resume the stream at a later point from a given offset.</p>
+<p>In addition to the <tt class="docutils literal"><span class="pre">offset</span></tt> the <tt class="docutils literal"><span class="pre">EventEnvelope</span></tt> also provides <tt class="docutils literal"><span class="pre">persistenceId</span></tt> and <tt class="docutils literal"><span class="pre">sequenceNr</span></tt>
+for each event. The <tt class="docutils literal"><span class="pre">sequenceNr</span></tt> is the sequence number for the persistent actor with the
+<tt class="docutils literal"><span class="pre">persistenceId</span></tt> that persisted the event. The <tt class="docutils literal"><span class="pre">persistenceId</span></tt> + <tt class="docutils literal"><span class="pre">sequenceNr</span></tt> is an unique
+identifier for the event.</p>
+<p>The returned event stream is ordered by the offset (tag sequence number), which corresponds
+to the same order as the write journal stored the events. The same stream elements (in same order)
+are returned for multiple executions of the query. Deleted events are not deleted from the
+tagged event stream.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Events deleted using <tt class="docutils literal"><span class="pre">deleteMessages(toSequenceNr)</span></tt> are not deleted from the &quot;tagged stream&quot;.</p>
+</div>
+<p>The stream is not completed when it reaches the end of the currently stored events,
+but it continues to push new events when new events are persisted.
+Corresponding query that is completed when it reaches the end of the currently
+stored events is provided by <tt class="docutils literal"><span class="pre">currentEventsByTag</span></tt>.</p>
+<p>The LevelDB write journal is notifying the query side as soon as tagged events are persisted, but for
+efficiency reasons the query side retrieves the events in batches that sometimes can
+be delayed up to the configured <tt class="docutils literal"><span class="pre">refresh-interval</span></tt> or given <tt class="docutils literal"><span class="pre">RefreshInterval</span></tt>
+hint.</p>
+<p>The stream is completed with failure if there is a failure in executing the query in the
+backend journal.</p>
+</div>
+</div>
+<div class="section" id="configuration">
+<h2>Configuration</h2>
+<p>Configuration settings can be defined in the configuration section with the
+absolute path corresponding to the identifier, which is <tt class="docutils literal"><span class="pre">&quot;akka.persistence.query.journal.leveldb&quot;</span></tt>
+for the default <tt class="docutils literal"><span class="pre">LeveldbReadJournal.Identifier</span></tt>.</p>
+<p>It can be configured with the following properties:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">#</span> <span class="nc">Configuration</span> <span class="k">for</span> <span class="n">the</span> <span class="nc">LeveldbReadJournal</span>
+<span class="n">akka</span><span class="o">.</span><span class="n">persistence</span><span class="o">.</span><span class="n">query</span><span class="o">.</span><span class="n">journal</span><span class="o">.</span><span class="n">leveldb</span> <span class="o">{</span>
+  <span class="k">#</span> <span class="nc">Implementation</span> <span class="k">class</span> <span class="nc">of</span> <span class="n">the</span> <span class="nc">LevelDB</span> <span class="nc">ReadJournalProvider</span>
+  <span class="k">class</span> <span class="nc">=</span> <span class="s">&quot;akka.persistence.query.journal.leveldb.LeveldbReadJournalProvider&quot;</span>
+  
+  <span class="k">#</span> <span class="nc">Absolute</span> <span class="n">path</span> <span class="n">to</span> <span class="n">the</span> <span class="n">write</span> <span class="n">journal</span> <span class="n">plugin</span> <span class="n">configuration</span> <span class="n">entry</span> <span class="n">that</span> <span class="k">this</span> 
+  <span class="k">#</span> <span class="n">query</span> <span class="n">journal</span> <span class="n">will</span> <span class="n">connect</span> <span class="n">to</span><span class="o">.</span> <span class="nc">That</span> <span class="n">must</span> <span class="n">be</span> <span class="n">a</span> <span class="nc">LeveldbJournal</span> <span class="n">or</span> <span class="nc">SharedLeveldbJournal</span><span class="o">.</span>
+  <span class="k">#</span> <span class="nc">If</span> <span class="n">undefined</span> <span class="o">(</span><span class="n">or</span> <span class="s">&quot;&quot;</span><span class="o">)</span> <span class="n">it</span> <span class="n">will</span> <span class="n">connect</span> <span class="n">to</span> <span class="n">the</span> <span class="n">default</span> <span class="n">journal</span> <span class="n">as</span> <span class="n">specified</span> <span class="n">by</span> <span class="n">the</span>
+  <span class="k">#</span> <span class="n">akka</span><span class="o">.</span><span class="n">persistence</span><span class="o">.</span><span class="n">journal</span><span class="o">.</span><span class="n">plugin</span> <span class="n">property</span><span class="o">.</span>
+  <span class="n">write</span><span class="o">-</span><span class="n">plugin</span> <span class="k">=</span> <span class="s">&quot;&quot;</span>
+  
+  <span class="k">#</span> <span class="nc">The</span> <span class="nc">LevelDB</span> <span class="n">write</span> <span class="n">journal</span> <span class="n">is</span> <span class="n">notifying</span> <span class="n">the</span> <span class="n">query</span> <span class="n">side</span> <span class="n">as</span> <span class="n">soon</span> <span class="n">as</span> <span class="n">things</span>
+  <span class="k">#</span> <span class="n">are</span> <span class="n">persisted</span><span class="o">,</span> <span class="n">but</span> <span class="k">for</span> <span class="n">efficiency</span> <span class="n">reasons</span> <span class="n">the</span> <span class="n">query</span> <span class="n">side</span> <span class="n">retrieves</span> <span class="n">the</span> <span class="n">events</span> 
+  <span class="k">#</span> <span class="n">in</span> <span class="n">batches</span> <span class="n">that</span> <span class="n">sometimes</span> <span class="n">can</span> <span class="n">be</span> <span class="n">delayed</span> <span class="n">up</span> <span class="n">to</span> <span class="n">the</span> <span class="n">configured</span> <span class="n">`refresh-interval`</span><span class="o">.</span>
+  <span class="n">refresh</span><span class="o">-</span><span class="n">interval</span> <span class="k">=</span> <span class="mi">3</span><span class="n">s</span>
+  
+  <span class="k">#</span> <span class="nc">How</span> <span class="n">many</span> <span class="n">events</span> <span class="n">to</span> <span class="n">fetch</span> <span class="n">in</span> <span class="n">one</span> <span class="n">query</span> <span class="o">(</span><span class="n">replay</span><span class="o">)</span> <span class="n">and</span> <span class="n">keep</span> <span class="n">buffered</span> <span class="n">until</span> <span class="n">they</span>
+  <span class="k">#</span> <span class="n">are</span> <span class="n">delivered</span> <span class="n">downstreams</span><span class="o">.</span>
+  <span class="n">max</span><span class="o">-</span><span class="n">buffer</span><span class="o">-</span><span class="n">size</span> <span class="k">=</span> <span class="mi">100</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+</div>
+</div>
+
+
+          </div>
+          <div class="span3"><p class="contents-title">Contents</p>
+              <div id="scroller-anchor">
+                <div id="scroller">
+                  <div id="toc"></div>
+                </div>
+              </div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="footer">
+  <div class="container">
+    <ul>
+      <li><h5>Akka</h5></li>
+      <li><a href="https://akka.io/docs">Documentation</a></li>
+      <li><a href="https://akka.io/faq">FAQ</a></li>
+      <li><a href="https://akka.io/downloads">Downloads</a></li>
+      <li><a href="https://akka.io/news">News</a></li>
+      <li><a href="http://letitcrash.com">Blog</a></li>
+    </ul>
+    <ul>
+      <li><h5>Contribute</h5></li>
+      <li><a href="https://akka.io/community">Community Projects</a></li>
+      <li><a href="http://github.com/akka/akka">Source Code</a></li>
+      <li><a href="http://groups.google.com/group/akka-user">Mailing List</a></li>      
+      <li><a href="https://doc.akka.io/docs/akka/current/project/issue-tracking.html">Report a Bug</a></li>      
+    </ul>
+    <ul>
+      <li><h5>Company</h5></li>
+      <li><a href="http://www.lightbend.com/how/subscription">Commercial Support</a></li>
+      <li><a href="https://akka.io/team">Team</a></li>
+      <li><a href="mailto:info@lightbend.com">Contact</a></li>
+    </ul>
+    <ul>
+      <li><img src="../_static/akka_icon_reverse.svg" align="center"/></li>
+    </ul>
+  </div>
+  <div class="container copyright">
+    <p style="float: left;">
+      © 2015 <a href="http://www.lightbend.com/">Lightbend Inc.</a> <span class="license">Akka is Open Source and available under the Apache 2 License.</span>
+    </p>
+    <p style="float: right; font-size: 12px;">
+      Last updated: Apr 14, 2016
+    </p>          
+  </div>
+</div>
+<script type="text/javascript">
+  var $toc = $('#toc');
+  $toc.toc();
+
+  // show clickable section sign when section header hovered:
+  $('.section h2,.section h3,.section h4,.section h5').each(function(i, el) {
+      var $el = $(el);
+      $el.prepend($("<a class='section-marker' href='#" + $el.attr("id") + "'>&sect;</a>"))
+  });
+</script>
+
+<!-- Algolia docs search -->
+<script type="text/javascript">
+  var version = DOCUMENTATION_OPTIONS.VERSION;
+
+  var lang = "scala";
+  var path = window.location.pathname;
+  if (path.includes("/java/") || path.includes("java.html")) lang = "java";
+
+  console.log("Search configured for:", lang, "@", version);
+
+  docsearch({
+    apiKey: '543bad5ad786495d9ccd445ed34ed082',
+    indexName: 'akka_io',
+    inputSelector: '#search',
+    algoliaOptions: {
+      hitsPerPage: 10,
+      facetFilters: '[' +
+      '["language:' + lang + '","language:general"]' +
+      ',"version:2.4.2"]'
+    }
+  });
+
+  // set up "/" as global shortcut for focusing on search
+  $(document).keypress(function (event) {
+    if (event.keyCode == 47) {
+      $("#q").focus();
+      return false; // swallow key event, otherwise the / char would be input into the search box
+    }
+  });
+</script>
+
+  
+
+  </body>
+</html>

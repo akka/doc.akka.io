@@ -1,0 +1,602 @@
+
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>HTTP Model &mdash; Akka Documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/style.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/prettify.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/base.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/docs.css" type="text/css" />
+    <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,600,700" type="text/css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/docsearch.js/1/docsearch.min.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '2.4-bin-rp-16s01p05',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="../../../_static/toc.js"></script>
+    <script type="text/javascript" src="../../../_static/prettify.js"></script>
+    <script type="text/javascript" src="../../../_static/highlightCode.js"></script>
+    <script type="text/javascript" src="../../../_static/effects.core.js"></script>
+    <script type="text/javascript" src="../../../_static/effects.highlight.js"></script>
+    <script type="text/javascript" src="../../../_static/scrollTo.js"></script>
+    <script type="text/javascript" src="../../../_static/contentsFix.js"></script>
+    <script type="text/javascript" src="../../../_static/ga.js"></script>
+    <script type="text/javascript" src="../../../_static/warnOldDocs.js"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/docsearch.js/1/docsearch.min.js"></script>
+    <link rel="shortcut icon" href="../../../_static/favicon.ico"/>
+    <link rel="top" title="Akka Documentation" href="../../../index.html" />
+    <link rel="up" title="Common Abstractions (Client- and Server-Side)" href="index.html" />
+    <link rel="next" title="Marshalling" href="marshalling.html" />
+    <link rel="prev" title="Common Abstractions (Client- and Server-Side)" href="index.html" />
+
+
+  </head>
+  <body>
+  <div class="navbar">
+    <div class="navbar-inner">
+      <div class="container">
+        <div class="navbar-logo">
+          <a href="https://akka.io"><img class="svg-logo" src="../../../_static/akka_full_color.svg" /></a>
+        </div>    
+        <ul class="nav">
+          <li><a href="https://akka.io/docs">Documentation</a></li>
+          <li><a href="https://akka.io/faq">FAQ</a></li>
+          <li><a href="https://akka.io/downloads">Download</a></li>
+          <li><a href="http://groups.google.com/group/akka-user">Mailing List</a></li>
+          <li><a href="http://github.com/akka/akka">Code</a></li>           
+          <li><a href="http://www.lightbend.com/how/subscription">Commercial Support</a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="main">
+    <div class="container">
+      <div class="page-title">HTTP Model</div>
+      <div class="pdf-link"><a href="../../../AkkaScala.pdf" title="Akka Scala Documentation"><img src="../../../_static/pdf-scala-icon.png" style="height: 40px;" /></a></div>
+      <div class="pdf-link"><a href="../../../AkkaJava.pdf" title="Akka Java Documentation"><img src="../../../_static/pdf-java-icon.png" style="height: 40px;" /></a></div>
+    </div>
+    <div class="main-container">
+      <div class="container">
+        <div class="row">
+          <div class="span12">
+            <ul class="breadcrumb">           
+              <li>
+                 <span class="divider">|</span> <a href="marshalling.html">Marshalling</a> <span class="divider">»</span>
+              </li>
+              <li>
+                <a href="../../../java.html">Java Contents</a> <span class="divider">|</span> <a href="../../../scala.html">Scala Contents</a>
+              </li>
+              <li>
+                <span class="divider">«</span> <a href="index.html">Common Abstractions (Client- and Server-Side)</a> <span class="divider">|</span>
+              </li>
+              <li style="float: left">
+                Version 2.4-bin-rp-16s01p05
+              </li>
+              <li style="float: left">
+                <input type="search" id="search" class="form-control" />
+              </li>
+            </ul>
+          </div>
+        </div>
+        <div class="row"><div class="span9">
+            
+  <div class="section" id="http-model">
+<span id="http-model-scala"></span><h1>HTTP Model</h1>
+<p>Akka HTTP model contains a deeply structured, fully immutable, case-class based model of all the major HTTP data
+structures, like HTTP requests, responses and common headers.
+It lives in the <em>akka-http-core</em> module and forms the basis for most of Akka HTTP's APIs.</p>
+<div class="section" id="overview">
+<h2>Overview</h2>
+<p>Since akka-http-core provides the central HTTP data structures you will find the following import in quite a
+few places around the code base (and probably your own code as well):</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">import</span> <span class="nn">akka.http.scaladsl.model._</span>
+</pre></div>
+</div>
+<p>This brings all of the most relevant types in scope, mainly:</p>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">HttpRequest</span></tt> and <tt class="docutils literal"><span class="pre">HttpResponse</span></tt>, the central message model</li>
+<li><tt class="docutils literal"><span class="pre">headers</span></tt>, the package containing all the predefined HTTP header models and supporting types</li>
+<li>Supporting types like <tt class="docutils literal"><span class="pre">Uri</span></tt>, <tt class="docutils literal"><span class="pre">HttpMethods</span></tt>, <tt class="docutils literal"><span class="pre">MediaTypes</span></tt>, <tt class="docutils literal"><span class="pre">StatusCodes</span></tt>, etc.</li>
+</ul>
+<p>A common pattern is that the model of a certain entity is represented by an immutable type (class or trait),
+while the actual instances of the entity defined by the HTTP spec live in an accompanying object carrying the name of
+the type plus a trailing plural 's'.</p>
+<p>For example:</p>
+<ul class="simple">
+<li>Defined <tt class="docutils literal"><span class="pre">HttpMethod</span></tt> instances live in the <tt class="docutils literal"><span class="pre">HttpMethods</span></tt> object.</li>
+<li>Defined <tt class="docutils literal"><span class="pre">HttpCharset</span></tt> instances live in the <tt class="docutils literal"><span class="pre">HttpCharsets</span></tt> object.</li>
+<li>Defined <tt class="docutils literal"><span class="pre">HttpEncoding</span></tt> instances live in the <tt class="docutils literal"><span class="pre">HttpEncodings</span></tt> object.</li>
+<li>Defined <tt class="docutils literal"><span class="pre">HttpProtocol</span></tt> instances live in the <tt class="docutils literal"><span class="pre">HttpProtocols</span></tt> object.</li>
+<li>Defined <tt class="docutils literal"><span class="pre">MediaType</span></tt> instances live in the <tt class="docutils literal"><span class="pre">MediaTypes</span></tt> object.</li>
+<li>Defined <tt class="docutils literal"><span class="pre">StatusCode</span></tt> instances live in the <tt class="docutils literal"><span class="pre">StatusCodes</span></tt> object.</li>
+</ul>
+</div>
+<div class="section" id="httprequest">
+<h2>HttpRequest</h2>
+<p><tt class="docutils literal"><span class="pre">HttpRequest</span></tt> and <tt class="docutils literal"><span class="pre">HttpResponse</span></tt> are the basic case classes representing HTTP messages.</p>
+<p>An <tt class="docutils literal"><span class="pre">HttpRequest</span></tt> consists of</p>
+<blockquote>
+<div><ul class="simple">
+<li>a method (GET, POST, etc.)</li>
+<li>a URI</li>
+<li>a seq of headers</li>
+<li>an entity (body data)</li>
+<li>a protocol</li>
+</ul>
+</div></blockquote>
+<p>Here are some examples how to construct an <tt class="docutils literal"><span class="pre">HttpRequest</span></tt>:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">import</span> <span class="nn">HttpMethods._</span>
+
+<span class="c1">// construct a simple GET request to `homeUri`</span>
+<span class="k">val</span> <span class="n">homeUri</span> <span class="k">=</span> <span class="nc">Uri</span><span class="o">(</span><span class="s">&quot;/abc&quot;</span><span class="o">)</span>
+<span class="nc">HttpRequest</span><span class="o">(</span><span class="nc">GET</span><span class="o">,</span> <span class="n">uri</span> <span class="k">=</span> <span class="n">homeUri</span><span class="o">)</span>
+
+<span class="c1">// construct simple GET request to &quot;/index&quot; (implicit string to Uri conversion)</span>
+<span class="nc">HttpRequest</span><span class="o">(</span><span class="nc">GET</span><span class="o">,</span> <span class="n">uri</span> <span class="k">=</span> <span class="s">&quot;/index&quot;</span><span class="o">)</span>
+
+<span class="c1">// construct simple POST request containing entity</span>
+<span class="k">val</span> <span class="n">data</span> <span class="k">=</span> <span class="nc">ByteString</span><span class="o">(</span><span class="s">&quot;abc&quot;</span><span class="o">)</span>
+<span class="nc">HttpRequest</span><span class="o">(</span><span class="nc">POST</span><span class="o">,</span> <span class="n">uri</span> <span class="k">=</span> <span class="s">&quot;/receive&quot;</span><span class="o">,</span> <span class="n">entity</span> <span class="k">=</span> <span class="n">data</span><span class="o">)</span>
+
+<span class="c1">// customize every detail of HTTP request</span>
+<span class="k">import</span> <span class="nn">HttpProtocols._</span>
+<span class="k">import</span> <span class="nn">MediaTypes._</span>
+<span class="k">import</span> <span class="nn">HttpCharsets._</span>
+<span class="k">val</span> <span class="n">userData</span> <span class="k">=</span> <span class="nc">ByteString</span><span class="o">(</span><span class="s">&quot;abc&quot;</span><span class="o">)</span>
+<span class="k">val</span> <span class="n">authorization</span> <span class="k">=</span> <span class="n">headers</span><span class="o">.</span><span class="nc">Authorization</span><span class="o">(</span><span class="nc">BasicHttpCredentials</span><span class="o">(</span><span class="s">&quot;user&quot;</span><span class="o">,</span> <span class="s">&quot;pass&quot;</span><span class="o">))</span>
+<span class="nc">HttpRequest</span><span class="o">(</span>
+  <span class="nc">PUT</span><span class="o">,</span>
+  <span class="n">uri</span> <span class="k">=</span> <span class="s">&quot;/user&quot;</span><span class="o">,</span>
+  <span class="n">entity</span> <span class="k">=</span> <span class="nc">HttpEntity</span><span class="o">(</span><span class="n">`text/plain`</span> <span class="n">withCharset</span> <span class="n">`UTF-8`</span><span class="o">,</span> <span class="n">userData</span><span class="o">),</span>
+  <span class="n">headers</span> <span class="k">=</span> <span class="nc">List</span><span class="o">(</span><span class="n">authorization</span><span class="o">),</span>
+  <span class="n">protocol</span> <span class="k">=</span> <span class="n">`HTTP/1.0`</span><span class="o">)</span>
+</pre></div>
+</div>
+<p>All parameters of <tt class="docutils literal"><span class="pre">HttpRequest.apply</span></tt> have default values set, so <tt class="docutils literal"><span class="pre">headers</span></tt> for example don't need to be specified
+if there are none. Many of the parameters types (like <tt class="docutils literal"><span class="pre">HttpEntity</span></tt> and <tt class="docutils literal"><span class="pre">Uri</span></tt>) define implicit conversions
+for common use cases to simplify the creation of request and response instances.</p>
+</div>
+<div class="section" id="httpresponse">
+<h2>HttpResponse</h2>
+<p>An <tt class="docutils literal"><span class="pre">HttpResponse</span></tt> consists of</p>
+<blockquote>
+<div><ul class="simple">
+<li>a status code</li>
+<li>a seq of headers</li>
+<li>an entity (body data)</li>
+<li>a protocol</li>
+</ul>
+</div></blockquote>
+<p>Here are some examples how to construct an <tt class="docutils literal"><span class="pre">HttpResponse</span></tt>:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">import</span> <span class="nn">StatusCodes._</span>
+
+<span class="c1">// simple OK response without data created using the integer status code</span>
+<span class="nc">HttpResponse</span><span class="o">(</span><span class="mi">200</span><span class="o">)</span>
+
+<span class="c1">// 404 response created using the named StatusCode constant</span>
+<span class="nc">HttpResponse</span><span class="o">(</span><span class="nc">NotFound</span><span class="o">)</span>
+
+<span class="c1">// 404 response with a body explaining the error</span>
+<span class="nc">HttpResponse</span><span class="o">(</span><span class="mi">404</span><span class="o">,</span> <span class="n">entity</span> <span class="k">=</span> <span class="s">&quot;Unfortunately, the resource couldn&#39;t be found.&quot;</span><span class="o">)</span>
+
+<span class="c1">// A redirecting response containing an extra header</span>
+<span class="k">val</span> <span class="n">locationHeader</span> <span class="k">=</span> <span class="n">headers</span><span class="o">.</span><span class="nc">Location</span><span class="o">(</span><span class="s">&quot;http://example.com/other&quot;</span><span class="o">)</span>
+<span class="nc">HttpResponse</span><span class="o">(</span><span class="nc">Found</span><span class="o">,</span> <span class="n">headers</span> <span class="k">=</span> <span class="nc">List</span><span class="o">(</span><span class="n">locationHeader</span><span class="o">))</span>
+</pre></div>
+</div>
+<p>In addition to the simple <tt class="docutils literal"><span class="pre">HttpEntity</span></tt> constructors which create an entity from a fixed <tt class="docutils literal"><span class="pre">String</span></tt> or <tt class="docutils literal"><span class="pre">ByteString</span></tt>
+as shown here the Akka HTTP model defines a number of subclasses of <tt class="docutils literal"><span class="pre">HttpEntity</span></tt> which allow body data to be specified as a
+stream of bytes.</p>
+</div>
+<div class="section" id="httpentity">
+<span id="id1"></span><h2>HttpEntity</h2>
+<p>An <tt class="docutils literal"><span class="pre">HttpEntity</span></tt> carries the data bytes of a message together with its Content-Type and, if known, its Content-Length.
+In Akka HTTP there are five different kinds of entities which model the various ways that message content can be
+received or sent:</p>
+<dl class="docutils">
+<dt>HttpEntity.Strict</dt>
+<dd>The simplest entity, which is used when all the entity are already available in memory.
+It wraps a plain <tt class="docutils literal"><span class="pre">ByteString</span></tt> and  represents a standard, unchunked entity with a known <tt class="docutils literal"><span class="pre">Content-Length</span></tt>.</dd>
+<dt>HttpEntity.Default</dt>
+<dd>The general, unchunked HTTP/1.1 message entity.
+It has a known length and presents its data as a <tt class="docutils literal"><span class="pre">Source[ByteString]</span></tt> which can be only materialized once.
+It is an error if the provided source doesn't produce exactly as many bytes as specified.
+The distinction of <tt class="docutils literal"><span class="pre">Strict</span></tt> and <tt class="docutils literal"><span class="pre">Default</span></tt> is an API-only one. One the wire, both kinds of entities look the same.</dd>
+<dt>HttpEntity.Chunked</dt>
+<dd>The model for HTTP/1.1 <a class="reference external" href="http://tools.ietf.org/html/rfc7230#section-4.1">chunked content</a> (i.e. sent with <tt class="docutils literal"><span class="pre">Transfer-Encoding:</span> <span class="pre">chunked</span></tt>).
+The content length is unknown and the individual chunks are presented as a <tt class="docutils literal"><span class="pre">Source[HttpEntity.ChunkStreamPart]</span></tt>.
+A <tt class="docutils literal"><span class="pre">ChunkStreamPart</span></tt> is either a non-empty <tt class="docutils literal"><span class="pre">Chunk</span></tt> or a <tt class="docutils literal"><span class="pre">LastChunk</span></tt> containing optional trailer headers.
+The stream consists of zero or more <tt class="docutils literal"><span class="pre">Chunked</span></tt> parts and can be terminated by an optional <tt class="docutils literal"><span class="pre">LastChunk</span></tt> part.</dd>
+<dt>HttpEntity.CloseDelimited</dt>
+<dd>An unchunked entity of unknown length that is implicitly delimited by closing the connection (<tt class="docutils literal"><span class="pre">Connection:</span> <span class="pre">close</span></tt>).
+The content data are presented as a <tt class="docutils literal"><span class="pre">Source[ByteString]</span></tt>.
+Since the connection must be closed after sending an entity of this type it can only be used on the server-side for
+sending a response.
+Also, the main purpose of <tt class="docutils literal"><span class="pre">CloseDelimited</span></tt> entities is compatibility with HTTP/1.0 peers, which do not support
+chunked transfer encoding. If you are building a new application and are not constrained by legacy requirements you
+shouldn't rely on <tt class="docutils literal"><span class="pre">CloseDelimited</span></tt> entities, since implicit terminate-by-connection-close is not a robust way of
+signaling response end, especially in the presence of proxies. Additionally this type of entity prevents connection
+reuse which can seriously degrade performance. Use <tt class="docutils literal"><span class="pre">HttpEntity.Chunked</span></tt> instead!</dd>
+<dt>HttpEntity.IndefiniteLength</dt>
+<dd>A streaming entity of unspecified length for use in a <tt class="docutils literal"><span class="pre">Multipart.BodyPart</span></tt>.</dd>
+</dl>
+<p>Entity types <tt class="docutils literal"><span class="pre">Strict</span></tt>, <tt class="docutils literal"><span class="pre">Default</span></tt>, and <tt class="docutils literal"><span class="pre">Chunked</span></tt> are a subtype of <tt class="docutils literal"><span class="pre">HttpEntity.Regular</span></tt> which allows to use them
+for requests and responses. In contrast, <tt class="docutils literal"><span class="pre">HttpEntity.CloseDelimited</span></tt> can only be used for responses.</p>
+<p>Streaming entity types (i.e. all but <tt class="docutils literal"><span class="pre">Strict</span></tt>) cannot be shared or serialized. To create a strict, sharable copy of an
+entity or message use <tt class="docutils literal"><span class="pre">HttpEntity.toStrict</span></tt> or <tt class="docutils literal"><span class="pre">HttpMessage.toStrict</span></tt> which returns a <tt class="docutils literal"><span class="pre">Future</span></tt> of the object with
+the body data collected into a <tt class="docutils literal"><span class="pre">ByteString</span></tt>.</p>
+<p>The <tt class="docutils literal"><span class="pre">HttpEntity</span></tt> companion object contains several helper constructors to create entities from common types easily.</p>
+<p>You can pattern match over the subtypes of <tt class="docutils literal"><span class="pre">HttpEntity</span></tt> if you want to provide special handling for each of the
+subtypes. However, in many cases a recipient of an <tt class="docutils literal"><span class="pre">HttpEntity</span></tt> doesn't care about of which subtype an entity is
+(and how data is transported exactly on the HTTP layer). Therefore, the general method <tt class="docutils literal"><span class="pre">HttpEntity.dataBytes</span></tt> is
+provided which returns a <tt class="docutils literal"><span class="pre">Source[ByteString,</span> <span class="pre">Any]</span></tt> that allows access to the data of an entity regardless of its
+concrete subtype.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<dl class="last docutils">
+<dt>When to use which subtype?</dt>
+<dd><ul class="first last simple">
+<li>Use <tt class="docutils literal"><span class="pre">Strict</span></tt> if the amount of data is &quot;small&quot; and already available in memory (e.g. as a <tt class="docutils literal"><span class="pre">String</span></tt> or <tt class="docutils literal"><span class="pre">ByteString</span></tt>)</li>
+<li>Use <tt class="docutils literal"><span class="pre">Default</span></tt> if the data is generated by a streaming data source and the size of the data is known</li>
+<li>Use <tt class="docutils literal"><span class="pre">Chunked</span></tt> for an entity of unknown length</li>
+<li>Use <tt class="docutils literal"><span class="pre">CloseDelimited</span></tt> for a response as a legacy alternative to <tt class="docutils literal"><span class="pre">Chunked</span></tt> if the client doesn't support
+chunked transfer encoding. Otherwise use <tt class="docutils literal"><span class="pre">Chunked</span></tt>!</li>
+<li>In a <tt class="docutils literal"><span class="pre">Multipart.Bodypart</span></tt> use <tt class="docutils literal"><span class="pre">IndefiniteLength</span></tt> for content of unknown length.</li>
+</ul>
+</dd>
+</dl>
+</div>
+<div class="admonition caution">
+<p class="first admonition-title">Caution</p>
+<p class="last">When you receive a non-strict message from a connection then additional data are only read from the network when you
+request them by consuming the entity data stream. This means that, if you <em>don't</em> consume the entity stream then the
+connection will effectively be stalled. In particular no subsequent message (request or response) will be read from
+the connection as the entity of the current message &quot;blocks&quot; the stream.
+Therefore you must make sure that you always consume the entity data, even in the case that you are not actually
+interested in it!</p>
+</div>
+<div class="section" id="limiting-message-entity-length">
+<h3>Limiting message entity length</h3>
+<p>All message entities that Akka HTTP reads from the network automatically get a length verification check attached to
+them. This check makes sure that the total entity size is less than or equal to the configured
+<tt class="docutils literal"><span class="pre">max-content-length</span></tt> <a class="footnote-reference" href="#id4" id="id3">[1]</a>, which is an important defense against certain Denial-of-Service attacks.
+However, a single global limit for all requests (or responses) is often too inflexible for applications that need to
+allow large limits for <em>some</em> requests (or responses) but want to clamp down on all messages not belonging into that
+group.</p>
+<p>In order to give you maximum flexibility in defining entity size limits according to your needs the <tt class="docutils literal"><span class="pre">HttpEntity</span></tt>
+features a <tt class="docutils literal"><span class="pre">withSizeLimit</span></tt> method, which lets you adjust the globally configured maximum size for this particular
+entity, be it to increase or decrease any previously set value.
+This means that your application will receive all requests (or responses) from the HTTP layer, even the ones whose
+<tt class="docutils literal"><span class="pre">Content-Length</span></tt> exceeds the configured limit (because you might want to increase the limit yourself).
+Only when the actual data stream <tt class="docutils literal"><span class="pre">Source</span></tt> contained in the entity is materialized will the boundary checks be
+actually applied. In case the length verification fails the respective stream will be terminated with an
+<tt class="xref py py-class docutils literal"><span class="pre">EntityStreamSizeException</span></tt> either directly at materialization time (if the <tt class="docutils literal"><span class="pre">Content-Length</span></tt> is known) or whenever more
+data bytes than allowed have been read.</p>
+<p>When called on <tt class="docutils literal"><span class="pre">Strict</span></tt> entities the <tt class="docutils literal"><span class="pre">withSizeLimit</span></tt> method will return the entity itself if the length is within
+the bound, otherwise a <tt class="docutils literal"><span class="pre">Default</span></tt> entity with a single element data stream. This allows for potential refinement of the
+entity size limit at a later point (before materialization of the data stream).</p>
+<p>By default all message entities produced by the HTTP layer automatically carry the limit that is defined in the
+application's <tt class="docutils literal"><span class="pre">max-content-length</span></tt> config setting. If the entity is transformed in a way that changes the
+content-length and then another limit is applied then this new limit will be evaluated against the new
+content-length. If the entity is transformed in a way that changes the content-length and no new limit is applied
+then the previous limit will be applied against the previous content-length.
+Generally this behavior should be in line with your expectations.</p>
+<table class="docutils footnote" frame="void" id="id4" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id3">[1]</a></td><td><cite>akka.http.parsing.max-content-length</cite> (applying to server- as well as client-side),
+<cite>akka.http.server.parsing.max-content-length</cite> (server-side only),
+<cite>akka.http.client.parsing.max-content-length</cite> (client-side only) or
+<cite>akka.http.host-connection-pool.client.parsing.max-content-length</cite> (only host-connection-pools)</td></tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="special-processing-for-head-requests">
+<h3>Special processing for HEAD requests</h3>
+<p><a class="reference external" href="http://tools.ietf.org/html/rfc7230#section-3.3.3">RFC 7230</a> defines very clear rules for the entity length of HTTP messages.</p>
+<p>Especially this rule requires special treatment in Akka HTTP:</p>
+<blockquote>
+<div>Any response to a HEAD request and any response with a 1xx
+(Informational), 204 (No Content), or 304 (Not Modified) status
+code is always terminated by the first empty line after the
+header fields, regardless of the header fields present in the
+message, and thus cannot contain a message body.</div></blockquote>
+<p>Responses to HEAD requests introduce the complexity that <cite>Content-Length</cite> or <cite>Transfer-Encoding</cite> headers
+can be present but the entity is empty. This is modeled by allowing <cite>HttpEntity.Default</cite> and <cite>HttpEntity.Chunked</cite>
+to be used for HEAD responses with an empty data stream.</p>
+<p>Also, when a HEAD response has an <cite>HttpEntity.CloseDelimited</cite> entity the Akka HTTP implementation will <em>not</em> close the
+connection after the response has been sent. This allows the sending of HEAD responses without <cite>Content-Length</cite>
+header across persistent HTTP connections.</p>
+</div>
+</div>
+<div class="section" id="header-model">
+<span id="header-model-scala"></span><h2>Header Model</h2>
+<p>Akka HTTP contains a rich model of the most common HTTP headers. Parsing and rendering is done automatically so that
+applications don't need to care for the actual syntax of headers. Headers not modelled explicitly are represented
+as a <tt class="docutils literal"><span class="pre">RawHeader</span></tt> (which is essentially a String/String name/value pair).</p>
+<p>See these examples of how to deal with headers:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">import</span> <span class="nn">akka.http.scaladsl.model.headers._</span>
+
+<span class="c1">// create a ``Location`` header</span>
+<span class="k">val</span> <span class="n">loc</span> <span class="k">=</span> <span class="nc">Location</span><span class="o">(</span><span class="s">&quot;http://example.com/other&quot;</span><span class="o">)</span>
+
+<span class="c1">// create an ``Authorization`` header with HTTP Basic authentication data</span>
+<span class="k">val</span> <span class="n">auth</span> <span class="k">=</span> <span class="nc">Authorization</span><span class="o">(</span><span class="nc">BasicHttpCredentials</span><span class="o">(</span><span class="s">&quot;joe&quot;</span><span class="o">,</span> <span class="s">&quot;josepp&quot;</span><span class="o">))</span>
+
+<span class="c1">// custom type</span>
+<span class="k">case</span> <span class="k">class</span> <span class="nc">User</span><span class="o">(</span><span class="n">name</span><span class="k">:</span> <span class="kt">String</span><span class="o">,</span> <span class="n">pass</span><span class="k">:</span> <span class="kt">String</span><span class="o">)</span>
+
+<span class="c1">// a method that extracts basic HTTP credentials from a request</span>
+<span class="k">def</span> <span class="n">credentialsOfRequest</span><span class="o">(</span><span class="n">req</span><span class="k">:</span> <span class="kt">HttpRequest</span><span class="o">)</span><span class="k">:</span> <span class="kt">Option</span><span class="o">[</span><span class="kt">User</span><span class="o">]</span> <span class="k">=</span>
+  <span class="k">for</span> <span class="o">{</span>
+    <span class="nc">Authorization</span><span class="o">(</span><span class="nc">BasicHttpCredentials</span><span class="o">(</span><span class="n">user</span><span class="o">,</span> <span class="n">pass</span><span class="o">))</span> <span class="k">&lt;-</span> <span class="n">req</span><span class="o">.</span><span class="n">header</span><span class="o">[</span><span class="kt">Authorization</span><span class="o">]</span>
+  <span class="o">}</span> <span class="k">yield</span> <span class="nc">User</span><span class="o">(</span><span class="n">user</span><span class="o">,</span> <span class="n">pass</span><span class="o">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="http-headers">
+<h2>HTTP Headers</h2>
+<p>When the Akka HTTP server receives an HTTP request it tries to parse all its headers into their respective
+model classes. Independently of whether this succeeds or not, the HTTP layer will
+always pass on all received headers to the application. Unknown headers as well as ones with invalid syntax (according
+to the header parser) will be made available as <tt class="docutils literal"><span class="pre">RawHeader</span></tt> instances. For the ones exhibiting parsing errors a
+warning message is logged depending on the value of the <tt class="docutils literal"><span class="pre">illegal-header-warnings</span></tt> config setting.</p>
+<p>Some headers have special status in HTTP and are therefore treated differently from &quot;regular&quot; headers:</p>
+<dl class="docutils">
+<dt>Content-Type</dt>
+<dd>The Content-Type of an HTTP message is modeled as the <tt class="docutils literal"><span class="pre">contentType</span></tt> field of the <tt class="docutils literal"><span class="pre">HttpEntity</span></tt>.
+The <tt class="docutils literal"><span class="pre">Content-Type</span></tt> header therefore doesn't appear in the <tt class="docutils literal"><span class="pre">headers</span></tt> sequence of a message.
+Also, a <tt class="docutils literal"><span class="pre">Content-Type</span></tt> header instance that is explicitly added to the <tt class="docutils literal"><span class="pre">headers</span></tt> of a request or response will
+not be rendered onto the wire and trigger a warning being logged instead!</dd>
+<dt>Transfer-Encoding</dt>
+<dd>Messages with <tt class="docutils literal"><span class="pre">Transfer-Encoding:</span> <span class="pre">chunked</span></tt> are represented via the <tt class="docutils literal"><span class="pre">HttpEntity.Chunked</span></tt> entity.
+As such chunked messages that do not have another deeper nested transfer encoding will not have a <tt class="docutils literal"><span class="pre">Transfer-Encoding</span></tt>
+header in their <tt class="docutils literal"><span class="pre">headers</span></tt> sequence.
+Similarly, a <tt class="docutils literal"><span class="pre">Transfer-Encoding</span></tt> header instance that is explicitly added to the <tt class="docutils literal"><span class="pre">headers</span></tt> of a request or
+response will not be rendered onto the wire and trigger a warning being logged instead!</dd>
+<dt>Content-Length</dt>
+<dd>The content length of a message is modelled via its <a class="reference internal" href="#httpentity"><em>HttpEntity</em></a>. As such no <tt class="docutils literal"><span class="pre">Content-Length</span></tt> header will ever
+be part of a message's <tt class="docutils literal"><span class="pre">header</span></tt> sequence.
+Similarly, a <tt class="docutils literal"><span class="pre">Content-Length</span></tt> header instance that is explicitly added to the <tt class="docutils literal"><span class="pre">headers</span></tt> of a request or
+response will not be rendered onto the wire and trigger a warning being logged instead!</dd>
+<dt>Server</dt>
+<dd>A <tt class="docutils literal"><span class="pre">Server</span></tt> header is usually added automatically to any response and its value can be configured via the
+<tt class="docutils literal"><span class="pre">akka.http.server.server-header</span></tt> setting. Additionally an application can override the configured header with a
+custom one by adding it to the response's <tt class="docutils literal"><span class="pre">header</span></tt> sequence.</dd>
+<dt>User-Agent</dt>
+<dd>A <tt class="docutils literal"><span class="pre">User-Agent</span></tt> header is usually added automatically to any request and its value can be configured via the
+<tt class="docutils literal"><span class="pre">akka.http.client.user-agent-header</span></tt> setting. Additionally an application can override the configured header with a
+custom one by adding it to the request's <tt class="docutils literal"><span class="pre">header</span></tt> sequence.</dd>
+<dt>Date</dt>
+<dd>The <tt class="docutils literal"><span class="pre">Date</span></tt> response header is added automatically but can be overridden by supplying it manually.</dd>
+<dt>Connection</dt>
+<dd>On the server-side Akka HTTP watches for explicitly added <tt class="docutils literal"><span class="pre">Connection:</span> <span class="pre">close</span></tt> response headers and as such honors
+the potential wish of the application to close the connection after the respective response has been sent out.
+The actual logic for determining whether to close the connection is quite involved. It takes into account the
+request's method, protocol and potential <tt class="docutils literal"><span class="pre">Connection</span></tt> header as well as the response's protocol, entity and
+potential <tt class="docutils literal"><span class="pre">Connection</span></tt> header. See <a class="reference external" href="http://github.com/akka/akka/tree/v2.4-bin-rp-16s01p05/akka-http-core/src/test/scala/akka/http/impl/engine/rendering/ResponseRendererSpec.scala#L422">this test</a> for a full table of what happens when.</dd>
+<dt>Strict-Transport-Security</dt>
+<dd>HTTP Strict Transport Security (HSTS) is a web security policy mechanism which is communicated by the
+<tt class="docutils literal"><span class="pre">Strict-Transport-Security</span></tt> header. The most important security vulnerability that HSTS can fix is SSL-stripping
+man-in-the-middle attacks. The SSL-stripping attact works by transparently converting a secure HTTPS connection into a
+plain HTTP connection. The user can see that the connection is insecure, but crucially there is no way of knowing
+whether the connection should be secure. HSTS addresses this problem by informing the browser that connections to the
+site should always use TLS/SSL. See also <a class="reference external" href="http://tools.ietf.org/html/rfc6797">RFC 6797</a>.</dd>
+</dl>
+</div>
+<div class="section" id="custom-headers">
+<span id="custom-headers-scala"></span><h2>Custom Headers</h2>
+<p>Sometimes you may need to model a custom header type which is not part of HTTP and still be able to use it
+as convienient as is possible with the built-in types.</p>
+<p>Because of the number of ways one may interact with headers (i.e. try to match a <tt class="docutils literal"><span class="pre">CustomHeader</span></tt> against a <tt class="docutils literal"><span class="pre">RawHeader</span></tt>
+or the other way around etc), a helper trait for custom Header types and their companions classes are provided by Akka HTTP.
+Thanks to extending <tt class="xref py py-class docutils literal"><span class="pre">ModeledCustomHeader</span></tt> instead of the plain <tt class="docutils literal"><span class="pre">CustomHeader</span></tt> such header can be matched</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">final</span> <span class="k">class</span> <span class="nc">ApiTokenHeader</span><span class="o">(</span><span class="n">token</span><span class="k">:</span> <span class="kt">String</span><span class="o">)</span> <span class="k">extends</span> <span class="nc">ModeledCustomHeader</span><span class="o">[</span><span class="kt">ApiTokenHeader</span><span class="o">]</span> <span class="o">{</span>
+  <span class="k">override</span> <span class="k">def</span> <span class="n">renderInRequests</span> <span class="k">=</span> <span class="kc">false</span>
+  <span class="k">override</span> <span class="k">def</span> <span class="n">renderInResponses</span> <span class="k">=</span> <span class="kc">false</span>
+  <span class="k">override</span> <span class="k">val</span> <span class="n">companion</span> <span class="k">=</span> <span class="nc">ApiTokenHeader</span>
+  <span class="k">override</span> <span class="k">def</span> <span class="n">value</span><span class="k">:</span> <span class="kt">String</span> <span class="o">=</span> <span class="n">token</span>
+<span class="o">}</span>
+<span class="k">object</span> <span class="nc">ApiTokenHeader</span> <span class="k">extends</span> <span class="nc">ModeledCustomHeaderCompanion</span><span class="o">[</span><span class="kt">ApiTokenHeader</span><span class="o">]</span> <span class="o">{</span>
+  <span class="k">override</span> <span class="k">val</span> <span class="n">name</span> <span class="k">=</span> <span class="s">&quot;apiKey&quot;</span>
+  <span class="k">override</span> <span class="k">def</span> <span class="n">parse</span><span class="o">(</span><span class="n">value</span><span class="k">:</span> <span class="kt">String</span><span class="o">)</span> <span class="k">=</span> <span class="nc">Try</span><span class="o">(</span><span class="k">new</span> <span class="nc">ApiTokenHeader</span><span class="o">(</span><span class="n">value</span><span class="o">))</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<p>Which allows the this CustomHeader to be used in the following scenarios:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">val</span> <span class="nc">ApiTokenHeader</span><span class="o">(</span><span class="n">t1</span><span class="o">)</span> <span class="k">=</span> <span class="nc">ApiTokenHeader</span><span class="o">(</span><span class="s">&quot;token&quot;</span><span class="o">)</span>
+<span class="n">t1</span> <span class="n">should</span> <span class="o">===(</span><span class="s">&quot;token&quot;</span><span class="o">)</span>
+
+<span class="k">val</span> <span class="nc">RawHeader</span><span class="o">(</span><span class="n">k2</span><span class="o">,</span> <span class="n">v2</span><span class="o">)</span> <span class="k">=</span> <span class="nc">ApiTokenHeader</span><span class="o">(</span><span class="s">&quot;token&quot;</span><span class="o">)</span>
+<span class="n">k2</span> <span class="n">should</span> <span class="o">===(</span><span class="s">&quot;apiKey&quot;</span><span class="o">)</span>
+<span class="n">v2</span> <span class="n">should</span> <span class="o">===(</span><span class="s">&quot;token&quot;</span><span class="o">)</span>
+
+<span class="c1">// will match, header keys are case insensitive</span>
+<span class="k">val</span> <span class="nc">ApiTokenHeader</span><span class="o">(</span><span class="n">v3</span><span class="o">)</span> <span class="k">=</span> <span class="nc">RawHeader</span><span class="o">(</span><span class="s">&quot;APIKEY&quot;</span><span class="o">,</span> <span class="s">&quot;token&quot;</span><span class="o">)</span>
+<span class="n">v3</span> <span class="n">should</span> <span class="o">===(</span><span class="s">&quot;token&quot;</span><span class="o">)</span>
+
+<span class="n">intercept</span><span class="o">[</span><span class="kt">MatchError</span><span class="o">]</span> <span class="o">{</span>
+  <span class="c1">// won&#39;t match, different header name</span>
+  <span class="k">val</span> <span class="nc">ApiTokenHeader</span><span class="o">(</span><span class="n">v4</span><span class="o">)</span> <span class="k">=</span> <span class="nc">DifferentHeader</span><span class="o">(</span><span class="s">&quot;token&quot;</span><span class="o">)</span>
+<span class="o">}</span>
+
+<span class="n">intercept</span><span class="o">[</span><span class="kt">MatchError</span><span class="o">]</span> <span class="o">{</span>
+  <span class="c1">// won&#39;t match, different header name</span>
+  <span class="k">val</span> <span class="nc">RawHeader</span><span class="o">(</span><span class="s">&quot;something&quot;</span><span class="o">,</span> <span class="n">v5</span><span class="o">)</span> <span class="k">=</span> <span class="nc">DifferentHeader</span><span class="o">(</span><span class="s">&quot;token&quot;</span><span class="o">)</span>
+<span class="o">}</span>
+
+<span class="n">intercept</span><span class="o">[</span><span class="kt">MatchError</span><span class="o">]</span> <span class="o">{</span>
+  <span class="c1">// won&#39;t match, different header name</span>
+  <span class="k">val</span> <span class="nc">ApiTokenHeader</span><span class="o">(</span><span class="n">v6</span><span class="o">)</span> <span class="k">=</span> <span class="nc">RawHeader</span><span class="o">(</span><span class="s">&quot;different&quot;</span><span class="o">,</span> <span class="s">&quot;token&quot;</span><span class="o">)</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<p>Including usage within the header directives like in the following <a class="reference internal" href="../routing-dsl/directives/header-directives/headerValuePF.html#headervaluepf"><em>headerValuePF</em></a> example:</p>
+<div class="highlight-scala"><pre>def extractFromCustomHeader = headerValuePF {
+  case t @ ApiTokenHeader(token) ⇒ s"extracted&gt; $t"
+  case raw: RawHeader            ⇒ s"raw&gt; $raw"
+}
+
+val routes = extractFromCustomHeader { s ⇒
+  complete(s)
+}
+
+Get().withHeaders(RawHeader("apiKey", "TheKey")) ~&gt; routes ~&gt; check {
+  status should ===(StatusCodes.OK)
+  responseAs[String] should ===("extracted&gt; apiKey: TheKey")
+}
+
+Get().withHeaders(RawHeader("somethingElse", "TheKey")) ~&gt; routes ~&gt; check {
+  status should ===(StatusCodes.OK)
+  responseAs[String] should ===("raw&gt; somethingElse: TheKey")
+}
+
+Get().withHeaders(ApiTokenHeader("TheKey")) ~&gt; routes ~&gt; check {
+  status should ===(StatusCodes.OK)
+  responseAs[String] should ===("extracted&gt; apiKey: TheKey")
+}
+</pre>
+</div>
+<p>One can also directly extend <tt class="xref py py-class docutils literal"><span class="pre">CustomHeader</span></tt> which requires less boilerplate, however that has the downside of
+matching against <tt class="xref py py-class docutils literal"><span class="pre">RawHeader</span></tt> instances not working out-of-the-box, thus limiting its usefulnes in the routing layer
+of Akka HTTP. For only rendering such header however it would be enough.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">When defining custom headers, prefer to extend <tt class="xref py py-class docutils literal"><span class="pre">ModeledCustomHeader</span></tt> instead of <tt class="xref py py-class docutils literal"><span class="pre">CustomHeader</span></tt> directly
+as it will automatically make your header abide all the expected pattern matching semantics one is accustomed to
+when using built-in types (such as matching a custom header against a <tt class="docutils literal"><span class="pre">RawHeader</span></tt> as is often the case in routing
+layers of Akka HTTP applications).</p>
+</div>
+</div>
+<div class="section" id="parsing-rendering">
+<h2>Parsing / Rendering</h2>
+<p>Parsing and rendering of HTTP data structures is heavily optimized and for most types there's currently no public API
+provided to parse (or render to) Strings or byte arrays.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p>Various parsing and rendering settings are available to tweak in the configuration under <tt class="docutils literal"><span class="pre">akka.http.client[.parsing]</span></tt>,
+<tt class="docutils literal"><span class="pre">akka.http.server[.parsing]</span></tt> and <tt class="docutils literal"><span class="pre">akka.http.host-connection-pool[.client.parsing]</span></tt>, with defaults for all of these
+being defined in the <tt class="docutils literal"><span class="pre">akka.http.parsing</span></tt> configuration section.</p>
+<p>For example, if you want to change a parsing setting for all components, you can set the <tt class="docutils literal"><span class="pre">akka.http.parsing.illegal-header-warnings</span> <span class="pre">=</span> <span class="pre">off</span></tt>
+value. However this setting can be stil overriden by the more specific sections, like for example <tt class="docutils literal"><span class="pre">akka.http.server.parsing.illegal-header-warnings</span> <span class="pre">=</span> <span class="pre">on</span></tt>.
+In this case both <tt class="docutils literal"><span class="pre">client</span></tt> and <tt class="docutils literal"><span class="pre">host-connection-pool</span></tt> APIs will see the setting <tt class="docutils literal"><span class="pre">off</span></tt>, however the server will see <tt class="docutils literal"><span class="pre">on</span></tt>.</p>
+<p class="last">In the case of <tt class="docutils literal"><span class="pre">akka.http.host-connection-pool.client</span></tt> settings, they default to settings set in <tt class="docutils literal"><span class="pre">akka.http.client</span></tt>,
+and can override them if needed. This is useful, since both <tt class="docutils literal"><span class="pre">client</span></tt> and <tt class="docutils literal"><span class="pre">host-connection-pool</span></tt> APIs,
+such as the Client API <tt class="docutils literal"><span class="pre">Http().outgoingConnection</span></tt> or the Host Connection Pool APIs <tt class="docutils literal"><span class="pre">Http().singleRequest</span></tt> or <tt class="docutils literal"><span class="pre">Http().superPool</span></tt>,
+usually need the same settings, however the <tt class="docutils literal"><span class="pre">server</span></tt> most likely has a very different set of settings.</p>
+</div>
+</div>
+</div>
+
+
+          </div>
+          <div class="span3"><p class="contents-title">Contents</p>
+              <div id="scroller-anchor">
+                <div id="scroller">
+                  <div id="toc"></div>
+                </div>
+              </div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="footer">
+  <div class="container">
+    <ul>
+      <li><h5>Akka</h5></li>
+      <li><a href="https://akka.io/docs">Documentation</a></li>
+      <li><a href="https://akka.io/faq">FAQ</a></li>
+      <li><a href="https://akka.io/downloads">Downloads</a></li>
+      <li><a href="https://akka.io/news">News</a></li>
+      <li><a href="http://letitcrash.com">Blog</a></li>
+    </ul>
+    <ul>
+      <li><h5>Contribute</h5></li>
+      <li><a href="https://akka.io/community">Community Projects</a></li>
+      <li><a href="http://github.com/akka/akka">Source Code</a></li>
+      <li><a href="http://groups.google.com/group/akka-user">Mailing List</a></li>      
+      <li><a href="https://doc.akka.io/docs/akka/current/project/issue-tracking.html">Report a Bug</a></li>      
+    </ul>
+    <ul>
+      <li><h5>Company</h5></li>
+      <li><a href="http://www.lightbend.com/how/subscription">Commercial Support</a></li>
+      <li><a href="https://akka.io/team">Team</a></li>
+      <li><a href="mailto:info@lightbend.com">Contact</a></li>
+    </ul>
+    <ul>
+      <li><img src="../../../_static/akka_icon_reverse.svg" align="center"/></li>
+    </ul>
+  </div>
+  <div class="container copyright">
+    <p style="float: left;">
+      © 2015 <a href="http://www.lightbend.com/">Lightbend Inc.</a> <span class="license">Akka is Open Source and available under the Apache 2 License.</span>
+    </p>
+    <p style="float: right; font-size: 12px;">
+      Last updated: Apr 14, 2016
+    </p>          
+  </div>
+</div>
+<script type="text/javascript">
+  var $toc = $('#toc');
+  $toc.toc();
+
+  // show clickable section sign when section header hovered:
+  $('.section h2,.section h3,.section h4,.section h5').each(function(i, el) {
+      var $el = $(el);
+      $el.prepend($("<a class='section-marker' href='#" + $el.attr("id") + "'>&sect;</a>"))
+  });
+</script>
+
+<!-- Algolia docs search -->
+<script type="text/javascript">
+  var version = DOCUMENTATION_OPTIONS.VERSION;
+
+  var lang = "scala";
+  var path = window.location.pathname;
+  if (path.includes("/java/") || path.includes("java.html")) lang = "java";
+
+  console.log("Search configured for:", lang, "@", version);
+
+  docsearch({
+    apiKey: '543bad5ad786495d9ccd445ed34ed082',
+    indexName: 'akka_io',
+    inputSelector: '#search',
+    algoliaOptions: {
+      hitsPerPage: 10,
+      facetFilters: '[' +
+      '["language:' + lang + '","language:general"]' +
+      ',"version:2.4.2"]'
+    }
+  });
+
+  // set up "/" as global shortcut for focusing on search
+  $(document).keypress(function (event) {
+    if (event.keyCode == 47) {
+      $("#q").focus();
+      return false; // swallow key event, otherwise the / char would be input into the search box
+    }
+  });
+</script>
+
+  
+
+  </body>
+</html>

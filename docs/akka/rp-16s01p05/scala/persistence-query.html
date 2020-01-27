@@ -1,0 +1,696 @@
+
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Persistence Query &mdash; Akka Documentation</title>
+    
+    <link rel="stylesheet" href="../_static/style.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/prettify.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/base.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
+    <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,600,700" type="text/css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/docsearch.js/1/docsearch.min.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '2.4-bin-rp-16s01p05',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="../_static/toc.js"></script>
+    <script type="text/javascript" src="../_static/prettify.js"></script>
+    <script type="text/javascript" src="../_static/highlightCode.js"></script>
+    <script type="text/javascript" src="../_static/effects.core.js"></script>
+    <script type="text/javascript" src="../_static/effects.highlight.js"></script>
+    <script type="text/javascript" src="../_static/scrollTo.js"></script>
+    <script type="text/javascript" src="../_static/contentsFix.js"></script>
+    <script type="text/javascript" src="../_static/ga.js"></script>
+    <script type="text/javascript" src="../_static/warnOldDocs.js"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/docsearch.js/1/docsearch.min.js"></script>
+    <link rel="shortcut icon" href="../_static/favicon.ico"/>
+    <link rel="top" title="Akka Documentation" href="../index.html" />
+    <link rel="up" title="Experimental Modules" href="../experimental/index.html" />
+    <link rel="next" title="Akka Typed" href="typed.html" />
+    <link rel="prev" title="FSM (Java with Lambda Support)" href="../java/lambda-fsm.html" />
+
+
+  </head>
+  <body>
+  <div class="navbar">
+    <div class="navbar-inner">
+      <div class="container">
+        <div class="navbar-logo">
+          <a href="https://akka.io"><img class="svg-logo" src="../_static/akka_full_color.svg" /></a>
+        </div>    
+        <ul class="nav">
+          <li><a href="https://akka.io/docs">Documentation</a></li>
+          <li><a href="https://akka.io/faq">FAQ</a></li>
+          <li><a href="https://akka.io/downloads">Download</a></li>
+          <li><a href="http://groups.google.com/group/akka-user">Mailing List</a></li>
+          <li><a href="http://github.com/akka/akka">Code</a></li>           
+          <li><a href="http://www.lightbend.com/how/subscription">Commercial Support</a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="main">
+    <div class="container">
+      <div class="page-title">Persistence Query</div>
+      <div class="pdf-link"><a href="../AkkaScala.pdf" title="Akka Scala Documentation"><img src="../_static/pdf-scala-icon.png" style="height: 40px;" /></a></div>
+      <div class="pdf-link"><a href="../AkkaJava.pdf" title="Akka Java Documentation"><img src="../_static/pdf-java-icon.png" style="height: 40px;" /></a></div>
+    </div>
+    <div class="main-container">
+      <div class="container">
+        <div class="row">
+          <div class="span12">
+            <ul class="breadcrumb">           
+              <li>
+                 <span class="divider">|</span> <a href="typed.html">Akka Typed</a> <span class="divider">»</span>
+              </li>
+              <li>
+                <a href="../java.html">Java Contents</a> <span class="divider">|</span> <a href="../scala.html">Scala Contents</a>
+              </li>
+              <li>
+                <span class="divider">«</span> <a href="../java/lambda-fsm.html">FSM (Java with Lambda Support)</a> <span class="divider">|</span>
+              </li>
+              <li style="float: left">
+                Version 2.4-bin-rp-16s01p05
+              </li>
+              <li style="float: left">
+                <input type="search" id="search" class="form-control" />
+              </li>
+            </ul>
+          </div>
+        </div>
+        <div class="row"><div class="span9">
+            
+  <div class="section" id="persistence-query">
+<span id="persistence-query-scala"></span><h1>Persistence Query</h1>
+<p>Akka persistence query complements <a class="reference internal" href="persistence.html#persistence-scala"><em>Persistence</em></a> by providing a universal asynchronous stream based
+query interface that various journal plugins can implement in order to expose their query capabilities.</p>
+<p>The most typical use case of persistence query is implementing the so-called query side (also known as &quot;read side&quot;)
+in the popular CQRS architecture pattern - in which the writing side of the application (e.g. implemented using akka
+persistence) is completely separated from the &quot;query side&quot;. Akka Persistence Query itself is <em>not</em> directly the query
+side of an application, however it can help to migrate data from the write side to the query side database. In very
+simple scenarios Persistence Query may be powerful enough to fulfill the query needs of your app, however we highly
+recommend (in the spirit of CQRS) of splitting up the write/read sides into separate datastores as the need arises.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">This module is marked as <strong>“experimental”</strong> as of its introduction in Akka 2.4.0. We will continue to
+improve this API based on our users’ feedback, which implies that while we try to keep incompatible
+changes to a minimum the binary compatibility guarantee for maintenance releases does not apply to the
+contents of the <tt class="docutils literal"><span class="pre">akka.persistence.query</span></tt> package.</p>
+</div>
+<div class="section" id="dependencies">
+<h2>Dependencies</h2>
+<p>Akka persistence query is a separate jar file. Make sure that you have the following dependency in your project:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="s">&quot;com.typesafe.akka&quot;</span> <span class="o">%%</span> <span class="s">&quot;akka-persistence-query-experimental&quot;</span> <span class="o">%</span> <span class="s">&quot;2.4-bin-rp-16s01p05&quot;</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="design-overview">
+<h2>Design overview</h2>
+<p>Akka persistence query is purposely designed to be a very loosely specified API.
+This is in order to keep the provided APIs general enough for each journal implementation to be able to expose its best
+features, e.g. a SQL journal can use complex SQL queries or if a journal is able to subscribe to a live event stream
+this should also be possible to expose the same API - a typed stream of events.</p>
+<p><strong>Each read journal must explicitly document which types of queries it supports.</strong>
+Refer to your journal's plugins documentation for details on which queries and semantics it supports.</p>
+<p>While Akka Persistence Query does not provide actual implementations of ReadJournals, it defines a number of pre-defined
+query types for the most common query scenarios, that most journals are likely to implement (however they are not required to).</p>
+</div>
+<div class="section" id="read-journals">
+<h2>Read Journals</h2>
+<p>In order to issue queries one has to first obtain an instance of a <tt class="docutils literal"><span class="pre">ReadJournal</span></tt>.
+Read journals are implemented as <a class="reference external" href="https://akka.io/community/#plugins-to-akka-persistence-query">Community plugins</a>, each targeting a specific datastore (for example Cassandra or JDBC
+databases). For example, given a library that provides a <tt class="docutils literal"><span class="pre">akka.persistence.query.my-read-journal</span></tt> obtaining the related
+journal is as simple as:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="c1">// obtain read journal by plugin id</span>
+<span class="k">val</span> <span class="n">readJournal</span> <span class="k">=</span>
+  <span class="nc">PersistenceQuery</span><span class="o">(</span><span class="n">system</span><span class="o">).</span><span class="n">readJournalFor</span><span class="o">[</span><span class="kt">MyScaladslReadJournal</span><span class="o">](</span>
+    <span class="s">&quot;akka.persistence.query.my-read-journal&quot;</span><span class="o">)</span>
+
+<span class="c1">// issue query to journal</span>
+<span class="k">val</span> <span class="n">source</span><span class="k">:</span> <span class="kt">Source</span><span class="o">[</span><span class="kt">EventEnvelope</span>, <span class="kt">NotUsed</span><span class="o">]</span> <span class="k">=</span>
+  <span class="n">readJournal</span><span class="o">.</span><span class="n">eventsByPersistenceId</span><span class="o">(</span><span class="s">&quot;user-1337&quot;</span><span class="o">,</span> <span class="mi">0</span><span class="o">,</span> <span class="nc">Long</span><span class="o">.</span><span class="nc">MaxValue</span><span class="o">)</span>
+
+<span class="c1">// materialize stream, consuming events</span>
+<span class="k">implicit</span> <span class="k">val</span> <span class="n">mat</span> <span class="k">=</span> <span class="nc">ActorMaterializer</span><span class="o">()</span>
+<span class="n">source</span><span class="o">.</span><span class="n">runForeach</span> <span class="o">{</span> <span class="n">event</span> <span class="k">=&gt;</span> <span class="n">println</span><span class="o">(</span><span class="s">&quot;Event: &quot;</span> <span class="o">+</span> <span class="n">event</span><span class="o">)</span> <span class="o">}</span>
+</pre></div>
+</div>
+<p>Journal implementers are encouraged to put this identifier in a variable known to the user, such that one can access it via
+<tt class="docutils literal"><span class="pre">readJournalFor[NoopJournal](NoopJournal.identifier)</span></tt>, however this is not enforced.</p>
+<p>Read journal implementations are available as <a class="reference external" href="https://akka.io/community/#plugins-to-akka-persistence-query">Community plugins</a>.</p>
+<div class="section" id="predefined-queries">
+<h3>Predefined queries</h3>
+<p>Akka persistence query comes with a number of query interfaces built in and suggests Journal implementors to implement
+them according to the semantics described below. It is important to notice that while these query types are very common
+a journal is not obliged to implement all of them - for example because in a given journal such query would be
+significantly inefficient.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Refer to the documentation of the <tt class="xref py py-class docutils literal"><span class="pre">ReadJournal</span></tt> plugin you are using for a specific list of supported query types.
+For example, Journal plugins should document their stream completion strategies.</p>
+</div>
+<p>The predefined queries are:</p>
+<div class="section" id="allpersistenceidsquery-and-currentpersistenceidsquery">
+<h4>AllPersistenceIdsQuery and CurrentPersistenceIdsQuery</h4>
+<p><tt class="docutils literal"><span class="pre">allPersistenceIds</span></tt> which is designed to allow users to subscribe to a stream of all persistent ids in the system.
+By default this stream should be assumed to be a &quot;live&quot; stream, which means that the journal should keep emitting new
+persistence ids as they come into the system:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="n">readJournal</span><span class="o">.</span><span class="n">allPersistenceIds</span><span class="o">()</span>
+</pre></div>
+</div>
+<p>If your usage does not require a live stream, you can use the <tt class="docutils literal"><span class="pre">currentPersistenceIds</span></tt> query:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="n">readJournal</span><span class="o">.</span><span class="n">currentPersistenceIds</span><span class="o">()</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="eventsbypersistenceidquery-and-currenteventsbypersistenceidquery">
+<h4>EventsByPersistenceIdQuery and CurrentEventsByPersistenceIdQuery</h4>
+<p><tt class="docutils literal"><span class="pre">eventsByPersistenceId</span></tt> is a query equivalent to replaying a <a class="reference internal" href="persistence.html#event-sourcing-scala"><em>PersistentActor</em></a>,
+however, since it is a stream it is possible to keep it alive and watch for additional incoming events persisted by the
+persistent actor identified by the given <tt class="docutils literal"><span class="pre">persistenceId</span></tt>.</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="n">readJournal</span><span class="o">.</span><span class="n">eventsByPersistenceId</span><span class="o">(</span><span class="s">&quot;user-us-1337&quot;</span><span class="o">)</span>
+</pre></div>
+</div>
+<p>Most journals will have to revert to polling in order to achieve this,
+which can typically be configured with a <tt class="docutils literal"><span class="pre">refresh-interval</span></tt> configuration property.</p>
+<p>If your usage does not require a live stream, you can use the <tt class="docutils literal"><span class="pre">currentEventsByPersistenceId</span></tt> query.</p>
+</div>
+<div class="section" id="eventsbytag-and-currenteventsbytag">
+<h4>EventsByTag and CurrentEventsByTag</h4>
+<p><tt class="docutils literal"><span class="pre">eventsByTag</span></tt> allows querying events regardless of which <tt class="docutils literal"><span class="pre">persistenceId</span></tt> they are associated with. This query is hard to
+implement in some journals or may need some additional preparation of the used data store to be executed efficiently.
+The goal of this query is to allow querying for all events which are &quot;tagged&quot; with a specific tag.
+That includes the use case to query all domain events of an Aggregate Root type.
+Please refer to your read journal plugin's documentation to find out if and how it is supported.</p>
+<p>Some journals may support tagging of events via an <a class="reference internal" href="persistence.html#event-adapters-scala"><em>Event Adapters</em></a> that wraps the events in a
+<tt class="docutils literal"><span class="pre">akka.persistence.journal.Tagged</span></tt> with the given <tt class="docutils literal"><span class="pre">tags</span></tt>. The journal may support other ways of doing tagging - again,
+how exactly this is implemented depends on the used journal. Here is an example of such a tagging event adapter:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">import</span> <span class="nn">akka.persistence.journal.WriteEventAdapter</span>
+<span class="k">import</span> <span class="nn">akka.persistence.journal.Tagged</span>
+
+<span class="k">class</span> <span class="nc">MyTaggingEventAdapter</span> <span class="k">extends</span> <span class="nc">WriteEventAdapter</span> <span class="o">{</span>
+  <span class="k">val</span> <span class="n">colors</span> <span class="k">=</span> <span class="nc">Set</span><span class="o">(</span><span class="s">&quot;green&quot;</span><span class="o">,</span> <span class="s">&quot;black&quot;</span><span class="o">,</span> <span class="s">&quot;blue&quot;</span><span class="o">)</span>
+  <span class="k">override</span> <span class="k">def</span> <span class="n">toJournal</span><span class="o">(</span><span class="n">event</span><span class="k">:</span> <span class="kt">Any</span><span class="o">)</span><span class="k">:</span> <span class="kt">Any</span> <span class="o">=</span> <span class="n">event</span> <span class="k">match</span> <span class="o">{</span>
+    <span class="k">case</span> <span class="n">s</span><span class="k">:</span> <span class="kt">String</span> <span class="k">⇒</span>
+      <span class="kt">var</span> <span class="kt">tags</span> <span class="o">=</span> <span class="n">colors</span><span class="o">.</span><span class="n">foldLeft</span><span class="o">(</span><span class="nc">Set</span><span class="o">.</span><span class="n">empty</span><span class="o">[</span><span class="kt">String</span><span class="o">])</span> <span class="o">{</span> <span class="o">(</span><span class="n">acc</span><span class="o">,</span> <span class="n">c</span><span class="o">)</span> <span class="k">⇒</span>
+        <span class="k">if</span> <span class="o">(</span><span class="n">s</span><span class="o">.</span><span class="n">contains</span><span class="o">(</span><span class="n">c</span><span class="o">))</span> <span class="n">acc</span> <span class="o">+</span> <span class="n">c</span> <span class="k">else</span> <span class="n">acc</span>
+      <span class="o">}</span>
+      <span class="k">if</span> <span class="o">(</span><span class="n">tags</span><span class="o">.</span><span class="n">isEmpty</span><span class="o">)</span> <span class="n">event</span>
+      <span class="k">else</span> <span class="nc">Tagged</span><span class="o">(</span><span class="n">event</span><span class="o">,</span> <span class="n">tags</span><span class="o">)</span>
+    <span class="k">case</span> <span class="k">_</span> <span class="k">⇒</span> <span class="n">event</span>
+  <span class="o">}</span>
+
+  <span class="k">override</span> <span class="k">def</span> <span class="n">manifest</span><span class="o">(</span><span class="n">event</span><span class="k">:</span> <span class="kt">Any</span><span class="o">)</span><span class="k">:</span> <span class="kt">String</span> <span class="o">=</span> <span class="s">&quot;&quot;</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p>A very important thing to keep in mind when using queries spanning multiple persistenceIds, such as <tt class="docutils literal"><span class="pre">EventsByTag</span></tt>
+is that the order of events at which the events appear in the stream rarely is guaranteed (or stable between materializations).</p>
+<p class="last">Journals <em>may</em> choose to opt for strict ordering of the events, and should then document explicitly what kind of ordering
+guarantee they provide - for example &quot;<em>ordered by timestamp ascending, independently of persistenceId</em>&quot; is easy to achieve
+on relational databases, yet may be hard to implement efficiently on plain key-value datastores.</p>
+</div>
+<p>In the example below we query all events which have been tagged (we assume this was performed by the write-side using an
+<a class="reference internal" href="persistence.html#event-adapters-scala"><em>EventAdapter</em></a>, or that the journal is smart enough that it can figure out what we mean by this
+tag - for example if the journal stored the events as json it may try to find those with the field <tt class="docutils literal"><span class="pre">tag</span></tt> set to this value etc.).</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="c1">// assuming journal is able to work with numeric offsets we can:</span>
+
+<span class="k">val</span> <span class="n">blueThings</span><span class="k">:</span> <span class="kt">Source</span><span class="o">[</span><span class="kt">EventEnvelope</span>, <span class="kt">NotUsed</span><span class="o">]</span> <span class="k">=</span>
+  <span class="n">readJournal</span><span class="o">.</span><span class="n">eventsByTag</span><span class="o">(</span><span class="s">&quot;blue&quot;</span><span class="o">)</span>
+
+<span class="c1">// find top 10 blue things:</span>
+<span class="k">val</span> <span class="n">top10BlueThings</span><span class="k">:</span> <span class="kt">Future</span><span class="o">[</span><span class="kt">Vector</span><span class="o">[</span><span class="kt">Any</span><span class="o">]]</span> <span class="k">=</span>
+  <span class="n">blueThings</span>
+    <span class="o">.</span><span class="n">map</span><span class="o">(</span><span class="k">_</span><span class="o">.</span><span class="n">event</span><span class="o">)</span>
+    <span class="o">.</span><span class="n">take</span><span class="o">(</span><span class="mi">10</span><span class="o">)</span> <span class="c1">// cancels the query stream after pulling 10 elements</span>
+    <span class="o">.</span><span class="n">runFold</span><span class="o">(</span><span class="nc">Vector</span><span class="o">.</span><span class="n">empty</span><span class="o">[</span><span class="kt">Any</span><span class="o">])(</span><span class="k">_</span> <span class="o">:+</span> <span class="k">_</span><span class="o">)</span>
+
+<span class="c1">// start another query, from the known offset</span>
+<span class="k">val</span> <span class="n">furtherBlueThings</span> <span class="k">=</span> <span class="n">readJournal</span><span class="o">.</span><span class="n">eventsByTag</span><span class="o">(</span><span class="s">&quot;blue&quot;</span><span class="o">,</span> <span class="n">offset</span> <span class="k">=</span> <span class="mi">10</span><span class="o">)</span>
+</pre></div>
+</div>
+<p>As you can see, we can use all the usual stream combinators available from <a class="reference external" href="https://doc.akka.io/docs/akka-stream-and-http-experimental/1.0/scala.html">Akka Streams</a> on the resulting query stream,
+including for example taking the first 10 and cancelling the stream. It is worth pointing out that the built-in <tt class="docutils literal"><span class="pre">EventsByTag</span></tt>
+query has an optionally supported offset parameter (of type <tt class="docutils literal"><span class="pre">Long</span></tt>) which the journals can use to implement resumable-streams.
+For example a journal may be able to use a WHERE clause to begin the read starting from a specific row, or in a datastore
+that is able to order events by insertion time it could treat the Long as a timestamp and select only older events.</p>
+<p>If your usage does not require a live stream, you can use the <tt class="docutils literal"><span class="pre">currentEventsByTag</span></tt> query.</p>
+</div>
+</div>
+<div class="section" id="materialized-values-of-queries">
+<h3>Materialized values of queries</h3>
+<p>Journals are able to provide additional information related to a query by exposing <a class="reference external" href="https://doc.akka.io/docs/akka-stream-and-http-experimental/1.0/scala/stream-quickstart.html#Materialized_values">materialized values</a>,
+which are a feature of <a class="reference external" href="https://doc.akka.io/docs/akka-stream-and-http-experimental/1.0/scala.html">Akka Streams</a> that allows to expose additional values at stream materialization time.</p>
+<p>More advanced query journals may use this technique to expose information about the character of the materialized
+stream, for example if it's finite or infinite, strictly ordered or not ordered at all. The materialized value type
+is defined as the second type parameter of the returned <tt class="docutils literal"><span class="pre">Source</span></tt>, which allows journals to provide users with their
+specialised query object, as demonstrated in the sample below:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">final</span> <span class="k">case</span> <span class="k">class</span> <span class="nc">RichEvent</span><span class="o">(</span><span class="n">tags</span><span class="k">:</span> <span class="kt">Set</span><span class="o">[</span><span class="kt">String</span><span class="o">],</span> <span class="n">payload</span><span class="k">:</span> <span class="kt">Any</span><span class="o">)</span>
+
+<span class="c1">// a plugin can provide:</span>
+<span class="k">case</span> <span class="k">class</span> <span class="nc">QueryMetadata</span><span class="o">(</span><span class="n">deterministicOrder</span><span class="k">:</span> <span class="kt">Boolean</span><span class="o">,</span> <span class="n">infinite</span><span class="k">:</span> <span class="kt">Boolean</span><span class="o">)</span>
+</pre></div>
+</div>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">def</span> <span class="n">byTagsWithMeta</span><span class="o">(</span><span class="n">tags</span><span class="k">:</span> <span class="kt">Set</span><span class="o">[</span><span class="kt">String</span><span class="o">])</span><span class="k">:</span> <span class="kt">Source</span><span class="o">[</span><span class="kt">RichEvent</span>, <span class="kt">QueryMetadata</span><span class="o">]</span> <span class="k">=</span> <span class="o">{</span>
+</pre></div>
+</div>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">val</span> <span class="n">query</span><span class="k">:</span> <span class="kt">Source</span><span class="o">[</span><span class="kt">RichEvent</span>, <span class="kt">QueryMetadata</span><span class="o">]</span> <span class="k">=</span>
+  <span class="n">readJournal</span><span class="o">.</span><span class="n">byTagsWithMeta</span><span class="o">(</span><span class="nc">Set</span><span class="o">(</span><span class="s">&quot;red&quot;</span><span class="o">,</span> <span class="s">&quot;blue&quot;</span><span class="o">))</span>
+
+<span class="n">query</span>
+  <span class="o">.</span><span class="n">mapMaterializedValue</span> <span class="o">{</span> <span class="n">meta</span> <span class="k">=&gt;</span>
+    <span class="n">println</span><span class="o">(</span><span class="n">s</span><span class="s">&quot;The query is: &quot;</span> <span class="o">+</span>
+      <span class="n">s</span><span class="s">&quot;ordered deterministically: ${meta.deterministicOrder}, &quot;</span> <span class="o">+</span>
+      <span class="n">s</span><span class="s">&quot;infinite: ${meta.infinite}&quot;</span><span class="o">)</span>
+  <span class="o">}</span>
+  <span class="o">.</span><span class="n">map</span> <span class="o">{</span> <span class="n">event</span> <span class="k">=&gt;</span> <span class="n">println</span><span class="o">(</span><span class="n">s</span><span class="s">&quot;Event payload: ${event.payload}&quot;</span><span class="o">)</span> <span class="o">}</span>
+  <span class="o">.</span><span class="n">runWith</span><span class="o">(</span><span class="nc">Sink</span><span class="o">.</span><span class="n">ignore</span><span class="o">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="performance-and-denormalization">
+<h2>Performance and denormalization</h2>
+<p>When building systems using <a class="reference internal" href="persistence.html#event-sourcing-scala"><em>Event sourcing</em></a> and CQRS (<a class="reference external" href="https://msdn.microsoft.com/en-us/library/jj554200.aspx">Command &amp; Query Responsibility Segregation</a>) techniques
+it is tremendously important to realise that the write-side has completely different needs from the read-side,
+and separating those concerns into datastores that are optimised for either side makes it possible to offer the best
+experience for the write and read sides independently.</p>
+<p>For example, in a bidding system it is important to &quot;take the write&quot; and respond to the bidder that we have accepted
+the bid as soon as possible, which means that write-throughput is of highest importance for the write-side – often this
+means that data stores which are able to scale to accommodate these requirements have a less expressive query side.</p>
+<p>On the other hand the same application may have some complex statistics view or we may have analysts working with the data
+to figure out best bidding strategies and trends – this often requires some kind of expressive query capabilities like
+for example SQL or writing Spark jobs to analyse the data. Therefore the data stored in the write-side needs to be
+projected into the other read-optimised datastore.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">When referring to <strong>Materialized Views</strong> in Akka Persistence think of it as &quot;some persistent storage of the result of a Query&quot;.
+In other words, it means that the view is created once, in order to be afterwards queried multiple times, as in this format
+it may be more efficient or interesting to query it (instead of the source events directly).</p>
+</div>
+<div class="section" id="materialize-view-to-reactive-streams-compatible-datastore">
+<h3>Materialize view to Reactive Streams compatible datastore</h3>
+<p>If the read datastore exposes a <a class="reference external" href="http://reactive-streams.org">Reactive Streams</a> interface then implementing a simple projection
+is as simple as, using the read-journal and feeding it into the databases driver interface, for example like so:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">implicit</span> <span class="k">val</span> <span class="n">system</span> <span class="k">=</span> <span class="nc">ActorSystem</span><span class="o">()</span>
+<span class="k">implicit</span> <span class="k">val</span> <span class="n">mat</span> <span class="k">=</span> <span class="nc">ActorMaterializer</span><span class="o">()</span>
+
+<span class="k">val</span> <span class="n">readJournal</span> <span class="k">=</span>
+  <span class="nc">PersistenceQuery</span><span class="o">(</span><span class="n">system</span><span class="o">).</span><span class="n">readJournalFor</span><span class="o">[</span><span class="kt">MyScaladslReadJournal</span><span class="o">](</span><span class="nc">JournalId</span><span class="o">)</span>
+<span class="k">val</span> <span class="n">dbBatchWriter</span><span class="k">:</span> <span class="kt">Subscriber</span><span class="o">[</span><span class="kt">immutable.Seq</span><span class="o">[</span><span class="kt">Any</span><span class="o">]]</span> <span class="k">=</span>
+  <span class="nc">ReactiveStreamsCompatibleDBDriver</span><span class="o">.</span><span class="n">batchWriter</span>
+
+<span class="c1">// Using an example (Reactive Streams) Database driver</span>
+<span class="n">readJournal</span>
+  <span class="o">.</span><span class="n">eventsByPersistenceId</span><span class="o">(</span><span class="s">&quot;user-1337&quot;</span><span class="o">)</span>
+  <span class="o">.</span><span class="n">map</span><span class="o">(</span><span class="n">envelope</span> <span class="k">=&gt;</span> <span class="n">envelope</span><span class="o">.</span><span class="n">event</span><span class="o">)</span>
+  <span class="o">.</span><span class="n">map</span><span class="o">(</span><span class="n">convertToReadSideTypes</span><span class="o">)</span> <span class="c1">// convert to datatype</span>
+  <span class="o">.</span><span class="n">grouped</span><span class="o">(</span><span class="mi">20</span><span class="o">)</span> <span class="c1">// batch inserts into groups of 20</span>
+  <span class="o">.</span><span class="n">runWith</span><span class="o">(</span><span class="nc">Sink</span><span class="o">.</span><span class="n">fromSubscriber</span><span class="o">(</span><span class="n">dbBatchWriter</span><span class="o">))</span> <span class="c1">// write batches to read-side database</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="materialize-view-using-mapasync">
+<h3>Materialize view using mapAsync</h3>
+<p>If the target database does not provide a reactive streams <tt class="docutils literal"><span class="pre">Subscriber</span></tt> that can perform writes,
+you may have to implement the write logic using plain functions or Actors instead.</p>
+<p>In case your write logic is state-less and you just need to convert the events from one data type to another
+before writing into the alternative datastore, then the projection is as simple as:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">trait</span> <span class="nc">ExampleStore</span> <span class="o">{</span>
+  <span class="k">def</span> <span class="n">save</span><span class="o">(</span><span class="n">event</span><span class="k">:</span> <span class="kt">Any</span><span class="o">)</span><span class="k">:</span> <span class="kt">Future</span><span class="o">[</span><span class="kt">Unit</span><span class="o">]</span>
+<span class="o">}</span>
+<span class="k">val</span> <span class="n">store</span><span class="k">:</span> <span class="kt">ExampleStore</span> <span class="o">=</span> <span class="o">???</span>
+
+<span class="n">readJournal</span>
+  <span class="o">.</span><span class="n">eventsByTag</span><span class="o">(</span><span class="s">&quot;bid&quot;</span><span class="o">)</span>
+  <span class="o">.</span><span class="n">mapAsync</span><span class="o">(</span><span class="mi">1</span><span class="o">)</span> <span class="o">{</span> <span class="n">e</span> <span class="k">=&gt;</span> <span class="n">store</span><span class="o">.</span><span class="n">save</span><span class="o">(</span><span class="n">e</span><span class="o">)</span> <span class="o">}</span>
+  <span class="o">.</span><span class="n">runWith</span><span class="o">(</span><span class="nc">Sink</span><span class="o">.</span><span class="n">ignore</span><span class="o">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="resumable-projections">
+<h3>Resumable projections</h3>
+<p>Sometimes you may need to implement &quot;resumable&quot; projections, that will not start from the beginning of time each time
+when run. In this case you will need to store the sequence number (or <tt class="docutils literal"><span class="pre">offset</span></tt>) of the processed event and use it
+the next time this projection is started. This pattern is not built-in, however is rather simple to implement yourself.</p>
+<p>The example below additionally highlights how you would use Actors to implement the write side, in case
+you need to do some complex logic that would be best handled inside an Actor before persisting the event
+into the other datastore:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">import</span> <span class="nn">akka.pattern.ask</span>
+<span class="k">import</span> <span class="nn">system.dispatcher</span>
+<span class="k">implicit</span> <span class="k">val</span> <span class="n">timeout</span> <span class="k">=</span> <span class="nc">Timeout</span><span class="o">(</span><span class="mf">3.</span><span class="n">seconds</span><span class="o">)</span>
+
+<span class="k">val</span> <span class="n">bidProjection</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">MyResumableProjection</span><span class="o">(</span><span class="s">&quot;bid&quot;</span><span class="o">)</span>
+
+<span class="k">val</span> <span class="n">writerProps</span> <span class="k">=</span> <span class="nc">Props</span><span class="o">(</span><span class="n">classOf</span><span class="o">[</span><span class="kt">TheOneWhoWritesToQueryJournal</span><span class="o">],</span> <span class="s">&quot;bid&quot;</span><span class="o">)</span>
+<span class="k">val</span> <span class="n">writer</span> <span class="k">=</span> <span class="n">system</span><span class="o">.</span><span class="n">actorOf</span><span class="o">(</span><span class="n">writerProps</span><span class="o">,</span> <span class="s">&quot;bid-projection-writer&quot;</span><span class="o">)</span>
+
+<span class="n">bidProjection</span><span class="o">.</span><span class="n">latestOffset</span><span class="o">.</span><span class="n">foreach</span> <span class="o">{</span> <span class="n">startFromOffset</span> <span class="k">=&gt;</span>
+  <span class="n">readJournal</span>
+    <span class="o">.</span><span class="n">eventsByTag</span><span class="o">(</span><span class="s">&quot;bid&quot;</span><span class="o">,</span> <span class="n">startFromOffset</span><span class="o">)</span>
+    <span class="o">.</span><span class="n">mapAsync</span><span class="o">(</span><span class="mi">8</span><span class="o">)</span> <span class="o">{</span> <span class="n">envelope</span> <span class="k">=&gt;</span> <span class="o">(</span><span class="n">writer</span> <span class="o">?</span> <span class="n">envelope</span><span class="o">.</span><span class="n">event</span><span class="o">).</span><span class="n">map</span><span class="o">(</span><span class="k">_</span> <span class="k">=&gt;</span> <span class="n">envelope</span><span class="o">.</span><span class="n">offset</span><span class="o">)</span> <span class="o">}</span>
+    <span class="o">.</span><span class="n">mapAsync</span><span class="o">(</span><span class="mi">1</span><span class="o">)</span> <span class="o">{</span> <span class="n">offset</span> <span class="k">=&gt;</span> <span class="n">bidProjection</span><span class="o">.</span><span class="n">saveProgress</span><span class="o">(</span><span class="n">offset</span><span class="o">)</span> <span class="o">}</span>
+    <span class="o">.</span><span class="n">runWith</span><span class="o">(</span><span class="nc">Sink</span><span class="o">.</span><span class="n">ignore</span><span class="o">)</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">class</span> <span class="nc">TheOneWhoWritesToQueryJournal</span><span class="o">(</span><span class="n">id</span><span class="k">:</span> <span class="kt">String</span><span class="o">)</span> <span class="k">extends</span> <span class="nc">Actor</span> <span class="o">{</span>
+  <span class="k">val</span> <span class="n">store</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">DummyStore</span><span class="o">()</span>
+
+  <span class="k">var</span> <span class="n">state</span><span class="k">:</span> <span class="kt">ComplexState</span> <span class="o">=</span> <span class="nc">ComplexState</span><span class="o">()</span>
+
+  <span class="k">def</span> <span class="n">receive</span> <span class="k">=</span> <span class="o">{</span>
+    <span class="k">case</span> <span class="n">m</span> <span class="k">=&gt;</span>
+      <span class="n">state</span> <span class="k">=</span> <span class="n">updateState</span><span class="o">(</span><span class="n">state</span><span class="o">,</span> <span class="n">m</span><span class="o">)</span>
+      <span class="k">if</span> <span class="o">(</span><span class="n">state</span><span class="o">.</span><span class="n">readyToSave</span><span class="o">)</span> <span class="n">store</span><span class="o">.</span><span class="n">save</span><span class="o">(</span><span class="nc">Record</span><span class="o">(</span><span class="n">state</span><span class="o">))</span>
+  <span class="o">}</span>
+
+  <span class="k">def</span> <span class="n">updateState</span><span class="o">(</span><span class="n">state</span><span class="k">:</span> <span class="kt">ComplexState</span><span class="o">,</span> <span class="n">msg</span><span class="k">:</span> <span class="kt">Any</span><span class="o">)</span><span class="k">:</span> <span class="kt">ComplexState</span> <span class="o">=</span> <span class="o">{</span>
+    <span class="c1">// some complicated aggregation logic here ...</span>
+    <span class="n">state</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="query-plugins">
+<span id="read-journal-plugin-api-scala"></span><h2>Query plugins</h2>
+<p>Query plugins are various (mostly community driven) <tt class="xref py py-class docutils literal"><span class="pre">ReadJournal</span></tt> implementations for all kinds
+of available datastores. The complete list of available plugins is maintained on the Akka Persistence Query <a class="reference external" href="https://akka.io/community/#plugins-to-akka-persistence-query">Community Plugins</a> page.</p>
+<p>The plugin for LevelDB is described in <a class="reference internal" href="persistence-query-leveldb.html#persistence-query-leveldb-scala"><em>Persistence Query for LevelDB</em></a>.</p>
+<p>This section aims to provide tips and guide plugin developers through implementing a custom query plugin.
+Most users will not need to implement journals themselves, except if targeting a not yet supported datastore.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Since different data stores provide different query capabilities journal plugins <strong>must extensively document</strong>
+their exposed semantics as well as handled query scenarios.</p>
+</div>
+<div class="section" id="readjournal-plugin-api">
+<h3>ReadJournal plugin API</h3>
+<p>A read journal plugin must implement <tt class="docutils literal"><span class="pre">akka.persistence.query.ReadJournalProvider</span></tt> which
+creates instances of <tt class="docutils literal"><span class="pre">akka.persistence.query.scaladsl.ReadJournal</span></tt> and
+<tt class="docutils literal"><span class="pre">akka.persistence.query.javaadsl.ReadJournal</span></tt>. The plugin must implement both the <tt class="docutils literal"><span class="pre">scaladsl</span></tt>
+and the <tt class="docutils literal"><span class="pre">javadsl</span></tt> traits because the <tt class="docutils literal"><span class="pre">akka.stream.scaladsl.Source</span></tt> and
+<tt class="docutils literal"><span class="pre">akka.stream.javadsl.Source</span></tt> are different types and even though those types can easily be converted
+to each other it is most convenient for the end user to get access to the Java or Scala directly.
+As illustrated below one of the implementations can delegate to the other.</p>
+<p>Below is a simple journal implementation:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">class</span> <span class="nc">MyReadJournalProvider</span><span class="o">(</span><span class="n">system</span><span class="k">:</span> <span class="kt">ExtendedActorSystem</span><span class="o">,</span> <span class="n">config</span><span class="k">:</span> <span class="kt">Config</span><span class="o">)</span>
+  <span class="k">extends</span> <span class="nc">ReadJournalProvider</span> <span class="o">{</span>
+
+  <span class="k">override</span> <span class="k">val</span> <span class="n">scaladslReadJournal</span><span class="k">:</span> <span class="kt">MyScaladslReadJournal</span> <span class="o">=</span>
+    <span class="k">new</span> <span class="nc">MyScaladslReadJournal</span><span class="o">(</span><span class="n">system</span><span class="o">,</span> <span class="n">config</span><span class="o">)</span>
+
+  <span class="k">override</span> <span class="k">val</span> <span class="n">javadslReadJournal</span><span class="k">:</span> <span class="kt">MyJavadslReadJournal</span> <span class="o">=</span>
+    <span class="k">new</span> <span class="nc">MyJavadslReadJournal</span><span class="o">(</span><span class="n">scaladslReadJournal</span><span class="o">)</span>
+<span class="o">}</span>
+
+<span class="k">class</span> <span class="nc">MyScaladslReadJournal</span><span class="o">(</span><span class="n">system</span><span class="k">:</span> <span class="kt">ExtendedActorSystem</span><span class="o">,</span> <span class="n">config</span><span class="k">:</span> <span class="kt">Config</span><span class="o">)</span>
+  <span class="k">extends</span> <span class="n">akka</span><span class="o">.</span><span class="n">persistence</span><span class="o">.</span><span class="n">query</span><span class="o">.</span><span class="n">scaladsl</span><span class="o">.</span><span class="nc">ReadJournal</span>
+  <span class="k">with</span> <span class="n">akka</span><span class="o">.</span><span class="n">persistence</span><span class="o">.</span><span class="n">query</span><span class="o">.</span><span class="n">scaladsl</span><span class="o">.</span><span class="nc">EventsByTagQuery</span>
+  <span class="k">with</span> <span class="n">akka</span><span class="o">.</span><span class="n">persistence</span><span class="o">.</span><span class="n">query</span><span class="o">.</span><span class="n">scaladsl</span><span class="o">.</span><span class="nc">EventsByPersistenceIdQuery</span>
+  <span class="k">with</span> <span class="n">akka</span><span class="o">.</span><span class="n">persistence</span><span class="o">.</span><span class="n">query</span><span class="o">.</span><span class="n">scaladsl</span><span class="o">.</span><span class="nc">AllPersistenceIdsQuery</span>
+  <span class="k">with</span> <span class="n">akka</span><span class="o">.</span><span class="n">persistence</span><span class="o">.</span><span class="n">query</span><span class="o">.</span><span class="n">scaladsl</span><span class="o">.</span><span class="nc">CurrentPersistenceIdsQuery</span> <span class="o">{</span>
+
+  <span class="k">private</span> <span class="k">val</span> <span class="n">refreshInterval</span><span class="k">:</span> <span class="kt">FiniteDuration</span> <span class="o">=</span>
+    <span class="n">config</span><span class="o">.</span><span class="n">getDuration</span><span class="o">(</span><span class="s">&quot;refresh-interval&quot;</span><span class="o">,</span> <span class="nc">MILLISECONDS</span><span class="o">).</span><span class="n">millis</span>
+
+  <span class="k">override</span> <span class="k">def</span> <span class="n">eventsByTag</span><span class="o">(</span>
+    <span class="n">tag</span><span class="k">:</span> <span class="kt">String</span><span class="o">,</span> <span class="n">offset</span><span class="k">:</span> <span class="kt">Long</span> <span class="o">=</span> <span class="mi">0L</span><span class="o">)</span><span class="k">:</span> <span class="kt">Source</span><span class="o">[</span><span class="kt">EventEnvelope</span>, <span class="kt">NotUsed</span><span class="o">]</span> <span class="k">=</span> <span class="o">{</span>
+    <span class="k">val</span> <span class="n">props</span> <span class="k">=</span> <span class="nc">MyEventsByTagPublisher</span><span class="o">.</span><span class="n">props</span><span class="o">(</span><span class="n">tag</span><span class="o">,</span> <span class="n">offset</span><span class="o">,</span> <span class="n">refreshInterval</span><span class="o">)</span>
+    <span class="nc">Source</span><span class="o">.</span><span class="n">actorPublisher</span><span class="o">[</span><span class="kt">EventEnvelope</span><span class="o">](</span><span class="n">props</span><span class="o">)</span>
+      <span class="o">.</span><span class="n">mapMaterializedValue</span><span class="o">(</span><span class="k">_</span> <span class="k">⇒</span> <span class="nc">NotUsed</span><span class="o">)</span>
+  <span class="o">}</span>
+
+  <span class="k">override</span> <span class="k">def</span> <span class="n">eventsByPersistenceId</span><span class="o">(</span>
+    <span class="n">persistenceId</span><span class="k">:</span> <span class="kt">String</span><span class="o">,</span> <span class="n">fromSequenceNr</span><span class="k">:</span> <span class="kt">Long</span> <span class="o">=</span> <span class="mi">0L</span><span class="o">,</span>
+    <span class="n">toSequenceNr</span><span class="k">:</span> <span class="kt">Long</span> <span class="o">=</span> <span class="nc">Long</span><span class="o">.</span><span class="nc">MaxValue</span><span class="o">)</span><span class="k">:</span> <span class="kt">Source</span><span class="o">[</span><span class="kt">EventEnvelope</span>, <span class="kt">NotUsed</span><span class="o">]</span> <span class="k">=</span> <span class="o">{</span>
+    <span class="c1">// implement in a similar way as eventsByTag</span>
+    <span class="o">???</span>
+  <span class="o">}</span>
+
+  <span class="k">override</span> <span class="k">def</span> <span class="n">allPersistenceIds</span><span class="o">()</span><span class="k">:</span> <span class="kt">Source</span><span class="o">[</span><span class="kt">String</span>, <span class="kt">NotUsed</span><span class="o">]</span> <span class="k">=</span> <span class="o">{</span>
+    <span class="c1">// implement in a similar way as eventsByTag</span>
+    <span class="o">???</span>
+  <span class="o">}</span>
+
+  <span class="k">override</span> <span class="k">def</span> <span class="n">currentPersistenceIds</span><span class="o">()</span><span class="k">:</span> <span class="kt">Source</span><span class="o">[</span><span class="kt">String</span>, <span class="kt">NotUsed</span><span class="o">]</span> <span class="k">=</span> <span class="o">{</span>
+    <span class="c1">// implement in a similar way as eventsByTag</span>
+    <span class="o">???</span>
+  <span class="o">}</span>
+
+  <span class="c1">// possibility to add more plugin specific queries</span>
+
+  <span class="k">def</span> <span class="n">byTagsWithMeta</span><span class="o">(</span><span class="n">tags</span><span class="k">:</span> <span class="kt">Set</span><span class="o">[</span><span class="kt">String</span><span class="o">])</span><span class="k">:</span> <span class="kt">Source</span><span class="o">[</span><span class="kt">RichEvent</span>, <span class="kt">QueryMetadata</span><span class="o">]</span> <span class="k">=</span> <span class="o">{</span>
+    <span class="c1">// implement in a similar way as eventsByTag</span>
+    <span class="o">???</span>
+  <span class="o">}</span>
+
+<span class="o">}</span>
+
+<span class="k">class</span> <span class="nc">MyJavadslReadJournal</span><span class="o">(</span><span class="n">scaladslReadJournal</span><span class="k">:</span> <span class="kt">MyScaladslReadJournal</span><span class="o">)</span>
+  <span class="k">extends</span> <span class="n">akka</span><span class="o">.</span><span class="n">persistence</span><span class="o">.</span><span class="n">query</span><span class="o">.</span><span class="n">javadsl</span><span class="o">.</span><span class="nc">ReadJournal</span>
+  <span class="k">with</span> <span class="n">akka</span><span class="o">.</span><span class="n">persistence</span><span class="o">.</span><span class="n">query</span><span class="o">.</span><span class="n">javadsl</span><span class="o">.</span><span class="nc">EventsByTagQuery</span>
+  <span class="k">with</span> <span class="n">akka</span><span class="o">.</span><span class="n">persistence</span><span class="o">.</span><span class="n">query</span><span class="o">.</span><span class="n">javadsl</span><span class="o">.</span><span class="nc">EventsByPersistenceIdQuery</span>
+  <span class="k">with</span> <span class="n">akka</span><span class="o">.</span><span class="n">persistence</span><span class="o">.</span><span class="n">query</span><span class="o">.</span><span class="n">javadsl</span><span class="o">.</span><span class="nc">AllPersistenceIdsQuery</span>
+  <span class="k">with</span> <span class="n">akka</span><span class="o">.</span><span class="n">persistence</span><span class="o">.</span><span class="n">query</span><span class="o">.</span><span class="n">javadsl</span><span class="o">.</span><span class="nc">CurrentPersistenceIdsQuery</span> <span class="o">{</span>
+
+  <span class="k">override</span> <span class="k">def</span> <span class="n">eventsByTag</span><span class="o">(</span>
+    <span class="n">tag</span><span class="k">:</span> <span class="kt">String</span><span class="o">,</span> <span class="n">offset</span><span class="k">:</span> <span class="kt">Long</span> <span class="o">=</span> <span class="mi">0L</span><span class="o">)</span><span class="k">:</span> <span class="kt">javadsl.Source</span><span class="o">[</span><span class="kt">EventEnvelope</span>, <span class="kt">NotUsed</span><span class="o">]</span> <span class="k">=</span>
+    <span class="n">scaladslReadJournal</span><span class="o">.</span><span class="n">eventsByTag</span><span class="o">(</span><span class="n">tag</span><span class="o">,</span> <span class="n">offset</span><span class="o">).</span><span class="n">asJava</span>
+
+  <span class="k">override</span> <span class="k">def</span> <span class="n">eventsByPersistenceId</span><span class="o">(</span>
+    <span class="n">persistenceId</span><span class="k">:</span> <span class="kt">String</span><span class="o">,</span> <span class="n">fromSequenceNr</span><span class="k">:</span> <span class="kt">Long</span> <span class="o">=</span> <span class="mi">0L</span><span class="o">,</span>
+    <span class="n">toSequenceNr</span><span class="k">:</span> <span class="kt">Long</span> <span class="o">=</span> <span class="nc">Long</span><span class="o">.</span><span class="nc">MaxValue</span><span class="o">)</span><span class="k">:</span> <span class="kt">javadsl.Source</span><span class="o">[</span><span class="kt">EventEnvelope</span>, <span class="kt">NotUsed</span><span class="o">]</span> <span class="k">=</span>
+    <span class="n">scaladslReadJournal</span><span class="o">.</span><span class="n">eventsByPersistenceId</span><span class="o">(</span>
+      <span class="n">persistenceId</span><span class="o">,</span> <span class="n">fromSequenceNr</span><span class="o">,</span> <span class="n">toSequenceNr</span><span class="o">).</span><span class="n">asJava</span>
+
+  <span class="k">override</span> <span class="k">def</span> <span class="n">allPersistenceIds</span><span class="o">()</span><span class="k">:</span> <span class="kt">javadsl.Source</span><span class="o">[</span><span class="kt">String</span>, <span class="kt">NotUsed</span><span class="o">]</span> <span class="k">=</span>
+    <span class="n">scaladslReadJournal</span><span class="o">.</span><span class="n">allPersistenceIds</span><span class="o">().</span><span class="n">asJava</span>
+
+  <span class="k">override</span> <span class="k">def</span> <span class="n">currentPersistenceIds</span><span class="o">()</span><span class="k">:</span> <span class="kt">javadsl.Source</span><span class="o">[</span><span class="kt">String</span>, <span class="kt">NotUsed</span><span class="o">]</span> <span class="k">=</span>
+    <span class="n">scaladslReadJournal</span><span class="o">.</span><span class="n">currentPersistenceIds</span><span class="o">().</span><span class="n">asJava</span>
+
+  <span class="c1">// possibility to add more plugin specific queries</span>
+
+  <span class="k">def</span> <span class="n">byTagsWithMeta</span><span class="o">(</span>
+    <span class="n">tags</span><span class="k">:</span> <span class="kt">java.util.Set</span><span class="o">[</span><span class="kt">String</span><span class="o">])</span><span class="k">:</span> <span class="kt">javadsl.Source</span><span class="o">[</span><span class="kt">RichEvent</span>, <span class="kt">QueryMetadata</span><span class="o">]</span> <span class="k">=</span> <span class="o">{</span>
+    <span class="k">import</span> <span class="nn">scala.collection.JavaConverters._</span>
+    <span class="n">scaladslReadJournal</span><span class="o">.</span><span class="n">byTagsWithMeta</span><span class="o">(</span><span class="n">tags</span><span class="o">.</span><span class="n">asScala</span><span class="o">.</span><span class="n">toSet</span><span class="o">).</span><span class="n">asJava</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<p>And the <tt class="docutils literal"><span class="pre">eventsByTag</span></tt> could be backed by such an Actor for example:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">class</span> <span class="nc">MyEventsByTagPublisher</span><span class="o">(</span><span class="n">tag</span><span class="k">:</span> <span class="kt">String</span><span class="o">,</span> <span class="n">offset</span><span class="k">:</span> <span class="kt">Long</span><span class="o">,</span> <span class="n">refreshInterval</span><span class="k">:</span> <span class="kt">FiniteDuration</span><span class="o">)</span>
+  <span class="k">extends</span> <span class="nc">ActorPublisher</span><span class="o">[</span><span class="kt">EventEnvelope</span><span class="o">]</span> <span class="o">{</span>
+
+  <span class="k">private</span> <span class="k">case</span> <span class="k">object</span> <span class="nc">Continue</span>
+
+  <span class="k">private</span> <span class="k">val</span> <span class="n">connection</span><span class="k">:</span> <span class="kt">java.sql.Connection</span> <span class="o">=</span> <span class="o">???</span>
+
+  <span class="k">private</span> <span class="k">val</span> <span class="nc">Limit</span> <span class="k">=</span> <span class="mi">1000</span>
+  <span class="k">private</span> <span class="k">var</span> <span class="n">currentOffset</span> <span class="k">=</span> <span class="n">offset</span>
+  <span class="k">var</span> <span class="n">buf</span> <span class="k">=</span> <span class="nc">Vector</span><span class="o">.</span><span class="n">empty</span><span class="o">[</span><span class="kt">EventEnvelope</span><span class="o">]</span>
+
+  <span class="k">import</span> <span class="nn">context.dispatcher</span>
+  <span class="k">val</span> <span class="n">continueTask</span> <span class="k">=</span> <span class="n">context</span><span class="o">.</span><span class="n">system</span><span class="o">.</span><span class="n">scheduler</span><span class="o">.</span><span class="n">schedule</span><span class="o">(</span>
+    <span class="n">refreshInterval</span><span class="o">,</span> <span class="n">refreshInterval</span><span class="o">,</span> <span class="n">self</span><span class="o">,</span> <span class="nc">Continue</span><span class="o">)</span>
+
+  <span class="k">override</span> <span class="k">def</span> <span class="n">postStop</span><span class="o">()</span><span class="k">:</span> <span class="kt">Unit</span> <span class="o">=</span> <span class="o">{</span>
+    <span class="n">continueTask</span><span class="o">.</span><span class="n">cancel</span><span class="o">()</span>
+  <span class="o">}</span>
+
+  <span class="k">def</span> <span class="n">receive</span> <span class="k">=</span> <span class="o">{</span>
+    <span class="k">case</span> <span class="k">_:</span> <span class="kt">Request</span> <span class="kt">|</span> <span class="kt">Continue</span> <span class="k">⇒</span>
+      <span class="kt">query</span><span class="o">()</span>
+      <span class="kt">deliverBuf</span><span class="o">()</span>
+
+    <span class="kt">case</span> <span class="kt">Cancel</span> <span class="k">⇒</span>
+      <span class="kt">context.stop</span><span class="o">(</span><span class="kt">self</span><span class="o">)</span>
+  <span class="o">}</span>
+
+  <span class="k">object</span> <span class="nc">Select</span> <span class="o">{</span>
+    <span class="k">private</span> <span class="k">def</span> <span class="n">statement</span><span class="o">()</span> <span class="k">=</span> <span class="n">connection</span><span class="o">.</span><span class="n">prepareStatement</span><span class="o">(</span>
+      <span class="s">&quot;&quot;&quot;</span>
+<span class="s">        SELECT id, persistent_repr FROM journal</span>
+<span class="s">        WHERE tag = ? AND id &gt;= ?</span>
+<span class="s">        ORDER BY id LIMIT ?</span>
+<span class="s">      &quot;&quot;&quot;</span><span class="o">)</span>
+
+    <span class="k">def</span> <span class="n">run</span><span class="o">(</span><span class="n">tag</span><span class="k">:</span> <span class="kt">String</span><span class="o">,</span> <span class="n">from</span><span class="k">:</span> <span class="kt">Long</span><span class="o">,</span> <span class="n">limit</span><span class="k">:</span> <span class="kt">Int</span><span class="o">)</span><span class="k">:</span> <span class="kt">Vector</span><span class="o">[(</span><span class="kt">Long</span>, <span class="kt">Array</span><span class="o">[</span><span class="kt">Byte</span><span class="o">])]</span> <span class="k">=</span> <span class="o">{</span>
+      <span class="k">val</span> <span class="n">s</span> <span class="k">=</span> <span class="n">statement</span><span class="o">()</span>
+      <span class="k">try</span> <span class="o">{</span>
+        <span class="n">s</span><span class="o">.</span><span class="n">setString</span><span class="o">(</span><span class="mi">1</span><span class="o">,</span> <span class="n">tag</span><span class="o">)</span>
+        <span class="n">s</span><span class="o">.</span><span class="n">setLong</span><span class="o">(</span><span class="mi">2</span><span class="o">,</span> <span class="n">from</span><span class="o">)</span>
+        <span class="n">s</span><span class="o">.</span><span class="n">setLong</span><span class="o">(</span><span class="mi">3</span><span class="o">,</span> <span class="n">limit</span><span class="o">)</span>
+        <span class="k">val</span> <span class="n">rs</span> <span class="k">=</span> <span class="n">s</span><span class="o">.</span><span class="n">executeQuery</span><span class="o">()</span>
+
+        <span class="k">val</span> <span class="n">b</span> <span class="k">=</span> <span class="nc">Vector</span><span class="o">.</span><span class="n">newBuilder</span><span class="o">[(</span><span class="kt">Long</span>, <span class="kt">Array</span><span class="o">[</span><span class="kt">Byte</span><span class="o">])]</span>
+        <span class="k">while</span> <span class="o">(</span><span class="n">rs</span><span class="o">.</span><span class="n">next</span><span class="o">())</span>
+          <span class="n">b</span> <span class="o">+=</span> <span class="o">(</span><span class="n">rs</span><span class="o">.</span><span class="n">getLong</span><span class="o">(</span><span class="mi">1</span><span class="o">)</span> <span class="o">-&gt;</span> <span class="n">rs</span><span class="o">.</span><span class="n">getBytes</span><span class="o">(</span><span class="mi">2</span><span class="o">))</span>
+        <span class="n">b</span><span class="o">.</span><span class="n">result</span><span class="o">()</span>
+      <span class="o">}</span> <span class="k">finally</span> <span class="n">s</span><span class="o">.</span><span class="n">close</span><span class="o">()</span>
+    <span class="o">}</span>
+  <span class="o">}</span>
+
+  <span class="k">def</span> <span class="n">query</span><span class="o">()</span><span class="k">:</span> <span class="kt">Unit</span> <span class="o">=</span>
+    <span class="k">if</span> <span class="o">(</span><span class="n">buf</span><span class="o">.</span><span class="n">isEmpty</span><span class="o">)</span> <span class="o">{</span>
+      <span class="k">try</span> <span class="o">{</span>
+        <span class="k">val</span> <span class="n">result</span> <span class="k">=</span> <span class="nc">Select</span><span class="o">.</span><span class="n">run</span><span class="o">(</span><span class="n">tag</span><span class="o">,</span> <span class="n">currentOffset</span><span class="o">,</span> <span class="nc">Limit</span><span class="o">)</span>
+        <span class="n">currentOffset</span> <span class="k">=</span> <span class="k">if</span> <span class="o">(</span><span class="n">result</span><span class="o">.</span><span class="n">nonEmpty</span><span class="o">)</span> <span class="n">result</span><span class="o">.</span><span class="n">last</span><span class="o">.</span><span class="n">_1</span> <span class="k">else</span> <span class="n">currentOffset</span>
+        <span class="k">val</span> <span class="n">serialization</span> <span class="k">=</span> <span class="nc">SerializationExtension</span><span class="o">(</span><span class="n">context</span><span class="o">.</span><span class="n">system</span><span class="o">)</span>
+
+        <span class="n">buf</span> <span class="k">=</span> <span class="n">result</span><span class="o">.</span><span class="n">map</span> <span class="o">{</span>
+          <span class="k">case</span> <span class="o">(</span><span class="n">id</span><span class="o">,</span> <span class="n">bytes</span><span class="o">)</span> <span class="k">⇒</span>
+            <span class="k">val</span> <span class="n">p</span> <span class="k">=</span> <span class="n">serialization</span><span class="o">.</span><span class="n">deserialize</span><span class="o">(</span><span class="n">bytes</span><span class="o">,</span> <span class="n">classOf</span><span class="o">[</span><span class="kt">PersistentRepr</span><span class="o">]).</span><span class="n">get</span>
+            <span class="nc">EventEnvelope</span><span class="o">(</span><span class="n">offset</span> <span class="k">=</span> <span class="n">id</span><span class="o">,</span> <span class="n">p</span><span class="o">.</span><span class="n">persistenceId</span><span class="o">,</span> <span class="n">p</span><span class="o">.</span><span class="n">sequenceNr</span><span class="o">,</span> <span class="n">p</span><span class="o">.</span><span class="n">payload</span><span class="o">)</span>
+        <span class="o">}</span>
+      <span class="o">}</span> <span class="k">catch</span> <span class="o">{</span>
+        <span class="k">case</span> <span class="n">e</span><span class="k">:</span> <span class="kt">Exception</span> <span class="k">⇒</span>
+          <span class="kt">onErrorThenStop</span><span class="o">(</span><span class="kt">e</span><span class="o">)</span>
+      <span class="o">}</span>
+    <span class="o">}</span>
+
+  <span class="k">final</span> <span class="k">def</span> <span class="n">deliverBuf</span><span class="o">()</span><span class="k">:</span> <span class="kt">Unit</span> <span class="o">=</span>
+    <span class="k">if</span> <span class="o">(</span><span class="n">totalDemand</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="o">&amp;&amp;</span> <span class="n">buf</span><span class="o">.</span><span class="n">nonEmpty</span><span class="o">)</span> <span class="o">{</span>
+      <span class="k">if</span> <span class="o">(</span><span class="n">totalDemand</span> <span class="o">&lt;=</span> <span class="nc">Int</span><span class="o">.</span><span class="nc">MaxValue</span><span class="o">)</span> <span class="o">{</span>
+        <span class="k">val</span> <span class="o">(</span><span class="n">use</span><span class="o">,</span> <span class="n">keep</span><span class="o">)</span> <span class="k">=</span> <span class="n">buf</span><span class="o">.</span><span class="n">splitAt</span><span class="o">(</span><span class="n">totalDemand</span><span class="o">.</span><span class="n">toInt</span><span class="o">)</span>
+        <span class="n">buf</span> <span class="k">=</span> <span class="n">keep</span>
+        <span class="n">use</span> <span class="n">foreach</span> <span class="n">onNext</span>
+      <span class="o">}</span> <span class="k">else</span> <span class="o">{</span>
+        <span class="n">buf</span> <span class="n">foreach</span> <span class="n">onNext</span>
+        <span class="n">buf</span> <span class="k">=</span> <span class="nc">Vector</span><span class="o">.</span><span class="n">empty</span>
+      <span class="o">}</span>
+    <span class="o">}</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<p>If the underlying datastore only supports queries that are completed when they reach the
+end of the &quot;result set&quot;, the journal has to submit new queries after a while in order
+to support &quot;infinite&quot; event streams that include events stored after the initial query
+has completed. It is recommended that the plugin use a configuration property named
+<tt class="docutils literal"><span class="pre">refresh-interval</span></tt> for defining such a refresh interval.</p>
+</div>
+<div class="section" id="plugin-tck">
+<h3>Plugin TCK</h3>
+<p>TODO, not available yet.</p>
+</div>
+</div>
+</div>
+
+
+          </div>
+          <div class="span3"><p class="contents-title">Contents</p>
+              <div id="scroller-anchor">
+                <div id="scroller">
+                  <div id="toc"></div>
+                </div>
+              </div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="footer">
+  <div class="container">
+    <ul>
+      <li><h5>Akka</h5></li>
+      <li><a href="https://akka.io/docs">Documentation</a></li>
+      <li><a href="https://akka.io/faq">FAQ</a></li>
+      <li><a href="https://akka.io/downloads">Downloads</a></li>
+      <li><a href="https://akka.io/news">News</a></li>
+      <li><a href="http://letitcrash.com">Blog</a></li>
+    </ul>
+    <ul>
+      <li><h5>Contribute</h5></li>
+      <li><a href="https://akka.io/community">Community Projects</a></li>
+      <li><a href="http://github.com/akka/akka">Source Code</a></li>
+      <li><a href="http://groups.google.com/group/akka-user">Mailing List</a></li>      
+      <li><a href="https://doc.akka.io/docs/akka/current/project/issue-tracking.html">Report a Bug</a></li>      
+    </ul>
+    <ul>
+      <li><h5>Company</h5></li>
+      <li><a href="http://www.lightbend.com/how/subscription">Commercial Support</a></li>
+      <li><a href="https://akka.io/team">Team</a></li>
+      <li><a href="mailto:info@lightbend.com">Contact</a></li>
+    </ul>
+    <ul>
+      <li><img src="../_static/akka_icon_reverse.svg" align="center"/></li>
+    </ul>
+  </div>
+  <div class="container copyright">
+    <p style="float: left;">
+      © 2015 <a href="http://www.lightbend.com/">Lightbend Inc.</a> <span class="license">Akka is Open Source and available under the Apache 2 License.</span>
+    </p>
+    <p style="float: right; font-size: 12px;">
+      Last updated: Apr 14, 2016
+    </p>          
+  </div>
+</div>
+<script type="text/javascript">
+  var $toc = $('#toc');
+  $toc.toc();
+
+  // show clickable section sign when section header hovered:
+  $('.section h2,.section h3,.section h4,.section h5').each(function(i, el) {
+      var $el = $(el);
+      $el.prepend($("<a class='section-marker' href='#" + $el.attr("id") + "'>&sect;</a>"))
+  });
+</script>
+
+<!-- Algolia docs search -->
+<script type="text/javascript">
+  var version = DOCUMENTATION_OPTIONS.VERSION;
+
+  var lang = "scala";
+  var path = window.location.pathname;
+  if (path.includes("/java/") || path.includes("java.html")) lang = "java";
+
+  console.log("Search configured for:", lang, "@", version);
+
+  docsearch({
+    apiKey: '543bad5ad786495d9ccd445ed34ed082',
+    indexName: 'akka_io',
+    inputSelector: '#search',
+    algoliaOptions: {
+      hitsPerPage: 10,
+      facetFilters: '[' +
+      '["language:' + lang + '","language:general"]' +
+      ',"version:2.4.2"]'
+    }
+  });
+
+  // set up "/" as global shortcut for focusing on search
+  $(document).keypress(function (event) {
+    if (event.keyCode == 47) {
+      $("#q").focus();
+      return false; // swallow key event, otherwise the / char would be input into the search box
+    }
+  });
+</script>
+
+  
+
+  </body>
+</html>

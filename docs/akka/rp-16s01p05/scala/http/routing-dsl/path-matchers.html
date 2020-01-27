@@ -1,0 +1,411 @@
+
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>The PathMatcher DSL &mdash; Akka Documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/style.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/prettify.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/base.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/docs.css" type="text/css" />
+    <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,600,700" type="text/css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/docsearch.js/1/docsearch.min.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '2.4-bin-rp-16s01p05',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="../../../_static/toc.js"></script>
+    <script type="text/javascript" src="../../../_static/prettify.js"></script>
+    <script type="text/javascript" src="../../../_static/highlightCode.js"></script>
+    <script type="text/javascript" src="../../../_static/effects.core.js"></script>
+    <script type="text/javascript" src="../../../_static/effects.highlight.js"></script>
+    <script type="text/javascript" src="../../../_static/scrollTo.js"></script>
+    <script type="text/javascript" src="../../../_static/contentsFix.js"></script>
+    <script type="text/javascript" src="../../../_static/ga.js"></script>
+    <script type="text/javascript" src="../../../_static/warnOldDocs.js"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/docsearch.js/1/docsearch.min.js"></script>
+    <link rel="shortcut icon" href="../../../_static/favicon.ico"/>
+    <link rel="top" title="Akka Documentation" href="../../../index.html" />
+    <link rel="up" title="High-level Server-Side API" href="index.html" />
+    <link rel="next" title="Case Class Extraction" href="case-class-extraction.html" />
+    <link rel="prev" title="Exception Handling" href="exception-handling.html" />
+
+
+  </head>
+  <body>
+  <div class="navbar">
+    <div class="navbar-inner">
+      <div class="container">
+        <div class="navbar-logo">
+          <a href="https://akka.io"><img class="svg-logo" src="../../../_static/akka_full_color.svg" /></a>
+        </div>    
+        <ul class="nav">
+          <li><a href="https://akka.io/docs">Documentation</a></li>
+          <li><a href="https://akka.io/faq">FAQ</a></li>
+          <li><a href="https://akka.io/downloads">Download</a></li>
+          <li><a href="http://groups.google.com/group/akka-user">Mailing List</a></li>
+          <li><a href="http://github.com/akka/akka">Code</a></li>           
+          <li><a href="http://www.lightbend.com/how/subscription">Commercial Support</a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="main">
+    <div class="container">
+      <div class="page-title">The PathMatcher DSL</div>
+      <div class="pdf-link"><a href="../../../AkkaScala.pdf" title="Akka Scala Documentation"><img src="../../../_static/pdf-scala-icon.png" style="height: 40px;" /></a></div>
+      <div class="pdf-link"><a href="../../../AkkaJava.pdf" title="Akka Java Documentation"><img src="../../../_static/pdf-java-icon.png" style="height: 40px;" /></a></div>
+    </div>
+    <div class="main-container">
+      <div class="container">
+        <div class="row">
+          <div class="span12">
+            <ul class="breadcrumb">           
+              <li>
+                 <span class="divider">|</span> <a href="case-class-extraction.html">Case Class Extraction</a> <span class="divider">»</span>
+              </li>
+              <li>
+                <a href="../../../java.html">Java Contents</a> <span class="divider">|</span> <a href="../../../scala.html">Scala Contents</a>
+              </li>
+              <li>
+                <span class="divider">«</span> <a href="exception-handling.html">Exception Handling</a> <span class="divider">|</span>
+              </li>
+              <li style="float: left">
+                Version 2.4-bin-rp-16s01p05
+              </li>
+              <li style="float: left">
+                <input type="search" id="search" class="form-control" />
+              </li>
+            </ul>
+          </div>
+        </div>
+        <div class="row"><div class="span9">
+            
+  <div class="section" id="the-pathmatcher-dsl">
+<span id="pathmatcher-dsl"></span><h1>The PathMatcher DSL</h1>
+<p>For being able to work with the <a class="reference internal" href="directives/path-directives/index.html#pathdirectives"><em>PathDirectives</em></a> effectively you should have some understanding of the
+<tt class="docutils literal"><span class="pre">PathMatcher</span></tt> mini-DSL that Akka HTTP provides for elegantly defining URI matching behavior.</p>
+<div class="section" id="overview">
+<h2>Overview</h2>
+<p>When a request (or rather the respective <tt class="docutils literal"><span class="pre">RequestContext</span></tt> instance) enters the route structure it has an
+&quot;unmatched path&quot; that is identical to the <tt class="docutils literal"><span class="pre">request.uri.path</span></tt>. As it descends the routing tree and passes through one
+or more <a class="reference internal" href="directives/path-directives/pathPrefix.html#pathprefix"><em>pathPrefix</em></a> or <a class="reference internal" href="directives/path-directives/path.html#path"><em>path</em></a> directives the &quot;unmatched path&quot; progressively gets &quot;eaten into&quot; from the
+left until, in most cases, it eventually has been consumed completely.</p>
+<p>What exactly gets matched and consumed as well as extracted from the unmatched path in each directive is defined with
+the patch matching DSL, which is built around these types:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">trait</span> <span class="nc">PathMatcher</span><span class="o">[</span><span class="kt">L:</span> <span class="kt">Tuple</span><span class="o">]</span>
+<span class="nc">type</span> <span class="nc">PathMatcher0</span> <span class="k">=</span> <span class="nc">PathMatcher</span><span class="o">[</span><span class="kt">Unit</span><span class="o">]</span>
+<span class="k">type</span> <span class="kt">PathMatcher1</span><span class="o">[</span><span class="kt">T</span><span class="o">]</span> <span class="k">=</span> <span class="nc">PathMatcher</span><span class="o">[</span><span class="kt">Tuple1</span><span class="o">[</span><span class="kt">T</span><span class="o">]]</span>
+</pre></div>
+</div>
+<p>The number and types of the values extracted by a <tt class="docutils literal"><span class="pre">PathMatcher</span></tt> instance is represented by the <tt class="docutils literal"><span class="pre">L</span></tt> type
+parameter which needs to be one of Scala's TupleN types or <tt class="docutils literal"><span class="pre">Unit</span></tt> (which is designated by the <tt class="docutils literal"><span class="pre">Tuple</span></tt> context bound).
+The convenience alias <tt class="docutils literal"><span class="pre">PathMatcher0</span></tt> can be used for all matchers which don't extract anything while <tt class="docutils literal"><span class="pre">PathMatcher1[T]</span></tt>
+defines a matcher which only extracts a single value of type <tt class="docutils literal"><span class="pre">T</span></tt>.</p>
+<p>Here is an example of a more complex <tt class="docutils literal"><span class="pre">PathMatcher</span></tt> expression:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">val</span> <span class="n">matcher</span><span class="k">:</span> <span class="kt">PathMatcher1</span><span class="o">[</span><span class="kt">Option</span><span class="o">[</span><span class="kt">Int</span><span class="o">]]</span> <span class="k">=</span>
+  <span class="s">&quot;foo&quot;</span> <span class="o">/</span> <span class="s">&quot;bar&quot;</span> <span class="o">/</span> <span class="s">&quot;X&quot;</span> <span class="o">~</span> <span class="nc">IntNumber</span><span class="o">.?</span> <span class="o">/</span> <span class="o">(</span><span class="s">&quot;edit&quot;</span> <span class="o">|</span> <span class="s">&quot;create&quot;</span><span class="o">)</span>
+</pre></div>
+</div>
+<p>This will match paths like <tt class="docutils literal"><span class="pre">foo/bar/X42/edit</span></tt> or <tt class="docutils literal"><span class="pre">foo/bar/X/create</span></tt>.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The path matching DSL describes what paths to accept <strong>after</strong> URL decoding. This is why the path-separating
+slashes have special status and cannot simply be specified as part of a string! The string &quot;foo/bar&quot; would match
+the raw URI path &quot;foo%2Fbar&quot;, which is most likely not what you want!</p>
+</div>
+</div>
+<div class="section" id="basic-pathmatchers">
+<h2>Basic PathMatchers</h2>
+<p>A complex <tt class="docutils literal"><span class="pre">PathMatcher</span></tt> can be constructed by combining or modifying more basic ones. Here are the basic matchers
+that Akka HTTP already provides for you:</p>
+<dl class="docutils">
+<dt>String</dt>
+<dd>You can use a <tt class="docutils literal"><span class="pre">String</span></tt> instance as a <tt class="docutils literal"><span class="pre">PathMatcher0</span></tt>. Strings simply match themselves and extract no value.
+Note that strings are interpreted as the decoded representation of the path, so if they include a '/' character
+this character will match &quot;%2F&quot; in the encoded raw URI!</dd>
+<dt>Regex</dt>
+<dd>You can use a <tt class="docutils literal"><span class="pre">Regex</span></tt> instance as a <tt class="docutils literal"><span class="pre">PathMatcher1[String]</span></tt>, which matches whatever the regex matches and extracts
+one <tt class="docutils literal"><span class="pre">String</span></tt> value. A <tt class="docutils literal"><span class="pre">PathMatcher</span></tt> created from a regular expression extracts either the complete match (if the
+regex doesn't contain a capture group) or the capture group (if the regex contains exactly one capture group).
+If the regex contains more than one capture group an <tt class="docutils literal"><span class="pre">IllegalArgumentException</span></tt> will be thrown.</dd>
+<dt>Map[String, T]</dt>
+<dd>You can use a <tt class="docutils literal"><span class="pre">Map[String,</span> <span class="pre">T]</span></tt> instance as a <tt class="docutils literal"><span class="pre">PathMatcher1[T]</span></tt>, which matches any of the keys and extracts the
+respective map value for it.</dd>
+<dt>Slash: PathMatcher0</dt>
+<dd>Matches exactly one path-separating slash (<tt class="docutils literal"><span class="pre">/</span></tt>) character and extracts nothing.</dd>
+<dt>Segment: PathMatcher1[String]</dt>
+<dd>Matches if the unmatched path starts with a path segment (i.e. not a slash).
+If so the path segment is extracted as a <tt class="docutils literal"><span class="pre">String</span></tt> instance.</dd>
+<dt>PathEnd: PathMatcher0</dt>
+<dd>Matches the very end of the path, similar to <tt class="docutils literal"><span class="pre">$</span></tt> in regular expressions and extracts nothing.</dd>
+<dt>Rest: PathMatcher1[String]</dt>
+<dd>Matches and extracts the complete remaining unmatched part of the request's URI path as an (encoded!) String.
+If you need access to the remaining <em>decoded</em> elements of the path use <tt class="docutils literal"><span class="pre">RestPath</span></tt> instead.</dd>
+<dt>RestPath: PathMatcher1[Path]</dt>
+<dd>Matches and extracts the complete remaining, unmatched part of the request's URI path.</dd>
+<dt>IntNumber: PathMatcher1[Int]</dt>
+<dd>Efficiently matches a number of decimal digits (unsigned) and extracts their (non-negative) <tt class="docutils literal"><span class="pre">Int</span></tt> value. The matcher
+will not match zero digits or a sequence of digits that would represent an <tt class="docutils literal"><span class="pre">Int</span></tt> value larger than <tt class="docutils literal"><span class="pre">Int.MaxValue</span></tt>.</dd>
+<dt>LongNumber: PathMatcher1[Long]</dt>
+<dd>Efficiently matches a number of decimal digits (unsigned) and extracts their (non-negative) <tt class="docutils literal"><span class="pre">Long</span></tt> value. The matcher
+will not match zero digits or a sequence of digits that would represent an <tt class="docutils literal"><span class="pre">Long</span></tt> value larger than <tt class="docutils literal"><span class="pre">Long.MaxValue</span></tt>.</dd>
+<dt>HexIntNumber: PathMatcher1[Int]</dt>
+<dd>Efficiently matches a number of hex digits and extracts their (non-negative) <tt class="docutils literal"><span class="pre">Int</span></tt> value. The matcher will not match
+zero digits or a sequence of digits that would represent an <tt class="docutils literal"><span class="pre">Int</span></tt> value larger than <tt class="docutils literal"><span class="pre">Int.MaxValue</span></tt>.</dd>
+<dt>HexLongNumber: PathMatcher1[Long]</dt>
+<dd>Efficiently matches a number of hex digits and extracts their (non-negative) <tt class="docutils literal"><span class="pre">Long</span></tt> value. The matcher will not
+match zero digits or a sequence of digits that would represent an <tt class="docutils literal"><span class="pre">Long</span></tt> value larger than <tt class="docutils literal"><span class="pre">Long.MaxValue</span></tt>.</dd>
+<dt>DoubleNumber: PathMatcher1[Double]</dt>
+<dd>Matches and extracts a <tt class="docutils literal"><span class="pre">Double</span></tt> value. The matched string representation is the pure decimal,
+optionally signed form of a double value, i.e. without exponent.</dd>
+<dt>JavaUUID: PathMatcher1[UUID]</dt>
+<dd>Matches and extracts a <tt class="docutils literal"><span class="pre">java.util.UUID</span></tt> instance.</dd>
+<dt>Neutral: PathMatcher0</dt>
+<dd>A matcher that always matches, doesn't consume anything and extracts nothing.
+Serves mainly as a neutral element in <tt class="docutils literal"><span class="pre">PathMatcher</span></tt> composition.</dd>
+<dt>Segments: PathMatcher1[List[String]]</dt>
+<dd>Matches all remaining segments as a list of strings. Note that this can also be &quot;no segments&quot; resulting in the empty
+list. If the path has a trailing slash this slash will <em>not</em> be matched, i.e. remain unmatched and to be consumed by
+potentially nested directives.</dd>
+<dt>separateOnSlashes(string: String): PathMatcher0</dt>
+<dd>Converts a path string containing slashes into a <tt class="docutils literal"><span class="pre">PathMatcher0</span></tt> that interprets slashes as
+path segment separators. This means that a matcher matching &quot;%2F&quot; cannot be constructed with this helper.</dd>
+<dt>provide[L: Tuple](extractions: L): PathMatcher[L]</dt>
+<dd>Always matches, consumes nothing and extracts the given <tt class="docutils literal"><span class="pre">TupleX</span></tt> of values.</dd>
+<dt>PathMatcher[L: Tuple](prefix: Path, extractions: L): PathMatcher[L]</dt>
+<dd>Matches and consumes the given path prefix and extracts the given list of extractions.
+If the given prefix is empty the returned matcher matches always and consumes nothing.</dd>
+</dl>
+</div>
+<div class="section" id="combinators">
+<h2>Combinators</h2>
+<p>Path matchers can be combined with these combinators to form higher-level constructs:</p>
+<dl class="docutils">
+<dt>Tilde Operator (<tt class="docutils literal"><span class="pre">~</span></tt>)</dt>
+<dd>The tilde is the most basic combinator. It simply concatenates two matchers into one, i.e if the first one matched
+(and consumed) the second one is tried. The extractions of both matchers are combined type-safely.
+For example: <tt class="docutils literal"><span class="pre">&quot;foo&quot;</span> <span class="pre">~</span> <span class="pre">&quot;bar&quot;</span></tt> yields a matcher that is identical to <tt class="docutils literal"><span class="pre">&quot;foobar&quot;</span></tt>.</dd>
+<dt>Slash Operator (<tt class="docutils literal"><span class="pre">/</span></tt>)</dt>
+<dd>This operator concatenates two matchers and inserts a <tt class="docutils literal"><span class="pre">Slash</span></tt> matcher in between them.
+For example: <tt class="docutils literal"><span class="pre">&quot;foo&quot;</span> <span class="pre">/</span> <span class="pre">&quot;bar&quot;</span></tt> is identical to <tt class="docutils literal"><span class="pre">&quot;foo&quot;</span> <span class="pre">~</span> <span class="pre">Slash</span> <span class="pre">~</span> <span class="pre">&quot;bar&quot;</span></tt>.</dd>
+<dt>Pipe Operator (<tt class="docutils literal"><span class="pre">|</span></tt>)</dt>
+<dd>This operator combines two matcher alternatives in that the second one is only tried if the first one did <em>not</em> match.
+The two sub-matchers must have compatible types.
+For example: <tt class="docutils literal"><span class="pre">&quot;foo&quot;</span> <span class="pre">|</span> <span class="pre">&quot;bar&quot;</span></tt> will match either &quot;foo&quot; <em>or</em> &quot;bar&quot;.</dd>
+</dl>
+</div>
+<div class="section" id="modifiers">
+<h2>Modifiers</h2>
+<p>Path matcher instances can be transformed with these modifier methods:</p>
+<dl class="docutils">
+<dt>/</dt>
+<dd>The slash operator cannot only be used as combinator for combining two matcher instances, it can also be used as
+a postfix call. <tt class="docutils literal"><span class="pre">matcher</span> <span class="pre">/</span></tt> is identical to <tt class="docutils literal"><span class="pre">matcher</span> <span class="pre">~</span> <span class="pre">Slash</span></tt> but shorter and easier to read.</dd>
+</dl>
+<dl class="docutils">
+<dt>?</dt>
+<dd><p class="first">By postfixing a matcher with <tt class="docutils literal"><span class="pre">?</span></tt> you can turn any <tt class="docutils literal"><span class="pre">PathMatcher</span></tt> into one that always matches, optionally consumes
+and potentially extracts an <tt class="docutils literal"><span class="pre">Option</span></tt> of the underlying matchers extraction. The result type depends on the type
+of the underlying matcher:</p>
+<table border="1" class="last docutils">
+<colgroup>
+<col width="48%" />
+<col width="52%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">If a <tt class="docutils literal"><span class="pre">matcher</span></tt> is of type</th>
+<th class="head">then <tt class="docutils literal"><span class="pre">matcher.?</span></tt> is of type</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td><tt class="docutils literal"><span class="pre">PathMatcher0</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">PathMatcher0</span></tt></td>
+</tr>
+<tr class="row-odd"><td><tt class="docutils literal"><span class="pre">PathMatcher1[T]</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">PathMatcher1[Option[T]</span></tt></td>
+</tr>
+<tr class="row-even"><td><tt class="docutils literal"><span class="pre">PathMatcher[L:</span> <span class="pre">Tuple]</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">PathMatcher[Option[L]]</span></tt></td>
+</tr>
+</tbody>
+</table>
+</dd>
+<dt>repeat(separator: PathMatcher0 = PathMatchers.Neutral)</dt>
+<dd><p class="first">By postfixing a matcher with <tt class="docutils literal"><span class="pre">repeat(separator)</span></tt> you can turn any <tt class="docutils literal"><span class="pre">PathMatcher</span></tt> into one that always matches,
+consumes zero or more times (with the given separator) and potentially extracts a <tt class="docutils literal"><span class="pre">List</span></tt> of the underlying matcher's
+extractions. The result type depends on the type of the underlying matcher:</p>
+<table border="1" class="last docutils">
+<colgroup>
+<col width="41%" />
+<col width="59%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">If a <tt class="docutils literal"><span class="pre">matcher</span></tt> is of type</th>
+<th class="head">then <tt class="docutils literal"><span class="pre">matcher.repeat(...)</span></tt> is of type</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td><tt class="docutils literal"><span class="pre">PathMatcher0</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">PathMatcher0</span></tt></td>
+</tr>
+<tr class="row-odd"><td><tt class="docutils literal"><span class="pre">PathMatcher1[T]</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">PathMatcher1[List[T]</span></tt></td>
+</tr>
+<tr class="row-even"><td><tt class="docutils literal"><span class="pre">PathMatcher[L:</span> <span class="pre">Tuple]</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">PathMatcher[List[L]]</span></tt></td>
+</tr>
+</tbody>
+</table>
+</dd>
+<dt><tt class="docutils literal"><span class="pre">unary_!</span></tt></dt>
+<dd>By prefixing a matcher with <tt class="docutils literal"><span class="pre">!</span></tt> it can be turned into a <tt class="docutils literal"><span class="pre">PathMatcher0</span></tt> that only matches if the underlying matcher
+does <em>not</em> match and vice versa.</dd>
+<dt>transform / (h)flatMap / (h)map</dt>
+<dd>These modifiers allow you to append your own &quot;post-application&quot; logic to another matcher in order to form a custom
+one. You can map over the extraction(s), turn mismatches into matches or vice-versa or do anything else with the
+results of the underlying matcher. Take a look at the method signatures and implementations for more guidance as to
+how to use them.</dd>
+</dl>
+</div>
+<div class="section" id="examples">
+<h2>Examples</h2>
+<div class="highlight-scala"><div class="highlight"><pre><span class="c1">// matches /foo/</span>
+<span class="n">path</span><span class="o">(</span><span class="s">&quot;foo&quot;</span><span class="o">./)</span>
+
+<span class="c1">// matches e.g. /foo/123 and extracts &quot;123&quot; as a String</span>
+<span class="n">path</span><span class="o">(</span><span class="s">&quot;foo&quot;</span> <span class="o">/</span> <span class="s">&quot;&quot;&quot;\d+&quot;&quot;&quot;</span><span class="o">.</span><span class="n">r</span><span class="o">)</span>
+
+<span class="c1">// matches e.g. /foo/bar123 and extracts &quot;123&quot; as a String</span>
+<span class="n">path</span><span class="o">(</span><span class="s">&quot;foo&quot;</span> <span class="o">/</span> <span class="s">&quot;&quot;&quot;bar(\d+)&quot;&quot;&quot;</span><span class="o">.</span><span class="n">r</span><span class="o">)</span>
+
+<span class="c1">// similar to `path(Segments)`</span>
+<span class="n">path</span><span class="o">(</span><span class="nc">Segment</span><span class="o">.</span><span class="n">repeat</span><span class="o">(</span><span class="mi">10</span><span class="o">,</span> <span class="n">separator</span> <span class="k">=</span> <span class="nc">Slash</span><span class="o">))</span>
+
+<span class="c1">// matches e.g. /i42 or /hCAFE and extracts an Int</span>
+<span class="n">path</span><span class="o">(</span><span class="s">&quot;i&quot;</span> <span class="o">~</span> <span class="nc">IntNumber</span> <span class="o">|</span> <span class="s">&quot;h&quot;</span> <span class="o">~</span> <span class="nc">HexIntNumber</span><span class="o">)</span>
+
+<span class="c1">// identical to path(&quot;foo&quot; ~ (PathEnd | Slash))</span>
+<span class="n">path</span><span class="o">(</span><span class="s">&quot;foo&quot;</span> <span class="o">~</span> <span class="nc">Slash</span><span class="o">.?)</span>
+
+<span class="c1">// matches /red or /green or /blue and extracts 1, 2 or 3 respectively</span>
+<span class="n">path</span><span class="o">(</span><span class="nc">Map</span><span class="o">(</span><span class="s">&quot;red&quot;</span> <span class="o">-&gt;</span> <span class="mi">1</span><span class="o">,</span> <span class="s">&quot;green&quot;</span> <span class="o">-&gt;</span> <span class="mi">2</span><span class="o">,</span> <span class="s">&quot;blue&quot;</span> <span class="o">-&gt;</span> <span class="mi">3</span><span class="o">))</span>
+
+<span class="c1">// matches anything starting with &quot;/foo&quot; except for /foobar</span>
+<span class="n">pathPrefix</span><span class="o">(</span><span class="s">&quot;foo&quot;</span> <span class="o">~</span> <span class="o">!</span><span class="s">&quot;bar&quot;</span><span class="o">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+
+
+          </div>
+          <div class="span3"><p class="contents-title">Contents</p>
+              <div id="scroller-anchor">
+                <div id="scroller">
+                  <div id="toc"></div>
+                </div>
+              </div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="footer">
+  <div class="container">
+    <ul>
+      <li><h5>Akka</h5></li>
+      <li><a href="https://akka.io/docs">Documentation</a></li>
+      <li><a href="https://akka.io/faq">FAQ</a></li>
+      <li><a href="https://akka.io/downloads">Downloads</a></li>
+      <li><a href="https://akka.io/news">News</a></li>
+      <li><a href="http://letitcrash.com">Blog</a></li>
+    </ul>
+    <ul>
+      <li><h5>Contribute</h5></li>
+      <li><a href="https://akka.io/community">Community Projects</a></li>
+      <li><a href="http://github.com/akka/akka">Source Code</a></li>
+      <li><a href="http://groups.google.com/group/akka-user">Mailing List</a></li>      
+      <li><a href="https://doc.akka.io/docs/akka/current/project/issue-tracking.html">Report a Bug</a></li>      
+    </ul>
+    <ul>
+      <li><h5>Company</h5></li>
+      <li><a href="http://www.lightbend.com/how/subscription">Commercial Support</a></li>
+      <li><a href="https://akka.io/team">Team</a></li>
+      <li><a href="mailto:info@lightbend.com">Contact</a></li>
+    </ul>
+    <ul>
+      <li><img src="../../../_static/akka_icon_reverse.svg" align="center"/></li>
+    </ul>
+  </div>
+  <div class="container copyright">
+    <p style="float: left;">
+      © 2015 <a href="http://www.lightbend.com/">Lightbend Inc.</a> <span class="license">Akka is Open Source and available under the Apache 2 License.</span>
+    </p>
+    <p style="float: right; font-size: 12px;">
+      Last updated: Apr 14, 2016
+    </p>          
+  </div>
+</div>
+<script type="text/javascript">
+  var $toc = $('#toc');
+  $toc.toc();
+
+  // show clickable section sign when section header hovered:
+  $('.section h2,.section h3,.section h4,.section h5').each(function(i, el) {
+      var $el = $(el);
+      $el.prepend($("<a class='section-marker' href='#" + $el.attr("id") + "'>&sect;</a>"))
+  });
+</script>
+
+<!-- Algolia docs search -->
+<script type="text/javascript">
+  var version = DOCUMENTATION_OPTIONS.VERSION;
+
+  var lang = "scala";
+  var path = window.location.pathname;
+  if (path.includes("/java/") || path.includes("java.html")) lang = "java";
+
+  console.log("Search configured for:", lang, "@", version);
+
+  docsearch({
+    apiKey: '543bad5ad786495d9ccd445ed34ed082',
+    indexName: 'akka_io',
+    inputSelector: '#search',
+    algoliaOptions: {
+      hitsPerPage: 10,
+      facetFilters: '[' +
+      '["language:' + lang + '","language:general"]' +
+      ',"version:2.4.2"]'
+    }
+  });
+
+  // set up "/" as global shortcut for focusing on search
+  $(document).keypress(function (event) {
+    if (event.keyCode == 47) {
+      $("#q").focus();
+      return false; // swallow key event, otherwise the / char would be input into the search box
+    }
+  });
+</script>
+
+  
+
+  </body>
+</html>

@@ -1,0 +1,296 @@
+
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Client-Side HTTPS Support &mdash; Akka Documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/style.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/prettify.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/base.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/docs.css" type="text/css" />
+    <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,600,700" type="text/css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/docsearch.js/1/docsearch.min.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '2.4-bin-rp-16s01p05',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="../../../_static/toc.js"></script>
+    <script type="text/javascript" src="../../../_static/prettify.js"></script>
+    <script type="text/javascript" src="../../../_static/highlightCode.js"></script>
+    <script type="text/javascript" src="../../../_static/effects.core.js"></script>
+    <script type="text/javascript" src="../../../_static/effects.highlight.js"></script>
+    <script type="text/javascript" src="../../../_static/scrollTo.js"></script>
+    <script type="text/javascript" src="../../../_static/contentsFix.js"></script>
+    <script type="text/javascript" src="../../../_static/ga.js"></script>
+    <script type="text/javascript" src="../../../_static/warnOldDocs.js"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/docsearch.js/1/docsearch.min.js"></script>
+    <link rel="shortcut icon" href="../../../_static/favicon.ico"/>
+    <link rel="top" title="Akka Documentation" href="../../../index.html" />
+    <link rel="up" title="Consuming HTTP-based Services (Client-Side)" href="index.html" />
+    <link rel="next" title="Client-Side WebSocket Support" href="websocket-support.html" />
+    <link rel="prev" title="Request-Level Client-Side API" href="request-level.html" />
+
+
+  </head>
+  <body>
+  <div class="navbar">
+    <div class="navbar-inner">
+      <div class="container">
+        <div class="navbar-logo">
+          <a href="https://akka.io"><img class="svg-logo" src="../../../_static/akka_full_color.svg" /></a>
+        </div>    
+        <ul class="nav">
+          <li><a href="https://akka.io/docs">Documentation</a></li>
+          <li><a href="https://akka.io/faq">FAQ</a></li>
+          <li><a href="https://akka.io/downloads">Download</a></li>
+          <li><a href="http://groups.google.com/group/akka-user">Mailing List</a></li>
+          <li><a href="http://github.com/akka/akka">Code</a></li>           
+          <li><a href="http://www.lightbend.com/how/subscription">Commercial Support</a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="main">
+    <div class="container">
+      <div class="page-title">Client-Side HTTPS Support</div>
+      <div class="pdf-link"><a href="../../../AkkaScala.pdf" title="Akka Scala Documentation"><img src="../../../_static/pdf-scala-icon.png" style="height: 40px;" /></a></div>
+      <div class="pdf-link"><a href="../../../AkkaJava.pdf" title="Akka Java Documentation"><img src="../../../_static/pdf-java-icon.png" style="height: 40px;" /></a></div>
+    </div>
+    <div class="main-container">
+      <div class="container">
+        <div class="row">
+          <div class="span12">
+            <ul class="breadcrumb">           
+              <li>
+                 <span class="divider">|</span> <a href="websocket-support.html">Client-Side WebSocket Support</a> <span class="divider">»</span>
+              </li>
+              <li>
+                <a href="../../../java.html">Java Contents</a> <span class="divider">|</span> <a href="../../../scala.html">Scala Contents</a>
+              </li>
+              <li>
+                <span class="divider">«</span> <a href="request-level.html">Request-Level Client-Side API</a> <span class="divider">|</span>
+              </li>
+              <li style="float: left">
+                Version 2.4-bin-rp-16s01p05
+              </li>
+              <li style="float: left">
+                <input type="search" id="search" class="form-control" />
+              </li>
+            </ul>
+          </div>
+        </div>
+        <div class="row"><div class="span9">
+            
+  <div class="section" id="client-side-https-support">
+<span id="clientsidehttps"></span><h1>Client-Side HTTPS Support</h1>
+<p>Akka HTTP supports TLS encryption on the client-side as well as on the <a class="reference internal" href="../low-level-server-side-api.html#serversidehttps"><em>server-side</em></a>.</p>
+<p>The central vehicle for configuring encryption is the <tt class="docutils literal"><span class="pre">HttpsConnectionContext</span></tt>, which can be created using
+the static method <tt class="docutils literal"><span class="pre">ConnectionContext.https</span></tt> which is defined like this:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="c1">// ConnectionContext</span>
+<span class="k">def</span> <span class="n">https</span><span class="o">(</span><span class="n">sslContext</span><span class="k">:</span> <span class="kt">SSLContext</span><span class="o">,</span>
+          <span class="n">enabledCipherSuites</span><span class="k">:</span> <span class="kt">Option</span><span class="o">[</span><span class="kt">immutable.Seq</span><span class="o">[</span><span class="kt">String</span><span class="o">]]</span> <span class="k">=</span> <span class="nc">None</span><span class="o">,</span>
+          <span class="n">enabledProtocols</span><span class="k">:</span> <span class="kt">Option</span><span class="o">[</span><span class="kt">immutable.Seq</span><span class="o">[</span><span class="kt">String</span><span class="o">]]</span> <span class="k">=</span> <span class="nc">None</span><span class="o">,</span>
+          <span class="n">clientAuth</span><span class="k">:</span> <span class="kt">Option</span><span class="o">[</span><span class="kt">TLSClientAuth</span><span class="o">]</span> <span class="k">=</span> <span class="nc">None</span><span class="o">,</span>
+          <span class="n">sslParameters</span><span class="k">:</span> <span class="kt">Option</span><span class="o">[</span><span class="kt">SSLParameters</span><span class="o">]</span> <span class="k">=</span> <span class="nc">None</span><span class="o">)</span> <span class="k">=</span> <span class="o">{</span>
+  <span class="k">new</span> <span class="nc">HttpsConnectionContext</span><span class="o">(</span><span class="n">sslContext</span><span class="o">,</span> <span class="n">enabledCipherSuites</span><span class="o">,</span> <span class="n">enabledProtocols</span><span class="o">,</span> <span class="n">clientAuth</span><span class="o">,</span> <span class="n">sslParameters</span><span class="o">)</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<p>In addition to the <tt class="docutils literal"><span class="pre">outgoingConnection</span></tt>, <tt class="docutils literal"><span class="pre">newHostConnectionPool</span></tt> and <tt class="docutils literal"><span class="pre">cachedHostConnectionPool</span></tt> methods the
+<a class="reference external" href="http://github.com/akka/akka/tree/v2.4-bin-rp-16s01p05/akka-http-core/src/main/scala/akka/http/scaladsl/Http.scala">akka.http.scaladsl.Http</a> extension also defines <tt class="docutils literal"><span class="pre">outgoingConnectionTls</span></tt>, <tt class="docutils literal"><span class="pre">newHostConnectionPoolTls</span></tt> and
+<tt class="docutils literal"><span class="pre">cachedHostConnectionPoolTls</span></tt>. These methods work identically to their counterparts without the <tt class="docutils literal"><span class="pre">-Tls</span></tt> suffix,
+with the exception that all connections will always be encrypted.</p>
+<p>The <tt class="docutils literal"><span class="pre">singleRequest</span></tt> and <tt class="docutils literal"><span class="pre">superPool</span></tt> methods determine the encryption state via the scheme of the incoming request,
+i.e. requests to an &quot;https&quot; URI will be encrypted, while requests to an &quot;http&quot; URI won't.</p>
+<p>The encryption configuration for all HTTPS connections, i.e. the <tt class="docutils literal"><span class="pre">HttpsContext</span></tt> is determined according to the
+following logic:</p>
+<ol class="arabic simple">
+<li>If the optional <tt class="docutils literal"><span class="pre">httpsContext</span></tt> method parameter is defined it contains the configuration to be used (and thus
+takes precedence over any potentially set default client-side <tt class="docutils literal"><span class="pre">HttpsContext</span></tt>).</li>
+<li>If the optional <tt class="docutils literal"><span class="pre">httpsContext</span></tt> method parameter is undefined (which is the default) the default client-side
+<tt class="docutils literal"><span class="pre">HttpsContext</span></tt> is used, which can be set via the <tt class="docutils literal"><span class="pre">setDefaultClientHttpsContext</span></tt> on the <tt class="docutils literal"><span class="pre">Http</span></tt> extension.</li>
+<li>If no default client-side <tt class="docutils literal"><span class="pre">HttpsContext</span></tt> has been set via the <tt class="docutils literal"><span class="pre">setDefaultClientHttpsContext</span></tt> on the <tt class="docutils literal"><span class="pre">Http</span></tt>
+extension the default system configuration is used.</li>
+</ol>
+<p>Usually the process is, if the default system TLS configuration is not good enough for your application's needs,
+that you configure a custom <tt class="docutils literal"><span class="pre">HttpsContext</span></tt> instance and set it via <tt class="docutils literal"><span class="pre">Http().setDefaultClientHttpsContext</span></tt>.
+Afterwards you simply use <tt class="docutils literal"><span class="pre">outgoingConnectionTls</span></tt>, <tt class="docutils literal"><span class="pre">newHostConnectionPoolTls</span></tt>, <tt class="docutils literal"><span class="pre">cachedHostConnectionPoolTls</span></tt>,
+<tt class="docutils literal"><span class="pre">superPool</span></tt> or <tt class="docutils literal"><span class="pre">singleRequest</span></tt> without a specific <tt class="docutils literal"><span class="pre">httpsContext</span></tt> argument, which causes encrypted connections
+to rely on the configured default client-side <tt class="docutils literal"><span class="pre">HttpsContext</span></tt>.</p>
+<p>If no custom <tt class="docutils literal"><span class="pre">HttpsContext</span></tt> is defined the default context uses Java's default TLS settings. Customizing the
+<tt class="docutils literal"><span class="pre">HttpsContext</span></tt> can make the Https client less secure. Understand what you are doing!</p>
+<div class="section" id="detailed-configuration-and-workarounds">
+<h2>Detailed configuration and workarounds</h2>
+<p>Akka HTTP relies on <a class="reference external" href="http://typesafehub.github.io/ssl-config">Typesafe SSL-Config</a> which is a library maintained by Lightbend that makes configuring
+things related to SSL/TLS much simpler than using the raw SSL APIs provided by the JDK. Please refer to its
+documentation to learn more about it.</p>
+<p>All configuration options available to this library may be set under the <tt class="docutils literal"><span class="pre">akka.ssl-context</span></tt> configuration for Akka HTTP applications.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">When encountering problems connecting to HTTPS hosts we highly encourage to reading up on the excellent ssl-config
+configuration. Especially the quick start sections about <a class="reference external" href="http://typesafehub.github.io/ssl-config/WSQuickStart.html#connecting-to-a-remote-server-over-https">adding certificates to the trust store</a> should prove
+very useful, for example to easily trust a self-signed certificate that applications might use in development mode.</p>
+</div>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p>While it is possible to disable certain checks using the so called &quot;loose&quot; settings in SSL Config, we <strong>strongly recommend</strong>
+to instead attempt to solve these issues by properly configuring TLS–for example by adding trusted keys to the keystore.</p>
+<p class="last">If however certain checks really need to be disabled because of misconfigured (or legacy) servers that your
+application has to speak to, instead of disabling the checks globally (i.e. in <tt class="docutils literal"><span class="pre">application.conf</span></tt>) we suggest
+configuring the loose settings for <em>specific connections</em> that are known to need them disabled (and trusted for some other reason).
+The pattern of doing so is documented in the folowing sub-sections.</p>
+</div>
+<div class="section" id="hostname-verification">
+<h3>Hostname verification</h3>
+<p>Hostname verification proves that the Akka HTTP client is actually communicating with the server it intended to
+communicate with. Without this check a man-in-the-middle attack is possible. In the attack scenario, an alternative
+certificate would be presented which was issued for another host name. Checking the host name in the certificate
+against the host name the connection was opened against is therefore vital.</p>
+<p>The default <tt class="docutils literal"><span class="pre">HttpsContext</span></tt> enables hostname verification. Akka HTTP relies on the <a class="reference external" href="http://typesafehub.github.io/ssl-config">Typesafe SSL-Config</a> library
+to implement this and security options for SSL/TLS. Hostname verification is provided by the JDK
+and used by Akka HTTP since Java 7, and on Java 6 the verification is implemented by ssl-config manually.</p>
+<p>For further recommended reading we would like to highlight the <a class="reference external" href="https://tersesystems.com/2014/03/23/fixing-hostname-verification/">fixing hostname verification blog post</a> by blog post by Will Sargent.</p>
+</div>
+<div class="section" id="server-name-indication-sni">
+<h3>Server Name Indication (SNI)</h3>
+<p>SNI is an TLS extension which aims to guard against man-in-the-middle attacks. It does so by having the client send the
+name of the virtual domain it is expecting to talk to as part of the TLS handshake.</p>
+<p>It is specified as part of <a class="reference external" href="https://tools.ietf.org/html/rfc6066#page-6">RFC 6066</a>.</p>
+</div>
+<div class="section" id="disabling-tls-security-features-at-your-own-risk">
+<h3>Disabling TLS security features, at your own risk</h3>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p>It is highly discouraged to disable any of the security features of TLS, however do acknowlage that workarounds may sometimes be needed.</p>
+<p>Before disabling any of the features one should consider if they may be solvable <em>within</em> the TLS world,
+for example by <a class="reference external" href="http://typesafehub.github.io/ssl-config/WSQuickStart.html">trusting a certificate</a>, or <a class="reference external" href="http://typesafehub.github.io/ssl-config/CipherSuites.html">configuring the trusted cipher suites</a> etc.</p>
+<p class="last">If disabling features is indeed desired, we recommend doing so for <em>specific connections</em>,
+instead of globally configuring it via <tt class="docutils literal"><span class="pre">application.conf</span></tt>.</p>
+</div>
+<p>The following shows an example of disabling SNI for a given connection:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">implicit</span> <span class="k">val</span> <span class="n">system</span> <span class="k">=</span> <span class="nc">ActorSystem</span><span class="o">()</span>
+<span class="k">implicit</span> <span class="k">val</span> <span class="n">mat</span> <span class="k">=</span> <span class="nc">ActorMaterializer</span><span class="o">()</span>
+
+<span class="c1">// WARNING: disabling SNI is a very bad idea, please don&#39;t unless you have a very good reason to.</span>
+<span class="k">val</span> <span class="n">badSslConfig</span> <span class="k">=</span> <span class="nc">AkkaSSLConfig</span><span class="o">().</span><span class="n">mapSettings</span><span class="o">(</span><span class="n">s</span> <span class="k">=&gt;</span> <span class="n">s</span><span class="o">.</span><span class="n">withLoose</span><span class="o">(</span><span class="n">s</span><span class="o">.</span><span class="n">loose</span><span class="o">.</span><span class="n">withDisableSNI</span><span class="o">(</span><span class="kc">true</span><span class="o">)))</span>
+<span class="k">val</span> <span class="n">badCtx</span> <span class="k">=</span> <span class="nc">Http</span><span class="o">().</span><span class="n">createClientHttpsContext</span><span class="o">(</span><span class="n">badSslConfig</span><span class="o">)</span>
+<span class="nc">Http</span><span class="o">().</span><span class="n">outgoingConnectionHttps</span><span class="o">(</span><span class="n">unsafeHost</span><span class="o">,</span> <span class="n">connectionContext</span> <span class="k">=</span> <span class="n">badCtx</span><span class="o">)</span>
+</pre></div>
+</div>
+<p>The <tt class="docutils literal"><span class="pre">badSslConfig</span></tt> is a copy of the default <tt class="docutils literal"><span class="pre">AkkaSSLConfig</span></tt> with with the slightly changed configuration to disable SNI.
+This value can be cached and used for connections which should indeed not use this feature.</p>
+</div>
+</div>
+</div>
+
+
+          </div>
+          <div class="span3"><p class="contents-title">Contents</p>
+              <div id="scroller-anchor">
+                <div id="scroller">
+                  <div id="toc"></div>
+                </div>
+              </div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="footer">
+  <div class="container">
+    <ul>
+      <li><h5>Akka</h5></li>
+      <li><a href="https://akka.io/docs">Documentation</a></li>
+      <li><a href="https://akka.io/faq">FAQ</a></li>
+      <li><a href="https://akka.io/downloads">Downloads</a></li>
+      <li><a href="https://akka.io/news">News</a></li>
+      <li><a href="http://letitcrash.com">Blog</a></li>
+    </ul>
+    <ul>
+      <li><h5>Contribute</h5></li>
+      <li><a href="https://akka.io/community">Community Projects</a></li>
+      <li><a href="http://github.com/akka/akka">Source Code</a></li>
+      <li><a href="http://groups.google.com/group/akka-user">Mailing List</a></li>      
+      <li><a href="https://doc.akka.io/docs/akka/current/project/issue-tracking.html">Report a Bug</a></li>      
+    </ul>
+    <ul>
+      <li><h5>Company</h5></li>
+      <li><a href="http://www.lightbend.com/how/subscription">Commercial Support</a></li>
+      <li><a href="https://akka.io/team">Team</a></li>
+      <li><a href="mailto:info@lightbend.com">Contact</a></li>
+    </ul>
+    <ul>
+      <li><img src="../../../_static/akka_icon_reverse.svg" align="center"/></li>
+    </ul>
+  </div>
+  <div class="container copyright">
+    <p style="float: left;">
+      © 2015 <a href="http://www.lightbend.com/">Lightbend Inc.</a> <span class="license">Akka is Open Source and available under the Apache 2 License.</span>
+    </p>
+    <p style="float: right; font-size: 12px;">
+      Last updated: Apr 14, 2016
+    </p>          
+  </div>
+</div>
+<script type="text/javascript">
+  var $toc = $('#toc');
+  $toc.toc();
+
+  // show clickable section sign when section header hovered:
+  $('.section h2,.section h3,.section h4,.section h5').each(function(i, el) {
+      var $el = $(el);
+      $el.prepend($("<a class='section-marker' href='#" + $el.attr("id") + "'>&sect;</a>"))
+  });
+</script>
+
+<!-- Algolia docs search -->
+<script type="text/javascript">
+  var version = DOCUMENTATION_OPTIONS.VERSION;
+
+  var lang = "scala";
+  var path = window.location.pathname;
+  if (path.includes("/java/") || path.includes("java.html")) lang = "java";
+
+  console.log("Search configured for:", lang, "@", version);
+
+  docsearch({
+    apiKey: '543bad5ad786495d9ccd445ed34ed082',
+    indexName: 'akka_io',
+    inputSelector: '#search',
+    algoliaOptions: {
+      hitsPerPage: 10,
+      facetFilters: '[' +
+      '["language:' + lang + '","language:general"]' +
+      ',"version:2.4.2"]'
+    }
+  });
+
+  // set up "/" as global shortcut for focusing on search
+  $(document).keypress(function (event) {
+    if (event.keyCode == 47) {
+      $("#q").focus();
+      return false; // swallow key event, otherwise the / char would be input into the search box
+    }
+  });
+</script>
+
+  
+
+  </body>
+</html>

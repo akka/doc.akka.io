@@ -1,0 +1,346 @@
+
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Rejections &mdash; Akka Documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/style.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/prettify.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/base.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/docs.css" type="text/css" />
+    <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,600,700" type="text/css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/docsearch.js/1/docsearch.min.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '2.4-bin-rp-16s01p05',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="../../../_static/toc.js"></script>
+    <script type="text/javascript" src="../../../_static/prettify.js"></script>
+    <script type="text/javascript" src="../../../_static/highlightCode.js"></script>
+    <script type="text/javascript" src="../../../_static/effects.core.js"></script>
+    <script type="text/javascript" src="../../../_static/effects.highlight.js"></script>
+    <script type="text/javascript" src="../../../_static/scrollTo.js"></script>
+    <script type="text/javascript" src="../../../_static/contentsFix.js"></script>
+    <script type="text/javascript" src="../../../_static/ga.js"></script>
+    <script type="text/javascript" src="../../../_static/warnOldDocs.js"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/docsearch.js/1/docsearch.min.js"></script>
+    <link rel="shortcut icon" href="../../../_static/favicon.ico"/>
+    <link rel="top" title="Akka Documentation" href="../../../index.html" />
+    <link rel="up" title="High-level Server-Side API" href="index.html" />
+    <link rel="next" title="Exception Handling" href="exception-handling.html" />
+    <link rel="prev" title="Custom Directives" href="directives/custom-directives.html" />
+
+
+  </head>
+  <body>
+  <div class="navbar">
+    <div class="navbar-inner">
+      <div class="container">
+        <div class="navbar-logo">
+          <a href="https://akka.io"><img class="svg-logo" src="../../../_static/akka_full_color.svg" /></a>
+        </div>    
+        <ul class="nav">
+          <li><a href="https://akka.io/docs">Documentation</a></li>
+          <li><a href="https://akka.io/faq">FAQ</a></li>
+          <li><a href="https://akka.io/downloads">Download</a></li>
+          <li><a href="http://groups.google.com/group/akka-user">Mailing List</a></li>
+          <li><a href="http://github.com/akka/akka">Code</a></li>           
+          <li><a href="http://www.lightbend.com/how/subscription">Commercial Support</a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="main">
+    <div class="container">
+      <div class="page-title">Rejections</div>
+      <div class="pdf-link"><a href="../../../AkkaScala.pdf" title="Akka Scala Documentation"><img src="../../../_static/pdf-scala-icon.png" style="height: 40px;" /></a></div>
+      <div class="pdf-link"><a href="../../../AkkaJava.pdf" title="Akka Java Documentation"><img src="../../../_static/pdf-java-icon.png" style="height: 40px;" /></a></div>
+    </div>
+    <div class="main-container">
+      <div class="container">
+        <div class="row">
+          <div class="span12">
+            <ul class="breadcrumb">           
+              <li>
+                 <span class="divider">|</span> <a href="exception-handling.html">Exception Handling</a> <span class="divider">»</span>
+              </li>
+              <li>
+                <a href="../../../java.html">Java Contents</a> <span class="divider">|</span> <a href="../../../scala.html">Scala Contents</a>
+              </li>
+              <li>
+                <span class="divider">«</span> <a href="directives/custom-directives.html">Custom Directives</a> <span class="divider">|</span>
+              </li>
+              <li style="float: left">
+                Version 2.4-bin-rp-16s01p05
+              </li>
+              <li style="float: left">
+                <input type="search" id="search" class="form-control" />
+              </li>
+            </ul>
+          </div>
+        </div>
+        <div class="row"><div class="span9">
+            
+  <div class="section" id="rejections">
+<span id="rejections-scala"></span><h1>Rejections</h1>
+<p>In the chapter about constructing <a class="reference internal" href="routes.html#routes"><em>Routes</em></a> the <tt class="docutils literal"><span class="pre">~</span></tt> operator was introduced, which connects two routes in a way
+that allows a second route to get a go at a request if the first route &quot;rejected&quot; it. The concept of &quot;rejections&quot; is
+used by Akka HTTP for maintaining a more functional overall architecture and in order to be able to properly
+handle all kinds of error scenarios.</p>
+<p>When a filtering directive, like the <a class="reference internal" href="directives/method-directives/get.html#get"><em>get</em></a> directive, cannot let the request pass through to its inner route because
+the filter condition is not satisfied (e.g. because the incoming request is not a GET request) the directive doesn't
+immediately complete the request with an error response. Doing so would make it impossible for other routes chained in
+after the failing filter to get a chance to handle the request.
+Rather, failing filters &quot;reject&quot; the request in the same way as by explicitly calling <tt class="docutils literal"><span class="pre">requestContext.reject(...)</span></tt>.</p>
+<p>After having been rejected by a route the request will continue to flow through the routing structure and possibly find
+another route that can complete it. If there are more rejections all of them will be picked up and collected.</p>
+<p>If the request cannot be completed by (a branch of) the route structure an enclosing <a class="reference internal" href="directives/execution-directives/handleRejections.html#handlerejections"><em>handleRejections</em></a> directive
+can be used to convert a set of rejections into an <tt class="docutils literal"><span class="pre">HttpResponse</span></tt> (which, in most cases, will be an error response).
+<tt class="docutils literal"><span class="pre">Route.seal</span></tt> internally wraps its argument route with the <a class="reference internal" href="directives/execution-directives/handleRejections.html#handlerejections"><em>handleRejections</em></a> directive in order to &quot;catch&quot;
+and handle any rejection.</p>
+<div class="section" id="predefined-rejections">
+<h2>Predefined Rejections</h2>
+<p>A rejection encapsulates a specific reason why a route was not able to handle a request. It is modeled as an object of
+type <tt class="docutils literal"><span class="pre">Rejection</span></tt>. Akka HTTP comes with a set of <a class="reference external" href="http://github.com/akka/akka/tree/v2.4-bin-rp-16s01p05/akka-http/src/main/scala/akka/http/scaladsl/server/Rejection.scala">predefined rejections</a>, which are used by the many
+<a class="reference internal" href="directives/alphabetically.html#predefined-directives"><em>predefined directives</em></a>.</p>
+<p>Rejections are gathered up over the course of a Route evaluation and finally converted to <tt class="docutils literal"><span class="pre">HttpResponse</span></tt> replies by
+the <a class="reference internal" href="directives/execution-directives/handleRejections.html#handlerejections"><em>handleRejections</em></a> directive if there was no way for the request to be completed.</p>
+</div>
+<div class="section" id="the-rejectionhandler">
+<span id="id2"></span><h2>The RejectionHandler</h2>
+<p>The <a class="reference internal" href="directives/execution-directives/handleRejections.html#handlerejections"><em>handleRejections</em></a> directive delegates the actual job of converting a list of rejections to its argument, a
+<a class="reference external" href="http://github.com/akka/akka/tree/v2.4-bin-rp-16s01p05/akka-http/src/main/scala/akka/http/scaladsl/server/RejectionHandler.scala">RejectionHandler</a>, which is defined like this:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">trait</span> <span class="nc">RejectionHandler</span> <span class="k">extends</span> <span class="o">(</span><span class="n">immutable</span><span class="o">.</span><span class="nc">Seq</span><span class="o">[</span><span class="kt">Rejection</span><span class="o">]</span> <span class="k">⇒</span> <span class="nc">Option</span><span class="o">[</span><span class="kt">Route</span><span class="o">])</span>
+</pre></div>
+</div>
+<p>Since a <tt class="docutils literal"><span class="pre">RejectionHandler</span></tt> returns an <tt class="docutils literal"><span class="pre">Option[Route]</span></tt> it can choose whether it would like to handle the current set
+of rejections or not. If it returns <tt class="docutils literal"><span class="pre">None</span></tt> the rejections will simply continue to flow through the route structure.</p>
+<p>The default <tt class="docutils literal"><span class="pre">RejectionHandler</span></tt> applied by the top-level glue code that turns a <tt class="docutils literal"><span class="pre">Route</span></tt> into a
+<tt class="docutils literal"><span class="pre">Flow</span></tt> or async handler function for the <a class="reference internal" href="../low-level-server-side-api.html#http-low-level-server-side-api"><em>low-level API</em></a> (via
+<tt class="docutils literal"><span class="pre">Route.handlerFlow</span></tt> or <tt class="docutils literal"><span class="pre">Route.asyncHandler</span></tt>) will handle <em>all</em> rejections that reach it.</p>
+</div>
+<div class="section" id="rejection-cancellation">
+<h2>Rejection Cancellation</h2>
+<p>As you can see from its definition above the <tt class="docutils literal"><span class="pre">RejectionHandler</span></tt> doesn't handle single rejections but a whole list of
+them. This is because some route structure produce several &quot;reasons&quot; why a request could not be handled.</p>
+<p>Take this route structure for example:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">import</span> <span class="nn">akka.http.scaladsl.coding.Gzip</span>
+
+<span class="k">val</span> <span class="n">route</span> <span class="k">=</span>
+  <span class="n">path</span><span class="o">(</span><span class="s">&quot;order&quot;</span><span class="o">)</span> <span class="o">{</span>
+    <span class="n">get</span> <span class="o">{</span>
+      <span class="n">complete</span><span class="o">(</span><span class="s">&quot;Received GET&quot;</span><span class="o">)</span>
+    <span class="o">}</span> <span class="o">~</span>
+    <span class="n">post</span> <span class="o">{</span>
+      <span class="n">decodeRequestWith</span><span class="o">(</span><span class="nc">Gzip</span><span class="o">)</span> <span class="o">{</span>
+        <span class="n">complete</span><span class="o">(</span><span class="s">&quot;Received compressed POST&quot;</span><span class="o">)</span>
+      <span class="o">}</span>
+    <span class="o">}</span>
+  <span class="o">}</span>
+</pre></div>
+</div>
+<p>For uncompressed POST requests this route structure would initially yield two rejections:</p>
+<ul class="simple">
+<li>a <tt class="docutils literal"><span class="pre">MethodRejection</span></tt> produced by the <a class="reference internal" href="directives/method-directives/get.html#get"><em>get</em></a> directive (which rejected because the request is not a GET request)</li>
+<li>an <tt class="docutils literal"><span class="pre">UnsupportedRequestEncodingRejection</span></tt> produced by the <a class="reference internal" href="directives/coding-directives/decodeRequestWith.html#decoderequestwith"><em>decodeRequestWith</em></a> directive (which only accepts
+gzip-compressed requests here)</li>
+</ul>
+<p>In reality the route even generates one more rejection, a <tt class="docutils literal"><span class="pre">TransformationRejection</span></tt> produced by the <a class="reference internal" href="directives/method-directives/post.html#post"><em>post</em></a>
+directive. It &quot;cancels&quot; all other potentially existing <em>MethodRejections</em>, since they are invalid after the
+<a class="reference internal" href="directives/method-directives/post.html#post"><em>post</em></a> directive allowed the request to pass (after all, the route structure <em>can</em> deal with POST requests).
+These types of rejection cancellations are resolved <em>before</em> a <tt class="docutils literal"><span class="pre">RejectionHandler</span></tt> sees the rejection list.
+So, for the example above the <tt class="docutils literal"><span class="pre">RejectionHandler</span></tt> will be presented with only a single-element rejection list,
+containing nothing but the <tt class="docutils literal"><span class="pre">UnsupportedRequestEncodingRejection</span></tt>.</p>
+</div>
+<div class="section" id="empty-rejections">
+<span id="id4"></span><h2>Empty Rejections</h2>
+<p>Since rejections are passed around in a list (or rather immutable <tt class="docutils literal"><span class="pre">Seq</span></tt>) you might ask yourself what the semantics of
+an empty rejection list are. In fact, empty rejection lists have well defined semantics. They signal that a request was
+not handled because the respective resource could not be found. Akka HTTP reserves the special status of &quot;empty
+rejection&quot; to this most common failure a service is likely to produce.</p>
+<p>So, for example, if the <a class="reference internal" href="directives/path-directives/path.html#path"><em>path</em></a> directive rejects a request it does so with an empty rejection list. The
+<a class="reference internal" href="directives/host-directives/host.html#host"><em>host</em></a> directive behaves in the same way.</p>
+</div>
+<div class="section" id="customizing-rejection-handling">
+<h2>Customizing Rejection Handling</h2>
+<p>If you'd like to customize the way certain rejections are handled you'll have to write a custom
+<a class="reference internal" href="#the-rejectionhandler"><em>RejectionHandler</em></a>. Here is an example:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">import</span> <span class="nn">akka.actor.ActorSystem</span>
+<span class="k">import</span> <span class="nn">akka.stream.ActorMaterializer</span>
+<span class="k">import</span> <span class="nn">akka.http.scaladsl.Http</span>
+<span class="k">import</span> <span class="nn">akka.http.scaladsl.model._</span>
+<span class="k">import</span> <span class="nn">akka.http.scaladsl.server._</span>
+<span class="k">import</span> <span class="nn">StatusCodes._</span>
+<span class="k">import</span> <span class="nn">Directives._</span>
+
+<span class="k">implicit</span> <span class="k">def</span> <span class="n">myRejectionHandler</span> <span class="k">=</span>
+  <span class="nc">RejectionHandler</span><span class="o">.</span><span class="n">newBuilder</span><span class="o">()</span>
+    <span class="o">.</span><span class="n">handle</span> <span class="o">{</span> <span class="k">case</span> <span class="nc">MissingCookieRejection</span><span class="o">(</span><span class="n">cookieName</span><span class="o">)</span> <span class="k">=&gt;</span>
+      <span class="n">complete</span><span class="o">(</span><span class="nc">HttpResponse</span><span class="o">(</span><span class="nc">BadRequest</span><span class="o">,</span> <span class="n">entity</span> <span class="k">=</span> <span class="s">&quot;No cookies, no service!!!&quot;</span><span class="o">))</span>
+    <span class="o">}</span>
+    <span class="o">.</span><span class="n">handle</span> <span class="o">{</span> <span class="k">case</span> <span class="nc">AuthorizationFailedRejection</span> <span class="k">⇒</span>
+      <span class="n">complete</span><span class="o">((</span><span class="nc">Forbidden</span><span class="o">,</span> <span class="s">&quot;You&#39;re out of your depth!&quot;</span><span class="o">))</span>
+    <span class="o">}</span>
+    <span class="o">.</span><span class="n">handle</span> <span class="o">{</span> <span class="k">case</span> <span class="nc">ValidationRejection</span><span class="o">(</span><span class="n">msg</span><span class="o">,</span> <span class="k">_</span><span class="o">)</span> <span class="k">⇒</span>
+      <span class="n">complete</span><span class="o">((</span><span class="nc">InternalServerError</span><span class="o">,</span> <span class="s">&quot;That wasn&#39;t valid! &quot;</span> <span class="o">+</span> <span class="n">msg</span><span class="o">))</span>
+    <span class="o">}</span>
+    <span class="o">.</span><span class="n">handleAll</span><span class="o">[</span><span class="kt">MethodRejection</span><span class="o">]</span> <span class="o">{</span> <span class="n">methodRejections</span> <span class="k">⇒</span>
+      <span class="k">val</span> <span class="n">names</span> <span class="k">=</span> <span class="n">methodRejections</span><span class="o">.</span><span class="n">map</span><span class="o">(</span><span class="k">_</span><span class="o">.</span><span class="n">supported</span><span class="o">.</span><span class="n">name</span><span class="o">)</span>
+      <span class="n">complete</span><span class="o">((</span><span class="nc">MethodNotAllowed</span><span class="o">,</span> <span class="n">s</span><span class="s">&quot;Can&#39;t do that! Supported: ${names mkString &quot;</span> <span class="n">or</span> <span class="s">&quot;}!&quot;</span><span class="o">))</span>
+    <span class="o">}</span>
+    <span class="o">.</span><span class="n">handleNotFound</span> <span class="o">{</span> <span class="n">complete</span><span class="o">((</span><span class="nc">NotFound</span><span class="o">,</span> <span class="s">&quot;Not here!&quot;</span><span class="o">))</span> <span class="o">}</span>
+    <span class="o">.</span><span class="n">result</span><span class="o">()</span>
+
+<span class="k">object</span> <span class="nc">MyApp</span> <span class="k">extends</span> <span class="nc">App</span> <span class="o">{</span>
+  <span class="k">implicit</span> <span class="k">val</span> <span class="n">system</span> <span class="k">=</span> <span class="nc">ActorSystem</span><span class="o">()</span>
+  <span class="k">implicit</span> <span class="k">val</span> <span class="n">materializer</span> <span class="k">=</span> <span class="nc">ActorMaterializer</span><span class="o">()</span>
+
+  <span class="k">val</span> <span class="n">route</span><span class="k">:</span> <span class="kt">Route</span> <span class="o">=</span>
+    <span class="c1">// ... some route structure</span>
+
+  <span class="nc">Http</span><span class="o">().</span><span class="n">bindAndHandle</span><span class="o">(</span><span class="n">route</span><span class="o">,</span> <span class="s">&quot;localhost&quot;</span><span class="o">,</span> <span class="mi">8080</span><span class="o">)</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<p>The easiest way to construct a <tt class="docutils literal"><span class="pre">RejectionHandler</span></tt> is via the <tt class="docutils literal"><span class="pre">RejectionHandler.Builder</span></tt> that Akka HTTP provides.
+After having created a new <tt class="docutils literal"><span class="pre">Builder</span></tt> instance with <tt class="docutils literal"><span class="pre">RejectionHandler.newBuilder()</span></tt>
+you can attach handling logic for certain types of rejections through three helper methods:</p>
+<dl class="docutils">
+<dt>handle</dt>
+<dd>Handles certain rejections with the given partial function. The partial function simply produces a <tt class="docutils literal"><span class="pre">Route</span></tt> which is
+run when the rejection is &quot;caught&quot;. This makes the full power of the Routing DSL available for defining rejection
+handlers and even allows for recursing back into the main route structure if required.</dd>
+<dt>handleAll[T &lt;: Rejection]</dt>
+<dd>Handles all rejections of a certain type at the same time. This is useful for cases where your need access to more
+than the first rejection of a certain type, e.g. for producing the error message to an unsupported request method.</dd>
+<dt>handleNotFound</dt>
+<dd>As described <a class="reference internal" href="#empty-rejections"><em>above</em></a> &quot;Resource Not Found&quot; is special as it is represented with an empty
+rejection set. The <tt class="docutils literal"><span class="pre">handleNotFound</span></tt> helper let's you specify the &quot;recovery route&quot; for this case.</dd>
+</dl>
+<p>Even though you could handle several different rejection types in a single partial function supplied to <tt class="docutils literal"><span class="pre">handle</span></tt>
+it is recommended to split these up into distinct <tt class="docutils literal"><span class="pre">handle</span></tt> attachments instead.
+This way the priority between rejections is properly defined via the order of your <tt class="docutils literal"><span class="pre">handle</span></tt> clauses rather than the
+(sometimes hard to predict or control) order of rejections in the rejection set.</p>
+<p>Once you have defined your custom <tt class="docutils literal"><span class="pre">RejectionHandler</span></tt> you have two options for &quot;activating&quot; it:</p>
+<ol class="arabic simple">
+<li>Bring it into implicit scope at the top-level.</li>
+<li>Supply it as argument to the <a class="reference internal" href="directives/execution-directives/handleRejections.html#handlerejections"><em>handleRejections</em></a> directive.</li>
+</ol>
+<p>In the first case your handler will be &quot;sealed&quot; (which means that it will receive the default handler as a fallback for
+all cases your handler doesn't handle itself) and used for all rejections that are not handled within the route structure
+itself.</p>
+<p>The second case allows you to restrict the applicability of your handler to certain branches of your route structure.</p>
+</div>
+</div>
+
+
+          </div>
+          <div class="span3"><p class="contents-title">Contents</p>
+              <div id="scroller-anchor">
+                <div id="scroller">
+                  <div id="toc"></div>
+                </div>
+              </div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="footer">
+  <div class="container">
+    <ul>
+      <li><h5>Akka</h5></li>
+      <li><a href="https://akka.io/docs">Documentation</a></li>
+      <li><a href="https://akka.io/faq">FAQ</a></li>
+      <li><a href="https://akka.io/downloads">Downloads</a></li>
+      <li><a href="https://akka.io/news">News</a></li>
+      <li><a href="http://letitcrash.com">Blog</a></li>
+    </ul>
+    <ul>
+      <li><h5>Contribute</h5></li>
+      <li><a href="https://akka.io/community">Community Projects</a></li>
+      <li><a href="http://github.com/akka/akka">Source Code</a></li>
+      <li><a href="http://groups.google.com/group/akka-user">Mailing List</a></li>      
+      <li><a href="https://doc.akka.io/docs/akka/current/project/issue-tracking.html">Report a Bug</a></li>      
+    </ul>
+    <ul>
+      <li><h5>Company</h5></li>
+      <li><a href="http://www.lightbend.com/how/subscription">Commercial Support</a></li>
+      <li><a href="https://akka.io/team">Team</a></li>
+      <li><a href="mailto:info@lightbend.com">Contact</a></li>
+    </ul>
+    <ul>
+      <li><img src="../../../_static/akka_icon_reverse.svg" align="center"/></li>
+    </ul>
+  </div>
+  <div class="container copyright">
+    <p style="float: left;">
+      © 2015 <a href="http://www.lightbend.com/">Lightbend Inc.</a> <span class="license">Akka is Open Source and available under the Apache 2 License.</span>
+    </p>
+    <p style="float: right; font-size: 12px;">
+      Last updated: Apr 14, 2016
+    </p>          
+  </div>
+</div>
+<script type="text/javascript">
+  var $toc = $('#toc');
+  $toc.toc();
+
+  // show clickable section sign when section header hovered:
+  $('.section h2,.section h3,.section h4,.section h5').each(function(i, el) {
+      var $el = $(el);
+      $el.prepend($("<a class='section-marker' href='#" + $el.attr("id") + "'>&sect;</a>"))
+  });
+</script>
+
+<!-- Algolia docs search -->
+<script type="text/javascript">
+  var version = DOCUMENTATION_OPTIONS.VERSION;
+
+  var lang = "scala";
+  var path = window.location.pathname;
+  if (path.includes("/java/") || path.includes("java.html")) lang = "java";
+
+  console.log("Search configured for:", lang, "@", version);
+
+  docsearch({
+    apiKey: '543bad5ad786495d9ccd445ed34ed082',
+    indexName: 'akka_io',
+    inputSelector: '#search',
+    algoliaOptions: {
+      hitsPerPage: 10,
+      facetFilters: '[' +
+      '["language:' + lang + '","language:general"]' +
+      ',"version:2.4.2"]'
+    }
+  });
+
+  // set up "/" as global shortcut for focusing on search
+  $(document).keypress(function (event) {
+    if (event.keyCode == 47) {
+      $("#q").focus();
+      return false; // swallow key event, otherwise the / char would be input into the search box
+    }
+  });
+</script>
+
+  
+
+  </body>
+</html>

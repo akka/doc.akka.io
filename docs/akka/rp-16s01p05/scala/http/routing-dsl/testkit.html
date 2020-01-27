@@ -1,0 +1,387 @@
+
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Route TestKit &mdash; Akka Documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/style.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/prettify.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/base.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/docs.css" type="text/css" />
+    <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,600,700" type="text/css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/docsearch.js/1/docsearch.min.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '2.4-bin-rp-16s01p05',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="../../../_static/toc.js"></script>
+    <script type="text/javascript" src="../../../_static/prettify.js"></script>
+    <script type="text/javascript" src="../../../_static/highlightCode.js"></script>
+    <script type="text/javascript" src="../../../_static/effects.core.js"></script>
+    <script type="text/javascript" src="../../../_static/effects.highlight.js"></script>
+    <script type="text/javascript" src="../../../_static/scrollTo.js"></script>
+    <script type="text/javascript" src="../../../_static/contentsFix.js"></script>
+    <script type="text/javascript" src="../../../_static/ga.js"></script>
+    <script type="text/javascript" src="../../../_static/warnOldDocs.js"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/docsearch.js/1/docsearch.min.js"></script>
+    <link rel="shortcut icon" href="../../../_static/favicon.ico"/>
+    <link rel="top" title="Akka Documentation" href="../../../index.html" />
+    <link rel="up" title="High-level Server-Side API" href="index.html" />
+    <link rel="next" title="Server-Side WebSocket Support" href="websocket-support.html" />
+    <link rel="prev" title="Case Class Extraction" href="case-class-extraction.html" />
+
+
+  </head>
+  <body>
+  <div class="navbar">
+    <div class="navbar-inner">
+      <div class="container">
+        <div class="navbar-logo">
+          <a href="https://akka.io"><img class="svg-logo" src="../../../_static/akka_full_color.svg" /></a>
+        </div>    
+        <ul class="nav">
+          <li><a href="https://akka.io/docs">Documentation</a></li>
+          <li><a href="https://akka.io/faq">FAQ</a></li>
+          <li><a href="https://akka.io/downloads">Download</a></li>
+          <li><a href="http://groups.google.com/group/akka-user">Mailing List</a></li>
+          <li><a href="http://github.com/akka/akka">Code</a></li>           
+          <li><a href="http://www.lightbend.com/how/subscription">Commercial Support</a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="main">
+    <div class="container">
+      <div class="page-title">Route TestKit</div>
+      <div class="pdf-link"><a href="../../../AkkaScala.pdf" title="Akka Scala Documentation"><img src="../../../_static/pdf-scala-icon.png" style="height: 40px;" /></a></div>
+      <div class="pdf-link"><a href="../../../AkkaJava.pdf" title="Akka Java Documentation"><img src="../../../_static/pdf-java-icon.png" style="height: 40px;" /></a></div>
+    </div>
+    <div class="main-container">
+      <div class="container">
+        <div class="row">
+          <div class="span12">
+            <ul class="breadcrumb">           
+              <li>
+                 <span class="divider">|</span> <a href="websocket-support.html">Server-Side WebSocket Support</a> <span class="divider">»</span>
+              </li>
+              <li>
+                <a href="../../../java.html">Java Contents</a> <span class="divider">|</span> <a href="../../../scala.html">Scala Contents</a>
+              </li>
+              <li>
+                <span class="divider">«</span> <a href="case-class-extraction.html">Case Class Extraction</a> <span class="divider">|</span>
+              </li>
+              <li style="float: left">
+                Version 2.4-bin-rp-16s01p05
+              </li>
+              <li style="float: left">
+                <input type="search" id="search" class="form-control" />
+              </li>
+            </ul>
+          </div>
+        </div>
+        <div class="row"><div class="span9">
+            
+  <div class="section" id="route-testkit">
+<h1>Route TestKit</h1>
+<p>One of Akka HTTP's design goals is good testability of the created services.
+For services built with the Routing DSL Akka HTTP provides a dedicated testkit that makes efficient testing of
+route logic easy and convenient. This &quot;route test DSL&quot; is made available with the <em>akka-http-testkit</em> module.</p>
+<div class="section" id="usage">
+<h2>Usage</h2>
+<p>Here is an example of what a simple test with the routing testkit might look like (using the built-in support for
+<a class="reference external" href="http://www.scalatest.org">scalatest</a>):</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="k">import</span> <span class="nn">org.scalatest.</span><span class="o">{</span> <span class="nc">Matchers</span><span class="o">,</span> <span class="nc">WordSpec</span> <span class="o">}</span>
+<span class="k">import</span> <span class="nn">akka.http.scaladsl.model.StatusCodes</span>
+<span class="k">import</span> <span class="nn">akka.http.scaladsl.testkit.ScalatestRouteTest</span>
+<span class="k">import</span> <span class="nn">akka.http.scaladsl.server._</span>
+<span class="k">import</span> <span class="nn">Directives._</span>
+
+<span class="k">class</span> <span class="nc">FullTestKitExampleSpec</span> <span class="k">extends</span> <span class="nc">WordSpec</span> <span class="k">with</span> <span class="nc">Matchers</span> <span class="k">with</span> <span class="nc">ScalatestRouteTest</span> <span class="o">{</span>
+
+  <span class="k">val</span> <span class="n">smallRoute</span> <span class="k">=</span>
+    <span class="n">get</span> <span class="o">{</span>
+      <span class="n">pathSingleSlash</span> <span class="o">{</span>
+        <span class="n">complete</span> <span class="o">{</span>
+          <span class="s">&quot;Captain on the bridge!&quot;</span>
+        <span class="o">}</span>
+      <span class="o">}</span> <span class="o">~</span>
+      <span class="n">path</span><span class="o">(</span><span class="s">&quot;ping&quot;</span><span class="o">)</span> <span class="o">{</span>
+        <span class="n">complete</span><span class="o">(</span><span class="s">&quot;PONG!&quot;</span><span class="o">)</span>
+      <span class="o">}</span>
+    <span class="o">}</span>
+
+  <span class="s">&quot;The service&quot;</span> <span class="n">should</span> <span class="o">{</span>
+
+    <span class="s">&quot;return a greeting for GET requests to the root path&quot;</span> <span class="n">in</span> <span class="o">{</span>
+      <span class="c1">// tests:</span>
+      <span class="nc">Get</span><span class="o">()</span> <span class="o">~&gt;</span> <span class="n">smallRoute</span> <span class="o">~&gt;</span> <span class="n">check</span> <span class="o">{</span>
+        <span class="n">responseAs</span><span class="o">[</span><span class="kt">String</span><span class="o">]</span> <span class="n">shouldEqual</span> <span class="s">&quot;Captain on the bridge!&quot;</span>
+      <span class="o">}</span>
+    <span class="o">}</span>
+
+    <span class="s">&quot;return a &#39;PONG!&#39; response for GET requests to /ping&quot;</span> <span class="n">in</span> <span class="o">{</span>
+      <span class="c1">// tests:</span>
+      <span class="nc">Get</span><span class="o">(</span><span class="s">&quot;/ping&quot;</span><span class="o">)</span> <span class="o">~&gt;</span> <span class="n">smallRoute</span> <span class="o">~&gt;</span> <span class="n">check</span> <span class="o">{</span>
+        <span class="n">responseAs</span><span class="o">[</span><span class="kt">String</span><span class="o">]</span> <span class="n">shouldEqual</span> <span class="s">&quot;PONG!&quot;</span>
+      <span class="o">}</span>
+    <span class="o">}</span>
+
+    <span class="s">&quot;leave GET requests to other paths unhandled&quot;</span> <span class="n">in</span> <span class="o">{</span>
+      <span class="c1">// tests:</span>
+      <span class="nc">Get</span><span class="o">(</span><span class="s">&quot;/kermit&quot;</span><span class="o">)</span> <span class="o">~&gt;</span> <span class="n">smallRoute</span> <span class="o">~&gt;</span> <span class="n">check</span> <span class="o">{</span>
+        <span class="n">handled</span> <span class="n">shouldBe</span> <span class="kc">false</span>
+      <span class="o">}</span>
+    <span class="o">}</span>
+
+    <span class="s">&quot;return a MethodNotAllowed error for PUT requests to the root path&quot;</span> <span class="n">in</span> <span class="o">{</span>
+      <span class="c1">// tests:</span>
+      <span class="nc">Put</span><span class="o">()</span> <span class="o">~&gt;</span> <span class="nc">Route</span><span class="o">.</span><span class="n">seal</span><span class="o">(</span><span class="n">smallRoute</span><span class="o">)</span> <span class="o">~&gt;</span> <span class="n">check</span> <span class="o">{</span>
+        <span class="n">status</span> <span class="o">===</span> <span class="nc">StatusCodes</span><span class="o">.</span><span class="nc">MethodNotAllowed</span>
+        <span class="n">responseAs</span><span class="o">[</span><span class="kt">String</span><span class="o">]</span> <span class="n">shouldEqual</span> <span class="s">&quot;HTTP method not allowed, supported methods: GET&quot;</span>
+      <span class="o">}</span>
+    <span class="o">}</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<p>The basic structure of a test built with the testkit is this (expression placeholder in all-caps):</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="nc">REQUEST</span> <span class="o">~&gt;</span> <span class="nc">ROUTE</span> <span class="o">~&gt;</span> <span class="n">check</span> <span class="o">{</span>
+  <span class="nc">ASSERTIONS</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<p>In this template <em>REQUEST</em> is an expression evaluating to an <tt class="docutils literal"><span class="pre">HttpRequest</span></tt> instance.
+In most cases your test will, in one way or another, extend from <tt class="docutils literal"><span class="pre">RouteTest</span></tt> which itself mixes in the
+<tt class="docutils literal"><span class="pre">akka.http.scaladsl.client.RequestBuilding</span></tt> trait, which gives you a concise and convenient way of constructing
+test requests. <a class="footnote-reference" href="#id2" id="id1">[1]</a></p>
+<p><em>ROUTE</em> is an expression evaluating to a <a class="reference internal" href="routes.html#routes"><em>Route</em></a>. You can specify one inline or simply refer to the
+route structure defined in your service.</p>
+<p>The final element of the <tt class="docutils literal"><span class="pre">~&gt;</span></tt> chain is a <tt class="docutils literal"><span class="pre">check</span></tt> call, which takes a block of assertions as parameter. In this block
+you define your requirements onto the result produced by your route after having processed the given request. Typically
+you use one of the defined &quot;inspectors&quot; to retrieve a particular element of the routes response and express assertions
+against it using the test DSL provided by your test framework. For example, with <a class="reference external" href="http://www.scalatest.org">scalatest</a>, in order to verify that
+your route responds to the request with a status 200 response, you'd use the <tt class="docutils literal"><span class="pre">status</span></tt> inspector and express an
+assertion like this:</p>
+<div class="highlight-scala"><div class="highlight"><pre><span class="n">status</span> <span class="n">shouldEqual</span> <span class="mi">200</span>
+</pre></div>
+</div>
+<p>The following inspectors are defined:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="40%" />
+<col width="60%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Inspector</th>
+<th class="head">Description</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td><tt class="docutils literal"><span class="pre">charset:</span> <span class="pre">HttpCharset</span></tt></td>
+<td>Identical to <tt class="docutils literal"><span class="pre">contentType.charset</span></tt></td>
+</tr>
+<tr class="row-odd"><td><tt class="docutils literal"><span class="pre">chunks:</span> <span class="pre">Seq[HttpEntity.ChunkStreamPart]</span></tt></td>
+<td>Returns the entity chunks produced by the route. If the entity is not
+<tt class="docutils literal"><span class="pre">chunked</span></tt> returns <tt class="docutils literal"><span class="pre">Nil</span></tt>.</td>
+</tr>
+<tr class="row-even"><td><tt class="docutils literal"><span class="pre">closingExtension:</span> <span class="pre">String</span></tt></td>
+<td>Returns chunk extensions the route produced with its last response
+chunk. If the response entity is unchunked returns the empty string.</td>
+</tr>
+<tr class="row-odd"><td><tt class="docutils literal"><span class="pre">contentType:</span> <span class="pre">ContentType</span></tt></td>
+<td>Identical to <tt class="docutils literal"><span class="pre">responseEntity.contentType</span></tt></td>
+</tr>
+<tr class="row-even"><td><tt class="docutils literal"><span class="pre">definedCharset:</span> <span class="pre">Option[HttpCharset]</span></tt></td>
+<td>Identical to <tt class="docutils literal"><span class="pre">contentType.definedCharset</span></tt></td>
+</tr>
+<tr class="row-odd"><td><tt class="docutils literal"><span class="pre">entityAs[T</span> <span class="pre">:FromEntityUnmarshaller]:</span> <span class="pre">T</span></tt></td>
+<td>Unmarshals the response entity using the in-scope
+<tt class="docutils literal"><span class="pre">FromEntityUnmarshaller</span></tt> for the given type. Any errors in the
+process trigger a test failure.</td>
+</tr>
+<tr class="row-even"><td><tt class="docutils literal"><span class="pre">handled:</span> <span class="pre">Boolean</span></tt></td>
+<td>Indicates whether the route produced an <tt class="docutils literal"><span class="pre">HttpResponse</span></tt> for the
+request. If the route rejected the request <tt class="docutils literal"><span class="pre">handled</span></tt> evaluates to
+<tt class="docutils literal"><span class="pre">false</span></tt>.</td>
+</tr>
+<tr class="row-odd"><td><tt class="docutils literal"><span class="pre">header(name:</span> <span class="pre">String):</span> <span class="pre">Option[HttpHeader]</span></tt></td>
+<td>Returns the response header with the given name or <tt class="docutils literal"><span class="pre">None</span></tt> if no such
+header is present in the response.</td>
+</tr>
+<tr class="row-even"><td><tt class="docutils literal"><span class="pre">header[T</span> <span class="pre">&lt;:</span> <span class="pre">HttpHeader]:</span> <span class="pre">Option[T]</span></tt></td>
+<td>Identical to <tt class="docutils literal"><span class="pre">response.header[T]</span></tt></td>
+</tr>
+<tr class="row-odd"><td><tt class="docutils literal"><span class="pre">headers:</span> <span class="pre">Seq[HttpHeader]</span></tt></td>
+<td>Identical to <tt class="docutils literal"><span class="pre">response.headers</span></tt></td>
+</tr>
+<tr class="row-even"><td><tt class="docutils literal"><span class="pre">mediaType:</span> <span class="pre">MediaType</span></tt></td>
+<td>Identical to <tt class="docutils literal"><span class="pre">contentType.mediaType</span></tt></td>
+</tr>
+<tr class="row-odd"><td><tt class="docutils literal"><span class="pre">rejection:</span> <span class="pre">Rejection</span></tt></td>
+<td>The rejection produced by the route. If the route did not produce
+exactly one rejection a test failure is triggered.</td>
+</tr>
+<tr class="row-even"><td><tt class="docutils literal"><span class="pre">rejections:</span> <span class="pre">Seq[Rejection]</span></tt></td>
+<td>The rejections produced by the route. If the route did not reject the
+request a test failure is triggered.</td>
+</tr>
+<tr class="row-odd"><td><tt class="docutils literal"><span class="pre">response:</span> <span class="pre">HttpResponse</span></tt></td>
+<td>The <tt class="docutils literal"><span class="pre">HttpResponse</span></tt> returned by the route. If the route did not return
+an <tt class="docutils literal"><span class="pre">HttpResponse</span></tt> instance (e.g. because it rejected the request) a
+test failure is triggered.</td>
+</tr>
+<tr class="row-even"><td><tt class="docutils literal"><span class="pre">responseAs[T:</span> <span class="pre">FromResponseUnmarshaller]:</span> <span class="pre">T</span></tt></td>
+<td>Unmarshals the response entity using the in-scope
+<tt class="docutils literal"><span class="pre">FromResponseUnmarshaller</span></tt> for the given type. Any errors in the
+process trigger a test failure.</td>
+</tr>
+<tr class="row-odd"><td><tt class="docutils literal"><span class="pre">responseEntity:</span> <span class="pre">HttpEntity</span></tt></td>
+<td>Returns the response entity.</td>
+</tr>
+<tr class="row-even"><td><tt class="docutils literal"><span class="pre">status:</span> <span class="pre">StatusCode</span></tt></td>
+<td>Identical to <tt class="docutils literal"><span class="pre">response.status</span></tt></td>
+</tr>
+<tr class="row-odd"><td><tt class="docutils literal"><span class="pre">trailer:</span> <span class="pre">Seq[HttpHeader]</span></tt></td>
+<td>Returns the list of trailer headers the route produced with its last
+chunk. If the response entity is unchunked returns <tt class="docutils literal"><span class="pre">Nil</span></tt>.</td>
+</tr>
+</tbody>
+</table>
+<table class="docutils footnote" frame="void" id="id2" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id1">[1]</a></td><td>If the request URI is relative it will be made absolute using an implicitly available instance of
+<tt class="docutils literal"><span class="pre">DefaultHostInfo</span></tt> whose value is &quot;<a class="reference external" href="http://example.com">http://example.com</a>&quot; by default. This mirrors the behavior of akka-http-core
+which always produces absolute URIs for incoming request based on the request URI and the <tt class="docutils literal"><span class="pre">Host</span></tt>-header of
+the request. You can customize this behavior by bringing a custom instance of <tt class="docutils literal"><span class="pre">DefaultHostInfo</span></tt> into scope.</td></tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="sealing-routes">
+<h2>Sealing Routes</h2>
+<p>The section above describes how to test a &quot;regular&quot; branch of your route structure, which reacts to incoming requests
+with HTTP response parts or rejections. Sometimes, however, you will want to verify that your service also translates
+<a class="reference internal" href="rejections.html#rejections-scala"><em>Rejections</em></a> to HTTP responses in the way you expect.</p>
+<p>You do this by wrapping your route with the <tt class="docutils literal"><span class="pre">akka.http.scaladsl.server.Route.seal</span></tt>.
+The <tt class="docutils literal"><span class="pre">seal</span></tt> wrapper applies the logic of the in-scope <a class="reference internal" href="exception-handling.html#exception-handling-scala"><em>ExceptionHandler</em></a> and
+<a class="reference internal" href="rejections.html#the-rejectionhandler"><em>RejectionHandler</em></a> to all exceptions and rejections coming back from the route,
+and translates them to the respective <tt class="docutils literal"><span class="pre">HttpResponse</span></tt>.</p>
+</div>
+<div class="section" id="examples">
+<h2>Examples</h2>
+<p>A great pool of examples are the tests for all the predefined directives in Akka HTTP.
+They can be found <a class="reference external" href="http://github.com/akka/akka/tree/v2.4-bin-rp-16s01p05/akka-http-tests/src/test/scala/akka/http/scaladsl/server/directives/">here</a>.</p>
+</div>
+</div>
+
+
+          </div>
+          <div class="span3"><p class="contents-title">Contents</p>
+              <div id="scroller-anchor">
+                <div id="scroller">
+                  <div id="toc"></div>
+                </div>
+              </div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="footer">
+  <div class="container">
+    <ul>
+      <li><h5>Akka</h5></li>
+      <li><a href="https://akka.io/docs">Documentation</a></li>
+      <li><a href="https://akka.io/faq">FAQ</a></li>
+      <li><a href="https://akka.io/downloads">Downloads</a></li>
+      <li><a href="https://akka.io/news">News</a></li>
+      <li><a href="http://letitcrash.com">Blog</a></li>
+    </ul>
+    <ul>
+      <li><h5>Contribute</h5></li>
+      <li><a href="https://akka.io/community">Community Projects</a></li>
+      <li><a href="http://github.com/akka/akka">Source Code</a></li>
+      <li><a href="http://groups.google.com/group/akka-user">Mailing List</a></li>      
+      <li><a href="https://doc.akka.io/docs/akka/current/project/issue-tracking.html">Report a Bug</a></li>      
+    </ul>
+    <ul>
+      <li><h5>Company</h5></li>
+      <li><a href="http://www.lightbend.com/how/subscription">Commercial Support</a></li>
+      <li><a href="https://akka.io/team">Team</a></li>
+      <li><a href="mailto:info@lightbend.com">Contact</a></li>
+    </ul>
+    <ul>
+      <li><img src="../../../_static/akka_icon_reverse.svg" align="center"/></li>
+    </ul>
+  </div>
+  <div class="container copyright">
+    <p style="float: left;">
+      © 2015 <a href="http://www.lightbend.com/">Lightbend Inc.</a> <span class="license">Akka is Open Source and available under the Apache 2 License.</span>
+    </p>
+    <p style="float: right; font-size: 12px;">
+      Last updated: Apr 14, 2016
+    </p>          
+  </div>
+</div>
+<script type="text/javascript">
+  var $toc = $('#toc');
+  $toc.toc();
+
+  // show clickable section sign when section header hovered:
+  $('.section h2,.section h3,.section h4,.section h5').each(function(i, el) {
+      var $el = $(el);
+      $el.prepend($("<a class='section-marker' href='#" + $el.attr("id") + "'>&sect;</a>"))
+  });
+</script>
+
+<!-- Algolia docs search -->
+<script type="text/javascript">
+  var version = DOCUMENTATION_OPTIONS.VERSION;
+
+  var lang = "scala";
+  var path = window.location.pathname;
+  if (path.includes("/java/") || path.includes("java.html")) lang = "java";
+
+  console.log("Search configured for:", lang, "@", version);
+
+  docsearch({
+    apiKey: '543bad5ad786495d9ccd445ed34ed082',
+    indexName: 'akka_io',
+    inputSelector: '#search',
+    algoliaOptions: {
+      hitsPerPage: 10,
+      facetFilters: '[' +
+      '["language:' + lang + '","language:general"]' +
+      ',"version:2.4.2"]'
+    }
+  });
+
+  // set up "/" as global shortcut for focusing on search
+  $(document).keypress(function (event) {
+    if (event.keyCode == 47) {
+      $("#q").focus();
+      return false; // swallow key event, otherwise the / char would be input into the search box
+    }
+  });
+</script>
+
+  
+
+  </body>
+</html>
