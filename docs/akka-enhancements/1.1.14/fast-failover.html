@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+<html class="no-js" lang="en">
+
+<head>
+<title>Fast Failover &bull; Akka Enhancements</title>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta name="description" content="Akka Enhancements is a suite of useful components that complement Akka."/>
+<link rel="canonical" href="https://doc.akka.io/docs/akka-enhancements/current/fast-failover.html"/>
+<script type="text/javascript" src="lib/jquery/jquery.min.js"></script>
+<script type="text/javascript" src="lib/foundation/dist/js/foundation.min.js"></script>
+<link rel="stylesheet" type="text/css" href="lib/normalize.css/normalize.css"/>
+<link rel="stylesheet" type="text/css" href="lib/foundation/dist/css/foundation.min.css"/>
+<link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/docsearch.js/2/docsearch.min.css" />
+<link rel="stylesheet" type="text/css" href="css/icons.css"/>
+<link rel="stylesheet" type="text/css" href="css/page-7.css"/>
+<link rel="stylesheet" type="text/css" href="css/banner-1.css"/>
+<link rel="shortcut icon" href="images/favicon.ico" />
+<link rel="apple-touch-icon" sizes="180x180" href="images/apple-touch-icon.png"/>
+<link rel="icon" type="image/png" sizes="32x32" href="images/favicon-32x32.png"/>
+<link rel="icon" type="image/png" sizes="16x16" href="images/favicon-16x16.png"/>
+<link rel="manifest" href="images/manifest.json"/>
+<meta name="msapplication-TileImage" content="images/mstile-150x150.png"/>
+<meta name="msapplication-TileColor" content="#15a9ce"/>
+<meta name="theme-color" content="#15a9ce"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<!-- OneTrust Cookies Consent Notice (Production Standard, akka.io, en-GB) start -->
+<script src="https://optanon.blob.core.windows.net/consent/159bb13d-6748-4399-806e-ac28db879785.js" type="text/javascript" charset="UTF-8"></script>
+<script type="text/javascript">
+function OptanonWrapper() { }
+</script>
+<!-- OneTrust Cookies Consent Notice (Production Standard, akka.io, en-GB) end -->
+<!--Google Analytics-->
+<script type="text/plain" class="optanon-category-2">
+var _gaq = _gaq || [];
+_gaq.push(['_setAccount', '']);
+_gaq.push(['_setDomainName', '']);
+_gaq.push(['_trackPageview']);
+(function() {
+var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+})()
+</script>
+<!-- Google Tag Manager -->
+<script type="text/plain" class="optanon-category-2">
+(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+})(window,document,'script','dataLayer','GTM-KBJGH35');
+</script>
+<!--Marketo-->
+<script type="text/plain" class="optanon-category-3">
+(function() {
+var didInit = false;
+function initMunchkin() {
+if(didInit === false) {
+didInit = true;
+Munchkin.init('558-NCX-702', { 'asyncOnly': true, 'disableClickDelay': true });
+}
+}
+var s = document.createElement('script');
+s.type = 'text/javascript';
+s.async = true;
+s.src = '//munchkin.marketo.net/munchkin.js';
+s.onreadystatechange = function() {
+if (this.readyState == 'complete' || this.readyState == 'loaded') {
+initMunchkin();
+}
+};
+s.onload = initMunchkin;
+document.getElementsByTagName('head')[0].appendChild(s);
+})();
+</script>
+</head>
+
+<body id="underlay" data-toggler="nav-open">
+<div id="lightbend-banner" class="lightbend-banner akka full-width" data-category="OSS Lightbend Banner Impression" data-label="Akka Banner Impression">
+<div class="wrapper">
+<div class="brand">
+<a class="oss-track-link-label" data-category="OSS Lightbend Banner Clicks" data-label="Lightbend Logo - Akka Banner" href="https://www.lightbend.com?r=oss-banner-akka" target="_blank">
+<img class="lightbend-logo" src="images/banner-logos/lightbend-reverse.svg" alt="Lightbend" title="Lightbend">
+</a>
+</div>
+<div class="nav">
+<a class="banner-btn oss-track-link-label" data-category="OSS Lightbend Banner Clicks" data-label="Enhance your Akka systems with Akka Platform [Button] - Akka Banner" href="https://www.lightbend.com/akka-core-of-lightbend?r=oss-banner-akka" target="_blank">
+<span>Enhance your Akka systems with</span>
+<img class="akka-platform-reverse-logo" src="images/banner-logos/akka-platform-reverse.svg" alt="Akka Platform" title="Akka Platform">
+</a>
+<div class="drop-down">
+<svg class="svg-chevon-circle-down" version="1.1" id="Chevron_circled_down" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 20 20" enable-background="new 0 0 20 20" xml:space="preserve">
+<path fill="#ffffff" d="M12.505,8.698L10,11L7.494,8.698c-0.198-0.196-0.518-0.196-0.718,0c-0.197,0.196-0.197,0.515,0,0.71l2.864,2.807
+c0.199,0.196,0.52,0.196,0.717,0l2.864-2.807c0.199-0.195,0.198-0.514,0-0.71C13.024,8.502,12.704,8.502,12.505,8.698z M10,0.4
+c-5.302,0-9.6,4.298-9.6,9.6c0,5.303,4.298,9.6,9.6,9.6s9.6-4.297,9.6-9.6C19.6,4.698,15.302,0.4,10,0.4z M10,18.354
+c-4.615,0-8.354-3.74-8.354-8.354c0-4.614,3.739-8.354,8.354-8.354c4.613,0,8.354,3.74,8.354,8.354
+C18.354,14.614,14.613,18.354,10,18.354z" />
+</svg>
+<div class="drop-down-content">
+<div class="lightbend-family">
+<a href="https://cloudflow.io" class="cloudflow oss-track-link-label" data-category="OSS Lightbend Banner Clicks" data-label="Cloudflow - Logo Tag Line - Akka Banner">
+<img class="cloudflow-full-color-logo" src="images/banner-logos/cloudflow-full-color.svg" alt="Cloudflow by Lightbend" title="Cloudflow by Lightbend">
+</a>
+<a href="https://cloudstate.io" class="cloudstate oss-track-link-label" data-category="OSS Lightbend Banner Clicks" data-label="Cloudstate - Logo Tag Line - Akka Banner">
+<img class="cloudstate-full-color-logo" src="images/banner-logos/cloudstate-full-color.svg" alt="Cloudstate by Lightbend" title="Cloudstate by Lightbend">
+</a>
+<a href="https://www.lagomframework.com" class="lagom oss-track-link-label" data-category="OSS Lightbend Banner Clicks" data-label="Lagom - Logo Tag Line - Akka Banner">
+<img class="lagom-full-color-logo" src="images/banner-logos/lagom-full-color.svg" alt="Lagom Framework by Lightbend" title="Lagom Framework by Lightbend">
+</a>
+<a href="https://www.playframework.com" class="play oss-track-link-label" data-category="OSS Lightbend Banner Clicks" data-label="Play - Logo Tag Line - Akka Banner">
+<img class="play-full-color-logo" src="images/banner-logos/play-full-color.svg" alt="Play Framework by Lightbend" title="Play Framework by Lightbend">
+</a>
+<a href="https://www.scala-lang.org" class="scala oss-track-link-label" data-category="OSS Lightbend Banner Clicks" data-label="Scala - Logo Tag Line - Akka Banner">
+<img class="scala-full-color-logo" src="images/banner-logos/scala-full-color.svg" alt="Scala by Lightbend" title="Scala by Lightbend">
+</a>
+<div class="akka current">
+<img class="akka-full-color-logo" src="images/banner-logos/akka-full-color.svg" alt="Akka by Lightbend" title="Akka by Lightbend">
+<span>From the creators of <strong>Akka</strong>, get technology enhancements, monitoring, and expert support with Akka Platform from Lightbend.</span>
+<a class="oss-track-link-label" data-category="OSS Lightbend Banner Clicks" data-label="Learn More [Button] - Akka Banner" href="https://www.lightbend.com/akka-core-of-lightbend?r=oss-banner-akka" target="_blank">Learn More</a>
+</div>
+</div>
+<div class="title">The Lightbend Family</div>
+</div>      
+</div>
+</div>
+</div>
+</div>
+<header class="site-header hide-for-large">
+<div class="sticky-header clearfix">
+<a href="https://akka.io"><img class="logo" src="images/akka-logo-reverse.svg"/></a>
+
+<button class="menu-icon float-right" type="button" data-toggle="underlay overlay"></button>
+</div>
+<div id="overlay" class="overlay-nav" data-toggler="nav-open">
+<header class="nav-header">
+<div class="nav-header-title">
+<h1><a href="index.html">Akka Enhancements</a></h1>
+</div>
+<div class="nav-header-version">
+Version 1.1.14
+</div>
+<div class="nav-header-groups">
+<select class="supergroup" name="Languages"><option class="group" value="group-java">Java</option><option class="group" value="group-scala">Scala</option></select>
+</div>
+</header>
+<nav class="nav-toc">
+<ul>
+  <li><a href="akka-resilience-enhancements.html" class="page">Akka Resilience Enhancements</a>
+  <ul>
+    <li><a href="split-brain-resolver.html" class="page">Akka Split Brain Resolver</a></li>
+    <li><a href="kubernetes-lease.html" class="page">Kubernetes Lease</a></li>
+    <li><a href="starvation-detector.html" class="page">Akka Thread Starvation Detector</a></li>
+    <li><a href="config-checker.html" class="page">Akka Config Checker</a></li>
+    <li><a href="diagnostics-recorder.html" class="page">Akka Diagnostics Recorder</a></li>
+    <li><a href="fast-failover.html#fast-failover" class="active page">Fast Failover</a>
+    <ul>
+      <li><a href="fast-failover.html#approach" class="header">Approach</a></li>
+      <li><a href="fast-failover.html#dependency" class="header">Dependency</a></li>
+      <li><a href="fast-failover.html#setup" class="header">Setup</a></li>
+      <li><a href="fast-failover.html#starting" class="header">Starting</a></li>
+      <li><a href="fast-failover.html#implementing-fast-failover-operations" class="header">Implementing fast failover operations</a></li>
+      <li><a href="fast-failover.html#configuration" class="header">Configuration</a></li>
+    </ul></li>
+    <li><a href="akka-resilience-enhancements-release-notes.html" class="page">Akka Resilience Enhancements Release Notes</a></li>
+  </ul></li>
+  <li><a href="akka-persistence-enhancements.html" class="page">Akka Persistence Enhancements</a></li>
+</ul>
+</nav>
+</div>
+</header>
+<div class="site-content-wrapper">
+<aside class="sticky-sidebar show-for-large">
+<header class="nav-header sticky-sidebar-header">
+<div class="nav-header-title">
+<h1><a href="index.html">Akka Enhancements</a></h1>
+</div>
+<div class="nav-header-version">
+Version 1.1.14
+</div>
+<div class="nav-header-groups">
+<select class="supergroup" name="Languages"><option class="group" value="group-java">Java</option><option class="group" value="group-scala">Scala</option></select>
+</div>
+</header>
+<nav class="site-nav sticky-sidebar-contents">
+<div class="nav-toc">
+<ul>
+  <li><a href="akka-resilience-enhancements.html" class="page">Akka Resilience Enhancements</a>
+  <ul>
+    <li><a href="split-brain-resolver.html" class="page">Akka Split Brain Resolver</a></li>
+    <li><a href="kubernetes-lease.html" class="page">Kubernetes Lease</a></li>
+    <li><a href="starvation-detector.html" class="page">Akka Thread Starvation Detector</a></li>
+    <li><a href="config-checker.html" class="page">Akka Config Checker</a></li>
+    <li><a href="diagnostics-recorder.html" class="page">Akka Diagnostics Recorder</a></li>
+    <li><a href="fast-failover.html#fast-failover" class="active page">Fast Failover</a>
+    <ul>
+      <li><a href="fast-failover.html#approach" class="header">Approach</a></li>
+      <li><a href="fast-failover.html#dependency" class="header">Dependency</a></li>
+      <li><a href="fast-failover.html#setup" class="header">Setup</a></li>
+      <li><a href="fast-failover.html#starting" class="header">Starting</a></li>
+      <li><a href="fast-failover.html#implementing-fast-failover-operations" class="header">Implementing fast failover operations</a></li>
+      <li><a href="fast-failover.html#configuration" class="header">Configuration</a></li>
+    </ul></li>
+    <li><a href="akka-resilience-enhancements-release-notes.html" class="page">Akka Resilience Enhancements Release Notes</a></li>
+  </ul></li>
+  <li><a href="akka-persistence-enhancements.html" class="page">Akka Persistence Enhancements</a></li>
+</ul>
+</div>
+</nav>
+<footer class="nav-footer sticky-sidebar-footer">
+<a href="https://akka.io"><img class="logo" src="images/akka-logo-reverse.svg"/></a>
+
+</footer>
+</aside>
+<main class="fixed-shift-for-large expanded row">
+<section class="site-content small-12 column">
+<article class="page-content row">
+<div class="small-12 column" id="docs">
+<h1><a href="#fast-failover" name="fast-failover" class="anchor"><span class="anchor-link"></span></a>Fast Failover</h1>
+<p>It takes time for Akka clustering to reliably determine that a node is no longer reachable and can safely be removed from the cluster, by default this time is a minimum of 10 seconds. In some cases, you may want certain transactions to failover faster than that, in sub second times for example. Akka&rsquo;s fast failover feature is designed for these scenarios.</p><div class="callout warning "><div class="callout-title">Warning</div>
+<p>This module is currently marked as <a href="https://doc.akka.io/docs/akka/2.5/common/may-change.html">May Change</a> in the sense of that the API might be changed based on feedback from initial usage.</p></div><div class="callout note "><div class="callout-title">Note</div>
+<p>This feature is included in a <a href="https://www.lightbend.com/lightbend-platform-subscription">subscription to Lightbend Platform</a>, which includes other technology enhancements, monitoring and telemetry, and one-to-one support from the expert engineers behind Akka.</p></div>
+<h2><a href="#approach" name="approach" class="anchor"><span class="anchor-link"></span></a>Approach</h2>
+<p>Akka clustering, in combination with Akka&rsquo;s split brain resolver, is able to guarantee that features like cluster sharding will only ever have one node running each entity, even in the presence of network partitions. In order to do this it needs a certain level of consensus, as well as some timeouts to wait for a partioned part of the cluster to down itself, and this is why it takes time to failover.</p>
+<p>Akka fast failover does not use any consensus, nor does it wait for partitions to down themselves, rather it gambles that if if a reply (or progress update) to a request takes too long, then that node has crashed. This allows it to failover as soon as such an event occurs. The compromise is that the node may not have crashed, it may simply be not responding due to a partition or long garbage collection pause, and in that scenario the operation may end up being performed on two nodes concurrently, which may lead to inconsistencies.</p>
+<p>In some cases, the need for reliability is very high, while it is possible to manage the inconsistencies that may occur when fast failover happens. These cases can make use of Akka faster failover to achieve mid transaction failover.</p>
+<p>Akka fast failover requires dividing your cluster into multiple failure groups. A consistent hash function will be used to decide what order each failure group should be tried in for a given operation. This means when everything is running smoothly, all operations for a given entity will always go to the same failure group. When a failure occurs, they will then consistently try on the first failure group, and then failover to the next failure group, and so on.</p>
+<p>Akka fast failover is typically used with <a href="https://doc.akka.io/docs/akka/2.5/cluster-sharding.html">Cluster Sharding</a>, but could also be used with a consistent hashing router.</p>
+<h2><a href="#dependency" name="dependency" class="anchor"><span class="anchor-link"></span></a>Dependency</h2>
+<p>To use the fast failover feature a dependency on the <em>akka-fast-failover</em> artifact must be added.</p>
+<dl>
+  <dt>sbt</dt>
+  <dd>
+  <pre><code>// Add Lightbend Platform to your build as documented at https://developer.lightbend.com/docs/lightbend-platform/introduction/getting-started/subscription-and-credentials.html
+&quot;com.lightbend.akka&quot; %% &quot;akka-fast-failover&quot; % &quot;1.1.14&quot;
+</code></pre></dd>
+  <dt>Gradle</dt>
+  <dd>
+  <pre><code>// Add Lightbend Platform to your build as documented at https://developer.lightbend.com/docs/lightbend-platform/introduction/getting-started/subscription-and-credentials.html
+dependencies {
+  compile group: &#39;com.lightbend.akka&#39;, name: &#39;akka-fast-failover_2.12&#39;, version: &#39;1.1.14&#39;
+}
+</code></pre></dd>
+  <dt>Maven</dt>
+  <dd>
+  <pre><code>&lt;!-- Add Lightbend Platform to your build as documented at https://developer.lightbend.com/docs/lightbend-platform/introduction/getting-started/subscription-and-credentials.html --&gt;
+&lt;dependency&gt;
+  &lt;groupId&gt;com.lightbend.akka&lt;/groupId&gt;
+  &lt;artifactId&gt;akka-fast-failover_2.12&lt;/artifactId&gt;
+  &lt;version&gt;1.1.14&lt;/version&gt;
+&lt;/dependency&gt;
+</code></pre></dd>
+</dl><p>Before you can access this library, you&rsquo;ll need to <a href="https://developer.lightbend.com/docs/lightbend-platform/introduction/getting-started/subscription-and-credentials.html">configure the Lightbend repository and credentials in your build</a>.</p>
+<h2><a href="#setup" name="setup" class="anchor"><span class="anchor-link"></span></a>Setup</h2>
+<p>In order to configure Akka for a fast failover setup, you&rsquo;ll need to divide your Akka cluster into multiple failure groups. If the infrastructure you&rsquo;re deploying to supports availability zones, then it may make sense to have a 1:1 mapping of failure groups to availability zones. Failure groups are most easily distinguished using Akka cluster roles.</p>
+<p>You will need to have at least two failure groups. Since Akka fast failover doesn&rsquo;t rely on any consensus or quorum based decisions, there&rsquo;s nothing wrong with having only two failure groups (rather than three). The number of failure groups will dictate how many times an operation can failover.</p>
+<h2><a href="#starting" name="starting" class="anchor"><span class="anchor-link"></span></a>Starting</h2>
+<p>Here&rsquo;s an example of starting a fast failover actor:</p>
+<dl>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-java">ActorRef fastFailover = FastFailover.get(system).start(
+    &quot;FastFailoverOperation&quot;,
+    FastFailoverSettings.create(system),
+    routees,
+    messageExtractor,
+    failureStrategy
+);</code></pre></dd>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-scala">val fastFailover: ActorRef = FastFailover(system).start(
+  actorName = &quot;FastFailoverOperation&quot;,
+  settings = FastFailoverSettings(system),
+  routees = routees,
+  extractEntityId = extractEntityId,
+  failureStrategy = failureStrategy)</code></pre></dd>
+</dl>
+<p>The routees are a <code>akka.routing.Routee</code> for each failure group.</p>
+<p>The order of the routees is important, they must be the same order on every node in order for the failure group selection to be consistent. We will look at some examples of how to create routees for different setups below.</p>
+<p>The <code>extractEntityId</code> or <code>messageExtractor</code> function extracts the entity ID from the messages it receives, it might be defined like so:</p>
+<dl>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-java">FastFailover.MessageExtractor messageExtractor = new FastFailover.MessageExtractor() {
+
+  @Override
+  public String entityId(Object message) {
+    if (message instanceof SomeOperation)
+      return ((SomeOperation) message).id;
+    else
+      return null;
+  }
+
+  @Override
+  public Object entityMessage(Object message) {
+    return message;
+  }
+};</code></pre></dd>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-scala">val extractEntityId: ExtractEntityId = {
+  case op @ SomeOperation(id) =&gt; (id, op)
+}</code></pre></dd>
+</dl>
+<p>In addition to operations timing out, they can also be explicitly failed by responding to the operation with an <code>akka.actor.Status.Failure</code>. When such a failure is received, the <code>failureStrategy</code> function decides how these failures should be handled. The <code>failureStrategy</code> takes an exception and returns a directive that either tells fast failover to fail the operation for good, or to attempt failover. The failure handler might look like this:</p>
+<dl>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-java">PartialFunction&lt;Throwable, FastFailover.FailureDirective&gt; failureStrategy = FailureStrategyBuilder.
+  match(IllegalArgumentException.class, e -&gt; FastFailover.fail()).
+  match(AskTimeoutException.class, e -&gt; FastFailover.failover()).build();</code></pre></dd>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-scala">val failureStrategy: FastFailover.FailureStrategy = {
+  case e: IllegalArgumentException =&gt; FastFailover.Fail
+  case e: AskTimeoutException      =&gt; FastFailover.Failover
+}</code></pre></dd>
+</dl>
+<h3><a href="#setup-with-cluster-sharding" name="setup-with-cluster-sharding" class="anchor"><span class="anchor-link"></span></a>Setup with cluster sharding</h3>
+<p>If using cluster sharding, you will need to create multiple instances of cluster sharding, one for each failure group. Each node will then start a cluster sharding region for the failure group (role) that it&rsquo;s a part of, and a cluster sharding proxy for the other failure groups. The code for doing so looks like this:</p>
+<dl>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-java">List&lt;String&gt; failureGroups = Arrays.asList(&quot;failure-group-1&quot;, &quot;failure-group-2&quot;);
+Cluster cluster = Cluster.get(system);
+
+List&lt;Routee&gt; routees = failureGroups.stream().map(failureGroup -&gt; {
+  if (cluster.getSelfRoles().contains(failureGroup)) {
+
+    ActorRef groupRegion = ClusterSharding.get(system).start(
+        &quot;myActor-&quot; + failureGroup,
+        Props.create(MyActor.class),
+        ClusterShardingSettings.create(system).withRole(failureGroup),
+        extractor);
+
+    return new ActorRefRoutee(groupRegion);
+  } else {
+
+    ActorRef groupProxy = ClusterSharding.get(system).startProxy(
+        &quot;myActor-&quot; + failureGroup,
+        Optional.of(failureGroup),
+        extractor);
+
+    return new ActorRefRoutee(groupProxy);
+  }
+}).collect(Collectors.toList());</code></pre></dd>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-scala">val failureGroups = Vector(&quot;failure-group-1&quot;, &quot;failure-group-2&quot;)
+val cluster = Cluster(system)
+
+val routees = failureGroups.map { failureGroup =&gt;
+  if (cluster.selfRoles(failureGroup)) {
+
+    val groupRegion = ClusterSharding(system).start(
+      typeName = s&quot;myActor-$failureGroup&quot;,
+      entityProps = Props[MyActor],
+      settings = ClusterShardingSettings(system).withRole(failureGroup),
+      extractEntityId = FastFailover.extractEntityId,
+      extractShardId = FastFailover.extractShardId(100))
+
+    ActorRefRoutee(groupRegion)
+
+  } else {
+
+    val groupProxy = ClusterSharding(system).startProxy(
+      typeName = s&quot;myActor-$failureGroup&quot;,
+      role = Some(failureGroup),
+      extractEntityId = FastFailover.extractEntityId,
+      extractShardId = FastFailover.extractShardId(100))
+
+    ActorRefRoutee(groupProxy)
+
+  }
+}</code></pre></dd>
+</dl>
+<p>Note that the order of the routees here is important, they must use the same failure group order for every node. A possible mistake to make would be to create the shard region for the current node, and prepend it to a list of proxies for every other node, this must not be done. We do this by using a static indexed list, and then mapping the values of it to create the shard region and proxies.</p>
+<p>It&rsquo;s important to note that the cluster sharding entity id and shard extractors must handle the <code>FastFailover.Attempt</code> message. The entity id from the fast failover extractor can be found in the attempt message.</p>
+<h3><a href="#setup-with-consistent-hashing-routers" name="setup-with-consistent-hashing-routers" class="anchor"><span class="anchor-link"></span></a>Setup with consistent hashing routers</h3>
+<p>Using a cluster aware consistent hashing router is also a useful approach to fast failover.</p>
+<dl>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-java">List&lt;String&gt; failureGroups = Arrays.asList(&quot;failure-group-1&quot;, &quot;failure-group-2&quot;);
+Cluster cluster = Cluster.get(system);
+
+List&lt;Routee&gt; routees = failureGroups.stream().map(failureGroup -&gt; {
+
+  ActorRef clusterRouter = system.actorOf(
+      new ClusterRouterGroup(new ConsistentHashingGroup(Collections.emptyList()),
+          new ClusterRouterGroupSettings(100, Collections.singleton(&quot;/user/myActor&quot;),
+          cluster.getSelfRoles().contains(failureGroup), failureGroup)).props(),
+      &quot;myActor-&quot; + failureGroup);
+
+  return new ActorRefRoutee(clusterRouter);
+}).collect(Collectors.toList());</code></pre></dd>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-scala">val failureGroups = Vector(&quot;failure-group-1&quot;, &quot;failure-group-2&quot;)
+val cluster = Cluster(system)
+
+val routees = failureGroups.map { failureGroup =&gt;
+  val clusterRouter = system.actorOf(
+    ClusterRouterGroup(ConsistentHashingGroup(Nil), ClusterRouterGroupSettings(
+      totalInstances = 100, routeesPaths = List(&quot;/user/myActor&quot;),
+      allowLocalRoutees = cluster.selfRoles(failureGroup),
+      useRole = Some(failureGroup))).props(),
+    name = s&quot;myActor-$failureGroup&quot;)
+
+  ActorRefRoutee(clusterRouter)
+}</code></pre></dd>
+</dl>
+<h2><a href="#implementing-fast-failover-operations" name="implementing-fast-failover-operations" class="anchor"><span class="anchor-link"></span></a>Implementing fast failover operations</h2>
+<p>The fast failover actor will wrap all operations in an <code>Attempt</code> message, and expect <code>Heartbeat</code> messages to be sent while the operation is active, and a <code>Result</code> message containing the response to be sent when the operation has finished. While this protocol can be manually implemented, Akka fast failover provides some transparent handling for it, via <code>FastFailoverHelper</code>. <code>FastFailoverHelper</code> provides a <code>handleFastFailover</code> receive method that can be mixed into your <code>receive</code> method to handle the fast failover protocol:</p>
+<dl>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-java">public class MyActor extends AbstractActor {
+  private final FastFailoverHelper helper = new FastFailoverHelper(getContext());
+
+  @Override
+  public Receive createReceive() {
+    return helper.handleFastFailoverReceive().orElse(
+      receiveBuilder().
+        match(SomeOperation.class, op -&gt; {
+
+          // Do something
+
+          getSender().tell(new SomeResult(op.id), getSelf());
+        }).build()
+    );
+  }
+}</code></pre></dd>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-scala">class MyActor extends Actor {
+  val helper = new FastFailoverHelper(context)
+
+  override def receive = helper.handleFastFailover.orElse {
+    case SomeOperation(id) =&gt;
+
+      // Do something
+
+      sender ! SomeResult(id)
+  }
+}</code></pre></dd>
+</dl>
+<h3><a href="#holding-messages" name="holding-messages" class="anchor"><span class="anchor-link"></span></a>Holding messages</h3>
+<p>In some circumstances, you want to hold some messages while a fast failover operation is in progress, because they might interrupt the processing of the operation. For example, you may want to hold the message that gets sent by a shard to shut an actor down when the shard is being rebalanced, so that the fast failover operation has a chance to complete. This can be done by overriding the <code>shouldHoldUntilNoOperation</code> method. This will be invoked for every message received while there is an operation in progress. If it returns <code>true</code>, then that message will be held, and then resent when there are no active operations.</p>
+<p>Note that holding messages implies that your actor will not always receive messages in order - any messages that get held may be overtaken by other messages that are not held. This needs to be taken into account when considering which messages should be held.</p>
+<dl>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-java">public class MyActor extends AbstractActor {
+  private final FastFailoverHelper helper = new FastFailoverHelper(getContext()) {
+    @Override
+    public boolean shouldHoldUntilNoOperation(Object msg) {
+      return msg instanceof Stop;
+    }
+  };
+
+  @Override
+  public void preRestart(Throwable reason, Option&lt;Object&gt; message) throws Exception {
+    helper.drainHeldMessages();
+    super.preRestart(reason, message);
+  }
+
+  @Override
+  public Receive createReceive() {
+    return helper.handleFastFailoverReceive().orElse(
+        receiveBuilder().
+            match(SomeOperation.class, op -&gt; {
+
+              // Do something
+
+              getSender().tell(new SomeResult(op.id), getSelf());
+            }).
+            match(Stop.class, stop -&gt;
+              getContext().stop(getSelf())
+            ).build()
+    );
+  }
+}</code></pre></dd>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-scala">class MyActor extends Actor {
+  val helper = new FastFailoverHelper(context) {
+    override def shouldHoldUntilNoOperation(msg: Any): Boolean = msg match {
+      case Stop =&gt; true
+      case _    =&gt; false
+    }
+  }
+
+  override def preRestart(reason: Throwable, message: Option[Any]) = {
+    helper.drainHeldMessages()
+    super.preRestart(reason, message)
+  }
+
+  override def receive = helper.handleFastFailover.orElse {
+    case SomeOperation(id) =&gt;
+
+      // Do something
+
+      sender ! SomeResult(id)
+
+    case Stop =&gt;
+      context.stop(self)
+  }
+}</code></pre></dd>
+</dl>
+<p>If your actor is restarted, during an operation, then any messages that were held will be lost. This problem can be alleviated by invoking <code>drainHeldMessages</code> from the <code>preRestart</code> method of the actor, which will resend all the held messages back to <code>self</code>. Note that when the actor is restarted, the state of any in progress operations will be forgotten, so these messages will be handled immediately, rather than being reheld.</p>
+<h3><a href="#forwarding-operations-to-other-actors" name="forwarding-operations-to-other-actors" class="anchor"><span class="anchor-link"></span></a>Forwarding operations to other actors</h3>
+<p>An actor may have to forward an operation on to another actor on another node. It could do this by sending the message using a regular forward, however because the operation helper wraps the message sending in its own ask so that it can know when to stop sending heartbeats, this will mean that the response will go back through the current actor. It also means that heartbeats will be sent from the current actor, rather than from the remote actor where the work is being done, which means the wrong node will be monitored.</p>
+<p>An actor that&rsquo;s using the <code>FastFailoverHelper</code> can instead respond with a <code>FastFailoverHelper.Forward</code> message, which will cause the <code>FastFailoverHelper</code> to stop sending heartbeats, and will forward the attempt on to the recipient. The message will be wrapped in an <code>Attempt</code> message, so the recipient must likewise be able to speak the fast failover protocol. It becomes the recipients responsibility to send heartbeats to prevent the operation from failing over.</p>
+<p>This can be done like so:</p>
+<dl>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-java">public class MyActor extends AbstractActor {
+  private final ActorRef otherActor;
+  private final FastFailoverHelper helper = new FastFailoverHelper(getContext());
+
+  public MyActor(ActorRef otherActor) {
+    this.otherActor = otherActor;
+  }
+
+  @Override
+  public Receive createReceive() {
+    return helper.handleFastFailoverReceive().orElse(
+        receiveBuilder().
+            match(SomeOperation.class, op -&gt;
+              getSender().tell(new FastFailoverHelper.Forward(op, otherActor), getSelf())
+            ).build()
+    );
+  }
+}</code></pre></dd>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-scala">class MyActor(otherActor: ActorRef) extends Actor {
+  val helper = new FastFailoverHelper(context)
+
+  import FastFailoverHelper.ForwardPattern
+
+  override def receive = helper.handleFastFailover.orElse {
+    case msg @ SomeOperation(id) =&gt;
+      otherActor forwardAttempt msg
+  }
+}</code></pre></dd>
+</dl><div class="group-scala">
+<h3><a href="#fast-failover-mix-in-scala-only-" name="fast-failover-mix-in-scala-only-" class="anchor"><span class="anchor-link"></span></a>Fast failover mix-in (Scala only)</h3>
+<p>An even simpler way to integrate fast failover protocol support into an actor is to use the <code>FastFailoverSupport</code> mix-in. This utilises an internal Akka feature called <code>aroundReceive</code>, which may conflict with other Akka mixins like <code>PersistentActor</code>. However if such mix-ins are not being used, then the <code>FastFailoverSupport</code> trait can simply be mixed in to your actor to give you fast failover support:</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><code class="language-scala">class MyActor extends Actor with FastFailoverSupport {
+  override def receive = {
+    case SomeOperation(id) =&gt;
+
+      // Do something
+
+      sender ! SomeResult(id)
+  }
+}</code></pre></dd>
+</dl>
+<p>This also provides a <code>drainHeldMessages</code> method that can be overridden, as with <code>FastFailoverHelper</code>.</p></div>
+<h2><a href="#configuration" name="configuration" class="anchor"><span class="anchor-link"></span></a>Configuration</h2>
+<p>Fast failover provides a number of things that can be configured. Configuration can either be passed programmatically, via the <code>FastFailoverSettings</code>, or loaded from configuration, for example from <code>application.conf</code>.</p>
+<h3><a href="#heartbeats" name="heartbeats" class="anchor"><span class="anchor-link"></span></a>Heartbeats</h3>
+<p>Fast failover uses heartbeats to detect if a node running an operation is still reachable. The node running the operation is responsible for sending heartbeats at a configured interval. The node requesting the operation will failover when heartbeats aren&rsquo;t received within a given timeout. As such heartbeats have two configuration properties, the heartbeat interval and the heartbeat timeout. Generally, the heartbeat timeout should be at least twice the value of the heartbeat interval.</p>
+<p>Heartbeats are useful when the time the operation could take is longer than the time that you want to failover within when a node is detected as unreachable. If you don&rsquo;t want to use heartbeats, ie, if you just want to failover if an attempt at an operation takes longer than the attempt timeout, then set the heartbeat timeout and interval to something larger than the attempt timeout.</p>
+<h3><a href="#attempt-timeouts" name="attempt-timeouts" class="anchor"><span class="anchor-link"></span></a>Attempt timeouts</h3>
+<p>Each attempt at invoking an operation can be configured to have an absolute timeout, regardless of whether heartbeats are arriving for that attempt or not. This timeout should be greater than the heartbeat timeout, otherwise the heartbeat timeout will effectively be disabled.</p>
+<p>The attempt timeout is used both on the sending side of an operation, to failover the operation when it takes too long, as well as by the fast failover helper, to timeout it&rsquo;s own ask operation on itself, to ensure that it will stop sending heartbeats if cases where the operation never terminates.</p>
+<p>The attempt timeout is useful in situations where heartbeats may not reliably tell that the operation has failed, for example, a synchronous database call may never complete, resulting in a scenario where the operation never fails over because the node doing the database call is still sending heartbeats. The attempt timeout can be effectively disabled by setting it to something greater than the operation timeout.</p>
+<h3><a href="#operation-timeouts-and-max-failovers" name="operation-timeouts-and-max-failovers" class="anchor"><span class="anchor-link"></span></a>Operation timeouts and max failovers</h3>
+<p>Fast failover will continue attempting to failover operations until either the operation timeout is reached, or the maximum number of failovers is reached.</p>
+<p>The operation timeout is an absolute longest that an operation should be attempted for. Once that timeout is reached, an <code>AskTimeoutException</code> wrapped in an <code>akka.status.Status.Failure</code> will be sent to the initiator of the operation. No further attempts to failover the operation will be made.</p>
+<p>The max failovers governs how many times failover should be attempted. A value of one means that the operation will be attempted once, and if it fails or times out, it will be attempted a second time, and then no more. The error sent to the initiator will be an <code>AskTimeoutException</code> if the last failure was caused by a timeout, or the exception that triggered a failure.</p>
+<h3><a href="#reference" name="reference" class="anchor"><span class="anchor-link"></span></a>Reference</h3>
+<p>A full reference of the configuration settings available can be found here:</p>
+<pre class="prettyprint"><code class="language-conf">akka.cluster.fast-failover {
+  # How often heartbeats get sent. This is only used if you use the
+  # FastFailoverSupport.
+  heartbeat-interval = 90 millis
+
+  # When an attempt at invoking the operation should timeout due to
+  # no heartbeat received. Must be greater than heartbeat-interval,
+  # recommended to be at least twice the heartbeat interval.
+  heartbeat-timeout = 200 millis
+
+  # The maximum time a single attempt at invoking the operation
+  # should timeout, regardless of whether heartbeats are received.
+  attempt-timeout = 5 seconds
+
+  # The maximum time for all attempts of the operation should take,
+  # after which point no further failover will be attempted and the
+  # operation will fail.
+  operation-timeout = 10 seconds
+
+  # The maximum number of times that failover should be attempted.
+  # If more than one less than the number of failover groups, this
+  # means that failover may be attempted on groups that have already
+  # previously failed.
+  max-failovers = 1
+}</code></pre>
+</div>
+</article>
+<div class="row">
+<div class="small-12 column">
+<section class="nav-prev-next row">
+<div class="nav-prev small-6 column">
+<a href="diagnostics-recorder.html"><i class="icon-prev"></i> <span class="link-prev">Akka Diagnostics Recorder</span></a>
+</div>
+<div class="nav-next small-6 column clearfix">
+<a class="float-right" href="akka-resilience-enhancements-release-notes.html">Akka Resilience Enhancements Release Notes <i class="icon-next"></i></a>
+</div>
+</section>
+</div>
+</div>
+<!-- no source links for private github repository -->
+
+<footer class="page-footer row clearfix">
+<img class="akka-icon float-left show-for-medium" src="images/akka-icon.svg" />
+<section class="copyright">
+<p class="legal">
+&copy; 2011-2020 <a href="https://www.lightbend.com" target="_blank">Lightbend, Inc.</a> |
+<a href="https://www.lightbend.com/legal/licenses" target="_blank">Licenses</a> |
+<a href="https://www.lightbend.com/legal/terms" target="_blank">Terms</a> |
+<a href="https://www.lightbend.com/legal/privacy" target="_blank">Privacy Policy</a> |
+<a href="https://akka.io/cookie/" target="_blank">Cookie Listing</a> |
+<a class="optanon-toggle-display">Cookie Settings</a>
+</p>
+</section>
+
+</footer>
+</section>
+</main>
+</div>
+
+<script type="text/javascript" src="js/scrollsneak.js"></script>
+<script type="text/javascript">jQuery(document).foundation();</script>
+<script type="text/javascript" src="js/groups.js"></script>
+<script type="text/javascript" src="js/page.js"></script>
+<script type="text/javascript" src="js/magellan.js"></script>
+<script type="text/javascript" src="js/metadata-toggle.js"></script>
+
+<style type="text/css">@import "lib/prettify/prettify.css";</style>
+<script type="text/javascript" src="lib/prettify/prettify.js"></script>
+<script type="text/javascript" src="lib/prettify/lang-scala.js"></script>
+<script type="text/javascript">//<![CDATA[
+jQuery(function(){window.prettyPrint && prettyPrint()});
+//]]></script>
+<!-- hook for including project specific javascript into the generated docs -->
+
+</body>
+</html>
