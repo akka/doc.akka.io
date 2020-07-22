@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html class="no-js" lang="en">
+
+<head>
+<title>React on Partition Assignment &bull; Alpakka Kafka Documentation</title>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta name="description" content="React on Kafka rebalancing the partitions assigned to an Alpakka Kafka consumer."/>
+<link rel="canonical" href="https://doc.akka.io/docs/alpakka-kafka/current/consumer-rebalance.html"/>
+<script type="text/javascript" src="lib/jquery/jquery.min.js"></script>
+<script type="text/javascript" src="lib/foundation/dist/js/foundation.min.js"></script>
+<link rel="stylesheet" type="text/css" href="lib/normalize.css/normalize.css"/>
+<link rel="stylesheet" type="text/css" href="lib/foundation/dist/css/foundation.min.css"/>
+<link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/docsearch.js/2/docsearch.min.css" />
+<link rel="stylesheet" type="text/css" href="css/icons.css"/>
+<link rel="stylesheet" type="text/css" href="css/page-7.css"/>
+<link rel="stylesheet" type="text/css" href="css/banner-1.css"/>
+<link rel="shortcut icon" href="images/favicon.ico" />
+<link rel="apple-touch-icon" sizes="180x180" href="images/apple-touch-icon.png"/>
+<link rel="icon" type="image/png" sizes="32x32" href="images/favicon-32x32.png"/>
+<link rel="icon" type="image/png" sizes="16x16" href="images/favicon-16x16.png"/>
+<link rel="manifest" href="images/manifest.json"/>
+<meta name="msapplication-TileImage" content="images/mstile-150x150.png"/>
+<meta name="msapplication-TileColor" content="#15a9ce"/>
+<meta name="theme-color" content="#15a9ce"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<!-- OneTrust Cookies Consent Notice (Production Standard, akka.io, en-GB) start -->
+<script src="https://optanon.blob.core.windows.net/consent/159bb13d-6748-4399-806e-ac28db879785.js" type="text/javascript" charset="UTF-8"></script>
+<script type="text/javascript">
+function OptanonWrapper() { }
+</script>
+<!-- OneTrust Cookies Consent Notice (Production Standard, akka.io, en-GB) end -->
+<!--Google Analytics-->
+<script type="text/plain" class="optanon-category-2">
+var _gaq = _gaq || [];
+_gaq.push(['_setAccount', '']);
+_gaq.push(['_setDomainName', '']);
+_gaq.push(['_trackPageview']);
+(function() {
+var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+})()
+</script>
+<!-- Google Tag Manager -->
+<script type="text/plain" class="optanon-category-2">
+(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+})(window,document,'script','dataLayer','GTM-KBJGH35');
+</script>
+<!--Marketo-->
+<script type="text/plain" class="optanon-category-3">
+(function() {
+var didInit = false;
+function initMunchkin() {
+if(didInit === false) {
+didInit = true;
+Munchkin.init('558-NCX-702', { 'asyncOnly': true, 'disableClickDelay': true });
+}
+}
+var s = document.createElement('script');
+s.type = 'text/javascript';
+s.async = true;
+s.src = '//munchkin.marketo.net/munchkin.js';
+s.onreadystatechange = function() {
+if (this.readyState == 'complete' || this.readyState == 'loaded') {
+initMunchkin();
+}
+};
+s.onload = initMunchkin;
+document.getElementsByTagName('head')[0].appendChild(s);
+})();
+</script>
+</head>
+
+<body id="underlay" data-toggler="nav-open">
+<div id="lightbend-banner" class="lightbend-banner akka full-width" data-category="OSS Lightbend Banner Impression" data-label="Akka Banner Impression">
+<div class="wrapper">
+<div class="brand">
+<a class="oss-track-link-label" data-category="OSS Lightbend Banner Clicks" data-label="Lightbend Logo - Akka Banner" href="https://www.lightbend.com?r=oss-banner-akka" target="_blank">
+<img class="lightbend-logo" src="images/banner-logos/lightbend-reverse.svg" alt="Lightbend" title="Lightbend">
+</a>
+</div>
+<div class="nav">
+<a class="banner-btn oss-track-link-label" data-category="OSS Lightbend Banner Clicks" data-label="Enhance your Akka systems with Akka Platform [Button] - Akka Banner" href="https://www.lightbend.com/akka-core-of-lightbend?r=oss-banner-akka" target="_blank">
+<span>Enhance your Akka systems with</span>
+<img class="akka-platform-reverse-logo" src="images/banner-logos/akka-platform-reverse.svg" alt="Akka Platform" title="Akka Platform">
+</a>
+<div class="drop-down">
+<svg class="svg-chevon-circle-down" version="1.1" id="Chevron_circled_down" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 20 20" enable-background="new 0 0 20 20" xml:space="preserve">
+<path fill="#ffffff" d="M12.505,8.698L10,11L7.494,8.698c-0.198-0.196-0.518-0.196-0.718,0c-0.197,0.196-0.197,0.515,0,0.71l2.864,2.807
+c0.199,0.196,0.52,0.196,0.717,0l2.864-2.807c0.199-0.195,0.198-0.514,0-0.71C13.024,8.502,12.704,8.502,12.505,8.698z M10,0.4
+c-5.302,0-9.6,4.298-9.6,9.6c0,5.303,4.298,9.6,9.6,9.6s9.6-4.297,9.6-9.6C19.6,4.698,15.302,0.4,10,0.4z M10,18.354
+c-4.615,0-8.354-3.74-8.354-8.354c0-4.614,3.739-8.354,8.354-8.354c4.613,0,8.354,3.74,8.354,8.354
+C18.354,14.614,14.613,18.354,10,18.354z" />
+</svg>
+<div class="drop-down-content">
+<div class="lightbend-family">
+<a href="https://cloudflow.io" class="cloudflow oss-track-link-label" data-category="OSS Lightbend Banner Clicks" data-label="Cloudflow - Logo Tag Line - Akka Banner">
+<img class="cloudflow-full-color-logo" src="images/banner-logos/cloudflow-full-color.svg" alt="Cloudflow by Lightbend" title="Cloudflow by Lightbend">
+</a>
+<a href="https://cloudstate.io" class="cloudstate oss-track-link-label" data-category="OSS Lightbend Banner Clicks" data-label="Cloudstate - Logo Tag Line - Akka Banner">
+<img class="cloudstate-full-color-logo" src="images/banner-logos/cloudstate-full-color.svg" alt="Cloudstate by Lightbend" title="Cloudstate by Lightbend">
+</a>
+<a href="https://www.lagomframework.com" class="lagom oss-track-link-label" data-category="OSS Lightbend Banner Clicks" data-label="Lagom - Logo Tag Line - Akka Banner">
+<img class="lagom-full-color-logo" src="images/banner-logos/lagom-full-color.svg" alt="Lagom Framework by Lightbend" title="Lagom Framework by Lightbend">
+</a>
+<a href="https://www.playframework.com" class="play oss-track-link-label" data-category="OSS Lightbend Banner Clicks" data-label="Play - Logo Tag Line - Akka Banner">
+<img class="play-full-color-logo" src="images/banner-logos/play-full-color.svg" alt="Play Framework by Lightbend" title="Play Framework by Lightbend">
+</a>
+<a href="https://www.scala-lang.org" class="scala oss-track-link-label" data-category="OSS Lightbend Banner Clicks" data-label="Scala - Logo Tag Line - Akka Banner">
+<img class="scala-full-color-logo" src="images/banner-logos/scala-full-color.svg" alt="Scala by Lightbend" title="Scala by Lightbend">
+</a>
+<div class="akka current">
+<img class="akka-full-color-logo" src="images/banner-logos/akka-full-color.svg" alt="Akka by Lightbend" title="Akka by Lightbend">
+<span>From the creators of <strong>Akka</strong>, get technology enhancements, monitoring, and expert support with Akka Platform from Lightbend.</span>
+<a class="oss-track-link-label" data-category="OSS Lightbend Banner Clicks" data-label="Learn More [Button] - Akka Banner" href="https://www.lightbend.com/akka-core-of-lightbend?r=oss-banner-akka" target="_blank">Learn More</a>
+</div>
+</div>
+<div class="title">The Lightbend Family</div>
+</div>      
+</div>
+</div>
+</div>
+</div>
+<header class="site-header hide-for-large">
+<div class="sticky-header clearfix">
+<a href="https://akka.io"><img class="logo" src="images/akka-alpakka-reverse.svg"></a>
+
+<button class="menu-icon float-right" type="button" data-toggle="underlay overlay"></button>
+</div>
+<div id="overlay" class="overlay-nav" data-toggler="nav-open">
+<header class="nav-header">
+<div class="nav-header-title">
+<h1><a href="index.html">Alpakka Kafka Documentation</a></h1>
+</div>
+<div class="nav-header-version">
+Version 2.0.4
+</div>
+<div class="nav-header-groups">
+<select class="supergroup" name="Language"><option class="group" value="group-java">Java</option><option class="group" value="group-scala">Scala</option></select>
+</div>
+</header>
+<nav class="nav-toc">
+<ul>
+  <li><a href="home.html" class="page">Overview</a></li>
+  <li><a href="producer.html" class="page">Producer</a></li>
+  <li><a href="consumer.html" class="page">Consumer</a>
+  <ul>
+    <li><a href="consumer.html#choosing-a-consumer" class="header">Choosing a consumer</a></li>
+    <li><a href="consumer.html#settings" class="header">Settings</a></li>
+    <li><a href="consumer.html#offset-storage-external-to-kafka" class="header">Offset Storage external to Kafka</a></li>
+    <li><a href="consumer.html#offset-storage-in-kafka-committing" class="header">Offset Storage in Kafka - committing</a></li>
+    <li><a href="consumer.html#offset-storage-in-kafka-external" class="header">Offset Storage in Kafka &amp; external</a></li>
+    <li><a href="consumer.html#consume-" class="header">Consume &ldquo;at-most-once&rdquo;</a></li>
+    <li><a href="consumer.html#consume-" class="header">Consume &ldquo;at-least-once&rdquo;</a></li>
+    <li><a href="consumer.html#connecting-producer-and-consumer" class="header">Connecting Producer and Consumer</a></li>
+    <li><a href="consumer.html#source-per-partition" class="header">Source per partition</a></li>
+    <li><a href="consumer.html#sharing-the-kafkaconsumer-instance" class="header">Sharing the KafkaConsumer instance</a></li>
+    <li><a href="consumer.html#accessing-kafkaconsumer-metrics" class="header">Accessing KafkaConsumer metrics</a></li>
+    <li><a href="consumer.html#accessing-kafkaconsumer-metadata" class="header">Accessing KafkaConsumer metadata</a></li>
+    <li><a href="consumer.html#controlled-shutdown" class="header">Controlled shutdown</a></li>
+    <li><a href="subscription.html" class="page">Subscription</a></li>
+    <li><a href="consumer-rebalance.html#react-on-partition-assignment" class="active page">React on Partition Assignment</a>
+    <ul>
+      <li><a href="consumer-rebalance.html#partition-assignment-handler" class="header">Partition Assignment Handler</a></li>
+      <li><a href="consumer-rebalance.html#listening-for-rebalance-events" class="header">Listening for rebalance events</a></li>
+    </ul></li>
+    <li><a href="consumer-metadata.html" class="page">Consumer Metadata</a></li>
+  </ul></li>
+  <li><a href="discovery.html" class="page">Service discovery</a></li>
+  <li><a href="cluster-sharding.html" class="page">Akka Cluster Sharding</a></li>
+  <li><a href="errorhandling.html" class="page">Error handling</a></li>
+  <li><a href="atleastonce.html" class="page">At-Least-Once Delivery</a></li>
+  <li><a href="transactions.html" class="page">Transactions</a></li>
+  <li><a href="serialization.html" class="page">Serialization</a></li>
+  <li><a href="debugging.html" class="page">Debugging</a></li>
+  <li><a href="testing.html" class="page">Testing</a></li>
+  <li><a href="production.html" class="page">Production considerations</a></li>
+  <li><a href="snapshots.html" class="page">Snapshots</a></li>
+</ul>
+</nav>
+</div>
+</header>
+<div class="site-content-wrapper">
+<aside class="sticky-sidebar show-for-large">
+<header class="nav-header sticky-sidebar-header">
+<div class="nav-header-title">
+<h1><a href="index.html">Alpakka Kafka Documentation</a></h1>
+</div>
+<div class="nav-header-version">
+Version 2.0.4
+</div>
+<div class="nav-header-groups">
+<select class="supergroup" name="Language"><option class="group" value="group-java">Java</option><option class="group" value="group-scala">Scala</option></select>
+</div>
+</header>
+<nav class="site-nav sticky-sidebar-contents">
+<div class="nav-toc">
+<ul>
+  <li><a href="home.html" class="page">Overview</a></li>
+  <li><a href="producer.html" class="page">Producer</a></li>
+  <li><a href="consumer.html" class="page">Consumer</a>
+  <ul>
+    <li><a href="consumer.html#choosing-a-consumer" class="header">Choosing a consumer</a></li>
+    <li><a href="consumer.html#settings" class="header">Settings</a></li>
+    <li><a href="consumer.html#offset-storage-external-to-kafka" class="header">Offset Storage external to Kafka</a></li>
+    <li><a href="consumer.html#offset-storage-in-kafka-committing" class="header">Offset Storage in Kafka - committing</a></li>
+    <li><a href="consumer.html#offset-storage-in-kafka-external" class="header">Offset Storage in Kafka &amp; external</a></li>
+    <li><a href="consumer.html#consume-" class="header">Consume &ldquo;at-most-once&rdquo;</a></li>
+    <li><a href="consumer.html#consume-" class="header">Consume &ldquo;at-least-once&rdquo;</a></li>
+    <li><a href="consumer.html#connecting-producer-and-consumer" class="header">Connecting Producer and Consumer</a></li>
+    <li><a href="consumer.html#source-per-partition" class="header">Source per partition</a></li>
+    <li><a href="consumer.html#sharing-the-kafkaconsumer-instance" class="header">Sharing the KafkaConsumer instance</a></li>
+    <li><a href="consumer.html#accessing-kafkaconsumer-metrics" class="header">Accessing KafkaConsumer metrics</a></li>
+    <li><a href="consumer.html#accessing-kafkaconsumer-metadata" class="header">Accessing KafkaConsumer metadata</a></li>
+    <li><a href="consumer.html#controlled-shutdown" class="header">Controlled shutdown</a></li>
+    <li><a href="subscription.html" class="page">Subscription</a></li>
+    <li><a href="consumer-rebalance.html#react-on-partition-assignment" class="active page">React on Partition Assignment</a>
+    <ul>
+      <li><a href="consumer-rebalance.html#partition-assignment-handler" class="header">Partition Assignment Handler</a></li>
+      <li><a href="consumer-rebalance.html#listening-for-rebalance-events" class="header">Listening for rebalance events</a></li>
+    </ul></li>
+    <li><a href="consumer-metadata.html" class="page">Consumer Metadata</a></li>
+  </ul></li>
+  <li><a href="discovery.html" class="page">Service discovery</a></li>
+  <li><a href="cluster-sharding.html" class="page">Akka Cluster Sharding</a></li>
+  <li><a href="errorhandling.html" class="page">Error handling</a></li>
+  <li><a href="atleastonce.html" class="page">At-Least-Once Delivery</a></li>
+  <li><a href="transactions.html" class="page">Transactions</a></li>
+  <li><a href="serialization.html" class="page">Serialization</a></li>
+  <li><a href="debugging.html" class="page">Debugging</a></li>
+  <li><a href="testing.html" class="page">Testing</a></li>
+  <li><a href="production.html" class="page">Production considerations</a></li>
+  <li><a href="snapshots.html" class="page">Snapshots</a></li>
+</ul>
+</div>
+</nav>
+<footer class="nav-footer sticky-sidebar-footer">
+<a href="https://akka.io"><img class="logo" src="images/akka-alpakka-reverse.svg"></a>
+
+</footer>
+</aside>
+<main class="fixed-shift-for-large expanded row">
+<section class="site-content small-12 column">
+<article class="page-content row">
+<div class="small-12 column" id="docs">
+<h1><a href="#react-on-partition-assignment" name="react-on-partition-assignment" class="anchor"><span class="anchor-link"></span></a>React on Partition Assignment</h1>
+<p>Alpakka Kafka allows to react to the Kafka broker&rsquo;s balancing of partitions within a consumer group in two ways:</p>
+<ol>
+  <li>callbacks to the <span class="group-java"><a href="/api/alpakka-kafka/2.0.4/akka/kafka/javadsl/PartitionAssignmentHandler.html" title="akka.kafka.javadsl.PartitionAssignmentHandler"><code>PartitionAssignmentHandler</code></a></span><span class="group-scala"><a href="/api/alpakka-kafka/2.0.4/akka/kafka/scaladsl/PartitionAssignmentHandler.html" title="akka.kafka.scaladsl.PartitionAssignmentHandler"><code>PartitionAssignmentHandler</code></a></span></li>
+  <li>messages to a <a href="consumer-rebalance.html#listening-for-rebalance-events">rebalance listener actor</a></li>
+</ol>
+<h2><a href="#partition-assignment-handler" name="partition-assignment-handler" class="anchor"><span class="anchor-link"></span></a>Partition Assignment Handler</h2>
+<p>Kafka balances partitions between all consumers within a consumer group. When new consumers join or leave the group partitions are revoked from and assigned to those consumers.</p><div class="callout note "><div class="callout-title">API may change</div>
+<p>This <span class="group-java"><a href="/api/alpakka-kafka/2.0.4/akka/kafka/javadsl/PartitionAssignmentHandler.html" title="akka.kafka.javadsl.PartitionAssignmentHandler"><code>PartitionAssignmentHandler</code></a></span><span class="group-scala"><a href="/api/alpakka-kafka/2.0.4/akka/kafka/scaladsl/PartitionAssignmentHandler.html" title="akka.kafka.scaladsl.PartitionAssignmentHandler"><code>PartitionAssignmentHandler</code></a></span> API was introduced in Alpakka Kafka 2.0.0 and may still be subject to change.</p>
+<p>Please give input on its usefulness in <a href="https://github.com/akka/alpakka-kafka/issues/985">Issue #985</a>.</p></div>
+<p>Alpakka Kafka&rsquo;s <span class="group-java"><a href="/api/alpakka-kafka/2.0.4/akka/kafka/javadsl/PartitionAssignmentHandler.html" title="akka.kafka.javadsl.PartitionAssignmentHandler"><code>PartitionAssignmentHandler</code></a></span><span class="group-scala"><a href="/api/alpakka-kafka/2.0.4/akka/kafka/scaladsl/PartitionAssignmentHandler.html" title="akka.kafka.scaladsl.PartitionAssignmentHandler"><code>PartitionAssignmentHandler</code></a></span> expects callbacks to be implemented, all are called with a set of <a href="https://kafka.apache.org/24/javadoc/?org/apache/kafka/common/TopicPartition.html" title="org.apache.kafka.common.TopicPartition"><code>TopicPartition</code></a>s and a reference to the <span class="group-scala"><a href="/api/alpakka-kafka/2.0.4/akka/kafka/RestrictedConsumer.html" title="akka.kafka.RestrictedConsumer"><code>RestrictedConsumer</code></a></span><span class="group-java"><a href="/api/alpakka-kafka/2.0.4/akka/kafka/RestrictedConsumer.html" title="akka.kafka.RestrictedConsumer"><code>RestrictedConsumer</code></a></span> which allows some access to the Kafka <a href="https://kafka.apache.org/24/javadoc/?org/apache/kafka/clients/consumer/Consumer.html" title="org.apache.kafka.clients.consumer.Consumer"><code>Consumer</code></a> instance used internally by Alpakka Kafka.</p>
+<ol>
+  <li><code>onRevoke</code> is called when the Kafka broker revokes partitions from this consumer</li>
+  <li><code>onAssign</code> is called when the Kafka broker assigns partitions to this consumer</li>
+  <li><code>onLost</code> is called when partition metadata has changed and partitions no longer exist. This can occur if a topic is deleted or if the leader&rsquo;s metadata is stale. For details see <a href="https://cwiki.apache.org/confluence/display/KAFKA/KIP-429%3A+Kafka+Consumer+Incremental+Rebalance+Protocol">KIP-429 Incremental Rebalance Protocol</a>.</li>
+  <li><code>onStop</code> is called when the Alpakka Kafka consumer source is about to stop</li>
+</ol>
+<p>Rebalancing starts with revoking partitions from all consumers in a consumer group and assigning all partitions to consumers in a second phase. During rebalance no consumer within that consumer group receives any messages.</p>
+<p>The <span class="group-java"><a href="/api/alpakka-kafka/2.0.4/akka/kafka/javadsl/PartitionAssignmentHandler.html" title="akka.kafka.javadsl.PartitionAssignmentHandler"><code>PartitionAssignmentHandler</code></a></span><span class="group-scala"><a href="/api/alpakka-kafka/2.0.4/akka/kafka/scaladsl/PartitionAssignmentHandler.html" title="akka.kafka.scaladsl.PartitionAssignmentHandler"><code>PartitionAssignmentHandler</code></a></span> is Alpakka Kafka&rsquo;s replacement of the Kafka client library&rsquo;s <a href="https://kafka.apache.org/24/javadoc/?org/apache/kafka/clients/consumer/ConsumerRebalanceListener.html" title="org.apache.kafka.clients.consumer.ConsumerRebalanceListener"><code>ConsumerRebalanceListener</code></a>.</p><div class="callout warning "><div class="callout-title">Warning</div>
+<p>All methods on the <span class="group-java"><a href="/api/alpakka-kafka/2.0.4/akka/kafka/javadsl/PartitionAssignmentHandler.html" title="akka.kafka.javadsl.PartitionAssignmentHandler"><code>PartitionAssignmentHandler</code></a></span><span class="group-scala"><a href="/api/alpakka-kafka/2.0.4/akka/kafka/scaladsl/PartitionAssignmentHandler.html" title="akka.kafka.scaladsl.PartitionAssignmentHandler"><code>PartitionAssignmentHandler</code></a></span> are called synchronously during Kafka&rsquo;s poll and rebalance logic. They block any other activity for that consumer.</p>
+<p>If any of these methods take longer than the timeout configured in <code>akka.kafka.consumer.partition-handler-warning</code> (default 5 seconds) a warning will be logged.</p></div>
+<p>This example shows an implementation of the <code>PartitionAssignmentHandler</code> and how it is passed to the consumer via the <code>Subscription</code>.</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><a class="icon go-to-source" href="https://github.com/akka/alpakka-kafka/tree/v2.0.4/tests/src/test/scala/docs/scaladsl/ConsumerExample.scala#L386-L411" target="_blank" title="Go to snippet source"></a><code class="language-scala">val assignmentHandler = new PartitionAssignmentHandler {
+  override def onRevoke(revokedTps: Set[TopicPartition], consumer: RestrictedConsumer): Unit = // ???
+  override def onAssign(assignedTps: Set[TopicPartition], consumer: RestrictedConsumer): Unit = // ???
+  override def onLost(lostTps: Set[TopicPartition], consumer: RestrictedConsumer): Unit = // ???
+  override def onStop(currentTps: Set[TopicPartition], consumer: RestrictedConsumer): Unit = // ???
+}
+
+val subscription = Subscriptions
+  .topics(topic)
+  .withPartitionAssignmentHandler(assignmentHandler)
+</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><a class="icon go-to-source" href="https://github.com/akka/alpakka-kafka/tree/v2.0.4/tests/src/test/java/docs/javadsl/ConsumerExampleTest.java#L495-L519" target="_blank" title="Go to snippet source"></a><code class="language-java">PartitionAssignmentHandler assignmentHandler =
+    new PartitionAssignmentHandler() {
+      public void onRevoke(Set&lt;TopicPartition&gt; revokedTps, RestrictedConsumer consumer) {
+      }
+
+      public void onAssign(Set&lt;TopicPartition&gt; assignedTps, RestrictedConsumer consumer) {
+      }
+
+      public void onLost(Set&lt;TopicPartition&gt; lostTps, RestrictedConsumer consumer) {}
+
+      public void onStop(Set&lt;TopicPartition&gt; currentTps, RestrictedConsumer consumer) {
+      }
+    };
+
+Subscription subscription =
+    Subscriptions.topics(topic).withPartitionAssignmentHandler(assignmentHandler);</code></pre></dd>
+</dl>
+<h2><a href="#listening-for-rebalance-events" name="listening-for-rebalance-events" class="anchor"><span class="anchor-link"></span></a>Listening for rebalance events</h2>
+<p>You may set up an rebalance event listener actor that will be notified when your consumer will be assigned or revoked from consuming from specific topic partitions. Two kinds of messages will be sent to this listener actor </p>
+<ul>
+  <li><span class="group-scala"><a href="/api/alpakka-kafka/2.0.4/akka/kafka/TopicPartitionsAssigned.html" title="akka.kafka.TopicPartitionsAssigned"><code>TopicPartitionsAssigned</code></a></span><span class="group-java"><a href="/api/alpakka-kafka/2.0.4/akka/kafka/TopicPartitionsAssigned.html" title="akka.kafka.TopicPartitionsAssigned"><code>TopicPartitionsAssigned</code></a></span> and</li>
+  <li><span class="group-scala"><a href="/api/alpakka-kafka/2.0.4/akka/kafka/TopicPartitionsRevoked.html" title="akka.kafka.TopicPartitionsRevoked"><code>TopicPartitionsRevoked</code></a></span><span class="group-java"><a href="/api/alpakka-kafka/2.0.4/akka/kafka/TopicPartitionsRevoked.html" title="akka.kafka.TopicPartitionsRevoked"><code>TopicPartitionsRevoked</code></a></span>, like this:</li>
+</ul>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><a class="icon go-to-source" href="https://github.com/akka/alpakka-kafka/tree/v2.0.4/tests/src/test/scala/docs/scaladsl/ConsumerExample.scala#L336-L366" target="_blank" title="Go to snippet source"></a><code class="language-scala">import akka.kafka.{TopicPartitionsAssigned, TopicPartitionsRevoked}
+
+class RebalanceListener extends Actor with ActorLogging {
+  def receive: Receive = {
+    case TopicPartitionsAssigned(subscription, topicPartitions) =&gt;
+      log.info(&quot;Assigned: {}&quot;, topicPartitions)
+
+    case TopicPartitionsRevoked(subscription, topicPartitions) =&gt;
+      log.info(&quot;Revoked: {}&quot;, topicPartitions)
+  }
+}
+
+val rebalanceListener = system.actorOf(Props(new RebalanceListener))
+val subscription = Subscriptions
+  .topics(topic)
+  // additionally, pass the actor reference:
+  .withRebalanceListener(rebalanceListener)
+
+// use the subscription as usual:
+  Consumer
+    .plainSource(consumerSettings, subscription)</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><a class="icon go-to-source" href="https://github.com/akka/alpakka-kafka/tree/v2.0.4/tests/src/test/java/docs/javadsl/ConsumerExampleTest.java#L434-L476" target="_blank" title="Go to snippet source"></a><code class="language-java">static class RebalanceListener extends AbstractLoggingActor {
+
+  @Override
+  public Receive createReceive() {
+    return receiveBuilder()
+        .match(
+            TopicPartitionsAssigned.class,
+            assigned -&gt; {
+              log().info(&quot;Assigned: {}&quot;, assigned);
+            })
+        .match(
+            TopicPartitionsRevoked.class,
+            revoked -&gt; {
+              log().info(&quot;Revoked: {}&quot;, revoked);
+            })
+        .build();
+  }
+}
+
+  ActorRef rebalanceListener = system.actorOf(Props.create(RebalanceListener.class));
+
+  Subscription subscription =
+      Subscriptions.topics(topic)
+          // additionally, pass the actor reference:
+          .withRebalanceListener(rebalanceListener);
+
+  // use the subscription as usual:
+  Consumer.DrainingControl&lt;List&lt;ConsumerRecord&lt;String, String&gt;&gt;&gt; control =
+      Consumer.plainSource(consumerSettings, subscription)
+          .toMat(Sink.seq(), Consumer::createDrainingControl)
+          .run(materializer);</code></pre></dd>
+</dl>
+</div>
+</article>
+<div class="row">
+<div class="small-12 column">
+<section class="nav-prev-next row">
+<div class="nav-prev small-6 column">
+<a href="subscription.html"><i class="icon-prev"></i> <span class="link-prev">Subscription</span></a>
+</div>
+<div class="nav-next small-6 column clearfix">
+<a class="float-right" href="consumer-metadata.html">Consumer Metadata <i class="icon-next"></i></a>
+</div>
+</section>
+</div>
+</div>
+<div class="source-github row">
+Found an error in this documentation? The source code for this page can be found <a href="https://github.com/akka/alpakka-kafka/tree/v2.0.4/docs/src/main/paradox/consumer-rebalance.md">here</a>.
+Please feel free to edit and contribute a pull request.
+</div>
+
+<footer class="page-footer row clearfix">
+<img class="akka-icon float-left show-for-medium" src="images/akka-icon.svg" />
+<section class="copyright">
+<div>Alpakka Kafka is Open Source and available under the Apache 2 License.</div>
+<p class="legal">
+&copy; 2011-2020 <a href="https://www.lightbend.com" target="_blank">Lightbend, Inc.</a> |
+<a href="https://www.lightbend.com/legal/licenses" target="_blank">Licenses</a> |
+<a href="https://www.lightbend.com/legal/terms" target="_blank">Terms</a> |
+<a href="https://www.lightbend.com/legal/privacy" target="_blank">Privacy Policy</a> |
+<a href="https://akka.io/cookie/" target="_blank">Cookie Listing</a> |
+<a class="optanon-toggle-display">Cookie Settings</a>
+</p>
+</section>
+
+</footer>
+</section>
+</main>
+</div>
+
+<script type="text/javascript" src="js/scrollsneak.js"></script>
+<script type="text/javascript">jQuery(document).foundation();</script>
+<script type="text/javascript" src="js/groups.js"></script>
+<script type="text/javascript" src="js/page.js"></script>
+<script type="text/javascript" src="js/magellan.js"></script>
+<script type="text/javascript" src="js/metadata-toggle.js"></script>
+
+<style type="text/css">@import "lib/prettify/prettify.css";</style>
+<script type="text/javascript" src="lib/prettify/prettify.js"></script>
+<script type="text/javascript" src="lib/prettify/lang-scala.js"></script>
+<script type="text/javascript">//<![CDATA[
+jQuery(function(){window.prettyPrint && prettyPrint()});
+//]]></script>
+<script type="text/javascript" src="assets/js/warnOldVersion.js"></script>
+<script type="text/javascript">jQuery(function(jq){initOldVersionWarnings(jq, '2.0.4', 'https://doc.akka.io/docs/alpakka-kafka/current')});</script>
+
+
+</body>
+</html>
