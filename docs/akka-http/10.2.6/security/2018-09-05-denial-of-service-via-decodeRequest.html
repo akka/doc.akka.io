@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html class="no-js" lang="en">
+
+<head>
+<title>CVE-2018-16131: Denial of Service via unlimited decoding with decodeRequest directive (zip bomb) &bull; Akka HTTP</title>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta name="description" content="Akka Http: Modern, fast, asynchronous, streaming-first HTTP server and client."/>
+<link rel="canonical" href="https://doc.akka.io/docs/akka-http/current/security/2018-09-05-denial-of-service-via-decodeRequest.html"/>
+<script type="text/javascript" src="../lib/jquery/jquery.min.js"></script>
+<script type="text/javascript" src="../lib/foundation/dist/js/foundation.min.js"></script>
+<link rel="stylesheet" type="text/css" href="../lib/normalize.css/normalize.css"/>
+<link rel="stylesheet" type="text/css" href="../lib/foundation/dist/css/foundation.min.css"/>
+<link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/docsearch.js/2/docsearch.min.css" />
+<link rel="stylesheet" type="text/css" href="../css/icons.css"/>
+<link rel="stylesheet" type="text/css" href="../css/page-8.css"/>
+<link rel="stylesheet" type="text/css" href="../css/banner-1.css"/>
+<link rel="shortcut icon" href="../images/favicon.ico" />
+<link rel="apple-touch-icon" sizes="180x180" href="../images/apple-touch-icon.png"/>
+<link rel="icon" type="image/png" sizes="32x32" href="../images/favicon-32x32.png"/>
+<link rel="icon" type="image/png" sizes="16x16" href="../images/favicon-16x16.png"/>
+<link rel="manifest" href="../images/manifest.json"/>
+<meta name="msapplication-TileImage" content="../images/mstile-150x150.png"/>
+<meta name="msapplication-TileColor" content="#15a9ce"/>
+<meta name="theme-color" content="#15a9ce"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<!-- OneTrust Cookies Consent Notice (Production Standard, akka.io, en-GB) start -->
+<script src="https://cdn.cookielaw.org/scripttemplates/otSDKStub.js"  type="text/javascript" charset="UTF-8" data-domain-script="28b912e7-09e9-43d5-91e4-3d1897044004" ></script>
+<script type="text/javascript">
+function OptanonWrapper() { }
+</script>
+<!-- OneTrust Cookies Consent Notice (Production Standard, akka.io, en-GB) end -->
+<!--Google Analytics-->
+<script type="text/plain" class="optanon-category-2">
+var _gaq = _gaq || [];
+_gaq.push(['_setAccount', 'UA-21117439-1']);
+_gaq.push(['_setDomainName', 'akka.io']);
+_gaq.push(['_trackPageview']);
+(function() {
+var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+})()
+</script>
+<!-- Google Tag Manager -->
+<script type="text/plain" class="optanon-category-2">
+(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+})(window,document,'script','dataLayer','GTM-KBJGH35');
+</script>
+<!--Marketo-->
+<script type="text/plain" class="optanon-category-3">
+(function() {
+var didInit = false;
+function initMunchkin() {
+if(didInit === false) {
+didInit = true;
+Munchkin.init('558-NCX-702', { 'asyncOnly': true, 'disableClickDelay': true });
+}
+}
+var s = document.createElement('script');
+s.type = 'text/javascript';
+s.async = true;
+s.src = '//munchkin.marketo.net/munchkin.js';
+s.onreadystatechange = function() {
+if (this.readyState == 'complete' || this.readyState == 'loaded') {
+initMunchkin();
+}
+};
+s.onload = initMunchkin;
+document.getElementsByTagName('head')[0].appendChild(s);
+})();
+</script>
+</head>
+
+<body id="underlay" data-toggler="nav-open">
+<div id="lightbend-banner" class="lightbend-banner akka full-width" data-category="OSS Lightbend Banner Impression" data-label="Akka Banner Impression">
+<div class="wrapper">
+<div class="brand">
+<a class="oss-track-link-label" data-category="OSS Lightbend Banner Clicks" data-label="Lightbend Logo - Akka Banner" href="https://www.lightbend.com?r=oss-banner-akka" target="_blank">
+<img class="lightbend-logo" src="../images/banner-logos/lightbend-reverse.svg" alt="Lightbend" title="Lightbend">
+</a>
+</div>
+<div class="nav">
+<a class="banner-btn oss-track-link-label" data-category="OSS Lightbend Banner Clicks" data-label="Enhance your Akka systems with Akka Platform [Button] - Akka Banner" href="https://www.lightbend.com/akka-platform?r=oss-banner-akka" target="_blank">
+<span>Enhance your Akka systems with</span>
+<img class="akka-platform-reverse-logo" src="../images/banner-logos/akka-platform-reverse.svg" alt="Akka Platform" title="Akka Platform">
+</a>
+<div class="drop-down">
+<svg class="svg-chevon-circle-down" version="1.1" id="Chevron_circled_down" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 20 20" enable-background="new 0 0 20 20" xml:space="preserve">
+<path fill="#ffffff" d="M12.505,8.698L10,11L7.494,8.698c-0.198-0.196-0.518-0.196-0.718,0c-0.197,0.196-0.197,0.515,0,0.71l2.864,2.807
+c0.199,0.196,0.52,0.196,0.717,0l2.864-2.807c0.199-0.195,0.198-0.514,0-0.71C13.024,8.502,12.704,8.502,12.505,8.698z M10,0.4
+c-5.302,0-9.6,4.298-9.6,9.6c0,5.303,4.298,9.6,9.6,9.6s9.6-4.297,9.6-9.6C19.6,4.698,15.302,0.4,10,0.4z M10,18.354
+c-4.615,0-8.354-3.74-8.354-8.354c0-4.614,3.739-8.354,8.354-8.354c4.613,0,8.354,3.74,8.354,8.354
+C18.354,14.614,14.613,18.354,10,18.354z" />
+</svg>
+<div class="drop-down-content">
+<div class="lightbend-family">
+<a href="https://cloudflow.io" class="cloudflow oss-track-link-label" data-category="OSS Lightbend Banner Clicks" data-label="Cloudflow - Logo Tag Line - Akka Banner">
+<img class="cloudflow-full-color-logo" src="../images/banner-logos/cloudflow-full-color.svg" alt="Cloudflow by Lightbend" title="Cloudflow by Lightbend">
+</a>
+<a href="https://cloudstate.io" class="cloudstate oss-track-link-label" data-category="OSS Lightbend Banner Clicks" data-label="Cloudstate - Logo Tag Line - Akka Banner">
+<img class="cloudstate-full-color-logo" src="../images/banner-logos/cloudstate-full-color.svg" alt="Cloudstate by Lightbend" title="Cloudstate by Lightbend">
+</a>
+<a href="https://www.lagomframework.com" class="lagom oss-track-link-label" data-category="OSS Lightbend Banner Clicks" data-label="Lagom - Logo Tag Line - Akka Banner">
+<img class="lagom-full-color-logo" src="../images/banner-logos/lagom-full-color.svg" alt="Lagom Framework by Lightbend" title="Lagom Framework by Lightbend">
+</a>
+<a href="https://www.playframework.com" class="play oss-track-link-label" data-category="OSS Lightbend Banner Clicks" data-label="Play - Logo Tag Line - Akka Banner">
+<img class="play-full-color-logo" src="../images/banner-logos/play-full-color.svg" alt="Play Framework by Lightbend" title="Play Framework by Lightbend">
+</a>
+<a href="https://www.scala-lang.org" class="scala oss-track-link-label" data-category="OSS Lightbend Banner Clicks" data-label="Scala - Logo Tag Line - Akka Banner">
+<img class="scala-full-color-logo" src="../images/banner-logos/scala-full-color.svg" alt="Scala by Lightbend" title="Scala by Lightbend">
+</a>
+<div class="akka current">
+<img class="akka-full-color-logo" src="../images/banner-logos/akka-full-color.svg" alt="Akka by Lightbend" title="Akka by Lightbend">
+<span>From the creators of <strong>Akka</strong>, get technology enhancements, monitoring, and expert support with Akka Platform from Lightbend.</span>
+<a class="oss-track-link-label" data-category="OSS Lightbend Banner Clicks" data-label="Learn More [Button] - Akka Banner" href="https://www.lightbend.com/akka-platform?r=oss-banner-akka" target="_blank">Learn More</a>
+</div>
+</div>
+<div class="title">The Lightbend Family</div>
+</div>      
+</div>
+</div>
+</div>
+</div>
+
+<header class="site-header hide-for-large">
+<div class="sticky-header clearfix">
+<a href="https://akka.io"><img class="logo" src="../images/akka-logo-reverse.svg"/></a>
+
+<button class="menu-icon float-right" type="button" data-toggle="underlay overlay"></button>
+</div>
+<div id="overlay" class="overlay-nav" data-toggler="nav-open">
+<header class="nav-header">
+<div class="nav-header-title">
+<h1><a href="../index.html">Akka HTTP</a></h1>
+</div>
+<div class="nav-header-version">
+Version 10.2.6
+</div>
+<div class="nav-header-groups">
+<select class="supergroup" name="Language"><option class="group" value="group-scala">Scala</option><option class="group" value="group-java">Java</option></select>
+</div>
+<div id="overlay-search-container" class="nav-header-search">
+<input id="overlay-search" type="search" class="search" placeholder="Search" />
+</div>
+</header>
+<nav class="nav-toc">
+<ul>
+  <li><a href="../security.html" class="page">! Security Announcements !</a>
+  <ul>
+    <li><a href="../security.html#receiving-security-advisories" class="header">Receiving Security Advisories</a></li>
+    <li><a href="../security.html#reporting-vulnerabilities" class="header">Reporting Vulnerabilities</a></li>
+    <li><a href="../security.html#fixed-security-vulnerabilities" class="header">Fixed Security Vulnerabilities</a></li>
+    <li><a href="../security/2021.html" class="page">2021</a></li>
+    <li><a href="../security/2018.html" class="page">2018</a>
+    <ul>
+      <li><a href="../security/2018-09-05-denial-of-service-via-decodeRequest.html#cve-2018-16131-denial-of-service-via-unlimited-decoding-with-decoderequest-directive-" class="active page">CVE-2018-16131: Denial of Service via unlimited decoding with decodeRequest directive (&ldquo;zip bomb&rdquo;)</a>
+      <ul>
+        <li><a href="../security/2018-09-05-denial-of-service-via-decodeRequest.html#date" class="header">Date</a></li>
+        <li><a href="../security/2018-09-05-denial-of-service-via-decodeRequest.html#description" class="header">Description</a></li>
+        <li><a href="../security/2018-09-05-denial-of-service-via-decodeRequest.html#severity" class="header">Severity</a></li>
+        <li><a href="../security/2018-09-05-denial-of-service-via-decodeRequest.html#affected-versions" class="header">Affected Versions</a></li>
+        <li><a href="../security/2018-09-05-denial-of-service-via-decodeRequest.html#fixed-versions" class="header">Fixed Versions</a></li>
+      </ul></li>
+    </ul></li>
+    <li><a href="../security/2017.html" class="page">2017</a></li>
+    <li><a href="../security/2016.html" class="page">2016</a></li>
+  </ul></li>
+  <li><a href="../release-notes/index.html" class="page">0. Release Notes</a></li>
+  <li><a href="../introduction.html" class="page">1. Introduction</a></li>
+  <li><a href="../usage.html" class="page">2. Usage</a></li>
+  <li><a href="../common/index.html" class="page">3. Data Types &amp; Abstractions</a></li>
+  <li><a href="../server-side/index.html" class="page">4. Server API</a></li>
+  <li><a href="../client-side/index.html" class="page">5. Client API</a></li>
+  <li><a href="../extensions.html" class="page">6. Extensions</a></li>
+  <li><a href="../technologies.html" class="page">7. Supported Technologies</a></li>
+  <li><a href="../tipsandtricks.html" class="page">8. Tips And Tricks</a></li>
+  <li><a href="../contributing.html" class="page">9. Contributing</a></li>
+  <li><a href="../reference.html" class="page">10. Reference</a></li>
+</ul>
+</nav>
+</div>
+</header>
+<div class="site-content-wrapper">
+<aside class="sticky-sidebar show-for-large">
+<header class="nav-header sticky-sidebar-header">
+<div class="nav-header-title">
+<h1><a href="../index.html">Akka HTTP</a></h1>
+</div>
+<div class="nav-header-version">
+Version 10.2.6
+</div>
+<div class="nav-header-groups">
+<select class="supergroup" name="Language"><option class="group" value="group-scala">Scala</option><option class="group" value="group-java">Java</option></select>
+</div>
+<div class="nav-header-search">
+<input id="search" type="search" class="search" placeholder="Search" />
+</div>
+</header>
+<nav class="site-nav sticky-sidebar-contents">
+<div class="nav-toc">
+<ul>
+  <li><a href="../security.html" class="page">! Security Announcements !</a>
+  <ul>
+    <li><a href="../security.html#receiving-security-advisories" class="header">Receiving Security Advisories</a></li>
+    <li><a href="../security.html#reporting-vulnerabilities" class="header">Reporting Vulnerabilities</a></li>
+    <li><a href="../security.html#fixed-security-vulnerabilities" class="header">Fixed Security Vulnerabilities</a></li>
+    <li><a href="../security/2021.html" class="page">2021</a></li>
+    <li><a href="../security/2018.html" class="page">2018</a>
+    <ul>
+      <li><a href="../security/2018-09-05-denial-of-service-via-decodeRequest.html#cve-2018-16131-denial-of-service-via-unlimited-decoding-with-decoderequest-directive-" class="active page">CVE-2018-16131: Denial of Service via unlimited decoding with decodeRequest directive (&ldquo;zip bomb&rdquo;)</a>
+      <ul>
+        <li><a href="../security/2018-09-05-denial-of-service-via-decodeRequest.html#date" class="header">Date</a></li>
+        <li><a href="../security/2018-09-05-denial-of-service-via-decodeRequest.html#description" class="header">Description</a></li>
+        <li><a href="../security/2018-09-05-denial-of-service-via-decodeRequest.html#severity" class="header">Severity</a></li>
+        <li><a href="../security/2018-09-05-denial-of-service-via-decodeRequest.html#affected-versions" class="header">Affected Versions</a></li>
+        <li><a href="../security/2018-09-05-denial-of-service-via-decodeRequest.html#fixed-versions" class="header">Fixed Versions</a></li>
+      </ul></li>
+    </ul></li>
+    <li><a href="../security/2017.html" class="page">2017</a></li>
+    <li><a href="../security/2016.html" class="page">2016</a></li>
+  </ul></li>
+  <li><a href="../release-notes/index.html" class="page">0. Release Notes</a></li>
+  <li><a href="../introduction.html" class="page">1. Introduction</a></li>
+  <li><a href="../usage.html" class="page">2. Usage</a></li>
+  <li><a href="../common/index.html" class="page">3. Data Types &amp; Abstractions</a></li>
+  <li><a href="../server-side/index.html" class="page">4. Server API</a></li>
+  <li><a href="../client-side/index.html" class="page">5. Client API</a></li>
+  <li><a href="../extensions.html" class="page">6. Extensions</a></li>
+  <li><a href="../technologies.html" class="page">7. Supported Technologies</a></li>
+  <li><a href="../tipsandtricks.html" class="page">8. Tips And Tricks</a></li>
+  <li><a href="../contributing.html" class="page">9. Contributing</a></li>
+  <li><a href="../reference.html" class="page">10. Reference</a></li>
+</ul>
+</div>
+</nav>
+<footer class="nav-footer sticky-sidebar-footer">
+<a href="https://akka.io"><img class="logo" src="../images/akka-logo-reverse.svg"/></a>
+
+</footer>
+</aside>
+<main class="fixed-shift-for-large expanded row">
+<section class="site-content small-12 column">
+<article class="page-content row">
+<div class="small-12 column" id="docs">
+<h1><a href="#cve-2018-16131-denial-of-service-via-unlimited-decoding-with-decoderequest-directive-" name="cve-2018-16131-denial-of-service-via-unlimited-decoding-with-decoderequest-directive-" class="anchor"><span class="anchor-link"></span></a>CVE-2018-16131: Denial of Service via unlimited decoding with decodeRequest directive (&ldquo;zip bomb&rdquo;)</h1>
+<h2><a href="#date" name="date" class="anchor"><span class="anchor-link"></span></a>Date</h2>
+<p>2018-09-05</p>
+<h2><a href="#description" name="description" class="anchor"><span class="anchor-link"></span></a>Description</h2>
+<p>Directives <code>decodeRequest</code> and <code>decodeRequestWith</code> which handle compressed request data did not limit the amount of uncompressed data flowing out of it. In combination with common request directives like <code>entity(as)</code>, <code>toStrict</code>, or <code>formField</code>, this can lead to excessive memory usage ultimately leading to an out of memory situation when highly compressed data is received (so-called &ldquo;Zip Bomb&rdquo;).</p>
+<p>Any code that uses <code>decodeRequest</code> or <code>decodeRequestWith</code> is likely to be affected.</p>
+<h2><a href="#severity" name="severity" class="anchor"><span class="anchor-link"></span></a>Severity</h2>
+<p>The CVSS score of this vulnerability is 7.3 (High), based on vector <a href="https://nvd.nist.gov/vuln-metrics/cvss/v3-calculator?vector=AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H/E:H/RL:W/RC:C">AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H/E:H/RL:W/RC:C</a>.</p>
+<p>Rationale for the score:</p>
+<ul>
+  <li>A:H: Server runs into OOM, so availability is highly affected.</li>
+  <li>E:H: It&rsquo;s relatively simple to exploit.</li>
+</ul>
+<h2><a href="#affected-versions" name="affected-versions" class="anchor"><span class="anchor-link"></span></a>Affected Versions</h2>
+<p>All previously released Akka HTTP versions are affected:</p>
+<ul>
+  <li><code>10.1.x</code> versions prior to <code>10.1.5</code></li>
+  <li><code>10.0.x</code> versions prior to <code>10.0.14</code></li>
+  <li>Earlier end-of-lifed versions</li>
+</ul>
+<p>Not affected:</p>
+<ul>
+  <li>Play and Lagom applications, even though both are using Akka HTTP as their server backend,  remain unaffected by this vulnerability. This is because they implement their own content  length validations on top of the underlying models (by using <code>BodyParser</code>s).</li>
+</ul>
+<h2><a href="#fixed-versions" name="fixed-versions" class="anchor"><span class="anchor-link"></span></a>Fixed Versions</h2>
+<ul>
+  <li>10.1.5</li>
+  <li>10.0.14</li>
+</ul>
+</div>
+</article>
+<div class="row">
+<div class="small-12 column">
+<section class="nav-prev-next row">
+<div class="nav-prev small-6 column">
+<a href="../security/2018.html"><i class="icon-prev"></i> <span class="link-prev">2018</span></a>
+</div>
+<div class="nav-next small-6 column clearfix">
+<a class="float-right" href="../security/2017.html">2017 <i class="icon-next"></i></a>
+</div>
+</section>
+</div>
+</div>
+<div class="source-github row">
+Found an error in this documentation? The source code for this page can be found <a href="https://github.com/akka/akka-http/tree/v10.2.6/docs/src/main/paradox/security/2018-09-05-denial-of-service-via-decodeRequest.md">here</a>.
+Please feel free to edit and contribute a pull request.
+</div>
+
+<footer class="page-footer row clearfix">
+<img class="akka-icon float-left show-for-medium" src="../images/akka-icon.svg" />
+<section class="copyright">
+<div>Akka HTTP is Open Source and available under the Apache 2 License.</div>
+<p class="legal">
+&copy; 2011-2021 <a href="https://www.lightbend.com" target="_blank">Lightbend, Inc.</a> |
+<a href="https://www.lightbend.com/legal/licenses" target="_blank">Licenses</a> |
+<a href="https://www.lightbend.com/legal/terms" target="_blank">Terms</a> |
+<a href="https://www.lightbend.com/legal/privacy" target="_blank">Privacy Policy</a> |
+<a href="https://akka.io/cookie/" target="_blank">Cookie Listing</a> |
+<a class="optanon-toggle-display">Cookie Settings</a>
+</p>
+</section>
+
+</footer>
+</section>
+</main>
+</div>
+
+<script type="text/javascript" src="../js/scrollsneak.js"></script>
+<script type="text/javascript">jQuery(document).foundation();</script>
+<script type="text/javascript" src="../js/groups.js"></script>
+<script type="text/javascript" src="../js/page.js"></script>
+<script type="text/javascript" src="../js/snippets.js"></script>
+<script type="text/javascript" src="../js/magellan.js"></script>
+<script type="text/javascript" src="../js/metadata-toggle.js"></script>
+
+<style type="text/css">@import "../lib/prettify/prettify.css";</style>
+<script type="text/javascript" src="../lib/prettify/prettify.js"></script>
+<script type="text/javascript" src="../lib/prettify/lang-scala.js"></script>
+<script type="text/javascript">//<![CDATA[
+jQuery(function(){window.prettyPrint && prettyPrint()});
+//]]></script>
+<!-- Algolia docs search -->
+<script type="text/javascript" src="https://cdn.jsdelivr.net/docsearch.js/2/docsearch.min.js"></script>
+<style>.algolia-autocomplete { display: block !important }</style>
+<script type="text/javascript">
+docsearch({
+apiKey: '0ccbb8bf5148554a406fbf07df0a93b9',
+indexName: 'akka-http',
+inputSelector: '#search',
+algoliaOptions: {
+hitsPerPage: 5
+}
+});
+
+docsearch({
+apiKey: '0ccbb8bf5148554a406fbf07df0a93b9',
+indexName: 'akka-http',
+inputSelector: '#overlay-search',
+algoliaOptions: {
+hitsPerPage: 5
+}
+});
+
+// set up "/" as global shortcut for focusing on search
+jQuery(document).keypress(function (event) {
+if (event.keyCode == 47) {
+jQuery("#search").focus();
+return false; // swallow key event, otherwise the / char would be input into the search box
+}
+});
+</script>
+
+<script type="text/javascript" src="../assets/js/warnOldDocs.js"></script>
+<script type="text/javascript" src="../assets/js/scrollToFragment.js"></script>
+
+
+</body>
+</html>
