@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html class="no-js" lang="en">
+
+<head>
+<title>Classic Scheduler &bull; Akka Documentation</title>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta name="description" content="How to schedule processes in Akka with the Scheduler."/>
+<link rel="canonical" href="https://doc.akka.io/docs/akka/current/scheduler.html"/>
+<script type="text/javascript" src="lib/jquery/jquery.min.js"></script>
+<script type="text/javascript" src="lib/foundation/dist/js/foundation.min.js"></script>
+<link rel="stylesheet" type="text/css" href="lib/normalize.css/normalize.css"/>
+<link rel="stylesheet" type="text/css" href="lib/foundation/dist/css/foundation.min.css"/>
+<link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/docsearch.js/2/docsearch.min.css" />
+<link rel="stylesheet" type="text/css" href="css/icons.css"/>
+<link rel="stylesheet" type="text/css" href="css/page-8.css"/>
+<link rel="stylesheet" type="text/css" href="css/banner-2.css"/>
+<link rel="shortcut icon" href="images/favicon.ico" />
+<link rel="apple-touch-icon" sizes="180x180" href="images/apple-touch-icon.png"/>
+<link rel="icon" type="image/png" sizes="32x32" href="images/favicon-32x32.png"/>
+<link rel="icon" type="image/png" sizes="16x16" href="images/favicon-16x16.png"/>
+<link rel="manifest" href="images/manifest.json"/>
+<meta name="msapplication-TileImage" content="images/mstile-150x150.png"/>
+<meta name="msapplication-TileColor" content="#15a9ce"/>
+<meta name="theme-color" content="#15a9ce"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<!-- OneTrust Cookies Consent Notice (Production Standard, akka.io, en-GB) start -->
+<script src="https://cdn.cookielaw.org/scripttemplates/otSDKStub.js"  type="text/javascript" charset="UTF-8" data-domain-script="28b912e7-09e9-43d5-91e4-3d1897044004" ></script>
+<script type="text/javascript">
+function OptanonWrapper() { }
+</script>
+<!-- OneTrust Cookies Consent Notice (Production Standard, akka.io, en-GB) end -->
+<!--Google Analytics-->
+<script type="text/plain" class="optanon-category-2">
+var _gaq = _gaq || [];
+_gaq.push(['_setAccount', 'UA-21117439-1']);
+_gaq.push(['_setDomainName', 'akka.io']);
+_gaq.push(['_trackPageview']);
+(function() {
+var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+})()
+</script>
+<!-- Google Tag Manager -->
+<script type="text/plain" class="optanon-category-2">
+(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+})(window,document,'script','dataLayer','GTM-KBJGH35');
+</script>
+<!--Marketo-->
+<script type="text/plain" class="optanon-category-3">
+(function() {
+var didInit = false;
+function initMunchkin() {
+if(didInit === false) {
+didInit = true;
+Munchkin.init('558-NCX-702', { 'asyncOnly': true, 'disableClickDelay': true });
+}
+}
+var s = document.createElement('script');
+s.type = 'text/javascript';
+s.async = true;
+s.src = '//munchkin.marketo.net/munchkin.js';
+s.onreadystatechange = function() {
+if (this.readyState == 'complete' || this.readyState == 'loaded') {
+initMunchkin();
+}
+};
+s.onload = initMunchkin;
+document.getElementsByTagName('head')[0].appendChild(s);
+})();
+</script>
+</head>
+
+<body id="underlay" data-toggler="nav-open">
+<div id="lightbend-banner" class="lightbend-banner akka full-width" data-category="OSS Lightbend Banner Impression" data-label="Akka Banner Impression">
+<div class="oss-wrapper">
+<div class="oss-brand">
+<a class="oss-track-link-label" data-category="OSS Lightbend Banner Clicks" data-label="Lightbend Logo - Akka Banner" href="https://www.lightbend.com">
+<img class="lightbend-logo" src="images/banner-logos/lightbend-reverse.svg" alt="Lightbend" title="Lightbend">
+</a>
+</div>
+<div class="oss-ad no-drop-down">
+<nav id="lightbendRotator" class="lightbend-rotator">
+<a class="oss-track-link-label" data-category="OSS Lightbend Banner Clicks" data-label="Promo Rotator - Akka Serverless Open Beta - Keep the data. Lose the database. Try now for free. [Learn More] - Akka Banner" href="https://www.lightbend.com/akka-serverless">
+<strong>Akka Serverless Open Beta</strong> - Keep the data. Lose the database. Try now for free. <span class="akka-btn">Learn More</span>
+</a>
+<a class="oss-track-link-label" data-category="OSS Lightbend Banner Clicks" data-label="Promo Rotator - Using AWS or GCP? Simplify deployments with Akka Cloud Platform [Learn More] - Akka Banner" href="https://www.lightbend.com/akka-cloud-platform">
+<strong>Using AWS or GCP?</strong>&nbsp;&nbsp;Simplify deployments with Akka Cloud Platform. <span class="akka-btn">Learn More</span>
+</a>
+</nav>
+</div>
+</div>
+</div>
+<header class="site-header hide-for-large">
+<div class="sticky-header clearfix">
+<a href="https://akka.io"><img class="logo" src="images/akka-logo-reverse.svg"/></a>
+
+<button class="menu-icon float-right" type="button" data-toggle="underlay overlay"></button>
+</div>
+<div id="overlay" class="overlay-nav" data-toggler="nav-open">
+<header class="nav-header">
+<div class="nav-header-title">
+<h1><a href="index.html">Akka Documentation</a></h1>
+</div>
+<div class="nav-header-version">
+Version 2.6.16
+</div>
+<div class="nav-header-groups">
+<select class="supergroup" name="Language"><option class="group" value="group-scala">Scala</option><option class="group" value="group-java">Java</option></select>
+</div>
+<div id="overlay-search-container" class="nav-header-search">
+<input id="overlay-search" type="search" class="search" placeholder="Search" />
+</div>
+</header>
+<nav class="nav-toc">
+<ul>
+  <li><a href="security/index.html" class="page">Security Announcements</a></li>
+  <li><a href="typed/guide/index.html" class="page">Getting Started Guide</a></li>
+  <li><a href="general/index.html" class="page">General Concepts</a></li>
+  <li><a href="typed/index.html" class="page">Actors</a></li>
+  <li><a href="typed/index-cluster.html" class="page">Cluster</a></li>
+  <li><a href="typed/index-persistence.html" class="page">Persistence (Event Sourcing)</a></li>
+  <li><a href="typed/index-persistence-durable-state.html" class="page">Persistence (Durable State)</a></li>
+  <li><a href="stream/index.html" class="page">Streams</a></li>
+  <li><a href="discovery/index.html" class="page">Discovery</a></li>
+  <li><a href="index-utilities.html" class="page">Utilities</a></li>
+  <li><a href="common/other-modules.html" class="page">Other Akka modules</a></li>
+  <li><a href="additional/deploy.html" class="page">Package, Deploy and Run</a></li>
+  <li><a href="project/index.html" class="page">Project Information</a></li>
+  <li><a href="index-classic.html" class="page">Akka Classic</a>
+  <ul>
+    <li><a href="index-actors.html" class="page">Classic Actors</a></li>
+    <li><a href="index-cluster.html" class="page">Classic Clustering</a></li>
+    <li><a href="index-network.html" class="page">Classic Networking</a></li>
+    <li><a href="index-utilities-classic.html" class="page">Classic Utilities</a>
+    <ul>
+      <li><a href="index-utilities-classic.html#dependency" class="header">Dependency</a></li>
+      <li><a href="event-bus.html" class="page">Classic Event Bus</a></li>
+      <li><a href="logging.html" class="page">Classic Logging</a></li>
+      <li><a href="scheduler.html#classic-scheduler" class="active page">Classic Scheduler</a>
+      <ul>
+        <li><a href="scheduler.html#dependency" class="header">Dependency</a></li>
+        <li><a href="scheduler.html#introduction" class="header">Introduction</a></li>
+        <li><a href="scheduler.html#some-examples" class="header">Some examples</a></li>
+        <li><a href="scheduler.html#schedule-periodically" class="header">Schedule periodically</a></li>
+        <li><a href="scheduler.html#the-scheduler-interface" class="header">The Scheduler interface</a></li>
+        <li><a href="scheduler.html#the-cancellable-interface" class="header">The Cancellable interface</a></li>
+      </ul></li>
+      <li><a href="extending-akka.html" class="page">Classic Akka Extensions</a></li>
+    </ul></li>
+  </ul></li>
+</ul>
+</nav>
+</div>
+</header>
+<div class="site-content-wrapper">
+<aside class="sticky-sidebar show-for-large">
+<header class="nav-header sticky-sidebar-header">
+<div class="nav-header-title">
+<h1><a href="index.html">Akka Documentation</a></h1>
+</div>
+<div class="nav-header-version">
+Version 2.6.16
+</div>
+<div class="nav-header-groups">
+<select class="supergroup" name="Language"><option class="group" value="group-scala">Scala</option><option class="group" value="group-java">Java</option></select>
+</div>
+<div class="nav-header-search">
+<input id="search" type="search" class="search" placeholder="Search" />
+</div>
+</header>
+<nav class="site-nav sticky-sidebar-contents">
+<div class="nav-toc">
+<ul>
+  <li><a href="security/index.html" class="page">Security Announcements</a></li>
+  <li><a href="typed/guide/index.html" class="page">Getting Started Guide</a></li>
+  <li><a href="general/index.html" class="page">General Concepts</a></li>
+  <li><a href="typed/index.html" class="page">Actors</a></li>
+  <li><a href="typed/index-cluster.html" class="page">Cluster</a></li>
+  <li><a href="typed/index-persistence.html" class="page">Persistence (Event Sourcing)</a></li>
+  <li><a href="typed/index-persistence-durable-state.html" class="page">Persistence (Durable State)</a></li>
+  <li><a href="stream/index.html" class="page">Streams</a></li>
+  <li><a href="discovery/index.html" class="page">Discovery</a></li>
+  <li><a href="index-utilities.html" class="page">Utilities</a></li>
+  <li><a href="common/other-modules.html" class="page">Other Akka modules</a></li>
+  <li><a href="additional/deploy.html" class="page">Package, Deploy and Run</a></li>
+  <li><a href="project/index.html" class="page">Project Information</a></li>
+  <li><a href="index-classic.html" class="page">Akka Classic</a>
+  <ul>
+    <li><a href="index-actors.html" class="page">Classic Actors</a></li>
+    <li><a href="index-cluster.html" class="page">Classic Clustering</a></li>
+    <li><a href="index-network.html" class="page">Classic Networking</a></li>
+    <li><a href="index-utilities-classic.html" class="page">Classic Utilities</a>
+    <ul>
+      <li><a href="index-utilities-classic.html#dependency" class="header">Dependency</a></li>
+      <li><a href="event-bus.html" class="page">Classic Event Bus</a></li>
+      <li><a href="logging.html" class="page">Classic Logging</a></li>
+      <li><a href="scheduler.html#classic-scheduler" class="active page">Classic Scheduler</a>
+      <ul>
+        <li><a href="scheduler.html#dependency" class="header">Dependency</a></li>
+        <li><a href="scheduler.html#introduction" class="header">Introduction</a></li>
+        <li><a href="scheduler.html#some-examples" class="header">Some examples</a></li>
+        <li><a href="scheduler.html#schedule-periodically" class="header">Schedule periodically</a></li>
+        <li><a href="scheduler.html#the-scheduler-interface" class="header">The Scheduler interface</a></li>
+        <li><a href="scheduler.html#the-cancellable-interface" class="header">The Cancellable interface</a></li>
+      </ul></li>
+      <li><a href="extending-akka.html" class="page">Classic Akka Extensions</a></li>
+    </ul></li>
+  </ul></li>
+</ul>
+</div>
+</nav>
+<footer class="nav-footer sticky-sidebar-footer">
+<a href="https://akka.io"><img class="logo" src="images/akka-logo-reverse.svg"/></a>
+
+</footer>
+</aside>
+<main class="fixed-shift-for-large expanded row">
+<section class="site-content small-12 column">
+<article class="page-content row">
+<div class="small-12 column" id="docs">
+<h1><a href="#classic-scheduler" name="classic-scheduler" class="anchor"><span class="anchor-link"></span></a>Classic Scheduler</h1><div class="callout note "><div class="callout-title">Note</div>
+<p>Akka Classic pertains to the original Actor APIs, which have been improved by more type safe and guided Actor APIs. Akka Classic is still fully supported and existing applications can continue to use the classic APIs. It is also possible to use the new Actor APIs together with classic actors in the same ActorSystem, see <a href="typed/coexisting.html">coexistence</a>. For new projects we recommend using <a href="typed/actors.html">the new Actor API</a>.</p></div>
+<p>For the new API see <a href="typed/interaction-patterns.html#typed-scheduling">typed scheduling</a>.</p>
+<h2><a href="#dependency" name="dependency" class="anchor"><span class="anchor-link"></span></a>Dependency</h2>
+<p>To use Scheduler, you must add the following dependency in your project:</p><dl class="dependency"><dt>sbt</dt><dd><pre class="prettyprint"><code class="language-scala">val AkkaVersion = "2.6.16"
+libraryDependencies += "com.typesafe.akka" %% "akka-actor" % AkkaVersion</code></pre></dd><dt>Maven</dt><dd><pre class="prettyprint"><code class="language-xml">&lt;properties&gt;
+  &lt;scala.binary.version&gt;2.13&lt;/scala.binary.version&gt;
+&lt;/properties&gt;
+&lt;dependencyManagement&gt;
+  &lt;dependencies&gt;
+    &lt;dependency&gt;
+      &lt;groupId&gt;com.typesafe.akka&lt;/groupId&gt;
+      &lt;artifactId&gt;akka-bom_${scala.binary.version}&lt;/artifactId&gt;
+      &lt;version&gt;2.6.16&lt;/version&gt;
+      &lt;type&gt;pom&lt;/type&gt;
+      &lt;scope&gt;import&lt;/scope&gt;
+    &lt;/dependency&gt
+  &lt;/dependencies&gt;
+&lt;/dependencyManagement&gt;
+&lt;dependencies&gt
+  &lt;dependency&gt;
+    &lt;groupId&gt;com.typesafe.akka&lt;/groupId&gt;
+    &lt;artifactId&gt;akka-actor_${scala.binary.version}&lt;/artifactId&gt;
+  &lt;/dependency&gt
+&lt;/dependencies&gt;</code></pre></dd><dt>Gradle</dt><dd><pre class="prettyprint"><code class="language-gradle">def versions = [
+  ScalaBinary: "2.13"
+]
+dependencies {
+  implementation platform("com.typesafe.akka:akka-bom_${versions.ScalaBinary}:2.6.16")
+
+  implementation "com.typesafe.akka:akka-actor_${versions.ScalaBinary}"
+}</code></pre></dd></dl>
+<h2><a href="#introduction" name="introduction" class="anchor"><span class="anchor-link"></span></a>Introduction</h2>
+<p>Sometimes the need for making things happen in the future arises, and where do you go look then? Look no further than <code>ActorSystem</code>! There you find the <code>scheduler</code> method that returns an instance of <code>akka.actor.Scheduler</code>, this instance is unique per ActorSystem and is used internally for scheduling things to happen at specific points in time.</p>
+<p>You can schedule sending of messages to actors and execution of tasks (functions or Runnable). You will get a <code>Cancellable</code> back that you can call <code>cancel</code> on to cancel the execution of the scheduled operation.</p>
+<p>When scheduling periodic or single messages in an actor to itself it is recommended to use the <a href="actors.html#actors-timers">Actor Timers</a> instead of using the <code>Scheduler</code> directly.</p>
+<p>The scheduler in Akka is designed for high-throughput of thousands up to millions of triggers. The prime use-case being triggering Actor receive timeouts, Future timeouts, circuit breakers and other time dependent events which happen all-the-time and in many instances at the same time. The implementation is based on a Hashed Wheel Timer, which is a known datastructure and algorithm for handling such use cases, refer to the <a href="http://www.cs.columbia.edu/~nahum/w6998/papers/sosp87-timing-wheels.pdf">Hashed and Hierarchical Timing Wheels</a> whitepaper by Varghese and Lauck if you&rsquo;d like to understand its inner workings. </p>
+<p>The Akka scheduler is <strong>not</strong> designed for long-term scheduling (see <a href="https://github.com/enragedginger/akka-quartz-scheduler">akka-quartz-scheduler</a> instead for this use case) nor is it to be used for highly precise firing of the events. The maximum amount of time into the future you can schedule an event to trigger is around 8 months, which in practice is too much to be useful since this would assume the system never went down during that period. If you need long-term scheduling we highly recommend looking into alternative schedulers, as this is not the use-case the Akka scheduler is implemented for.</p><div class="callout warning "><div class="callout-title">Warning</div>
+<p>The default implementation of <code>Scheduler</code> used by Akka is based on job buckets which are emptied according to a fixed schedule. It does not execute tasks at the exact time, but on every tick, it will run everything that is (over)due. The accuracy of the default Scheduler can be modified by the <code>akka.scheduler.tick-duration</code> configuration property.</p></div>
+<h2><a href="#some-examples" name="some-examples" class="anchor"><span class="anchor-link"></span></a>Some examples</h2>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.6.16/akka-docs/src/test/scala/docs/actor/SchedulerDocSpec.scala#L10-L13" target="_blank" title="Go to snippet source">source</a><code class="language-scala">import akka.actor.Actor
+import akka.actor.Props
+import scala.concurrent.duration._
+</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.6.16/akka-docs/src/test/java/jdocs/actor/SchedulerDocTest.java#L8" target="_blank" title="Go to snippet source">source</a><code class="language-java">import java.time.Duration;</code></pre></dd>
+</dl>
+<p>Schedule to send the &ldquo;foo&rdquo;-message to the testActor after 50ms:</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.6.16/akka-docs/src/test/scala/docs/actor/SchedulerDocSpec.scala#L21-L25" target="_blank" title="Go to snippet source">source</a><code class="language-scala">//Use the system&#39;s dispatcher as ExecutionContext
+import system.dispatcher
+
+//Schedules to send the &quot;foo&quot;-message to the testActor after 50ms
+system.scheduler.scheduleOnce(50 milliseconds, testActor, &quot;foo&quot;)</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.6.16/akka-docs/src/test/java/jdocs/actor/SchedulerDocTest.java#L36-L39" target="_blank" title="Go to snippet source">source</a><code class="language-java">system
+    .scheduler()
+    .scheduleOnce(
+        Duration.ofMillis(50), testActor, &quot;foo&quot;, system.dispatcher(), ActorRef.noSender());</code></pre></dd>
+</dl>
+<p>Schedule a <span class="group-scala">function</span><span class="group-java"><code>Runnable</code></span>, that sends the current time to the testActor, to be executed after 50ms:</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.6.16/akka-docs/src/test/scala/docs/actor/SchedulerDocSpec.scala#L31-L34" target="_blank" title="Go to snippet source">source</a><code class="language-scala">//Schedules a function to be executed (send a message to the testActor) after 50ms
+system.scheduler.scheduleOnce(50 milliseconds) {
+  testActor ! System.currentTimeMillis
+}</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.6.16/akka-docs/src/test/java/jdocs/actor/SchedulerDocTest.java#L43-L53" target="_blank" title="Go to snippet source">source</a><code class="language-java">system
+    .scheduler()
+    .scheduleOnce(
+        Duration.ofMillis(50),
+        new Runnable() {
+          @Override
+          public void run() {
+            testActor.tell(System.currentTimeMillis(), ActorRef.noSender());
+          }
+        },
+        system.dispatcher());</code></pre></dd>
+</dl>
+<p>Schedule to send the &ldquo;Tick&rdquo;-message to the <code>tickActor</code> after 0ms repeating every 50ms:</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.6.16/akka-docs/src/test/scala/docs/actor/SchedulerDocSpec.scala#L42-L58" target="_blank" title="Go to snippet source">source</a><code class="language-scala">val Tick = &quot;tick&quot;
+class TickActor extends Actor {
+  def receive = {
+    case Tick =&gt; //Do something
+  }
+}
+val tickActor = system.actorOf(Props(classOf[TickActor], this))
+//Use system&#39;s dispatcher as ExecutionContext
+import system.dispatcher
+
+//This will schedule to send the Tick-message
+//to the tickActor after 0ms repeating every 50ms
+val cancellable =
+  system.scheduler.scheduleWithFixedDelay(Duration.Zero, 50.milliseconds, tickActor, Tick)
+
+//This cancels further Ticks to be sent
+cancellable.cancel()</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.6.16/akka-docs/src/test/java/jdocs/actor/SchedulerDocTest.java#L60-L89" target="_blank" title="Go to snippet source">source</a><code class="language-java">class Ticker extends AbstractActor {
+  @Override
+  public Receive createReceive() {
+    return receiveBuilder()
+        .matchEquals(
+            &quot;Tick&quot;,
+            m -&gt; {
+              // Do something
+            })
+        .build();
+  }
+}
+
+ActorRef tickActor = system.actorOf(Props.create(Ticker.class, this));
+
+// This will schedule to send the Tick-message
+// to the tickActor after 0ms repeating every 50ms
+Cancellable cancellable =
+    system
+        .scheduler()
+        .scheduleWithFixedDelay(
+            Duration.ZERO,
+            Duration.ofMillis(50),
+            tickActor,
+            &quot;Tick&quot;,
+            system.dispatcher(),
+            ActorRef.noSender());
+
+// This cancels further Ticks to be sent
+cancellable.cancel();</code></pre></dd>
+</dl><div class="callout warning "><div class="callout-title">Warning</div>
+<p>If you schedule functions or Runnable instances you should be extra careful to not close over unstable references. In practice this means not using <code>this</code> inside the closure in the scope of an Actor instance, not accessing <code>sender()</code> directly and not calling the methods of the Actor instance directly. If you need to schedule an invocation schedule a message to <code>self</code> instead (containing the necessary parameters) and then call the method when the message is received.</p></div><div class="callout warning "><div class="callout-title">Warning</div>
+<p>All scheduled task will be executed when the <code>ActorSystem</code> is terminated, i.e. the task may execute before its timeout.</p></div>
+<h2><a href="#schedule-periodically" name="schedule-periodically" class="anchor"><span class="anchor-link"></span></a>Schedule periodically</h2>
+<p>Scheduling of recurring tasks or messages can have two different characteristics:</p>
+<ul>
+  <li>fixed-delay - The delay between subsequent execution will always be (at least) the given <code>delay</code>.  Use <code>scheduleWithFixedDelay</code>.</li>
+  <li>fixed-rate - The frequency of execution over time will meet the given <code>interval</code>. Use <code>scheduleAtFixedRate</code>.</li>
+</ul>
+<p>If you are uncertain of which one to use you should pick <code>scheduleWithFixedDelay</code>.</p>
+<p>When using <strong>fixed-delay</strong> it will not compensate the delay between tasks or messages if the execution takes long time or if scheduling is delayed longer than specified for some reason. The delay between subsequent execution will always be (at least) the given <code>delay</code>. In the long run, the frequency of execution will generally be slightly lower than the reciprocal of the specified <code>delay</code>.</p>
+<p>Fixed-delay execution is appropriate for recurring activities that require &ldquo;smoothness.&rdquo; In other words, it is appropriate for activities where it is more important to keep the frequency accurate in the short run than in the long run.</p>
+<p>When using <strong>fixed-rate</strong> it will compensate the delay for a subsequent task if the previous tasks took too long to execute. For example, if the given <code>interval</code> is 1000 milliseconds and a task takes 200 milliseconds to execute the next task will be scheduled to run after 800 milliseconds. In such cases, the actual execution interval will differ from the interval passed to the <code>scheduleAtFixedRate</code> method.</p>
+<p>If the execution of the tasks takes longer than the <code>interval</code>, the subsequent execution will start immediately after the prior one completes (there will be no overlap of executions). This also has the consequence that after long garbage collection pauses or other reasons when the JVM was suspended all &ldquo;missed&rdquo; tasks will execute when the process wakes up again. For example, <code>scheduleAtFixedRate</code> with an interval of 1 second and the process is suspended for 30 seconds will result in 30 tasks (or messages) being executed in rapid succession to catch up. In the long run, the frequency of execution will be exactly the reciprocal of the specified <code>interval</code>.</p>
+<p>Fixed-rate execution is appropriate for recurring activities that are sensitive to absolute time or where the total time to perform a fixed number of executions is important, such as a countdown timer that ticks once every second for ten seconds.</p><div class="callout warning "><div class="callout-title">Warning</div>
+<p><code>scheduleAtFixedRate</code> can result in bursts of scheduled tasks or messages after long garbage collection pauses, which may in worst case cause undesired load on the system. <code>scheduleWithFixedDelay</code> is often preferred.</p></div>
+<h2><a href="#the-scheduler-interface" name="the-scheduler-interface" class="anchor"><span class="anchor-link"></span></a>The Scheduler interface</h2>
+<p>The actual scheduler implementation is loaded reflectively upon <code>ActorSystem</code> start-up, which means that it is possible to provide a different one using the <code>akka.scheduler.implementation</code> configuration property. The referenced class must implement the <span class="group-scala"><span class="group-scala"><a href="https://doc.akka.io/api/akka/2.6/akka/actor/Scheduler.html" title="akka.actor.Scheduler"><code>Scheduler</code></a></span><span class="group-java"><a href="https://doc.akka.io/japi/akka/2.6/akka/actor/Scheduler.html" title="akka.actor.Scheduler"><code>Scheduler</code></a></span></span><span class="group-java"><span class="group-scala"><a href="https://doc.akka.io/api/akka/2.6/akka/actor/AbstractScheduler.html" title="akka.actor.AbstractScheduler"><code>AbstractScheduler</code></a></span><span class="group-java"><a href="https://doc.akka.io/japi/akka/2.6/akka/actor/AbstractScheduler.html" title="akka.actor.AbstractScheduler"><code>AbstractScheduler</code></a></span></span> interface.</p>
+<h2><a href="#the-cancellable-interface" name="the-cancellable-interface" class="anchor"><span class="anchor-link"></span></a>The Cancellable interface</h2>
+<p>Scheduling a task will result in a <span class="group-scala"><a href="https://doc.akka.io/api/akka/2.6/akka/actor/Cancellable.html" title="akka.actor.Cancellable"><code>Cancellable</code></a></span><span class="group-java"><a href="https://doc.akka.io/japi/akka/2.6/akka/actor/Cancellable.html" title="akka.actor.Cancellable"><code>Cancellable</code></a></span> (or throw an <code>IllegalStateException</code> if attempted after the scheduler’s shutdown). This allows you to cancel something that has been scheduled for execution.</p><div class="callout warning "><div class="callout-title">Warning</div>
+<p>This does not abort the execution of the task, if it had already been started. Check the return value of <code>cancel</code> to detect whether the scheduled task was canceled or will (eventually) have run.</p></div>
+</div>
+</article>
+<div class="row">
+<div class="small-12 column">
+<section class="nav-prev-next row">
+<div class="nav-prev small-6 column">
+<a href="logging.html"><i class="icon-prev"></i> <span class="link-prev">Classic Logging</span></a>
+</div>
+<div class="nav-next small-6 column clearfix">
+<a class="float-right" href="extending-akka.html">Classic Akka Extensions <i class="icon-next"></i></a>
+</div>
+</section>
+</div>
+</div>
+<div class="source-github row">
+Found an error in this documentation? The source code for this page can be found <a href="https://github.com/akka/akka/tree/v2.6.16/akka-docs/src/main/paradox/scheduler.md">here</a>.
+Please feel free to edit and contribute a pull request.
+</div>
+
+<footer class="page-footer row clearfix">
+<img class="akka-icon float-left show-for-medium" src="images/akka-icon.svg" />
+<section class="copyright">
+<div>Akka is Open Source and available under the Apache 2 License.</div>
+<p class="legal">
+&copy; 2011-2021 <a href="https://www.lightbend.com" target="_blank">Lightbend, Inc.</a> |
+<a href="https://www.lightbend.com/legal/licenses" target="_blank">Licenses</a> |
+<a href="https://www.lightbend.com/legal/terms" target="_blank">Terms</a> |
+<a href="https://www.lightbend.com/legal/privacy" target="_blank">Privacy Policy</a> |
+<a href="https://akka.io/cookie/" target="_blank">Cookie Listing</a> |
+<a class="optanon-toggle-display">Cookie Settings</a>
+</p>
+</section>
+
+</footer>
+</section>
+</main>
+</div>
+
+<script type="text/javascript" src="js/scrollsneak.js"></script>
+<script type="text/javascript">jQuery(document).foundation();</script>
+<script type="text/javascript" src="js/groups.js"></script>
+<script type="text/javascript" src="js/page.js"></script>
+<script type="text/javascript" src="js/snippets.js"></script>
+<script type="text/javascript" src="js/magellan.js"></script>
+<script type="text/javascript" src="js/metadata-toggle.js"></script>
+<script type="text/javascript" src="js/lbHeader.js"></script>
+
+<style type="text/css">@import "lib/prettify/prettify.css";</style>
+<script type="text/javascript" src="lib/prettify/prettify.js"></script>
+<script type="text/javascript" src="lib/prettify/lang-scala.js"></script>
+<script type="text/javascript">//<![CDATA[
+jQuery(function(){window.prettyPrint && prettyPrint()});
+//]]></script>
+<!-- Algolia docs search -->
+<script type="text/javascript" src="https://cdn.jsdelivr.net/docsearch.js/2/docsearch.min.js"></script>
+<style>.algolia-autocomplete { display: block !important }</style>
+<script type="text/javascript">
+docsearch({
+apiKey: '543bad5ad786495d9ccd445ed34ed082',
+indexName: 'akka_io',
+inputSelector: '#search',
+algoliaOptions: {
+hitsPerPage: 5
+}
+});
+
+docsearch({
+apiKey: '543bad5ad786495d9ccd445ed34ed082',
+indexName: 'akka_io',
+inputSelector: '#overlay-search',
+algoliaOptions: {
+hitsPerPage: 5
+}
+});
+
+// set up "/" as global shortcut for focusing on search
+jQuery(document).keypress(function (event) {
+if (event.keyCode == 47) {
+jQuery("#search").focus();
+return false; // swallow key event, otherwise the / char would be input into the search box
+}
+});
+</script>
+
+<script type="text/javascript" src="assets/js/warnOldDocs.js"></script>
+<script type="text/javascript" src="assets/js/scalafiddle.js"></script>
+
+
+</body>
+</html>
