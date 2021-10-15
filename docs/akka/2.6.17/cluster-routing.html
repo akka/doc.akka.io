@@ -1,0 +1,735 @@
+<!DOCTYPE html>
+<html class="no-js" lang="en">
+
+<head>
+<title>Classic Cluster Aware Routers &bull; Akka Documentation</title>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta name="description" content="Akka is a toolkit for building highly concurrent, distributed, and resilient message-driven applications for Java and Scala."/>
+<link rel="canonical" href="https://doc.akka.io/docs/akka/current/cluster-routing.html"/>
+<script type="text/javascript" src="lib/jquery/jquery.min.js"></script>
+<script type="text/javascript" src="lib/foundation/dist/js/foundation.min.js"></script>
+<link rel="stylesheet" type="text/css" href="lib/normalize.css/normalize.css"/>
+<link rel="stylesheet" type="text/css" href="lib/foundation/dist/css/foundation.min.css"/>
+<link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/docsearch.js/2/docsearch.min.css" />
+<link rel="stylesheet" type="text/css" href="css/icons.css"/>
+<link rel="stylesheet" type="text/css" href="css/page-8.css"/>
+<link rel="stylesheet" type="text/css" href="css/banner-2.css"/>
+<link rel="shortcut icon" href="images/favicon.ico" />
+<link rel="apple-touch-icon" sizes="180x180" href="images/apple-touch-icon.png"/>
+<link rel="icon" type="image/png" sizes="32x32" href="images/favicon-32x32.png"/>
+<link rel="icon" type="image/png" sizes="16x16" href="images/favicon-16x16.png"/>
+<link rel="manifest" href="images/manifest.json"/>
+<meta name="msapplication-TileImage" content="images/mstile-150x150.png"/>
+<meta name="msapplication-TileColor" content="#15a9ce"/>
+<meta name="theme-color" content="#15a9ce"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<!-- OneTrust Cookies Consent Notice (Production Standard, akka.io, en-GB) start -->
+<script src="https://cdn.cookielaw.org/scripttemplates/otSDKStub.js"  type="text/javascript" charset="UTF-8" data-domain-script="28b912e7-09e9-43d5-91e4-3d1897044004" ></script>
+<script type="text/javascript">
+function OptanonWrapper() { }
+</script>
+<!-- OneTrust Cookies Consent Notice (Production Standard, akka.io, en-GB) end -->
+<!--Google Analytics-->
+<script type="text/plain" class="optanon-category-2">
+var _gaq = _gaq || [];
+_gaq.push(['_setAccount', 'UA-21117439-1']);
+_gaq.push(['_setDomainName', 'akka.io']);
+_gaq.push(['_trackPageview']);
+(function() {
+var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+})()
+</script>
+<!-- Google Tag Manager -->
+<script type="text/plain" class="optanon-category-2">
+(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+})(window,document,'script','dataLayer','GTM-KBJGH35');
+</script>
+<!--Marketo-->
+<script type="text/plain" class="optanon-category-3">
+(function() {
+var didInit = false;
+function initMunchkin() {
+if(didInit === false) {
+didInit = true;
+Munchkin.init('558-NCX-702', { 'asyncOnly': true, 'disableClickDelay': true });
+}
+}
+var s = document.createElement('script');
+s.type = 'text/javascript';
+s.async = true;
+s.src = '//munchkin.marketo.net/munchkin.js';
+s.onreadystatechange = function() {
+if (this.readyState == 'complete' || this.readyState == 'loaded') {
+initMunchkin();
+}
+};
+s.onload = initMunchkin;
+document.getElementsByTagName('head')[0].appendChild(s);
+})();
+</script>
+</head>
+
+<body id="underlay" data-toggler="nav-open">
+<div id="lightbend-banner" class="lightbend-banner akka full-width" data-category="OSS Lightbend Banner Impression" data-label="Akka Banner Impression">
+<div class="oss-wrapper">
+<div class="oss-brand">
+<a class="oss-track-link-label" data-category="OSS Lightbend Banner Clicks" data-label="Lightbend Logo - Akka Banner" href="https://www.lightbend.com">
+<img class="lightbend-logo" src="images/banner-logos/lightbend-reverse.svg" alt="Lightbend" title="Lightbend">
+</a>
+</div>
+<div class="oss-ad no-drop-down">
+<nav id="lightbendRotator" class="lightbend-rotator">
+<a class="oss-track-link-label" data-category="OSS Lightbend Banner Clicks" data-label="Promo Rotator - Akka Serverless Open Beta - Keep the data. Lose the database. Try now for free. [Learn More] - Akka Banner" href="https://www.lightbend.com/akka-serverless">
+<strong>Akka Serverless Open Beta</strong> - Keep the data. Lose the database. Try now for free. <span class="akka-btn">Learn More</span>
+</a>
+<a class="oss-track-link-label" data-category="OSS Lightbend Banner Clicks" data-label="Promo Rotator - Using AWS or GCP? Simplify deployments with Akka Cloud Platform [Learn More] - Akka Banner" href="https://www.lightbend.com/akka-cloud-platform">
+<strong>Using AWS or GCP?</strong>&nbsp;&nbsp;Simplify deployments with Akka Cloud Platform. <span class="akka-btn">Learn More</span>
+</a>
+</nav>
+</div>
+</div>
+</div>
+<header class="site-header hide-for-large">
+<div class="sticky-header clearfix">
+<a href="https://akka.io"><img class="logo" src="images/akka-logo-reverse.svg"/></a>
+
+<button class="menu-icon float-right" type="button" data-toggle="underlay overlay"></button>
+</div>
+<div id="overlay" class="overlay-nav" data-toggler="nav-open">
+<header class="nav-header">
+<div class="nav-header-title">
+<h1><a href="index.html">Akka Documentation</a></h1>
+</div>
+<div class="nav-header-version">
+Version 2.6.17
+</div>
+<div class="nav-header-groups">
+<select class="supergroup" name="Language"><option class="group" value="group-scala">Scala</option><option class="group" value="group-java">Java</option></select>
+</div>
+<div id="overlay-search-container" class="nav-header-search">
+<input id="overlay-search" type="search" class="search" placeholder="Search" />
+</div>
+</header>
+<nav class="nav-toc">
+<ul>
+  <li><a href="security/index.html" class="page">Security Announcements</a></li>
+  <li><a href="typed/guide/index.html" class="page">Getting Started Guide</a></li>
+  <li><a href="general/index.html" class="page">General Concepts</a></li>
+  <li><a href="typed/index.html" class="page">Actors</a></li>
+  <li><a href="typed/index-cluster.html" class="page">Cluster</a></li>
+  <li><a href="typed/index-persistence.html" class="page">Persistence (Event Sourcing)</a></li>
+  <li><a href="typed/index-persistence-durable-state.html" class="page">Persistence (Durable State)</a></li>
+  <li><a href="stream/index.html" class="page">Streams</a></li>
+  <li><a href="discovery/index.html" class="page">Discovery</a></li>
+  <li><a href="index-utilities.html" class="page">Utilities</a></li>
+  <li><a href="common/other-modules.html" class="page">Other Akka modules</a></li>
+  <li><a href="additional/deploy.html" class="page">Package, Deploy and Run</a></li>
+  <li><a href="project/index.html" class="page">Project Information</a></li>
+  <li><a href="index-classic.html" class="page">Akka Classic</a>
+  <ul>
+    <li><a href="index-actors.html" class="page">Classic Actors</a></li>
+    <li><a href="index-cluster.html" class="page">Classic Clustering</a>
+    <ul>
+      <li><a href="cluster-usage.html" class="page">Classic Cluster Usage</a></li>
+      <li><a href="cluster-routing.html#classic-cluster-aware-routers" class="active page">Classic Cluster Aware Routers</a>
+      <ul>
+        <li><a href="cluster-routing.html#dependency" class="header">Dependency</a></li>
+        <li><a href="cluster-routing.html#router-with-group-of-routees" class="header">Router with Group of Routees</a></li>
+        <li><a href="cluster-routing.html#router-with-pool-of-remote-deployed-routees" class="header">Router with Pool of Remote Deployed Routees</a></li>
+      </ul></li>
+      <li><a href="cluster-singleton.html" class="page">Classic Cluster Singleton</a></li>
+      <li><a href="distributed-pub-sub.html" class="page">Classic Distributed Publish Subscribe in Cluster</a></li>
+      <li><a href="cluster-client.html" class="page">Classic Cluster Client</a></li>
+      <li><a href="cluster-sharding.html" class="page">Classic Cluster Sharding</a></li>
+      <li><a href="cluster-metrics.html" class="page">Classic Cluster Metrics Extension</a></li>
+      <li><a href="distributed-data.html" class="page">Classic Distributed Data</a></li>
+      <li><a href="cluster-dc.html" class="page">Classic Multi-DC Cluster</a></li>
+      <li><a href="serialization-classic.html" class="page">Classic Serialization</a></li>
+    </ul></li>
+    <li><a href="index-network.html" class="page">Classic Networking</a></li>
+    <li><a href="index-utilities-classic.html" class="page">Classic Utilities</a></li>
+  </ul></li>
+</ul>
+</nav>
+</div>
+</header>
+<div class="site-content-wrapper">
+<aside class="sticky-sidebar show-for-large">
+<header class="nav-header sticky-sidebar-header">
+<div class="nav-header-title">
+<h1><a href="index.html">Akka Documentation</a></h1>
+</div>
+<div class="nav-header-version">
+Version 2.6.17
+</div>
+<div class="nav-header-groups">
+<select class="supergroup" name="Language"><option class="group" value="group-scala">Scala</option><option class="group" value="group-java">Java</option></select>
+</div>
+<div class="nav-header-search">
+<input id="search" type="search" class="search" placeholder="Search" />
+</div>
+</header>
+<nav class="site-nav sticky-sidebar-contents">
+<div class="nav-toc">
+<ul>
+  <li><a href="security/index.html" class="page">Security Announcements</a></li>
+  <li><a href="typed/guide/index.html" class="page">Getting Started Guide</a></li>
+  <li><a href="general/index.html" class="page">General Concepts</a></li>
+  <li><a href="typed/index.html" class="page">Actors</a></li>
+  <li><a href="typed/index-cluster.html" class="page">Cluster</a></li>
+  <li><a href="typed/index-persistence.html" class="page">Persistence (Event Sourcing)</a></li>
+  <li><a href="typed/index-persistence-durable-state.html" class="page">Persistence (Durable State)</a></li>
+  <li><a href="stream/index.html" class="page">Streams</a></li>
+  <li><a href="discovery/index.html" class="page">Discovery</a></li>
+  <li><a href="index-utilities.html" class="page">Utilities</a></li>
+  <li><a href="common/other-modules.html" class="page">Other Akka modules</a></li>
+  <li><a href="additional/deploy.html" class="page">Package, Deploy and Run</a></li>
+  <li><a href="project/index.html" class="page">Project Information</a></li>
+  <li><a href="index-classic.html" class="page">Akka Classic</a>
+  <ul>
+    <li><a href="index-actors.html" class="page">Classic Actors</a></li>
+    <li><a href="index-cluster.html" class="page">Classic Clustering</a>
+    <ul>
+      <li><a href="cluster-usage.html" class="page">Classic Cluster Usage</a></li>
+      <li><a href="cluster-routing.html#classic-cluster-aware-routers" class="active page">Classic Cluster Aware Routers</a>
+      <ul>
+        <li><a href="cluster-routing.html#dependency" class="header">Dependency</a></li>
+        <li><a href="cluster-routing.html#router-with-group-of-routees" class="header">Router with Group of Routees</a></li>
+        <li><a href="cluster-routing.html#router-with-pool-of-remote-deployed-routees" class="header">Router with Pool of Remote Deployed Routees</a></li>
+      </ul></li>
+      <li><a href="cluster-singleton.html" class="page">Classic Cluster Singleton</a></li>
+      <li><a href="distributed-pub-sub.html" class="page">Classic Distributed Publish Subscribe in Cluster</a></li>
+      <li><a href="cluster-client.html" class="page">Classic Cluster Client</a></li>
+      <li><a href="cluster-sharding.html" class="page">Classic Cluster Sharding</a></li>
+      <li><a href="cluster-metrics.html" class="page">Classic Cluster Metrics Extension</a></li>
+      <li><a href="distributed-data.html" class="page">Classic Distributed Data</a></li>
+      <li><a href="cluster-dc.html" class="page">Classic Multi-DC Cluster</a></li>
+      <li><a href="serialization-classic.html" class="page">Classic Serialization</a></li>
+    </ul></li>
+    <li><a href="index-network.html" class="page">Classic Networking</a></li>
+    <li><a href="index-utilities-classic.html" class="page">Classic Utilities</a></li>
+  </ul></li>
+</ul>
+</div>
+</nav>
+<footer class="nav-footer sticky-sidebar-footer">
+<a href="https://akka.io"><img class="logo" src="images/akka-logo-reverse.svg"/></a>
+
+</footer>
+</aside>
+<main class="fixed-shift-for-large expanded row">
+<section class="site-content small-12 column">
+<article class="page-content row">
+<div class="small-12 column" id="docs">
+<h1><a href="#classic-cluster-aware-routers" name="classic-cluster-aware-routers" class="anchor"><span class="anchor-link"></span></a>Classic Cluster Aware Routers</h1><div class="callout note "><div class="callout-title">Note</div>
+<p>Akka Classic pertains to the original Actor APIs, which have been improved by more type safe and guided Actor APIs. Akka Classic is still fully supported and existing applications can continue to use the classic APIs. It is also possible to use the new Actor APIs together with classic actors in the same ActorSystem, see <a href="typed/coexisting.html">coexistence</a>. For new projects we recommend using <a href="typed/actors.html">the new Actor API</a>.</p></div>
+<p>For the full documentation of this feature and for new projects see <a href="typed/routers.html">routers</a>.</p>
+<p>All <a href="routing.html">routers</a> can be made aware of member nodes in the cluster, i.e. deploying new routees or looking up routees on nodes in the cluster. When a node becomes unreachable or leaves the cluster the routees of that node are automatically unregistered from the router. When new nodes join the cluster, additional routees are added to the router, according to the configuration. Routees are also added when a node becomes reachable again, after having been unreachable.</p>
+<p>Cluster aware routers make use of members with status <a href="typed/cluster-membership.html#weakly-up">WeaklyUp</a> if that feature is enabled.</p>
+<p>There are two distinct types of routers.</p>
+<ul>
+  <li><strong>Group - router that sends messages to the specified path using actor selection</strong> The routees can be shared among routers running on different nodes in the cluster. One example of a use case for this type of router is a service running on some backend nodes in the cluster and used by routers running on front-end nodes in the cluster.</li>
+  <li><strong>Pool - router that creates routees as child actors and deploys them on remote nodes.</strong> Each router will have its own routee instances. For example, if you start a router on 3 nodes in a 10-node cluster, you will have 30 routees in total if the router is configured to use one instance per node. The routees created by the different routers will not be shared among the routers. One example of a use case for this type of router is a single master that coordinates jobs and delegates the actual work to routees running on other nodes in the cluster.</li>
+</ul>
+<h2><a href="#dependency" name="dependency" class="anchor"><span class="anchor-link"></span></a>Dependency</h2>
+<p>To use Cluster aware routers, you must add the following dependency in your project:</p><dl class="dependency"><dt>sbt</dt><dd><pre class="prettyprint"><code class="language-scala">val AkkaVersion = "2.6.17"
+libraryDependencies += "com.typesafe.akka" %% "akka-cluster" % AkkaVersion</code></pre></dd><dt>Maven</dt><dd><pre class="prettyprint"><code class="language-xml">&lt;properties&gt;
+  &lt;scala.binary.version&gt;2.13&lt;/scala.binary.version&gt;
+&lt;/properties&gt;
+&lt;dependencyManagement&gt;
+  &lt;dependencies&gt;
+    &lt;dependency&gt;
+      &lt;groupId&gt;com.typesafe.akka&lt;/groupId&gt;
+      &lt;artifactId&gt;akka-bom_${scala.binary.version}&lt;/artifactId&gt;
+      &lt;version&gt;2.6.17&lt;/version&gt;
+      &lt;type&gt;pom&lt;/type&gt;
+      &lt;scope&gt;import&lt;/scope&gt;
+    &lt;/dependency&gt
+  &lt;/dependencies&gt;
+&lt;/dependencyManagement&gt;
+&lt;dependencies&gt
+  &lt;dependency&gt;
+    &lt;groupId&gt;com.typesafe.akka&lt;/groupId&gt;
+    &lt;artifactId&gt;akka-cluster_${scala.binary.version}&lt;/artifactId&gt;
+  &lt;/dependency&gt
+&lt;/dependencies&gt;</code></pre></dd><dt>Gradle</dt><dd><pre class="prettyprint"><code class="language-gradle">def versions = [
+  ScalaBinary: "2.13"
+]
+dependencies {
+  implementation platform("com.typesafe.akka:akka-bom_${versions.ScalaBinary}:2.6.17")
+
+  implementation "com.typesafe.akka:akka-cluster_${versions.ScalaBinary}"
+}</code></pre></dd></dl>
+<h2><a href="#router-with-group-of-routees" name="router-with-group-of-routees" class="anchor"><span class="anchor-link"></span></a>Router with Group of Routees</h2>
+<p>When using a <code>Group</code> you must start the routee actors on the cluster member nodes. That is not done by the router. The configuration for a group looks like this::</p>
+<pre><code>akka.actor.deployment {
+  /statsService/workerRouter {
+      router = consistent-hashing-group
+      routees.paths = [&quot;/user/statsWorker&quot;]
+      cluster {
+        enabled = on
+        allow-local-routees = on
+        use-roles = [&quot;compute&quot;]
+      }
+    }
+}
+</code></pre><div class="callout note "><div class="callout-title">Note</div>
+<p>The routee actors should be started as early as possible when starting the actor system, because the router will try to use them as soon as the member status is changed to &lsquo;Up&rsquo;.</p></div>
+<p>The actor paths that are defined in <code>routees.paths</code> are used for selecting the actors to which the messages will be forwarded to by the router. The path should not contain protocol and address information because they are retrieved dynamically from the cluster membership. Messages will be forwarded to the routees using <a href="actors.html#actorselection">ActorSelection</a>, so the same delivery semantics should be expected. It is possible to limit the lookup of routees to member nodes tagged with a particular set of roles by specifying <code>use-roles</code>.</p>
+<p><code>max-total-nr-of-instances</code> defines total number of routees in the cluster. By default <code>max-total-nr-of-instances</code> is set to a high value (10000) that will result in new routees added to the router when nodes join the cluster. Set it to a lower value if you want to limit total number of routees.</p>
+<p>The same type of router could also have been defined in code:</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.6.17/akka-cluster-metrics/src/multi-jvm/scala/akka/cluster/metrics/sample/StatsService.scala#L54-L65" target="_blank" title="Go to snippet source">source</a><code class="language-scala">import akka.cluster.routing.{ ClusterRouterGroup, ClusterRouterGroupSettings }
+import akka.routing.ConsistentHashingGroup
+
+val workerRouter = context.actorOf(
+  ClusterRouterGroup(
+    ConsistentHashingGroup(Nil),
+    ClusterRouterGroupSettings(
+      totalInstances = 100,
+      routeesPaths = List(&quot;/user/statsWorker&quot;),
+      allowLocalRoutees = true,
+      useRoles = Set(&quot;compute&quot;))).props(),
+  name = &quot;workerRouter2&quot;)</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.6.17/akka-docs/src/test/java/jdocs/cluster/StatsService.java#L62-L74" target="_blank" title="Go to snippet source">source</a><code class="language-java">int totalInstances = 100;
+Iterable&lt;String&gt; routeesPaths = Collections.singletonList(&quot;/user/statsWorker&quot;);
+boolean allowLocalRoutees = true;
+Set&lt;String&gt; useRoles = new HashSet&lt;&gt;(Arrays.asList(&quot;compute&quot;));
+ActorRef workerRouter =
+    getContext()
+        .actorOf(
+            new ClusterRouterGroup(
+                    new ConsistentHashingGroup(routeesPaths),
+                    new ClusterRouterGroupSettings(
+                        totalInstances, routeesPaths, allowLocalRoutees, useRoles))
+                .props(),
+            &quot;workerRouter2&quot;);</code></pre></dd>
+</dl>
+<p>See <a href="general/configuration-reference.html#config-akka-cluster">reference configuration</a> for further descriptions of the settings.</p>
+<h3><a href="#router-example-with-group-of-routees" name="router-example-with-group-of-routees" class="anchor"><span class="anchor-link"></span></a>Router Example with Group of Routees</h3>
+<p>Let&rsquo;s take a look at how to use a cluster aware router with a group of routees, i.e. router sending to the paths of the routees.</p>
+<p>The example application provides a service to calculate statistics for a text. When some text is sent to the service it splits it into words, and delegates the task to count number of characters in each word to a separate worker, a routee of a router. The character count for each word is sent back to an aggregator that calculates the average number of characters per word when all results have been collected.</p>
+<p>Messages:</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.6.17/akka-cluster-metrics/src/multi-jvm/scala/akka/cluster/metrics/sample/StatsMessages.scala#L10-L12" target="_blank" title="Go to snippet source">source</a><code class="language-scala">final case class StatsJob(text: String) extends CborSerializable
+final case class StatsResult(meanWordLength: Double) extends CborSerializable
+final case class JobFailed(reason: String) extends CborSerializable</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.6.17/akka-docs/src/test/java/jdocs/cluster/StatsMessages.java#L10-L57" target="_blank" title="Go to snippet source">source</a><code class="language-java">public interface StatsMessages {
+
+  public static class StatsJob implements Serializable {
+    private final String text;
+
+    public StatsJob(String text) {
+      this.text = text;
+    }
+
+    public String getText() {
+      return text;
+    }
+  }
+
+  public static class StatsResult implements Serializable {
+    private final double meanWordLength;
+
+    public StatsResult(double meanWordLength) {
+      this.meanWordLength = meanWordLength;
+    }
+
+    public double getMeanWordLength() {
+      return meanWordLength;
+    }
+
+    @Override
+    public String toString() {
+      return &quot;meanWordLength: &quot; + meanWordLength;
+    }
+  }
+
+  public static class JobFailed implements Serializable {
+    private final String reason;
+
+    public JobFailed(String reason) {
+      this.reason = reason;
+    }
+
+    public String getReason() {
+      return reason;
+    }
+
+    @Override
+    public String toString() {
+      return &quot;JobFailed(&quot; + reason + &quot;)&quot;;
+    }
+  }
+}</code></pre></dd>
+</dl>
+<p>The worker that counts number of characters in each word:</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.6.17/akka-cluster-metrics/src/multi-jvm/scala/akka/cluster/metrics/sample/StatsWorker.scala#L10-L24" target="_blank" title="Go to snippet source">source</a><code class="language-scala">class StatsWorker extends Actor {
+  var cache = Map.empty[String, Int]
+  def receive = {
+    case word: String =&gt;
+      val length = cache.get(word) match {
+        case Some(x) =&gt; x
+        case None =&gt;
+          val x = word.length
+          cache += (word -&gt; x)
+          x
+      }
+
+      sender() ! length
+  }
+}</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.6.17/akka-docs/src/test/java/jdocs/cluster/StatsWorker.java#L13-L32" target="_blank" title="Go to snippet source">source</a><code class="language-java">public class StatsWorker extends AbstractActor {
+
+  Map&lt;String, Integer&gt; cache = new HashMap&lt;String, Integer&gt;();
+
+  @Override
+  public Receive createReceive() {
+    return receiveBuilder()
+        .match(
+            String.class,
+            word -&gt; {
+              Integer length = cache.get(word);
+              if (length == null) {
+                length = word.length();
+                cache.put(word, length);
+              }
+              getSender().tell(length, getSelf());
+            })
+        .build();
+  }
+}</code></pre></dd>
+</dl>
+<p>The service that receives text from users and splits it up into words, delegates to workers and aggregates:</p><div class="group-scala">
+<pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.6.17/akka-cluster-metrics/src/multi-jvm/scala/akka/cluster/metrics/sample/StatsService.scala#L14-L48" target="_blank" title="Go to snippet source">source</a><code class="language-scala">class StatsService extends Actor {
+  // This router is used both with lookup and deploy of routees. If you
+  // have a router with only lookup of routees you can use Props.empty
+  // instead of Props[StatsWorker.class].
+  val workerRouter = context.actorOf(FromConfig.props(Props[StatsWorker]()), name = &quot;workerRouter&quot;)
+
+  def receive = {
+    case StatsJob(text) if text != &quot;&quot; =&gt;
+      val words = text.split(&quot; &quot;)
+      val replyTo = sender() // important to not close over sender()
+      // create actor that collects replies from workers
+      val aggregator = context.actorOf(Props(classOf[StatsAggregator], words.size, replyTo))
+      words.foreach { word =&gt;
+        workerRouter.tell(ConsistentHashableEnvelope(word, word), aggregator)
+      }
+  }
+}
+
+class StatsAggregator(expectedResults: Int, replyTo: ActorRef) extends Actor {
+  var results = IndexedSeq.empty[Int]
+  context.setReceiveTimeout(3.seconds)
+
+  def receive = {
+    case wordCount: Int =&gt;
+      results = results :+ wordCount
+      if (results.size == expectedResults) {
+        val meanWordLength = results.sum.toDouble / results.size
+        replyTo ! StatsResult(meanWordLength)
+        context.stop(self)
+      }
+    case ReceiveTimeout =&gt;
+      replyTo ! JobFailed(&quot;Service unavailable, try again later&quot;)
+      context.stop(self)
+  }
+}</code></pre></div><div class="group-java">
+<pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.6.17/akka-docs/src/test/java/jdocs/cluster/StatsService.java#L26-L56" target="_blank" title="Go to snippet source">source</a><code class="language-java">public class StatsService extends AbstractActor {
+
+  // This router is used both with lookup and deploy of routees. If you
+  // have a router with only lookup of routees you can use Props.empty()
+  // instead of Props.create(StatsWorker.class).
+  ActorRef workerRouter =
+      getContext()
+          .actorOf(FromConfig.getInstance().props(Props.create(StatsWorker.class)), &quot;workerRouter&quot;);
+
+  @Override
+  public Receive createReceive() {
+    return receiveBuilder()
+        .match(
+            StatsJob.class,
+            job -&gt; !job.getText().isEmpty(),
+            job -&gt; {
+              String[] words = job.getText().split(&quot; &quot;);
+              ActorRef replyTo = getSender();
+
+              // create actor that collects replies from workers
+              ActorRef aggregator =
+                  getContext().actorOf(Props.create(StatsAggregator.class, words.length, replyTo));
+
+              // send each word to a worker
+              for (String word : words) {
+                workerRouter.tell(new ConsistentHashableEnvelope(word, word), aggregator);
+              }
+            })
+        .build();
+  }
+}</code></pre>
+<pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.6.17/akka-docs/src/test/java/jdocs/cluster/StatsAggregator.java#L18-L59" target="_blank" title="Go to snippet source">source</a><code class="language-java">public class StatsAggregator extends AbstractActor {
+
+  final int expectedResults;
+  final ActorRef replyTo;
+  final List&lt;Integer&gt; results = new ArrayList&lt;Integer&gt;();
+
+  public StatsAggregator(int expectedResults, ActorRef replyTo) {
+    this.expectedResults = expectedResults;
+    this.replyTo = replyTo;
+  }
+
+  @Override
+  public void preStart() {
+    getContext().setReceiveTimeout(Duration.ofSeconds(3));
+  }
+
+  @Override
+  public Receive createReceive() {
+    return receiveBuilder()
+        .match(
+            Integer.class,
+            wordCount -&gt; {
+              results.add(wordCount);
+              if (results.size() == expectedResults) {
+                int sum = 0;
+                for (int c : results) {
+                  sum += c;
+                }
+                double meanWordLength = ((double) sum) / results.size();
+                replyTo.tell(new StatsResult(meanWordLength), getSelf());
+                getContext().stop(getSelf());
+              }
+            })
+        .match(
+            ReceiveTimeout.class,
+            x -&gt; {
+              replyTo.tell(new JobFailed(&quot;Service unavailable, try again later&quot;), getSelf());
+              getContext().stop(getSelf());
+            })
+        .build();
+  }
+}</code></pre></div>
+<p>Note, nothing cluster specific so far, just plain actors.</p>
+<p>All nodes start <code>StatsService</code> and <code>StatsWorker</code> actors. Remember, routees are the workers in this case. The router is configured with <code>routees.paths</code>::</p>
+<pre><code>akka.actor.deployment {
+  /statsService/workerRouter {
+    router = consistent-hashing-group
+    routees.paths = [&quot;/user/statsWorker&quot;]
+    cluster {
+      enabled = on
+      allow-local-routees = on
+      use-roles = [&quot;compute&quot;]
+    }
+  }
+}
+</code></pre>
+<p>This means that user requests can be sent to <code>StatsService</code> on any node and it will use <code>StatsWorker</code> on all nodes.</p>
+<h2><a href="#router-with-pool-of-remote-deployed-routees" name="router-with-pool-of-remote-deployed-routees" class="anchor"><span class="anchor-link"></span></a>Router with Pool of Remote Deployed Routees</h2>
+<p>When using a <code>Pool</code> with routees created and deployed on the cluster member nodes the configuration for a router looks like this::</p>
+<pre><code>akka.actor.deployment {
+  /statsService/singleton/workerRouter {
+      router = consistent-hashing-pool
+      cluster {
+        enabled = on
+        max-nr-of-instances-per-node = 3
+        allow-local-routees = on
+        use-roles = [&quot;compute&quot;]
+      }
+    }
+}
+</code></pre>
+<p>It is possible to limit the deployment of routees to member nodes tagged with a particular set of roles by specifying <code>use-roles</code>.</p>
+<p><code>max-total-nr-of-instances</code> defines total number of routees in the cluster, but the number of routees per node, <code>max-nr-of-instances-per-node</code>, will not be exceeded. By default <code>max-total-nr-of-instances</code> is set to a high value (10000) that will result in new routees added to the router when nodes join the cluster. Set it to a lower value if you want to limit total number of routees.</p>
+<p>The same type of router could also have been defined in code:</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.6.17/akka-cluster-metrics/src/multi-jvm/scala/akka/cluster/metrics/sample/StatsService.scala#L72-L80" target="_blank" title="Go to snippet source">source</a><code class="language-scala">import akka.cluster.routing.{ ClusterRouterPool, ClusterRouterPoolSettings }
+import akka.routing.ConsistentHashingPool
+
+val workerRouter = context.actorOf(
+  ClusterRouterPool(
+    ConsistentHashingPool(0),
+    ClusterRouterPoolSettings(totalInstances = 100, maxInstancesPerNode = 3, allowLocalRoutees = false))
+    .props(Props[StatsWorker]()),
+  name = &quot;workerRouter3&quot;)</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.6.17/akka-docs/src/test/java/jdocs/cluster/StatsService.java#L81-L93" target="_blank" title="Go to snippet source">source</a><code class="language-java">int totalInstances = 100;
+int maxInstancesPerNode = 3;
+boolean allowLocalRoutees = false;
+Set&lt;String&gt; useRoles = new HashSet&lt;&gt;(Arrays.asList(&quot;compute&quot;));
+ActorRef workerRouter =
+    getContext()
+        .actorOf(
+            new ClusterRouterPool(
+                    new ConsistentHashingPool(0),
+                    new ClusterRouterPoolSettings(
+                        totalInstances, maxInstancesPerNode, allowLocalRoutees, useRoles))
+                .props(Props.create(StatsWorker.class)),
+            &quot;workerRouter3&quot;);</code></pre></dd>
+</dl>
+<p>See <a href="general/configuration-reference.html#config-akka-cluster">reference configuration</a> for further descriptions of the settings.</p>
+<p>When using a pool of remote deployed routees you must ensure that all parameters of the <code>Props</code> can be <a href="serialization.html">serialized</a>.</p>
+<h3><a href="#router-example-with-pool-of-remote-deployed-routees" name="router-example-with-pool-of-remote-deployed-routees" class="anchor"><span class="anchor-link"></span></a>Router Example with Pool of Remote Deployed Routees</h3>
+<p>Let&rsquo;s take a look at how to use a cluster aware router on single master node that creates and deploys workers. To keep track of a single master we use the <a href="cluster-singleton.html">Cluster Singleton</a> in the cluster-tools module. The <code>ClusterSingletonManager</code> is started on each node:</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre><code>system.actorOf(
+  ClusterSingletonManager.props(
+    singletonProps = Props[StatsService],
+    terminationMessage = PoisonPill,
+    settings = ClusterSingletonManagerSettings(system).withRole(&quot;compute&quot;)),
+  name = &quot;statsService&quot;)
+</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.6.17/akka-docs/src/test/java/jdocs/cluster/StatsSampleOneMasterMain.java#L40-L45" target="_blank" title="Go to snippet source">source</a><code class="language-java">ClusterSingletonManagerSettings settings =
+    ClusterSingletonManagerSettings.create(system).withRole(&quot;compute&quot;);
+system.actorOf(
+    ClusterSingletonManager.props(
+        Props.create(StatsService.class), PoisonPill.getInstance(), settings),
+    &quot;statsService&quot;);</code></pre></dd>
+</dl>
+<p>We also need an actor on each node that keeps track of where current single master exists and delegates jobs to the <code>StatsService</code>. That is provided by the <code>ClusterSingletonProxy</code>:</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre><code>system.actorOf(
+  ClusterSingletonProxy.props(
+    singletonManagerPath = &quot;/user/statsService&quot;,
+    settings = ClusterSingletonProxySettings(system).withRole(&quot;compute&quot;)),
+  name = &quot;statsServiceProxy&quot;)
+</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.6.17/akka-docs/src/test/java/jdocs/cluster/StatsSampleOneMasterMain.java#L49-L52" target="_blank" title="Go to snippet source">source</a><code class="language-java">ClusterSingletonProxySettings proxySettings =
+    ClusterSingletonProxySettings.create(system).withRole(&quot;compute&quot;);
+system.actorOf(
+    ClusterSingletonProxy.props(&quot;/user/statsService&quot;, proxySettings), &quot;statsServiceProxy&quot;);</code></pre></dd>
+</dl>
+<p>The <code>ClusterSingletonProxy</code> receives text from users and delegates to the current <code>StatsService</code>, the single master. It listens to cluster events to lookup the <code>StatsService</code> on the oldest node.</p>
+<p>All nodes start <code>ClusterSingletonProxy</code> and the <code>ClusterSingletonManager</code>. The router is now configured like this::</p>
+<pre><code>akka.actor.deployment {
+  /statsService/singleton/workerRouter {
+    router = consistent-hashing-pool
+    cluster {
+      enabled = on
+      max-nr-of-instances-per-node = 3
+      allow-local-routees = on
+      use-roles = [&quot;compute&quot;]
+    }
+  }
+}
+</code></pre>
+<p>The easiest way to run <strong>Router Example with Pool of Routees</strong> example yourself is to try the <span class="group-scala"><a href="https://developer.lightbend.com/start/?group=akka&amp;project=akka-samples-cluster-scala">Akka Cluster Sample with Scala</a></span><span class="group-java"><a href="https://developer.lightbend.com/start/?group=akka&amp;project=akka-samples-cluster-java">Akka Cluster Sample with Java</a></span>. It contains instructions on how to run the <strong>Router Example with Pool of Routees</strong> sample.</p>
+</div>
+</article>
+<div class="row">
+<div class="small-12 column">
+<section class="nav-prev-next row">
+<div class="nav-prev small-6 column">
+<a href="cluster-usage.html"><i class="icon-prev"></i> <span class="link-prev">Classic Cluster Usage</span></a>
+</div>
+<div class="nav-next small-6 column clearfix">
+<a class="float-right" href="cluster-singleton.html">Classic Cluster Singleton <i class="icon-next"></i></a>
+</div>
+</section>
+</div>
+</div>
+<div class="source-github row">
+Found an error in this documentation? The source code for this page can be found <a href="https://github.com/akka/akka/tree/v2.6.17/akka-docs/src/main/paradox/cluster-routing.md">here</a>.
+Please feel free to edit and contribute a pull request.
+</div>
+
+<footer class="page-footer row clearfix">
+<img class="akka-icon float-left show-for-medium" src="images/akka-icon.svg" />
+<section class="copyright">
+<div>Akka is Open Source and available under the Apache 2 License.</div>
+<p class="legal">
+&copy; 2011-2021 <a href="https://www.lightbend.com" target="_blank">Lightbend, Inc.</a> |
+<a href="https://www.lightbend.com/legal/licenses" target="_blank">Licenses</a> |
+<a href="https://www.lightbend.com/legal/terms" target="_blank">Terms</a> |
+<a href="https://www.lightbend.com/legal/privacy" target="_blank">Privacy Policy</a> |
+<a href="https://akka.io/cookie/" target="_blank">Cookie Listing</a> |
+<a class="optanon-toggle-display">Cookie Settings</a>
+</p>
+</section>
+
+</footer>
+</section>
+</main>
+</div>
+
+<script type="text/javascript" src="js/scrollsneak.js"></script>
+<script type="text/javascript">jQuery(document).foundation();</script>
+<script type="text/javascript" src="js/groups.js"></script>
+<script type="text/javascript" src="js/page.js"></script>
+<script type="text/javascript" src="js/snippets.js"></script>
+<script type="text/javascript" src="js/magellan.js"></script>
+<script type="text/javascript" src="js/metadata-toggle.js"></script>
+<script type="text/javascript" src="js/lbHeader.js"></script>
+
+<style type="text/css">@import "lib/prettify/prettify.css";</style>
+<script type="text/javascript" src="lib/prettify/prettify.js"></script>
+<script type="text/javascript" src="lib/prettify/lang-scala.js"></script>
+<script type="text/javascript">//<![CDATA[
+jQuery(function(){window.prettyPrint && prettyPrint()});
+//]]></script>
+<!-- Algolia docs search -->
+<script type="text/javascript" src="https://cdn.jsdelivr.net/docsearch.js/2/docsearch.min.js"></script>
+<style>.algolia-autocomplete { display: block !important }</style>
+<script type="text/javascript">
+docsearch({
+apiKey: '543bad5ad786495d9ccd445ed34ed082',
+indexName: 'akka_io',
+inputSelector: '#search',
+algoliaOptions: {
+hitsPerPage: 5
+}
+});
+
+docsearch({
+apiKey: '543bad5ad786495d9ccd445ed34ed082',
+indexName: 'akka_io',
+inputSelector: '#overlay-search',
+algoliaOptions: {
+hitsPerPage: 5
+}
+});
+
+// set up "/" as global shortcut for focusing on search
+jQuery(document).keypress(function (event) {
+if (event.keyCode == 47) {
+jQuery("#search").focus();
+return false; // swallow key event, otherwise the / char would be input into the search box
+}
+});
+</script>
+
+<script type="text/javascript" src="assets/js/warnOldDocs.js"></script>
+<script type="text/javascript" src="assets/js/scalafiddle.js"></script>
+
+
+</body>
+</html>
