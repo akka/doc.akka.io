@@ -128,6 +128,7 @@ Version 1.2.2
     <li><a href="../getting-started/running-cluster.html#running-the-projection-in-akka-cluster" class="active page">Running the Projection in Akka Cluster</a></li>
   </ul></li>
   <li><a href="../eventsourced.html" class="page">Events from Akka Persistence</a></li>
+  <li><a href="../durable-state.html" class="page">Changes from Durable State</a></li>
   <li><a href="../kafka.html" class="page">Messages from and to Kafka</a></li>
   <li><a href="../cassandra.html" class="page">Offset in Cassandra</a></li>
   <li><a href="../jdbc.html" class="page">Offset in a relational DB with JDBC</a></li>
@@ -141,7 +142,6 @@ Version 1.2.2
   <li><a href="../testing.html" class="page">Testing</a></li>
   <li><a href="../classic.html" class="page">Akka Classic</a></li>
   <li><a href="../snapshots.html" class="page">Snapshots</a></li>
-  <li><a href="../durable-state.html" class="page">State changes from Akka Persistence Durable State</a></li>
 </ul>
 </nav>
 </div>
@@ -175,6 +175,7 @@ Version 1.2.2
     <li><a href="../getting-started/running-cluster.html#running-the-projection-in-akka-cluster" class="active page">Running the Projection in Akka Cluster</a></li>
   </ul></li>
   <li><a href="../eventsourced.html" class="page">Events from Akka Persistence</a></li>
+  <li><a href="../durable-state.html" class="page">Changes from Durable State</a></li>
   <li><a href="../kafka.html" class="page">Messages from and to Kafka</a></li>
   <li><a href="../cassandra.html" class="page">Offset in Cassandra</a></li>
   <li><a href="../jdbc.html" class="page">Offset in a relational DB with JDBC</a></li>
@@ -188,7 +189,6 @@ Version 1.2.2
   <li><a href="../testing.html" class="page">Testing</a></li>
   <li><a href="../classic.html" class="page">Akka Classic</a></li>
   <li><a href="../snapshots.html" class="page">Snapshots</a></li>
-  <li><a href="../durable-state.html" class="page">State changes from Akka Persistence Durable State</a></li>
 </ul>
 </div>
 </nav>
@@ -205,7 +205,7 @@ Version 1.2.2
 <p>Running the Projection with <a href="https://doc.akka.io/docs/akka/current/typed/cluster.html">Akka Cluster</a> allows us to add two important aspects to our system: availability and scalability. A Projection running as a single Actor creates a single point of failure (availability), when the app shuts down for any reason, the projection is no longer running until it&rsquo;s started again. A Projection running as a single Actor creates a processing bottleneck (scalability), all messages from the <span class="group-java"><a href="/api/akka-projection/1.2.2/akka/projection/javadsl/SourceProvider.html" title="akka.projection.javadsl.SourceProvider"><code>SourceProvider</code></a></span><span class="group-scala"><a href="/api/akka-projection/1.2.2/akka/projection/scaladsl/SourceProvider.html" title="akka.projection.scaladsl.SourceProvider"><code>SourceProvider</code></a></span> are processed by a single Actor on a single machine. By using a <a href="https://doc.akka.io/docs/akka/current/typed/cluster-sharded-daemon-process.html#sharded-daemon-process">Sharded Daemon Process</a> with Akka Cluster and <a href="https://doc.akka.io/docs/akka/current/typed/cluster-sharding.html">Akka Cluster Sharding</a> we can scale up the Projection and make it more available by running at least as many instances of the same Projection as we have cluster members. As Akka cluster members join and leave the cluster the Sharded Daemon Process will automatically scale and rebalance Sharded Daemon Processes (Projection instances) accordingly.</p>
 <p>Running the Projection as a Sharded Daemon Process requires no changes to our projection handler and repository, we only need to change the way in which the actor that runs the Projection is initialized. In the cluster version of this app we use a different configuration that configures Akka cluster. The main difference in the app itself is that we use <span class="group-java"><a href="https://doc.akka.io/japi/akka/2.6.16/akka/cluster/sharding/typed/javadsl/ShardedDaemonProcess.html" title="akka.cluster.sharding.typed.javadsl.ShardedDaemonProcess"><code>ShardedDaemonProcess</code></a></span><span class="group-scala"><a href="https://doc.akka.io/api/akka/2.6.16/akka/cluster/sharding/typed/scaladsl/ShardedDaemonProcess.html" title="akka.cluster.sharding.typed.scaladsl.ShardedDaemonProcess"><code>ShardedDaemonProcess</code></a></span> to initialize the Projection actor on our behalf. Instead of creating single instances of our repository and projection handler we create factory methods that encapsulate their instantiation along with the sharded daemon actors (1 per tag) assigned to this cluster member.</p>
 <p>Add a new configuration file <code>guide-shopping-cart-cluster-app.conf</code> to your <code>src/main/resources/</code> directory. This configuration is largely the same as before, but includes extra configuration to enable cluster connectivity and sharding:</p>
-<pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka-projection.git/tree/v1.2.2/examples/src/test/resources/guide-shopping-cart-cluster-app.conf#L2-L70" target="_blank" title="Go to snippet source">source</a><code class="language-conf">datastax-java-driver {
+<pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka-projection/tree/master/examples/src/test/resources/guide-shopping-cart-cluster-app.conf#L2-L70" target="_blank" title="Go to snippet source">source</a><code class="language-conf">datastax-java-driver {
   # basic.contact-points = [&quot;127.0.0.1:9042&quot;]
   # basic.load-balancing-policy.local-datacenter = &quot;datacenter1&quot;
   advanced {
@@ -278,7 +278,7 @@ akka {
 <dl>
   <dt>Scala</dt>
   <dd>
-  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka-projection.git/tree/v1.2.2/examples/src/test/scala/docs/guide/ShoppingCartClusterApp.scala#L6-L62" target="_blank" title="Go to snippet source">source</a><code class="language-scala">package docs.guide
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka-projection/tree/master/examples/src/test/scala/docs/guide/ShoppingCartClusterApp.scala#L6-L62" target="_blank" title="Go to snippet source">source</a><code class="language-scala">package docs.guide
 
 import akka.actor.typed.ActorSystem
 import akka.actor.typed.scaladsl.Behaviors
@@ -337,7 +337,7 @@ object ShoppingCartClusterApp extends App {
 }</code></pre></dd>
   <dt>Java</dt>
   <dd>
-  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka-projection.git/tree/v1.2.2/examples/src/test/java/jdocs/guide/ShoppingCartClusterApp.java#L6-L77" target="_blank" title="Go to snippet source">source</a><code class="language-java">package jdocs.guide;
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka-projection/tree/master/examples/src/test/java/jdocs/guide/ShoppingCartClusterApp.java#L6-L77" target="_blank" title="Go to snippet source">source</a><code class="language-java">package jdocs.guide;
 
 import akka.actor.typed.ActorSystem;
 import akka.actor.typed.javadsl.Behaviors;
@@ -498,7 +498,7 @@ sourceActorSystem=ShoppingCartClusterApp, akkaTimestamp=19:03:59.019UTC}
 </div>
 </div>
 <div class="source-github row">
-Found an error in this documentation? The source code for this page can be found <a href="https://github.com/akka/akka-projection.git/tree/v1.2.2/docs/src/main/paradox/getting-started/running-cluster.md">here</a>.
+Found an error in this documentation? The source code for this page can be found <a href="https://github.com/akka/akka-projection/tree/master/docs/src/main/paradox/getting-started/running-cluster.md">here</a>.
 Please feel free to edit and contribute a pull request.
 </div>
 
