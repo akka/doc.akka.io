@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html class="no-js" lang="en">
+
+<head>
+<title>Classic Cluster Singleton &bull; Akka Documentation</title>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta name="description" content="Akka is a toolkit for building highly concurrent, distributed, and resilient message-driven applications for Java and Scala."/>
+<link rel="canonical" href="https://doc.akka.io/docs/akka/current/cluster-singleton.html"/>
+<script type="text/javascript" src="lib/jquery/jquery.min.js"></script>
+<script type="text/javascript" src="lib/foundation/dist/js/foundation.min.js"></script>
+<link rel="stylesheet" type="text/css" href="lib/normalize.css/normalize.css"/>
+<link rel="stylesheet" type="text/css" href="lib/foundation/dist/css/foundation.min.css"/>
+<link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/docsearch.js/2/docsearch.min.css" />
+<link rel="stylesheet" type="text/css" href="css/icons.css"/>
+<link rel="stylesheet" type="text/css" href="css/page-8.css"/>
+<link rel="stylesheet" type="text/css" href="css/banner-2.css"/>
+<link rel="shortcut icon" href="images/favicon.ico" />
+<link rel="apple-touch-icon" sizes="180x180" href="images/apple-touch-icon.png"/>
+<link rel="icon" type="image/png" sizes="32x32" href="images/favicon-32x32.png"/>
+<link rel="icon" type="image/png" sizes="16x16" href="images/favicon-16x16.png"/>
+<link rel="manifest" href="images/manifest.json"/>
+<meta name="msapplication-TileImage" content="images/mstile-150x150.png"/>
+<meta name="msapplication-TileColor" content="#15a9ce"/>
+<meta name="theme-color" content="#15a9ce"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<!-- OneTrust Cookies Consent Notice (Production Standard, akka.io, en-GB) start -->
+<script src="https://cdn.cookielaw.org/scripttemplates/otSDKStub.js"  type="text/javascript" charset="UTF-8" data-domain-script="28b912e7-09e9-43d5-91e4-3d1897044004" ></script>
+<script type="text/javascript">
+function OptanonWrapper() { }
+</script>
+<!-- OneTrust Cookies Consent Notice (Production Standard, akka.io, en-GB) end -->
+<!--Google Analytics-->
+<script type="text/plain" class="optanon-category-2">
+var _gaq = _gaq || [];
+_gaq.push(['_setAccount', 'UA-21117439-1']);
+_gaq.push(['_setDomainName', 'akka.io']);
+_gaq.push(['_trackPageview']);
+(function() {
+var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+})()
+</script>
+<!-- Google Tag Manager -->
+<script type="text/plain" class="optanon-category-2">
+(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+})(window,document,'script','dataLayer','GTM-KBJGH35');
+</script>
+<!--Marketo-->
+<script type="text/plain" class="optanon-category-3">
+(function() {
+var didInit = false;
+function initMunchkin() {
+if(didInit === false) {
+didInit = true;
+Munchkin.init('558-NCX-702', { 'asyncOnly': true, 'disableClickDelay': true });
+}
+}
+var s = document.createElement('script');
+s.type = 'text/javascript';
+s.async = true;
+s.src = '//munchkin.marketo.net/munchkin.js';
+s.onreadystatechange = function() {
+if (this.readyState == 'complete' || this.readyState == 'loaded') {
+initMunchkin();
+}
+};
+s.onload = initMunchkin;
+document.getElementsByTagName('head')[0].appendChild(s);
+})();
+</script>
+</head>
+
+<body id="underlay" data-toggler="nav-open">
+<div id="lightbend-banner" class="lightbend-banner akka full-width" data-category="OSS Lightbend Banner Impression" data-label="Akka Banner Impression">
+<div class="oss-wrapper">
+<div class="oss-brand">
+<a class="oss-track-link-label" data-category="OSS Lightbend Banner Clicks" data-label="Lightbend Logo - Akka Banner" href="https://www.lightbend.com">
+<img class="lightbend-logo" src="images/banner-logos/lightbend-reverse.svg" alt="Lightbend" title="Lightbend">
+</a>
+</div>
+<div class="oss-ad no-drop-down">
+<nav id="lightbendRotator" class="lightbend-rotator">
+<a class="oss-track-link-label" data-category="OSS Lightbend Banner Clicks" data-label="Promo Rotator - Akka Serverless - Keep the data. Lose the database. Try now for free. [Learn More] - Akka Banner" href="https://www.lightbend.com/akka-serverless">
+<strong>Akka Serverless</strong> - Keep the data. Lose the database. Try now for free. <span class="akka-btn">Learn More</span>
+</a>
+<a class="oss-track-link-label" data-category="OSS Lightbend Banner Clicks" data-label="Promo Rotator - Meet Akka Insights! A stand alone telemetry & observability offering. [Learn More] - Akka Banner" href="https://www.lightbend.com/akka-insights">
+<strong>Meet Akka Insights!</strong>&nbsp;&nbsp;A stand alone telemetry & observability offering. <span class="akka-btn">Learn More</span>
+</a>
+</nav>
+</div>
+</div>
+</div>
+
+<header class="site-header hide-for-large">
+<div class="sticky-header clearfix">
+<a href="https://akka.io"><img class="logo" src="images/akka-logo-reverse.svg"/></a>
+
+<button class="menu-icon float-right" type="button" data-toggle="underlay overlay"></button>
+</div>
+<div id="overlay" class="overlay-nav" data-toggler="nav-open">
+<header class="nav-header">
+<div class="nav-header-title">
+<h1><a href="index.html">Akka Documentation</a></h1>
+</div>
+<div class="nav-header-version">
+Version 2.6.19
+</div>
+<div class="nav-header-groups">
+<select class="supergroup" name="Language"><option class="group" value="group-scala">Scala</option><option class="group" value="group-java">Java</option></select>
+</div>
+<div id="overlay-search-container" class="nav-header-search">
+<input id="overlay-search" type="search" class="search" placeholder="Search" />
+</div>
+</header>
+<nav class="nav-toc">
+<ul>
+  <li><a href="security/index.html" class="page">Security Announcements</a></li>
+  <li><a href="typed/guide/index.html" class="page">Getting Started Guide</a></li>
+  <li><a href="general/index.html" class="page">General Concepts</a></li>
+  <li><a href="typed/index.html" class="page">Actors</a></li>
+  <li><a href="typed/index-cluster.html" class="page">Cluster</a></li>
+  <li><a href="typed/index-persistence.html" class="page">Persistence (Event Sourcing)</a></li>
+  <li><a href="typed/index-persistence-durable-state.html" class="page">Persistence (Durable State)</a></li>
+  <li><a href="stream/index.html" class="page">Streams</a></li>
+  <li><a href="discovery/index.html" class="page">Discovery</a></li>
+  <li><a href="index-utilities.html" class="page">Utilities</a></li>
+  <li><a href="common/other-modules.html" class="page">Other Akka modules</a></li>
+  <li><a href="additional/deploy.html" class="page">Package, Deploy and Run</a></li>
+  <li><a href="project/index.html" class="page">Project Information</a></li>
+  <li><a href="index-classic.html" class="page">Akka Classic</a>
+  <ul>
+    <li><a href="index-actors.html" class="page">Classic Actors</a></li>
+    <li><a href="index-cluster.html" class="page">Classic Clustering</a>
+    <ul>
+      <li><a href="cluster-usage.html" class="page">Classic Cluster Usage</a></li>
+      <li><a href="cluster-routing.html" class="page">Classic Cluster Aware Routers</a></li>
+      <li><a href="cluster-singleton.html#classic-cluster-singleton" class="active page">Classic Cluster Singleton</a>
+      <ul>
+        <li><a href="cluster-singleton.html#module-info" class="header">Module info</a></li>
+        <li><a href="cluster-singleton.html#introduction" class="header">Introduction</a></li>
+        <li><a href="cluster-singleton.html#an-example" class="header">An Example</a></li>
+        <li><a href="cluster-singleton.html#configuration" class="header">Configuration</a></li>
+        <li><a href="cluster-singleton.html#supervision" class="header">Supervision</a></li>
+        <li><a href="cluster-singleton.html#lease" class="header">Lease</a></li>
+      </ul></li>
+      <li><a href="distributed-pub-sub.html" class="page">Classic Distributed Publish Subscribe in Cluster</a></li>
+      <li><a href="cluster-client.html" class="page">Classic Cluster Client</a></li>
+      <li><a href="cluster-sharding.html" class="page">Classic Cluster Sharding</a></li>
+      <li><a href="cluster-metrics.html" class="page">Classic Cluster Metrics Extension</a></li>
+      <li><a href="distributed-data.html" class="page">Classic Distributed Data</a></li>
+      <li><a href="cluster-dc.html" class="page">Classic Multi-DC Cluster</a></li>
+      <li><a href="serialization-classic.html" class="page">Classic Serialization</a></li>
+    </ul></li>
+    <li><a href="index-network.html" class="page">Classic Networking</a></li>
+    <li><a href="index-utilities-classic.html" class="page">Classic Utilities</a></li>
+  </ul></li>
+</ul>
+</nav>
+</div>
+</header>
+<div class="site-content-wrapper">
+<aside class="sticky-sidebar show-for-large">
+<header class="nav-header sticky-sidebar-header">
+<div class="nav-header-title">
+<h1><a href="index.html">Akka Documentation</a></h1>
+</div>
+<div class="nav-header-version">
+Version 2.6.19
+</div>
+<div class="nav-header-groups">
+<select class="supergroup" name="Language"><option class="group" value="group-scala">Scala</option><option class="group" value="group-java">Java</option></select>
+</div>
+<div class="nav-header-search">
+<input id="search" type="search" class="search" placeholder="Search" />
+</div>
+</header>
+<nav class="site-nav sticky-sidebar-contents">
+<div class="nav-toc">
+<ul>
+  <li><a href="security/index.html" class="page">Security Announcements</a></li>
+  <li><a href="typed/guide/index.html" class="page">Getting Started Guide</a></li>
+  <li><a href="general/index.html" class="page">General Concepts</a></li>
+  <li><a href="typed/index.html" class="page">Actors</a></li>
+  <li><a href="typed/index-cluster.html" class="page">Cluster</a></li>
+  <li><a href="typed/index-persistence.html" class="page">Persistence (Event Sourcing)</a></li>
+  <li><a href="typed/index-persistence-durable-state.html" class="page">Persistence (Durable State)</a></li>
+  <li><a href="stream/index.html" class="page">Streams</a></li>
+  <li><a href="discovery/index.html" class="page">Discovery</a></li>
+  <li><a href="index-utilities.html" class="page">Utilities</a></li>
+  <li><a href="common/other-modules.html" class="page">Other Akka modules</a></li>
+  <li><a href="additional/deploy.html" class="page">Package, Deploy and Run</a></li>
+  <li><a href="project/index.html" class="page">Project Information</a></li>
+  <li><a href="index-classic.html" class="page">Akka Classic</a>
+  <ul>
+    <li><a href="index-actors.html" class="page">Classic Actors</a></li>
+    <li><a href="index-cluster.html" class="page">Classic Clustering</a>
+    <ul>
+      <li><a href="cluster-usage.html" class="page">Classic Cluster Usage</a></li>
+      <li><a href="cluster-routing.html" class="page">Classic Cluster Aware Routers</a></li>
+      <li><a href="cluster-singleton.html#classic-cluster-singleton" class="active page">Classic Cluster Singleton</a>
+      <ul>
+        <li><a href="cluster-singleton.html#module-info" class="header">Module info</a></li>
+        <li><a href="cluster-singleton.html#introduction" class="header">Introduction</a></li>
+        <li><a href="cluster-singleton.html#an-example" class="header">An Example</a></li>
+        <li><a href="cluster-singleton.html#configuration" class="header">Configuration</a></li>
+        <li><a href="cluster-singleton.html#supervision" class="header">Supervision</a></li>
+        <li><a href="cluster-singleton.html#lease" class="header">Lease</a></li>
+      </ul></li>
+      <li><a href="distributed-pub-sub.html" class="page">Classic Distributed Publish Subscribe in Cluster</a></li>
+      <li><a href="cluster-client.html" class="page">Classic Cluster Client</a></li>
+      <li><a href="cluster-sharding.html" class="page">Classic Cluster Sharding</a></li>
+      <li><a href="cluster-metrics.html" class="page">Classic Cluster Metrics Extension</a></li>
+      <li><a href="distributed-data.html" class="page">Classic Distributed Data</a></li>
+      <li><a href="cluster-dc.html" class="page">Classic Multi-DC Cluster</a></li>
+      <li><a href="serialization-classic.html" class="page">Classic Serialization</a></li>
+    </ul></li>
+    <li><a href="index-network.html" class="page">Classic Networking</a></li>
+    <li><a href="index-utilities-classic.html" class="page">Classic Utilities</a></li>
+  </ul></li>
+</ul>
+</div>
+</nav>
+<footer class="nav-footer sticky-sidebar-footer">
+<a href="https://akka.io"><img class="logo" src="images/akka-logo-reverse.svg"/></a>
+
+</footer>
+</aside>
+<main class="fixed-shift-for-large expanded row">
+<section class="site-content small-12 column">
+<article class="page-content row">
+<div class="small-12 column" id="docs">
+<h1><a href="#classic-cluster-singleton" name="classic-cluster-singleton" class="anchor"><span class="anchor-link"></span></a>Classic Cluster Singleton</h1><div class="callout note "><div class="callout-title">Note</div>
+<p>Akka Classic pertains to the original Actor APIs, which have been improved by more type safe and guided Actor APIs. Akka Classic is still fully supported and existing applications can continue to use the classic APIs. It is also possible to use the new Actor APIs together with classic actors in the same ActorSystem, see <a href="typed/coexisting.html">coexistence</a>. For new projects we recommend using <a href="typed/actors.html">the new Actor API</a>.</p></div>
+<p>For the full documentation of this feature and for new projects see <a href="typed/cluster-singleton.html">Cluster Singleton</a>.</p>
+<h2><a href="#module-info" name="module-info" class="anchor"><span class="anchor-link"></span></a>Module info</h2>
+<p>To use Cluster Singleton, you must add the following dependency in your project:</p><dl class="dependency"><dt>sbt</dt><dd><pre class="prettyprint"><code class="language-scala">val AkkaVersion = "2.6.19"
+libraryDependencies += "com.typesafe.akka" %% "akka-cluster-tools" % AkkaVersion</code></pre></dd><dt>Maven</dt><dd><pre class="prettyprint"><code class="language-xml">&lt;properties&gt;
+  &lt;scala.binary.version&gt;2.13&lt;/scala.binary.version&gt;
+&lt;/properties&gt;
+&lt;dependencyManagement&gt;
+  &lt;dependencies&gt;
+    &lt;dependency&gt;
+      &lt;groupId&gt;com.typesafe.akka&lt;/groupId&gt;
+      &lt;artifactId&gt;akka-bom_${scala.binary.version}&lt;/artifactId&gt;
+      &lt;version&gt;2.6.19&lt;/version&gt;
+      &lt;type&gt;pom&lt;/type&gt;
+      &lt;scope&gt;import&lt;/scope&gt;
+    &lt;/dependency&gt
+  &lt;/dependencies&gt;
+&lt;/dependencyManagement&gt;
+&lt;dependencies&gt
+  &lt;dependency&gt;
+    &lt;groupId&gt;com.typesafe.akka&lt;/groupId&gt;
+    &lt;artifactId&gt;akka-cluster-tools_${scala.binary.version}&lt;/artifactId&gt;
+  &lt;/dependency&gt
+&lt;/dependencies&gt;</code></pre></dd><dt>Gradle</dt><dd><pre class="prettyprint"><code class="language-gradle">def versions = [
+  ScalaBinary: "2.13"
+]
+dependencies {
+  implementation platform("com.typesafe.akka:akka-bom_${versions.ScalaBinary}:2.6.19")
+
+  implementation "com.typesafe.akka:akka-cluster-tools_${versions.ScalaBinary}"
+}</code></pre></dd></dl>
+<table class="project-info">
+<tr><th colspan="2">Project Info: Akka Cluster Tools (classic)</th></tr>
+  <tr><th>Artifact</th><td><div>com.typesafe.akka</div>
+  <div>akka-cluster-tools</div>
+  <div>2.6.19</div>
+  <div><a href="project/links.html#snapshots-repository">Snapshots are available</a></div>
+  </td></tr>
+  <tr><th>JDK versions</th><td><div>Adopt OpenJDK 8</div><div>Adopt OpenJDK 11</div></td></tr>
+  <tr><th>Scala versions</th><td>2.13.8, 2.12.15, 3.1.1</td></tr>
+  <tr><th>JPMS module name</th><td>akka.cluster.tools</td></tr>
+  <tr><th>License</th><td><div><a href="https://www.apache.org/licenses/LICENSE-2.0.html" target="_blank" rel="noopener noreferrer">Apache-2.0</a></div>
+  </td></tr>
+  <tr><th>Readiness level</th><td><div class="readiness-level"><a href="https://developer.lightbend.com/docs/introduction/getting-help/support-terminology.html#supported" target="_blank" rel="noopener">Supported</a>, <a href="https://www.lightbend.com/lightbend-subscription" target="_blank" rel="noopener">Lightbend Subscription</a> provides support</div>
+  <div>Since 2.3.0, 2014-03-05</div>
+  </td></tr>
+  <tr><th>Home page</th><td><a href="https://akka.io/">https://akka.io/</a></td></tr>
+  <tr><th>API documentation</th><td>
+  <div><a href="https://doc.akka.io/api/akka/2.6.19/akka/cluster/tools/index.html" target="_blank" rel="noopener noreferrer">API (Scaladoc)</a></div>
+  <div><a href="https://doc.akka.io/japi/akka/2.6.19/akka/cluster/tools/package-summary.html" target="_blank" rel="noopener noreferrer">API (Javadoc)</a></div>
+  </td></tr>
+  <tr><th>Forums</th><td>
+  <div><a href="https://discuss.akka.io" target="_blank" rel="noopener noreferrer">Lightbend Discuss</a></div>
+  <div><a href="https://gitter.im/akka/akka" target="_blank" rel="noopener noreferrer">akka/akka Gitter channel</a></div>
+  </td></tr>
+  <tr><th>Release notes</th><td><a href="https://akka.io/blog/news-archive.html">akka.io blog</a></td></tr>
+  <tr><th>Issues</th><td><a href="https://github.com/akka/akka/issues" target="_blank" rel="noopener noreferrer">Github issues</a></td></tr>
+  <tr><th>Sources</th><td><a href="https://github.com/akka/akka" target="_blank" rel="noopener noreferrer">https://github.com/akka/akka</a></td></tr>
+</table>
+
+<h2><a href="#introduction" name="introduction" class="anchor"><span class="anchor-link"></span></a>Introduction</h2>
+
+<p>For the full documentation of this feature and for new projects see <a href="typed/cluster-singleton.html#introduction">Cluster Singleton - Introduction</a>.</p>
+
+<p>The cluster singleton pattern is implemented by <code>akka.cluster.singleton.ClusterSingletonManager</code>. It manages one singleton actor instance among all cluster nodes or a group of nodes tagged with a specific role. <code>ClusterSingletonManager</code> is an actor that is supposed to be started as early as possible on all nodes, or all nodes with specified role, in the cluster. The actual singleton actor is started by the <code>ClusterSingletonManager</code> on the oldest node by creating a child actor from supplied <code>Props</code>. <code>ClusterSingletonManager</code> makes sure that at most one singleton instance is running at any point in time.</p>
+
+<p>You can access the singleton actor by using the provided <code>akka.cluster.singleton.ClusterSingletonProxy</code>, which will route all messages to the current instance of the singleton. The proxy will keep track of the oldest node in the cluster and resolve the singleton&rsquo;s <code>ActorRef</code> by explicitly sending the singleton&rsquo;s <code>actorSelection</code> the <code>akka.actor.Identify</code> message and waiting for it to reply. This is performed periodically if the singleton doesn&rsquo;t reply within a certain (configurable) time. Given the implementation, there might be periods of time during which the <code>ActorRef</code> is unavailable, e.g., when a node leaves the cluster. In these cases, the proxy will buffer the messages sent to the singleton and then deliver them when the singleton is finally available. If the buffer is full the <code>ClusterSingletonProxy</code> will drop old messages when new messages are sent via the proxy. The size of the buffer is configurable and it can be disabled by using a buffer size of 0.</p>
+
+<p>See <a href="typed/cluster-singleton.html#potential-problems-to-be-aware-of">Cluster Singleton - Potential problems to be aware of</a>.</p>
+
+<h2><a href="#an-example" name="an-example" class="anchor"><span class="anchor-link"></span></a>An Example</h2>
+
+<p>Assume that we need one single entry point to an external system. An actor that receives messages from a JMS queue with the strict requirement that only one JMS consumer must exist to make sure that the messages are processed in order. That is perhaps not how one would like to design things, but a typical real-world scenario when integrating with external systems.</p>
+
+<p>Before explaining how to create a cluster singleton actor, let&rsquo;s define message classes <span class="group-java">and their corresponding factory methods</span> which will be used by the singleton.</p>
+
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.6.19/akka-cluster-tools/src/multi-jvm/scala/akka/cluster/singleton/ClusterSingletonManagerSpec.scala#L52-L117" target="_blank" title="Go to snippet source">source</a><code class="language-scala">object PointToPointChannel {
+  case object UnregistrationOk extends CborSerializable
+}
+object Consumer {
+  case object End extends CborSerializable
+  case object GetCurrent extends CborSerializable
+  case object Ping extends CborSerializable
+  case object Pong extends CborSerializable
+}</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.6.19/akka-cluster-tools/src/test/java/akka/cluster/singleton/TestSingletonMessages.java#L8-L82" target="_blank" title="Go to snippet source">source</a><code class="language-java">public class TestSingletonMessages {
+  public static class UnregistrationOk {}
+
+  public static class End {}
+
+  public static class Ping {}
+
+  public static class Pong {}
+
+  public static class GetCurrent {}
+
+  public static UnregistrationOk unregistrationOk() {
+    return new UnregistrationOk();
+  }
+
+  public static End end() {
+    return new End();
+  }
+
+  public static Ping ping() {
+    return new Ping();
+  }
+
+  public static Pong pong() {
+    return new Pong();
+  }
+
+  public static GetCurrent getCurrent() {
+    return new GetCurrent();
+  }
+}</code></pre></dd>
+</dl>
+<p>On each node in the cluster you need to start the <code>ClusterSingletonManager</code> and supply the <code>Props</code> of the singleton actor, in this case the JMS queue consumer.</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.6.19/akka-cluster-tools/src/multi-jvm/scala/akka/cluster/singleton/ClusterSingletonManagerSpec.scala#L222-L227" target="_blank" title="Go to snippet source">source</a><code class="language-scala">system.actorOf(
+  ClusterSingletonManager.props(
+    singletonProps = Props(classOf[Consumer], queue, testActor),
+    terminationMessage = End,
+    settings = ClusterSingletonManagerSettings(system).withRole(&quot;worker&quot;)),
+  name = &quot;consumer&quot;)</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.6.19/akka-cluster-tools/src/test/java/akka/cluster/singleton/ClusterSingletonManagerTest.java#L21-L29" target="_blank" title="Go to snippet source">source</a><code class="language-java">final ClusterSingletonManagerSettings settings =
+    ClusterSingletonManagerSettings.create(system).withRole(&quot;worker&quot;);
+
+system.actorOf(
+    ClusterSingletonManager.props(
+        Props.create(Consumer.class, () -&gt; new Consumer(queue, testActor)),
+        TestSingletonMessages.end(),
+        settings),
+    &quot;consumer&quot;);</code></pre></dd>
+</dl>
+<p>Here we limit the singleton to nodes tagged with the <code>&quot;worker&quot;</code> role, but all nodes, independent of role, can be used by not specifying <code>withRole</code>.</p>
+<p>We use an application specific <code>terminationMessage</code> <span class="group-java">(i.e. <code>TestSingletonMessages.end()</code> message)</span> to be able to close the resources before actually stopping the singleton actor. Note that <code>PoisonPill</code> is a perfectly fine <code>terminationMessage</code> if you only need to stop the actor.</p>
+<p>Here is how the singleton actor handles the <code>terminationMessage</code> in this example.</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.6.19/akka-cluster-tools/src/multi-jvm/scala/akka/cluster/singleton/ClusterSingletonManagerSpec.scala#L149-L155" target="_blank" title="Go to snippet source">source</a><code class="language-scala">case End =&gt;
+  queue ! UnregisterConsumer
+case UnregistrationOk =&gt;
+  stoppedBeforeUnregistration = false
+  context.stop(self)
+case Ping =&gt;
+  sender() ! Pong</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.6.19/akka-cluster-tools/src/test/java/akka/cluster/singleton/Consumer.java#L53-L60" target="_blank" title="Go to snippet source">source</a><code class="language-java">.match(End.class, message -&gt; queue.tell(UnregisterConsumer.class, getSelf()))
+.match(
+    UnregistrationOk.class,
+    message -&gt; {
+      stoppedBeforeUnregistration = false;
+      getContext().stop(getSelf());
+    })
+.match(Ping.class, message -&gt; getSender().tell(TestSingletonMessages.pong(), getSelf()))</code></pre></dd>
+</dl>
+<p>With the names given above, access to the singleton can be obtained from any cluster node using a properly configured proxy.</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.6.19/akka-cluster-tools/src/multi-jvm/scala/akka/cluster/singleton/ClusterSingletonManagerSpec.scala#L233-L237" target="_blank" title="Go to snippet source">source</a><code class="language-scala">val proxy = system.actorOf(
+  ClusterSingletonProxy.props(
+    singletonManagerPath = &quot;/user/consumer&quot;,
+    settings = ClusterSingletonProxySettings(system).withRole(&quot;worker&quot;)),
+  name = &quot;consumerProxy&quot;)</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.6.19/akka-cluster-tools/src/test/java/akka/cluster/singleton/ClusterSingletonManagerTest.java#L33-L38" target="_blank" title="Go to snippet source">source</a><code class="language-java">ClusterSingletonProxySettings proxySettings =
+    ClusterSingletonProxySettings.create(system).withRole(&quot;worker&quot;);
+
+ActorRef proxy =
+    system.actorOf(
+        ClusterSingletonProxy.props(&quot;/user/consumer&quot;, proxySettings), &quot;consumerProxy&quot;);</code></pre></dd>
+</dl>
+<p>A more comprehensive sample is available in the tutorial named <span class="group-scala"><a href="https://github.com/typesafehub/activator-akka-distributed-workers">Distributed workers with Akka and Scala!</a></span><span class="group-java"><a href="https://github.com/typesafehub/activator-akka-distributed-workers-java">Distributed workers with Akka and Java!</a></span>.</p>
+<h2><a href="#configuration" name="configuration" class="anchor"><span class="anchor-link"></span></a>Configuration</h2>
+<p>For the full documentation of this feature and for new projects see <a href="typed/cluster-singleton.html#configuration">Cluster Singleton - configuration</a>.</p>
+<h2><a href="#supervision" name="supervision" class="anchor"><span class="anchor-link"></span></a>Supervision</h2>
+<p>There are two actors that could potentially be supervised. For the <code>consumer</code> singleton created above these would be: </p>
+<ul>
+  <li>Cluster singleton manager e.g. <code>/user/consumer</code> which runs on every node in the cluster</li>
+  <li>The user actor e.g. <code>/user/consumer/singleton</code> which the manager starts on the oldest node</li>
+</ul>
+<p>The Cluster singleton manager actor should not have its supervision strategy changed as it should always be running. However it is sometimes useful to add supervision for the user actor. To accomplish this add a parent supervisor actor which will be used to create the &lsquo;real&rsquo; singleton instance. Below is an example implementation (credit to <a href="https://stackoverflow.com/questions/36701898/how-to-supervise-cluster-singleton-in-akka/36716708#36716708">this StackOverflow answer</a>)</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.6.19/akka-docs/src/test/scala/docs/cluster/singleton/ClusterSingletonSupervision.scala#L8-L15" target="_blank" title="Go to snippet source">source</a><code class="language-scala">import akka.actor.{ Actor, Props, SupervisorStrategy }
+class SupervisorActor(childProps: Props, override val supervisorStrategy: SupervisorStrategy) extends Actor {
+  val child = context.actorOf(childProps, &quot;supervised-child&quot;)
+
+  def receive = {
+    case msg =&gt; child.forward(msg)
+  }
+}</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.6.19/akka-docs/src/test/java/jdocs/cluster/singleton/SupervisorActor.java#L8-L34" target="_blank" title="Go to snippet source">source</a><code class="language-java">import akka.actor.AbstractActor;
+import akka.actor.AbstractActor.Receive;
+import akka.actor.ActorRef;
+import akka.actor.Props;
+import akka.actor.SupervisorStrategy;
+
+public class SupervisorActor extends AbstractActor {
+  final Props childProps;
+  final SupervisorStrategy supervisorStrategy;
+  final ActorRef child;
+
+  SupervisorActor(Props childProps, SupervisorStrategy supervisorStrategy) {
+    this.childProps = childProps;
+    this.supervisorStrategy = supervisorStrategy;
+    this.child = getContext().actorOf(childProps, &quot;supervised-child&quot;);
+  }
+
+  @Override
+  public SupervisorStrategy supervisorStrategy() {
+    return supervisorStrategy;
+  }
+
+  @Override
+  public Receive createReceive() {
+    return receiveBuilder().matchAny(msg -&gt; child.forward(msg, getContext())).build();
+  }
+}</code></pre></dd>
+</dl>
+<p>And used here</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.6.19/akka-docs/src/test/scala/docs/cluster/singleton/ClusterSingletonSupervision.scala#L23-L30" target="_blank" title="Go to snippet source">source</a><code class="language-scala">import akka.actor.{ PoisonPill, Props }
+import akka.cluster.singleton.{ ClusterSingletonManager, ClusterSingletonManagerSettings }
+context.system.actorOf(
+  ClusterSingletonManager.props(
+    singletonProps = Props(classOf[SupervisorActor], props, supervisorStrategy),
+    terminationMessage = PoisonPill,
+    settings = ClusterSingletonManagerSettings(context.system)),
+  name = name)</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.6.19/akka-docs/src/test/java/jdocs/cluster/singleton/ClusterSingletonSupervision.java#L13-L16" target="_blank" title="Go to snippet source">source</a><code class="language-java">import akka.actor.PoisonPill;
+import akka.actor.Props;
+import akka.cluster.singleton.ClusterSingletonManager;
+import akka.cluster.singleton.ClusterSingletonManagerSettings;</code></pre>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.6.19/akka-docs/src/test/java/jdocs/cluster/singleton/ClusterSingletonSupervision.java#L23-L31" target="_blank" title="Go to snippet source">source</a><code class="language-java">return getContext()
+    .system()
+    .actorOf(
+        ClusterSingletonManager.props(
+            Props.create(
+                SupervisorActor.class, () -&gt; new SupervisorActor(props, supervisorStrategy)),
+            PoisonPill.getInstance(),
+            ClusterSingletonManagerSettings.create(getContext().system())),
+        name = name);</code></pre></dd>
+</dl>
+<h2><a href="#lease" name="lease" class="anchor"><span class="anchor-link"></span></a>Lease</h2>
+<p>For the full documentation of this feature and for new projects see <a href="typed/cluster-singleton.html#lease">Cluster Singleton - Lease</a>.</p>
+</div>
+</article>
+<div class="row">
+<div class="small-12 column">
+<section class="nav-prev-next row">
+<div class="nav-prev small-6 column">
+<a href="cluster-routing.html"><i class="icon-prev"></i> <span class="link-prev">Classic Cluster Aware Routers</span></a>
+</div>
+<div class="nav-next small-6 column clearfix">
+<a class="float-right" href="distributed-pub-sub.html">Classic Distributed Publish Subscribe in Cluster <i class="icon-next"></i></a>
+</div>
+</section>
+</div>
+</div>
+<div class="source-github row">
+Found an error in this documentation? The source code for this page can be found <a href="https://github.com/akka/akka/tree/v2.6.19/akka-docs/src/main/paradox/cluster-singleton.md">here</a>.
+Please feel free to edit and contribute a pull request.
+</div>
+
+<footer class="page-footer row clearfix">
+<img class="akka-icon float-left show-for-medium" src="images/akka-icon.svg" />
+<section class="copyright">
+<div>Akka is Open Source and available under the Apache 2 License.</div>
+<p class="legal">
+&copy; 2011-2022 <a href="https://www.lightbend.com" target="_blank">Lightbend, Inc.</a> |
+<a href="https://www.lightbend.com/legal/licenses" target="_blank">Licenses</a> |
+<a href="https://www.lightbend.com/legal/terms" target="_blank">Terms</a> |
+<a href="https://www.lightbend.com/legal/privacy" target="_blank">Privacy Policy</a> |
+<a href="https://akka.io/cookie/" target="_blank">Cookie Listing</a> |
+<a class="optanon-toggle-display">Cookie Settings</a>
+</p>
+</section>
+
+</footer>
+</section>
+</main>
+</div>
+
+<script type="text/javascript" src="js/scrollsneak.js"></script>
+<script type="text/javascript">jQuery(document).foundation();</script>
+<script type="text/javascript" src="js/groups.js"></script>
+<script type="text/javascript" src="js/page.js"></script>
+<script type="text/javascript" src="js/snippets.js"></script>
+<script type="text/javascript" src="js/magellan.js"></script>
+<script type="text/javascript" src="js/metadata-toggle.js"></script>
+<script type="text/javascript" src="js/lbHeader.js"></script>
+
+<style type="text/css">@import "lib/prettify/prettify.css";</style>
+<script type="text/javascript" src="lib/prettify/prettify.js"></script>
+<script type="text/javascript" src="lib/prettify/lang-scala.js"></script>
+<script type="text/javascript">//<![CDATA[
+jQuery(function(){window.prettyPrint && prettyPrint()});
+//]]></script>
+<!-- Algolia docs search -->
+<script type="text/javascript" src="https://cdn.jsdelivr.net/docsearch.js/2/docsearch.min.js"></script>
+<style>.algolia-autocomplete { display: block !important }</style>
+<script type="text/javascript">
+docsearch({
+apiKey: '543bad5ad786495d9ccd445ed34ed082',
+indexName: 'akka_io',
+inputSelector: '#search',
+algoliaOptions: {
+hitsPerPage: 5
+}
+});
+
+docsearch({
+apiKey: '543bad5ad786495d9ccd445ed34ed082',
+indexName: 'akka_io',
+inputSelector: '#overlay-search',
+algoliaOptions: {
+hitsPerPage: 5
+}
+});
+
+// set up "/" as global shortcut for focusing on search
+jQuery(document).keypress(function (event) {
+if (event.keyCode == 47) {
+jQuery("#search").focus();
+return false; // swallow key event, otherwise the / char would be input into the search box
+}
+});
+</script>
+
+<script type="text/javascript" src="assets/js/warnOldDocs.js"></script>
+<script type="text/javascript" src="assets/js/scalafiddle.js"></script>
+
+
+</body>
+</html>
