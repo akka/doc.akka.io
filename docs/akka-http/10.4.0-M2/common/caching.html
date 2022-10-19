@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html class="no-js" lang="en">
+
+<head>
+<title>Caching &bull; Akka HTTP</title>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta name="description" content="Akka Http: Modern, fast, asynchronous, streaming-first HTTP server and client."/>
+<link rel="canonical" href="https://doc.akka.io/docs/akka-http/current/common/caching.html"/>
+<script type="text/javascript" src="../lib/jquery/jquery.min.js"></script>
+<script type="text/javascript" src="../lib/foundation/dist/js/foundation.min.js"></script>
+<link rel="stylesheet" type="text/css" href="../lib/normalize.css/normalize.css"/>
+<link rel="stylesheet" type="text/css" href="../lib/foundation/dist/css/foundation.min.css"/>
+<link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/docsearch.js/2/docsearch.min.css" />
+<link rel="stylesheet" type="text/css" href="../css/icons.css"/>
+<link rel="stylesheet" type="text/css" href="../css/page-8.css"/>
+<link rel="stylesheet" type="text/css" href="../css/banner-2.css"/>
+<link rel="shortcut icon" href="../images/favicon.ico" />
+<link rel="apple-touch-icon" sizes="180x180" href="../images/apple-touch-icon.png"/>
+<link rel="icon" type="image/png" sizes="32x32" href="../images/favicon-32x32.png"/>
+<link rel="icon" type="image/png" sizes="16x16" href="../images/favicon-16x16.png"/>
+<link rel="manifest" href="../images/manifest.json"/>
+<meta name="msapplication-TileImage" content="../images/mstile-150x150.png"/>
+<meta name="msapplication-TileColor" content="#15a9ce"/>
+<meta name="theme-color" content="#15a9ce"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<!-- OneTrust Cookies Consent Notice (Production Standard, akka.io, en-GB) start -->
+<script src="https://cdn.cookielaw.org/scripttemplates/otSDKStub.js"  type="text/javascript" charset="UTF-8" data-domain-script="28b912e7-09e9-43d5-91e4-3d1897044004" ></script>
+<script type="text/javascript">
+function OptanonWrapper() { }
+</script>
+<!-- OneTrust Cookies Consent Notice (Production Standard, akka.io, en-GB) end -->
+<!--Google Analytics-->
+<script type="text/plain" class="optanon-category-2">
+var _gaq = _gaq || [];
+_gaq.push(['_setAccount', 'UA-21117439-1']);
+_gaq.push(['_setDomainName', 'akka.io']);
+_gaq.push(['_trackPageview']);
+(function() {
+var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+})()
+</script>
+<!-- Google Tag Manager -->
+<script type="text/plain" class="optanon-category-2">
+(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+})(window,document,'script','dataLayer','GTM-KBJGH35');
+</script>
+<!--Marketo-->
+<script type="text/plain" class="optanon-category-3">
+(function() {
+var didInit = false;
+function initMunchkin() {
+if(didInit === false) {
+didInit = true;
+Munchkin.init('558-NCX-702', { 'asyncOnly': true, 'disableClickDelay': true });
+}
+}
+var s = document.createElement('script');
+s.type = 'text/javascript';
+s.async = true;
+s.src = '//munchkin.marketo.net/munchkin.js';
+s.onreadystatechange = function() {
+if (this.readyState == 'complete' || this.readyState == 'loaded') {
+initMunchkin();
+}
+};
+s.onload = initMunchkin;
+document.getElementsByTagName('head')[0].appendChild(s);
+})();
+</script>
+</head>
+
+<body id="underlay" data-toggler="nav-open">
+<div id="lightbend-banner" class="lightbend-banner akka full-width" data-category="OSS Lightbend Banner Impression" data-label="Akka Banner Impression">
+<div class="oss-wrapper">
+<div class="oss-brand">
+<a class="oss-track-link-label" data-category="OSS Lightbend Banner Clicks" data-label="Lightbend Logo - Akka Banner" href="https://www.lightbend.com">
+<img class="lightbend-logo" src="../images/banner-logos/lightbend-reverse.svg" alt="Lightbend" title="Lightbend">
+</a>
+</div>
+<div class="oss-ad no-drop-down">
+<nav id="lightbendRotator" class="lightbend-rotator">
+<a class="oss-track-link-label" data-category="OSS Lightbend Banner Clicks" data-label="Promo Rotator - Lightbend is Changing its Software Licensing Model for Akka Technology. [License FAQ] - Akka Banner" href="https://www.lightbend.com/akka/license-faq">
+<strong>Lightbend</strong> is Changing its Software Licensing Model for Akka Technology. <span class="akka-btn">License FAQ</span>
+</a>
+</nav>
+</div>
+</div>
+</div>
+
+<header class="site-header hide-for-large">
+<div class="sticky-header clearfix">
+<a href="https://akka.io"><img class="logo" src="../images/akka-logo-reverse.svg"/></a>
+
+<button class="menu-icon float-right" type="button" data-toggle="underlay overlay"></button>
+</div>
+<div id="overlay" class="overlay-nav" data-toggler="nav-open">
+<header class="nav-header">
+<div class="nav-header-title">
+<h1><a href="../index.html">Akka HTTP</a></h1>
+</div>
+<div class="nav-header-version">
+Version 10.4.0-M2
+</div>
+<div class="nav-header-groups">
+<select class="supergroup" name="Language"><option class="group" value="group-scala">Scala</option><option class="group" value="group-java">Java</option></select>
+</div>
+<div id="overlay-search-container" class="nav-header-search">
+<input id="overlay-search" type="search" class="search" placeholder="Search" />
+</div>
+</header>
+<nav class="nav-toc">
+<ul>
+  <li><a href="../security.html" class="page">! Security Announcements !</a></li>
+  <li><a href="../release-notes/index.html" class="page">0. Release Notes</a></li>
+  <li><a href="../introduction.html" class="page">1. Introduction</a></li>
+  <li><a href="../usage.html" class="page">2. Usage</a></li>
+  <li><a href="../common/index.html" class="page">3. Data Types &amp; Abstractions</a>
+  <ul>
+    <li><a href="../common/http-model.html" class="page">HTTP Model</a></li>
+    <li><a href="../common/uri-model.html" class="page">The URI model</a></li>
+    <li><a href="../common/marshalling.html" class="page">Marshalling</a></li>
+    <li><a href="../common/unmarshalling.html" class="page">Unmarshalling</a></li>
+    <li><a href="../common/encoding.html" class="page">Encoding / Decoding</a></li>
+    <li><a href="../common/json-support.html" class="page">JSON Support</a></li>
+    <li><a href="../common/xml-support.html" class="page">XML Support</a></li>
+    <li><a href="../common/sse-support.html" class="page">Server-Sent Events Support</a></li>
+    <li><a href="../common/timeouts.html" class="page">Timeouts</a></li>
+    <li><a href="../common/caching.html#caching" class="active page">Caching</a>
+    <ul>
+      <li><a href="../common/caching.html#dependency" class="header">Dependency</a></li>
+      <li><a href="../common/caching.html#basic-design" class="header">Basic design</a></li>
+      <li><a href="../common/caching.html#frequency-biased-lfu-cache" class="header">Frequency-biased LFU cache</a></li>
+    </ul></li>
+  </ul></li>
+  <li><a href="../server-side/index.html" class="page">4. Server API</a></li>
+  <li><a href="../client-side/index.html" class="page">5. Client API</a></li>
+  <li><a href="../extensions.html" class="page">6. Extensions</a></li>
+  <li><a href="../technologies.html" class="page">7. Supported Technologies</a></li>
+  <li><a href="../tipsandtricks.html" class="page">8. Tips And Tricks</a></li>
+  <li><a href="../contributing.html" class="page">9. Contributing</a></li>
+  <li><a href="../reference.html" class="page">10. Reference</a></li>
+</ul>
+</nav>
+</div>
+</header>
+<div class="site-content-wrapper">
+<aside class="sticky-sidebar show-for-large">
+<header class="nav-header sticky-sidebar-header">
+<div class="nav-header-title">
+<h1><a href="../index.html">Akka HTTP</a></h1>
+</div>
+<div class="nav-header-version">
+Version 10.4.0-M2
+</div>
+<div class="nav-header-groups">
+<select class="supergroup" name="Language"><option class="group" value="group-scala">Scala</option><option class="group" value="group-java">Java</option></select>
+</div>
+<div class="nav-header-search">
+<input id="search" type="search" class="search" placeholder="Search" />
+</div>
+</header>
+<nav class="site-nav sticky-sidebar-contents">
+<div class="nav-toc">
+<ul>
+  <li><a href="../security.html" class="page">! Security Announcements !</a></li>
+  <li><a href="../release-notes/index.html" class="page">0. Release Notes</a></li>
+  <li><a href="../introduction.html" class="page">1. Introduction</a></li>
+  <li><a href="../usage.html" class="page">2. Usage</a></li>
+  <li><a href="../common/index.html" class="page">3. Data Types &amp; Abstractions</a>
+  <ul>
+    <li><a href="../common/http-model.html" class="page">HTTP Model</a></li>
+    <li><a href="../common/uri-model.html" class="page">The URI model</a></li>
+    <li><a href="../common/marshalling.html" class="page">Marshalling</a></li>
+    <li><a href="../common/unmarshalling.html" class="page">Unmarshalling</a></li>
+    <li><a href="../common/encoding.html" class="page">Encoding / Decoding</a></li>
+    <li><a href="../common/json-support.html" class="page">JSON Support</a></li>
+    <li><a href="../common/xml-support.html" class="page">XML Support</a></li>
+    <li><a href="../common/sse-support.html" class="page">Server-Sent Events Support</a></li>
+    <li><a href="../common/timeouts.html" class="page">Timeouts</a></li>
+    <li><a href="../common/caching.html#caching" class="active page">Caching</a>
+    <ul>
+      <li><a href="../common/caching.html#dependency" class="header">Dependency</a></li>
+      <li><a href="../common/caching.html#basic-design" class="header">Basic design</a></li>
+      <li><a href="../common/caching.html#frequency-biased-lfu-cache" class="header">Frequency-biased LFU cache</a></li>
+    </ul></li>
+  </ul></li>
+  <li><a href="../server-side/index.html" class="page">4. Server API</a></li>
+  <li><a href="../client-side/index.html" class="page">5. Client API</a></li>
+  <li><a href="../extensions.html" class="page">6. Extensions</a></li>
+  <li><a href="../technologies.html" class="page">7. Supported Technologies</a></li>
+  <li><a href="../tipsandtricks.html" class="page">8. Tips And Tricks</a></li>
+  <li><a href="../contributing.html" class="page">9. Contributing</a></li>
+  <li><a href="../reference.html" class="page">10. Reference</a></li>
+</ul>
+</div>
+</nav>
+<footer class="nav-footer sticky-sidebar-footer">
+<a href="https://akka.io"><img class="logo" src="../images/akka-logo-reverse.svg"/></a>
+
+</footer>
+</aside>
+<main class="fixed-shift-for-large expanded row">
+<section class="site-content small-12 column">
+<article class="page-content row">
+<div class="small-12 column" id="docs">
+<h1><a href="#caching" name="caching" class="anchor"><span class="anchor-link"></span></a>Caching</h1>
+<p>Akka HTTP&rsquo;s caching support provides a lightweight and fast in-memory caching functionality based on futures. The primary use-case is the &ldquo;wrapping&rdquo; of an expensive operation with a caching layer that, based on a certain key of type <code>K</code>, runs the wrapped operation only once and returns the cached value for all future accesses for the same key (as long as the respective entry has not expired).</p>
+<p>Akka HTTP comes with one implementation of the <span class="group-java"><a href="https://doc.akka.io/japi/akka-http/10.4.0-M2/akka/http/caching/javadsl/Cache.html" title="akka.http.caching.javadsl.Cache"><code>Cache</code></a></span><span class="group-scala"><a href="https://doc.akka.io/api/akka-http/10.4.0-M2/akka/http/caching/scaladsl/Cache.html" title="akka.http.caching.scaladsl.Cache"><code>Cache</code></a></span> API built on <a href="https://github.com/ben-manes/caffeine/">Caffeine</a> featuring frequency-biased cache eviction semantics with support for time-based entry expiration.</p>
+<h2><a href="#dependency" name="dependency" class="anchor"><span class="anchor-link"></span></a>Dependency</h2>
+<p>To use Akka HTTP Caching, add the module to your project:</p><dl class="dependency"><dt>sbt</dt><dd><pre class="prettyprint"><code class="language-scala">val AkkaHttpVersion = "10.4.0-M2"
+libraryDependencies += "com.typesafe.akka" %% "akka-http-caching" % AkkaHttpVersion</code></pre></dd><dt>Gradle</dt><dd><pre class="prettyprint"><code class="language-gradle">def versions = [
+  ScalaBinary: "2.13"
+]
+dependencies {
+  implementation platform("com.typesafe.akka:akka-http-bom_${versions.ScalaBinary}:10.4.0-M2")
+
+  implementation "com.typesafe.akka:akka-http-caching_${versions.ScalaBinary}"
+}</code></pre></dd><dt>Maven</dt><dd><pre class="prettyprint"><code class="language-xml">&lt;properties&gt;
+  &lt;scala.binary.version&gt;2.13&lt;/scala.binary.version&gt;
+&lt;/properties&gt;
+&lt;dependencyManagement&gt;
+  &lt;dependencies&gt;
+    &lt;dependency&gt;
+      &lt;groupId&gt;com.typesafe.akka&lt;/groupId&gt;
+      &lt;artifactId&gt;akka-http-bom_${scala.binary.version}&lt;/artifactId&gt;
+      &lt;version&gt;10.4.0-M2&lt;/version&gt;
+      &lt;type&gt;pom&lt;/type&gt;
+      &lt;scope&gt;import&lt;/scope&gt;
+    &lt;/dependency&gt
+  &lt;/dependencies&gt;
+&lt;/dependencyManagement&gt;
+&lt;dependencies&gt
+  &lt;dependency&gt;
+    &lt;groupId&gt;com.typesafe.akka&lt;/groupId&gt;
+    &lt;artifactId&gt;akka-http-caching_${scala.binary.version}&lt;/artifactId&gt;
+  &lt;/dependency&gt
+&lt;/dependencies&gt;</code></pre></dd></dl>
+<h2><a href="#basic-design" name="basic-design" class="anchor"><span class="anchor-link"></span></a>Basic design</h2>
+<p>The central idea of the cache API is to not store the actual values of type <code>T</code> themselves in the cache but rather the corresponding futures, i.e. instances of type <span class="group-java"><code>CompletableFuture&lt;T&gt;</code></span><span class="group-scala"><code>Future[T]</code></span>. This approach has the advantage of taking care of the thundering herds problem where many requests to a particular cache key (e.g. a resource URI) arrive before the first one could be completed. Normally (without special guarding techniques, like so-called &ldquo;cowboy&rdquo; entries) this can cause many requests to compete for system resources while trying to compute the same result thereby greatly reducing overall system performance. When you use an Akka HTTP cache the very first request that arrives for a certain cache key causes a future to be put into the cache which all later requests then &ldquo;hook into&rdquo;. As soon as the first request completes all other ones complete as well. This minimizes processing time and server load for all requests.</p>
+<p>All Akka HTTP cache implementations adheres to the <span class="group-java"><a href="https://doc.akka.io/japi/akka-http/10.4.0-M2/akka/http/caching/javadsl/Cache.html" title="akka.http.caching.javadsl.Cache"><code>Cache</code></a></span><span class="group-scala"><a href="https://doc.akka.io/api/akka-http/10.4.0-M2/akka/http/caching/scaladsl/Cache.html" title="akka.http.caching.scaladsl.Cache"><code>Cache</code></a></span> <span class="group-java">interface</span><span class="group-scala">class</span>, which allows you to interact with the cache.</p>
+<p>Along with the cache API, the routing DSL provides several <a href="../routing-dsl/directives/caching-directives/index.html">caching directives</a> to use caching in your routes.</p>
+<h2><a href="#frequency-biased-lfu-cache" name="frequency-biased-lfu-cache" class="anchor"><span class="anchor-link"></span></a>Frequency-biased LFU cache</h2>
+<p>The frequency-biased LFU cache implementation has a defined maximum number of entries it can store. After the maximum capacity is reached the cache will evict entries that are less likely to be used again. For example, the cache may evict an entry because it hasn&rsquo;t been used recently or very often.</p>
+<p>Time-based entry expiration is enabled when time-to-live and/or time-to-idle expirations are set to a finite duration. The former provides an upper limit to the time period an entry is allowed to remain in the cache while the latter limits the maximum time an entry is kept without having been accessed, ie. either read or updated. If both values are finite the time-to-live has to be greater or equal than the time-to-idle.</p><div class="callout note "><div class="callout-title">Note</div>
+<p>Expired entries are only evicted upon next access (or by being thrown out by the capacity constraint), so they might prevent garbage collection of their values for longer than expected.</p></div>
+<p>For simple cases, configure the capacity and expiration settings in your <code>application.conf</code> file via the settings under <code>akka.http.caching</code> and use <span class="group-java"><code>LfuCache.create()</code></span><span class="group-scala"><code>LfuCache.apply()</code></span> to create the cache. For more advanced usage you can create an <span class="group-scala"><a href="https://doc.akka.io/api/akka-http/10.4.0-M2/akka/http/caching/LfuCache$.html" title="akka.http.caching.LfuCache"><code>LfuCache</code></a></span><span class="group-java"><a href="https://doc.akka.io/japi/akka-http/10.4.0-M2/akka/http/caching/LfuCache.html" title="akka.http.caching.LfuCache"><code>LfuCache</code></a></span> with settings specialized for your use case:</p>
+<dl>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka-http/tree/v10.4.0-M2/docs/src/test/java/docs/http/javadsl/server/directives/CachingDirectivesExamplesTest.java#L30-L33" target="_blank" title="Go to snippet source">source</a><code class="language-java">import akka.http.caching.javadsl.Cache;
+import akka.http.caching.javadsl.CachingSettings;
+import akka.http.caching.javadsl.LfuCacheSettings;
+import akka.http.caching.LfuCache;
+import static akka.http.javadsl.server.directives.CachingDirectives.*;
+import java.util.concurrent.TimeUnit;
+
+// Use the request&#39;s URI as the cache&#39;s key
+final JavaPartialFunction&lt;RequestContext, Uri&gt; keyerFunction = new JavaPartialFunction&lt;RequestContext, Uri&gt;() {
+  public Uri apply(RequestContext in, boolean isCheck) {
+    return in.getRequest().getUri();
+  }
+};
+final CachingSettings defaultCachingSettings = CachingSettings.create(system());
+final LfuCacheSettings lfuCacheSettings = defaultCachingSettings.lfuCacheSettings()
+  .withInitialCapacity(25)
+  .withMaxCapacity(50)
+  .withTimeToLive(Duration.create(20, TimeUnit.SECONDS))
+  .withTimeToIdle(Duration.create(10, TimeUnit.SECONDS));
+final CachingSettings cachingSettings = defaultCachingSettings.withLfuCacheSettings(lfuCacheSettings);
+final Cache&lt;Uri, RouteResult&gt; lfuCache = LfuCache.create(cachingSettings);
+
+// Create the route
+final Route route = cache(lfuCache, keyerFunction, () -&gt; innerRoute);</code></pre></dd>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka-http/tree/v10.4.0-M2/docs/src/test/scala/docs/http/scaladsl/server/directives/CachingDirectivesExamplesSpec.scala#L132-L144" target="_blank" title="Go to snippet source">source</a><code class="language-scala">import akka.http.caching.scaladsl.Cache
+import akka.http.caching.scaladsl.CachingSettings
+import akka.http.caching.LfuCache
+import akka.http.scaladsl.server.RequestContext
+import akka.http.scaladsl.server.RouteResult
+import akka.http.scaladsl.model.Uri
+import akka.http.scaladsl.server.directives.CachingDirectives._
+import scala.concurrent.duration._
+
+// Use the request&#39;s URI as the cache&#39;s key
+val keyerFunction: PartialFunction[RequestContext, Uri] = {
+  case r: RequestContext =&gt; r.request.uri
+}
+val defaultCachingSettings = CachingSettings(system)
+val lfuCacheSettings =
+  defaultCachingSettings.lfuCacheSettings
+    .withInitialCapacity(25)
+    .withMaxCapacity(50)
+    .withTimeToLive(20.seconds)
+    .withTimeToIdle(10.seconds)
+val cachingSettings =
+  defaultCachingSettings.withLfuCacheSettings(lfuCacheSettings)
+val lfuCache: Cache[Uri, RouteResult] = LfuCache(cachingSettings)
+
+// Create the route
+val route = cache(lfuCache, keyerFunction)(innerRoute)</code></pre></dd>
+</dl>
+</div>
+</article>
+<div class="row">
+<div class="small-12 column">
+<section class="nav-prev-next row">
+<div class="nav-prev small-6 column">
+<a href="../common/timeouts.html"><i class="icon-prev"></i> <span class="link-prev">Timeouts</span></a>
+</div>
+<div class="nav-next small-6 column clearfix">
+<a class="float-right" href="../server-side/index.html">4. Server API <i class="icon-next"></i></a>
+</div>
+</section>
+</div>
+</div>
+<div class="source-github row">
+Found an error in this documentation? The source code for this page can be found <a href="https://github.com/akka/akka-http/tree/v10.4.0-M2/docs/src/main/paradox/common/caching.md">here</a>.
+Please feel free to edit and contribute a pull request.
+</div>
+
+<footer class="page-footer row clearfix">
+<img class="akka-icon float-left show-for-medium" src="../images/akka-icon.svg" />
+<section class="copyright">
+<div>Akka HTTP is available under the <a href="https://www.lightbend.com/akka/license" target="_blank">Business Source License 1.1</a>.</div>
+<p class="legal">
+&copy; 2011-2022 <a href="https://www.lightbend.com" target="_blank">Lightbend, Inc.</a> |
+<a href="https://www.lightbend.com/legal/licenses" target="_blank">Licenses</a> |
+<a href="https://www.lightbend.com/legal/terms" target="_blank">Terms</a> |
+<a href="https://www.lightbend.com/legal/privacy" target="_blank">Privacy Policy</a> |
+<a href="https://akka.io/cookie/" target="_blank">Cookie Listing</a> |
+<a class="optanon-toggle-display">Cookie Settings</a>
+</p>
+</section>
+
+</footer>
+</section>
+</main>
+</div>
+
+<script type="text/javascript" src="../js/scrollsneak.js"></script>
+<script type="text/javascript">jQuery(document).foundation();</script>
+<script type="text/javascript" src="../js/groups.js"></script>
+<script type="text/javascript" src="../js/page.js"></script>
+<script type="text/javascript" src="../js/snippets.js"></script>
+<script type="text/javascript" src="../js/magellan.js"></script>
+<script type="text/javascript" src="../js/metadata-toggle.js"></script>
+<script type="text/javascript" src="../js/lbHeader.js"></script>
+
+<style type="text/css">@import "../lib/prettify/prettify.css";</style>
+<script type="text/javascript" src="../lib/prettify/prettify.js"></script>
+<script type="text/javascript" src="../lib/prettify/lang-scala.js"></script>
+<script type="text/javascript">//<![CDATA[
+jQuery(function(){window.prettyPrint && prettyPrint()});
+//]]></script>
+<!-- Algolia docs search -->
+<script type="text/javascript" src="https://cdn.jsdelivr.net/docsearch.js/2/docsearch.min.js"></script>
+<style>.algolia-autocomplete { display: block !important }</style>
+<script type="text/javascript">
+docsearch({
+apiKey: '0ccbb8bf5148554a406fbf07df0a93b9',
+indexName: 'akka-http',
+inputSelector: '#search',
+algoliaOptions: {
+hitsPerPage: 5
+}
+});
+
+docsearch({
+apiKey: '0ccbb8bf5148554a406fbf07df0a93b9',
+indexName: 'akka-http',
+inputSelector: '#overlay-search',
+algoliaOptions: {
+hitsPerPage: 5
+}
+});
+
+// set up "/" as global shortcut for focusing on search
+jQuery(document).keypress(function (event) {
+if (event.keyCode == 47) {
+jQuery("#search").focus();
+return false; // swallow key event, otherwise the / char would be input into the search box
+}
+});
+</script>
+
+<script type="text/javascript" src="../assets/js/warnOldDocs.js"></script>
+<script type="text/javascript" src="../assets/js/scrollToFragment.js"></script>
+
+
+</body>
+</html>

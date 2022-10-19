@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html class="no-js" lang="en">
+
+<head>
+<title>Rolling Updates &bull; Akka Documentation</title>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta name="description" content="How to do rolling updates and restarts with Akka Cluster."/>
+<link rel="canonical" href="https://doc.akka.io/docs/akka/current/additional/rolling-updates.html"/>
+<script type="text/javascript" src="../lib/jquery/jquery.min.js"></script>
+<script type="text/javascript" src="../lib/foundation/dist/js/foundation.min.js"></script>
+<link rel="stylesheet" type="text/css" href="../lib/normalize.css/normalize.css"/>
+<link rel="stylesheet" type="text/css" href="../lib/foundation/dist/css/foundation.min.css"/>
+<link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/docsearch.js/2/docsearch.min.css" />
+<link rel="stylesheet" type="text/css" href="../css/icons.css"/>
+<link rel="stylesheet" type="text/css" href="../css/page-8.css"/>
+<link rel="stylesheet" type="text/css" href="../css/banner-2.css"/>
+<link rel="shortcut icon" href="../images/favicon.ico" />
+<link rel="apple-touch-icon" sizes="180x180" href="../images/apple-touch-icon.png"/>
+<link rel="icon" type="image/png" sizes="32x32" href="../images/favicon-32x32.png"/>
+<link rel="icon" type="image/png" sizes="16x16" href="../images/favicon-16x16.png"/>
+<link rel="manifest" href="../images/manifest.json"/>
+<meta name="msapplication-TileImage" content="../images/mstile-150x150.png"/>
+<meta name="msapplication-TileColor" content="#15a9ce"/>
+<meta name="theme-color" content="#15a9ce"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<!-- OneTrust Cookies Consent Notice (Production Standard, akka.io, en-GB) start -->
+<script src="https://cdn.cookielaw.org/scripttemplates/otSDKStub.js"  type="text/javascript" charset="UTF-8" data-domain-script="28b912e7-09e9-43d5-91e4-3d1897044004" ></script>
+<script type="text/javascript">
+function OptanonWrapper() { }
+</script>
+<!-- OneTrust Cookies Consent Notice (Production Standard, akka.io, en-GB) end -->
+<!--Google Analytics-->
+<script type="text/plain" class="optanon-category-2">
+var _gaq = _gaq || [];
+_gaq.push(['_setAccount', 'UA-21117439-1']);
+_gaq.push(['_setDomainName', 'akka.io']);
+_gaq.push(['_trackPageview']);
+(function() {
+var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+})()
+</script>
+<!-- Google Tag Manager -->
+<script type="text/plain" class="optanon-category-2">
+(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+})(window,document,'script','dataLayer','GTM-KBJGH35');
+</script>
+<!--Marketo-->
+<script type="text/plain" class="optanon-category-3">
+(function() {
+var didInit = false;
+function initMunchkin() {
+if(didInit === false) {
+didInit = true;
+Munchkin.init('558-NCX-702', { 'asyncOnly': true, 'disableClickDelay': true });
+}
+}
+var s = document.createElement('script');
+s.type = 'text/javascript';
+s.async = true;
+s.src = '//munchkin.marketo.net/munchkin.js';
+s.onreadystatechange = function() {
+if (this.readyState == 'complete' || this.readyState == 'loaded') {
+initMunchkin();
+}
+};
+s.onload = initMunchkin;
+document.getElementsByTagName('head')[0].appendChild(s);
+})();
+</script>
+</head>
+
+<body id="underlay" data-toggler="nav-open">
+<div id="lightbend-banner" class="lightbend-banner akka full-width" data-category="OSS Lightbend Banner Impression" data-label="Akka Banner Impression">
+<div class="oss-wrapper">
+<div class="oss-brand">
+<a class="oss-track-link-label" data-category="OSS Lightbend Banner Clicks" data-label="Lightbend Logo - Akka Banner" href="https://www.lightbend.com">
+<img class="lightbend-logo" src="../images/banner-logos/lightbend-reverse.svg" alt="Lightbend" title="Lightbend">
+</a>
+</div>
+<div class="oss-ad no-drop-down">
+<nav id="lightbendRotator" class="lightbend-rotator">
+<a class="oss-track-link-label" data-category="OSS Lightbend Banner Clicks" data-label="Promo Rotator - Lightbend is Changing its Software Licensing Model for Akka Technology. [License FAQ] - Akka Banner" href="https://www.lightbend.com/akka/license-faq">
+<strong>Lightbend</strong> is Changing its Software Licensing Model for Akka Technology. <span class="akka-btn">License FAQ</span>
+</a>
+</nav>
+</div>
+</div>
+</div>
+
+<header class="site-header hide-for-large">
+<div class="sticky-header clearfix">
+<a href="https://akka.io"><img class="logo" src="../images/akka-logo-reverse.svg"/></a>
+
+<button class="menu-icon float-right" type="button" data-toggle="underlay overlay"></button>
+</div>
+<div id="overlay" class="overlay-nav" data-toggler="nav-open">
+<header class="nav-header">
+<div class="nav-header-title">
+<h1><a href="../index.html">Akka Documentation</a></h1>
+</div>
+<div class="nav-header-version">
+Version 2.7.0-M5
+</div>
+<div class="nav-header-groups">
+<select class="supergroup" name="Language"><option class="group" value="group-scala">Scala</option><option class="group" value="group-java">Java</option></select>
+</div>
+<div id="overlay-search-container" class="nav-header-search">
+<input id="overlay-search" type="search" class="search" placeholder="Search" />
+</div>
+</header>
+<nav class="nav-toc">
+<ul>
+  <li><a href="../security/index.html" class="page">Security Announcements</a></li>
+  <li><a href="../typed/guide/index.html" class="page">Getting Started Guide</a></li>
+  <li><a href="../general/index.html" class="page">General Concepts</a></li>
+  <li><a href="../typed/index.html" class="page">Actors</a></li>
+  <li><a href="../typed/index-cluster.html" class="page">Cluster</a></li>
+  <li><a href="../typed/index-persistence.html" class="page">Persistence (Event Sourcing)</a></li>
+  <li><a href="../typed/index-persistence-durable-state.html" class="page">Persistence (Durable State)</a></li>
+  <li><a href="../stream/index.html" class="page">Streams</a></li>
+  <li><a href="../discovery/index.html" class="page">Discovery</a></li>
+  <li><a href="../index-utilities.html" class="page">Utilities</a></li>
+  <li><a href="../common/other-modules.html" class="page">Other Akka modules</a></li>
+  <li><a href="../additional/deploy.html" class="page">Package, Deploy and Run</a>
+  <ul>
+    <li><a href="../additional/packaging.html" class="page">Packaging</a></li>
+    <li><a href="../additional/operations.html" class="page">Operating a Cluster</a></li>
+    <li><a href="../additional/deploying.html" class="page">Deploying</a></li>
+    <li><a href="../additional/rolling-updates.html#rolling-updates" class="active page">Rolling Updates</a>
+    <ul>
+      <li><a href="../additional/rolling-updates.html#serialization-compatibility" class="header">Serialization Compatibility</a></li>
+      <li><a href="../additional/rolling-updates.html#cluster-sharding" class="header">Cluster Sharding</a></li>
+      <li><a href="../additional/rolling-updates.html#cluster-singleton" class="header">Cluster Singleton</a></li>
+      <li><a href="../additional/rolling-updates.html#cluster-shutdown" class="header">Cluster Shutdown</a></li>
+      <li><a href="../additional/rolling-updates.html#configuration-compatibility-checks" class="header">Configuration Compatibility Checks</a></li>
+      <li><a href="../additional/rolling-updates.html#rolling-updates-and-migrating-akka" class="header">Rolling Updates and Migrating Akka</a></li>
+      <li><a href="../additional/rolling-updates.html#when-shutdown-startup-is-required" class="header">When Shutdown Startup Is Required</a></li>
+    </ul></li>
+  </ul></li>
+  <li><a href="../project/index.html" class="page">Project Information</a></li>
+  <li><a href="../index-classic.html" class="page">Akka Classic</a></li>
+</ul>
+</nav>
+</div>
+</header>
+<div class="site-content-wrapper">
+<aside class="sticky-sidebar show-for-large">
+<header class="nav-header sticky-sidebar-header">
+<div class="nav-header-title">
+<h1><a href="../index.html">Akka Documentation</a></h1>
+</div>
+<div class="nav-header-version">
+Version 2.7.0-M5
+</div>
+<div class="nav-header-groups">
+<select class="supergroup" name="Language"><option class="group" value="group-scala">Scala</option><option class="group" value="group-java">Java</option></select>
+</div>
+<div class="nav-header-search">
+<input id="search" type="search" class="search" placeholder="Search" />
+</div>
+</header>
+<nav class="site-nav sticky-sidebar-contents">
+<div class="nav-toc">
+<ul>
+  <li><a href="../security/index.html" class="page">Security Announcements</a></li>
+  <li><a href="../typed/guide/index.html" class="page">Getting Started Guide</a></li>
+  <li><a href="../general/index.html" class="page">General Concepts</a></li>
+  <li><a href="../typed/index.html" class="page">Actors</a></li>
+  <li><a href="../typed/index-cluster.html" class="page">Cluster</a></li>
+  <li><a href="../typed/index-persistence.html" class="page">Persistence (Event Sourcing)</a></li>
+  <li><a href="../typed/index-persistence-durable-state.html" class="page">Persistence (Durable State)</a></li>
+  <li><a href="../stream/index.html" class="page">Streams</a></li>
+  <li><a href="../discovery/index.html" class="page">Discovery</a></li>
+  <li><a href="../index-utilities.html" class="page">Utilities</a></li>
+  <li><a href="../common/other-modules.html" class="page">Other Akka modules</a></li>
+  <li><a href="../additional/deploy.html" class="page">Package, Deploy and Run</a>
+  <ul>
+    <li><a href="../additional/packaging.html" class="page">Packaging</a></li>
+    <li><a href="../additional/operations.html" class="page">Operating a Cluster</a></li>
+    <li><a href="../additional/deploying.html" class="page">Deploying</a></li>
+    <li><a href="../additional/rolling-updates.html#rolling-updates" class="active page">Rolling Updates</a>
+    <ul>
+      <li><a href="../additional/rolling-updates.html#serialization-compatibility" class="header">Serialization Compatibility</a></li>
+      <li><a href="../additional/rolling-updates.html#cluster-sharding" class="header">Cluster Sharding</a></li>
+      <li><a href="../additional/rolling-updates.html#cluster-singleton" class="header">Cluster Singleton</a></li>
+      <li><a href="../additional/rolling-updates.html#cluster-shutdown" class="header">Cluster Shutdown</a></li>
+      <li><a href="../additional/rolling-updates.html#configuration-compatibility-checks" class="header">Configuration Compatibility Checks</a></li>
+      <li><a href="../additional/rolling-updates.html#rolling-updates-and-migrating-akka" class="header">Rolling Updates and Migrating Akka</a></li>
+      <li><a href="../additional/rolling-updates.html#when-shutdown-startup-is-required" class="header">When Shutdown Startup Is Required</a></li>
+    </ul></li>
+  </ul></li>
+  <li><a href="../project/index.html" class="page">Project Information</a></li>
+  <li><a href="../index-classic.html" class="page">Akka Classic</a></li>
+</ul>
+</div>
+</nav>
+<footer class="nav-footer sticky-sidebar-footer">
+<a href="https://akka.io"><img class="logo" src="../images/akka-logo-reverse.svg"/></a>
+
+</footer>
+</aside>
+<main class="fixed-shift-for-large expanded row">
+<section class="site-content small-12 column">
+<article class="page-content row">
+<div class="small-12 column" id="docs">
+<h1><a href="#rolling-updates" name="rolling-updates" class="anchor"><span class="anchor-link"></span></a>Rolling Updates</h1><div class="callout note "><div class="callout-title">Note</div>
+<p>There are a few instances <a href="rolling-updates.html#when-shutdown-startup-is-required">when a full cluster restart is required</a> versus being able to do a rolling update.</p></div>
+<p>A rolling update is the process of replacing one version of the system with another without downtime. The changes can be new code, changed dependencies such as new Akka version, or modified configuration.</p>
+<p>In Akka, rolling updates are typically used for a stateful Akka Cluster where you can&rsquo;t run two separate clusters in parallel during the update, for example in blue green deployments.</p>
+<p>For rolling updates related to Akka dependency version upgrades and the migration guides, please see <a href="../project/rolling-update.html">Rolling Updates and Akka versions</a></p>
+<h2><a href="#serialization-compatibility" name="serialization-compatibility" class="anchor"><span class="anchor-link"></span></a>Serialization Compatibility</h2>
+<p>There are two parts of Akka that need careful consideration when performing an rolling update.</p>
+<ol>
+  <li>Compatibility of remote message protocols. Old nodes may send messages to new nodes and vice versa.</li>
+  <li>Serialization format of persisted events and snapshots. New nodes must be able to read old data, and  during the update old nodes must be able to read data stored by new nodes.</li>
+</ol>
+<p>There are many more application specific aspects for serialization changes during rolling updates to consider. For example based on the use case and requirements, whether to allow dropped messages or tear down the TCP connection when the manifest is unknown. When some message loss during a rolling update is acceptable versus a full shutdown and restart, assuming the application recovers afterwards * If a <code>java.io.NotSerializableException</code> is thrown in <code>fromBinary</code> this is treated as a transient problem, the issue logged and the message is dropped * If other exceptions are thrown it can be an indication of corrupt bytes from the underlying transport, and the connection is broken</p>
+<p>For more zero-impact rolling updates, it is important to consider a strategy for serialization that can be evolved. One approach to retiring a serializer without downtime is described in <a href="../serialization.html#rolling-updates">two rolling update steps to switch to the new serializer</a>. Additionally you can find advice on <a href="../persistence-schema-evolution.html">Persistence - Schema Evolution</a> which also applies to remote messages when deploying with rolling updates.</p>
+<h2><a href="#cluster-sharding" name="cluster-sharding" class="anchor"><span class="anchor-link"></span></a>Cluster Sharding</h2>
+<p>During a rolling update, sharded entities receiving traffic may be moved, based on the pluggable allocation strategy and settings. When an old node is stopped the shards that were running on it are moved to one of the other remaining nodes in the cluster when messages are sent to those shards.</p>
+<p>To make rolling updates as smooth as possible there is a configuration property that defines the version of the application. This is used by rolling update features to distinguish between old and new nodes. For example, the default <code>LeastShardAllocationStrategy</code> avoids allocating shards to old nodes during a rolling update. The <code>LeastShardAllocationStrategy</code> sees that there is rolling update in progress when there are members with different configured <code>app-version</code>.</p>
+<p>To make use of this feature you need to define the <code>app-version</code> and increase it for each rolling update.</p>
+<pre><code>akka.cluster.app-version = 1.2.3
+</code></pre>
+<p>To understand which is old and new it compares the version numbers using normal conventions, see <span class="group-scala"><a href="https://doc.akka.io/api/akka/2.7/akka/util/Version.html" title="akka.util.Version"><code>Version</code></a></span><span class="group-java"><a href="https://doc.akka.io/japi/akka/2.7/akka/util/Version.html" title="akka.util.Version"><code>Version</code></a></span> for more details.</p>
+<p>Rebalance is also disabled during rolling updates, since shards from stopped nodes are anyway supposed to be started on new nodes. Messages to shards that were stopped on the old nodes will allocate corresponding shards on the new nodes, without waiting for rebalance actions. </p>
+<p>You should also enable the <a href="../typed/cluster-sharding.html#health-check">health check for Cluster Sharding</a> if you use Akka Management. The readiness check will delay incoming traffic to the node until Sharding has been initialized and can accept messages.</p>
+<p>The <code>ShardCoordinator</code> is itself a cluster singleton. To minimize downtime of the shard coordinator, see the strategies about <a href="rolling-updates.html#cluster-singleton">ClusterSingleton</a> rolling updates below.</p>
+<p>A few specific changes to sharding configuration require <a href="rolling-updates.html#cluster-sharding-configuration-change">a full cluster restart</a>.</p>
+<h2><a href="#cluster-singleton" name="cluster-singleton" class="anchor"><span class="anchor-link"></span></a>Cluster Singleton</h2>
+<p>Cluster singletons are always running on the oldest node. To avoid moving cluster singletons more than necessary during a rolling update, it is recommended to upgrade the oldest node last. This way cluster singletons are only moved once during a full rolling update. Otherwise, in the worst case cluster singletons may be migrated from node to node which requires coordination and initialization overhead several times.</p>
+<p><a href="https://kubernetes.io/docs/concepts/workloads/controllers/deployment/">Kubernetes Deployments</a> with <code>RollingUpdate</code> strategy will roll out updates in this preferred order, from newest to oldest. </p>
+<h2><a href="#cluster-shutdown" name="cluster-shutdown" class="anchor"><span class="anchor-link"></span></a>Cluster Shutdown</h2>
+<h3><a href="#graceful-shutdown" name="graceful-shutdown" class="anchor"><span class="anchor-link"></span></a>Graceful shutdown</h3>
+<p>For rolling updates it is best to leave the Cluster gracefully via <a href="../coordinated-shutdown.html">Coordinated Shutdown</a>, which will run automatically on SIGTERM, when the Cluster node sees itself as <code>Exiting</code>. Environments such as Kubernetes send a SIGTERM, however if the JVM is wrapped with a script ensure that it forwards the signal. <a href="../cluster-sharding.html#graceful-shutdown">Graceful shutdown</a> of Cluster Singletons and Cluster Sharding similarly happen automatically.</p>
+<h3><a href="#ungraceful-shutdown" name="ungraceful-shutdown" class="anchor"><span class="anchor-link"></span></a>Ungraceful shutdown</h3>
+<p>In case of network failures it may still be necessary to set the node&rsquo;s status to Down in order to complete the removal. <a href="../typed/cluster.html#downing">Cluster Downing</a> details downing nodes and downing providers. <a href="../split-brain-resolver.html">Split Brain Resolver</a> can be used to ensure the cluster continues to function during network partitions and node failures. For example if there is an unreachability problem Split Brain Resolver would make a decision based on the configured downing strategy. </p>
+<h2><a href="#configuration-compatibility-checks" name="configuration-compatibility-checks" class="anchor"><span class="anchor-link"></span></a>Configuration Compatibility Checks</h2>
+<p>During rolling updates the configuration from existing nodes should pass the Cluster configuration compatibility checks. For example, it is possible to migrate Cluster Sharding from Classic to Typed Actors in a rolling update using a two step approach as of Akka version <code>2.5.23</code>:</p>
+<ul>
+  <li>Deploy with the new nodes set to <code>akka.cluster.configuration-compatibility-check.enforce-on-join = off</code> and ensure all nodes are in this state</li>
+  <li>Deploy again and with the new nodes set to <code>akka.cluster.configuration-compatibility-check.enforce-on-join = on</code>.</li>
+</ul>
+<p>Full documentation about enforcing these checks on joining nodes and optionally adding custom checks can be found in<br/><a href="../typed/cluster.html#configuration-compatibility-check">Akka Cluster configuration compatibility checks</a>.</p>
+<h2><a href="#rolling-updates-and-migrating-akka" name="rolling-updates-and-migrating-akka" class="anchor"><span class="anchor-link"></span></a>Rolling Updates and Migrating Akka</h2>
+<h3><a href="#from-java-serialization-to-jackson" name="from-java-serialization-to-jackson" class="anchor"><span class="anchor-link"></span></a>From Java serialization to Jackson</h3>
+<p>If you are migrating from Akka 2.5 to 2.6, and use Java serialization you can replace it with, for example, the new <a href="../serialization-jackson.html">Serialization with Jackson</a> and still be able to perform a rolling updates without bringing down the entire cluster.</p>
+<p>The procedure for changing from Java serialization to Jackson would look like:</p>
+<ol>
+  <li>Rolling update from 2.5.24 (or later) to 2.6.0
+    <ul>
+      <li>Use config <code>akka.actor.allow-java-serialization=on</code>.</li>
+      <li>Roll out the change.</li>
+      <li>Java serialization will be used as before.</li>
+      <li>This step is optional and you could combine it with next step if you like, but could be good to  make one change at a time.</li>
+    </ul>
+  </li>
+  <li>Rolling update to support deserialization but not enable serialization
+    <ul>
+      <li>Change message classes by adding the marker interface and possibly needed annotations as  described in <a href="../serialization-jackson.html">Serialization with Jackson</a>.</li>
+      <li>Test the system with the new serialization in a new test cluster (no rolling update).</li>
+      <li>Remove the binding for the marker interface in <code>akka.actor.serialization-bindings</code>, so that Jackson is not used for serialization (toBinary) yet.</li>
+      <li>Configure <code>akka.serialization.jackson.allowed-class-prefix=[&quot;com.myapp&quot;]</code>
+        <ul>
+          <li>This is needed for Jackson deserialization when the <code>serialization-bindings</code> isn&rsquo;t defined.</li>
+          <li>Replace <code>com.myapp</code> with the name of the root package of your application to trust all classes.</li>
+        </ul>
+      </li>
+      <li>Roll out the change.</li>
+      <li>Java serialization is still used, but this version is prepared for next roll out.</li>
+    </ul>
+  </li>
+  <li>Rolling update to enable serialization with Jackson.
+    <ul>
+      <li>Add the binding to the marker interface in <code>akka.actor.serialization-bindings</code> to the Jackson serializer.</li>
+      <li>Remove <code>akka.serialization.jackson.allowed-class-prefix</code>.</li>
+      <li>Roll out the change.</li>
+      <li>Old nodes will still send messages with Java serialization, and that can still be deserialized by new nodes.</li>
+      <li>New nodes will send messages with Jackson serialization, and old node can deserialize those because they were  prepared in previous roll out.</li>
+    </ul>
+  </li>
+  <li>Rolling update to disable Java serialization
+    <ul>
+      <li>Remove <code>allow-java-serialization</code> config, to use the default <code>allow-java-serialization=off</code>.</li>
+      <li>Remove <code>warn-about-java-serializer-usage</code> config if you had changed that, to use the default <code>warn-about-java-serializer-usage=on</code>.</li>
+      <li>Roll out the change.</li>
+    </ul>
+  </li>
+</ol>
+<p>A similar approach can be used when changing between other serializers, for example between Jackson and Protobuf. </p>
+<h3><a href="#akka-typed-with-receptionist-or-cluster-receptionist" name="akka-typed-with-receptionist-or-cluster-receptionist" class="anchor"><span class="anchor-link"></span></a>Akka Typed with Receptionist or Cluster Receptionist</h3>
+<p>If you are migrating from Akka 2.5 to 2.6, and use the <code>Receptionist</code> or <code>Cluster Receptionist</code> with Akka Typed, during a rolling update information will not be disseminated between 2.5 and 2.6 nodes. However once all old nodes have been phased out during the rolling update it will work properly again.</p>
+<h2><a href="#when-shutdown-startup-is-required" name="when-shutdown-startup-is-required" class="anchor"><span class="anchor-link"></span></a>When Shutdown Startup Is Required</h2>
+<p>There are a few instances when a full shutdown and startup is required versus being able to do a rolling update.</p>
+<h3><a href="#cluster-sharding-configuration-change" name="cluster-sharding-configuration-change" class="anchor"><span class="anchor-link"></span></a>Cluster Sharding configuration change</h3>
+<p>If you need to change any of the following aspects of sharding it will require a full cluster restart versus a rolling update:</p>
+<ul>
+  <li>The <code>extractShardId</code> function</li>
+  <li>The role that the shard regions run on</li>
+  <li>The persistence mode - It&rsquo;s important to use the same mode on all nodes in the cluster</li>
+  <li>The <a href="../typed/cluster-sharding.html#basic-example"><code>number-of-shards</code></a> - Note: changing the number  of nodes in the cluster does not require changing the number of shards.</li>
+</ul>
+<h3><a href="#cluster-configuration-change" name="cluster-configuration-change" class="anchor"><span class="anchor-link"></span></a>Cluster configuration change</h3>
+<ul>
+  <li>A full restart is required if you change the <a href="https://doc.akka.io/docs/akka/current/split-brain-resolver.html#strategies">SBR strategy</a></li>
+</ul>
+<h3><a href="#migrating-from-persistentfsm-to-eventsourcedbehavior" name="migrating-from-persistentfsm-to-eventsourcedbehavior" class="anchor"><span class="anchor-link"></span></a>Migrating from PersistentFSM to EventSourcedBehavior</h3>
+<p>If you&rsquo;ve <a href="../persistence-fsm.html#migration-to-eventsourcedbehavior">migrated from <code>PersistentFSM</code> to <code>EventSourcedBehavior</code></a> and are using PersistenceFSM with Cluster Sharding, a full shutdown is required as shards can move between new and old nodes.</p>
+<h3><a href="#migrating-from-classic-remoting-to-artery" name="migrating-from-classic-remoting-to-artery" class="anchor"><span class="anchor-link"></span></a>Migrating from classic remoting to Artery</h3>
+<p>If you&rsquo;ve migrated from classic remoting to Artery which has a completely different protocol, a rolling update is not supported. For more details on this migration see <a href="https://doc.akka.io/docs/akka/2.6/project/migration-guide-2.5.x-2.6.x.html#migrating-from-classic-remoting-to-artery">the migration guide</a>.</p>
+<h3><a href="#changing-remoting-transport" name="changing-remoting-transport" class="anchor"><span class="anchor-link"></span></a>Changing remoting transport</h3>
+<p>Rolling update is not supported when <a href="../remoting-artery.html#selecting-a-transport">changing the remoting transport</a>.</p>
+<h3><a href="#migrating-from-classic-sharding-to-typed-sharding" name="migrating-from-classic-sharding-to-typed-sharding" class="anchor"><span class="anchor-link"></span></a>Migrating from Classic Sharding to Typed Sharding</h3>
+<p>If you have been using classic sharding it is possible to do a rolling update to typed sharding using a 3 step procedure. The steps along with example commits are detailed in <a href="https://github.com/akka/akka-samples/pull/110">this sample PR</a> </p>
+</div>
+</article>
+<div class="row">
+<div class="small-12 column">
+<section class="nav-prev-next row">
+<div class="nav-prev small-6 column">
+<a href="../additional/deploying.html"><i class="icon-prev"></i> <span class="link-prev">Deploying</span></a>
+</div>
+<div class="nav-next small-6 column clearfix">
+<a class="float-right" href="../project/index.html">Project Information <i class="icon-next"></i></a>
+</div>
+</section>
+</div>
+</div>
+<div class="source-github row">
+Found an error in this documentation? The source code for this page can be found <a href="https://github.com/akka/akka/tree/v2.7.0-M5/akka-docs/src/main/paradox/additional/rolling-updates.md">here</a>.
+Please feel free to edit and contribute a pull request.
+</div>
+
+<footer class="page-footer row clearfix">
+<img class="akka-icon float-left show-for-medium" src="../images/akka-icon.svg" />
+<section class="copyright">
+<div>Akka is available under the <a href="https://www.lightbend.com/akka/license" target="_blank">Business Source License 1.1</a>.</div>
+<p class="legal">
+&copy; 2011-2022 <a href="https://www.lightbend.com" target="_blank">Lightbend, Inc.</a> |
+<a href="https://www.lightbend.com/legal/licenses" target="_blank">Licenses</a> |
+<a href="https://www.lightbend.com/legal/terms" target="_blank">Terms</a> |
+<a href="https://www.lightbend.com/legal/privacy" target="_blank">Privacy Policy</a> |
+<a href="https://akka.io/cookie/" target="_blank">Cookie Listing</a> |
+<a class="optanon-toggle-display">Cookie Settings</a>
+</p>
+</section>
+
+</footer>
+</section>
+</main>
+</div>
+
+<script type="text/javascript" src="../js/scrollsneak.js"></script>
+<script type="text/javascript">jQuery(document).foundation();</script>
+<script type="text/javascript" src="../js/groups.js"></script>
+<script type="text/javascript" src="../js/page.js"></script>
+<script type="text/javascript" src="../js/snippets.js"></script>
+<script type="text/javascript" src="../js/magellan.js"></script>
+<script type="text/javascript" src="../js/metadata-toggle.js"></script>
+<script type="text/javascript" src="../js/lbHeader.js"></script>
+
+<style type="text/css">@import "../lib/prettify/prettify.css";</style>
+<script type="text/javascript" src="../lib/prettify/prettify.js"></script>
+<script type="text/javascript" src="../lib/prettify/lang-scala.js"></script>
+<script type="text/javascript">//<![CDATA[
+jQuery(function(){window.prettyPrint && prettyPrint()});
+//]]></script>
+<!-- Algolia docs search -->
+<script type="text/javascript" src="https://cdn.jsdelivr.net/docsearch.js/2/docsearch.min.js"></script>
+<style>.algolia-autocomplete { display: block !important }</style>
+<script type="text/javascript">
+docsearch({
+apiKey: '543bad5ad786495d9ccd445ed34ed082',
+indexName: 'akka_io',
+inputSelector: '#search',
+algoliaOptions: {
+hitsPerPage: 5
+}
+});
+
+docsearch({
+apiKey: '543bad5ad786495d9ccd445ed34ed082',
+indexName: 'akka_io',
+inputSelector: '#overlay-search',
+algoliaOptions: {
+hitsPerPage: 5
+}
+});
+
+// set up "/" as global shortcut for focusing on search
+jQuery(document).keypress(function (event) {
+if (event.keyCode == 47) {
+jQuery("#search").focus();
+return false; // swallow key event, otherwise the / char would be input into the search box
+}
+});
+</script>
+
+<script type="text/javascript" src="../assets/js/warnOldDocs.js"></script>
+<script type="text/javascript" src="../assets/js/scalafiddle.js"></script>
+
+
+</body>
+</html>

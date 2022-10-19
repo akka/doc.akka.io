@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html class="no-js" lang="en">
+
+<head>
+<title>Shopping cart example &bull; Akka Documentation</title>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta name="description" content="Akka is a toolkit for building highly concurrent, distributed, and resilient message-driven applications for Java and Scala."/>
+<link rel="canonical" href="https://doc.akka.io/docs/akka/current/typed/replicated-eventsourcing-cart.html"/>
+<script type="text/javascript" src="../lib/jquery/jquery.min.js"></script>
+<script type="text/javascript" src="../lib/foundation/dist/js/foundation.min.js"></script>
+<link rel="stylesheet" type="text/css" href="../lib/normalize.css/normalize.css"/>
+<link rel="stylesheet" type="text/css" href="../lib/foundation/dist/css/foundation.min.css"/>
+<link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/docsearch.js/2/docsearch.min.css" />
+<link rel="stylesheet" type="text/css" href="../css/icons.css"/>
+<link rel="stylesheet" type="text/css" href="../css/page-8.css"/>
+<link rel="stylesheet" type="text/css" href="../css/banner-2.css"/>
+<link rel="shortcut icon" href="../images/favicon.ico" />
+<link rel="apple-touch-icon" sizes="180x180" href="../images/apple-touch-icon.png"/>
+<link rel="icon" type="image/png" sizes="32x32" href="../images/favicon-32x32.png"/>
+<link rel="icon" type="image/png" sizes="16x16" href="../images/favicon-16x16.png"/>
+<link rel="manifest" href="../images/manifest.json"/>
+<meta name="msapplication-TileImage" content="../images/mstile-150x150.png"/>
+<meta name="msapplication-TileColor" content="#15a9ce"/>
+<meta name="theme-color" content="#15a9ce"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<!-- OneTrust Cookies Consent Notice (Production Standard, akka.io, en-GB) start -->
+<script src="https://cdn.cookielaw.org/scripttemplates/otSDKStub.js"  type="text/javascript" charset="UTF-8" data-domain-script="28b912e7-09e9-43d5-91e4-3d1897044004" ></script>
+<script type="text/javascript">
+function OptanonWrapper() { }
+</script>
+<!-- OneTrust Cookies Consent Notice (Production Standard, akka.io, en-GB) end -->
+<!--Google Analytics-->
+<script type="text/plain" class="optanon-category-2">
+var _gaq = _gaq || [];
+_gaq.push(['_setAccount', 'UA-21117439-1']);
+_gaq.push(['_setDomainName', 'akka.io']);
+_gaq.push(['_trackPageview']);
+(function() {
+var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+})()
+</script>
+<!-- Google Tag Manager -->
+<script type="text/plain" class="optanon-category-2">
+(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+})(window,document,'script','dataLayer','GTM-KBJGH35');
+</script>
+<!--Marketo-->
+<script type="text/plain" class="optanon-category-3">
+(function() {
+var didInit = false;
+function initMunchkin() {
+if(didInit === false) {
+didInit = true;
+Munchkin.init('558-NCX-702', { 'asyncOnly': true, 'disableClickDelay': true });
+}
+}
+var s = document.createElement('script');
+s.type = 'text/javascript';
+s.async = true;
+s.src = '//munchkin.marketo.net/munchkin.js';
+s.onreadystatechange = function() {
+if (this.readyState == 'complete' || this.readyState == 'loaded') {
+initMunchkin();
+}
+};
+s.onload = initMunchkin;
+document.getElementsByTagName('head')[0].appendChild(s);
+})();
+</script>
+</head>
+
+<body id="underlay" data-toggler="nav-open">
+<div id="lightbend-banner" class="lightbend-banner akka full-width" data-category="OSS Lightbend Banner Impression" data-label="Akka Banner Impression">
+<div class="oss-wrapper">
+<div class="oss-brand">
+<a class="oss-track-link-label" data-category="OSS Lightbend Banner Clicks" data-label="Lightbend Logo - Akka Banner" href="https://www.lightbend.com">
+<img class="lightbend-logo" src="../images/banner-logos/lightbend-reverse.svg" alt="Lightbend" title="Lightbend">
+</a>
+</div>
+<div class="oss-ad no-drop-down">
+<nav id="lightbendRotator" class="lightbend-rotator">
+<a class="oss-track-link-label" data-category="OSS Lightbend Banner Clicks" data-label="Promo Rotator - Lightbend is Changing its Software Licensing Model for Akka Technology. [License FAQ] - Akka Banner" href="https://www.lightbend.com/akka/license-faq">
+<strong>Lightbend</strong> is Changing its Software Licensing Model for Akka Technology. <span class="akka-btn">License FAQ</span>
+</a>
+</nav>
+</div>
+</div>
+</div>
+
+<header class="site-header hide-for-large">
+<div class="sticky-header clearfix">
+<a href="https://akka.io"><img class="logo" src="../images/akka-logo-reverse.svg"/></a>
+
+<button class="menu-icon float-right" type="button" data-toggle="underlay overlay"></button>
+</div>
+<div id="overlay" class="overlay-nav" data-toggler="nav-open">
+<header class="nav-header">
+<div class="nav-header-title">
+<h1><a href="../index.html">Akka Documentation</a></h1>
+</div>
+<div class="nav-header-version">
+Version 2.7.0-M5
+</div>
+<div class="nav-header-groups">
+<select class="supergroup" name="Language"><option class="group" value="group-scala">Scala</option><option class="group" value="group-java">Java</option></select>
+</div>
+<div id="overlay-search-container" class="nav-header-search">
+<input id="overlay-search" type="search" class="search" placeholder="Search" />
+</div>
+</header>
+<nav class="nav-toc">
+<ul>
+  <li><a href="../security/index.html" class="page">Security Announcements</a></li>
+  <li><a href="../typed/guide/index.html" class="page">Getting Started Guide</a></li>
+  <li><a href="../general/index.html" class="page">General Concepts</a></li>
+  <li><a href="../typed/index.html" class="page">Actors</a></li>
+  <li><a href="../typed/index-cluster.html" class="page">Cluster</a></li>
+  <li><a href="../typed/index-persistence.html" class="page">Persistence (Event Sourcing)</a>
+  <ul>
+    <li><a href="../typed/persistence.html" class="page">Event Sourcing</a></li>
+    <li><a href="../typed/replicated-eventsourcing.html" class="page">Replicated Event Sourcing</a></li>
+    <li><a href="../typed/cqrs.html" class="page">CQRS</a></li>
+    <li><a href="../typed/persistence-style.html" class="page">Style Guide</a></li>
+    <li><a href="../typed/persistence-snapshot.html" class="page">Snapshotting</a></li>
+    <li><a href="../typed/persistence-testing.html" class="page">Testing</a></li>
+    <li><a href="../typed/persistence-fsm.html" class="page">EventSourced behaviors as finite state machines</a></li>
+    <li><a href="../persistence-schema-evolution.html" class="page">Schema Evolution for Event Sourced Actors</a></li>
+    <li><a href="../persistence-query.html" class="page">Persistence Query</a></li>
+    <li><a href="../persistence-query-leveldb.html" class="page">Persistence Query for LevelDB</a></li>
+    <li><a href="../persistence-plugins.html" class="page">Persistence Plugins</a></li>
+    <li><a href="../persistence-journals.html" class="page">Persistence - Building a storage backend</a></li>
+    <li><a href="../typed/replicated-eventsourcing-examples.html" class="page">Replicated Event Sourcing Examples</a>
+    <ul>
+      <li><a href="../typed/replicated-eventsourcing-auction.html" class="page">Auction example</a></li>
+      <li><a href="../typed/replicated-eventsourcing-cart.html#shopping-cart-example" class="active page">Shopping cart example</a></li>
+    </ul></li>
+  </ul></li>
+  <li><a href="../typed/index-persistence-durable-state.html" class="page">Persistence (Durable State)</a></li>
+  <li><a href="../stream/index.html" class="page">Streams</a></li>
+  <li><a href="../discovery/index.html" class="page">Discovery</a></li>
+  <li><a href="../index-utilities.html" class="page">Utilities</a></li>
+  <li><a href="../common/other-modules.html" class="page">Other Akka modules</a></li>
+  <li><a href="../additional/deploy.html" class="page">Package, Deploy and Run</a></li>
+  <li><a href="../project/index.html" class="page">Project Information</a></li>
+  <li><a href="../index-classic.html" class="page">Akka Classic</a></li>
+</ul>
+</nav>
+</div>
+</header>
+<div class="site-content-wrapper">
+<aside class="sticky-sidebar show-for-large">
+<header class="nav-header sticky-sidebar-header">
+<div class="nav-header-title">
+<h1><a href="../index.html">Akka Documentation</a></h1>
+</div>
+<div class="nav-header-version">
+Version 2.7.0-M5
+</div>
+<div class="nav-header-groups">
+<select class="supergroup" name="Language"><option class="group" value="group-scala">Scala</option><option class="group" value="group-java">Java</option></select>
+</div>
+<div class="nav-header-search">
+<input id="search" type="search" class="search" placeholder="Search" />
+</div>
+</header>
+<nav class="site-nav sticky-sidebar-contents">
+<div class="nav-toc">
+<ul>
+  <li><a href="../security/index.html" class="page">Security Announcements</a></li>
+  <li><a href="../typed/guide/index.html" class="page">Getting Started Guide</a></li>
+  <li><a href="../general/index.html" class="page">General Concepts</a></li>
+  <li><a href="../typed/index.html" class="page">Actors</a></li>
+  <li><a href="../typed/index-cluster.html" class="page">Cluster</a></li>
+  <li><a href="../typed/index-persistence.html" class="page">Persistence (Event Sourcing)</a>
+  <ul>
+    <li><a href="../typed/persistence.html" class="page">Event Sourcing</a></li>
+    <li><a href="../typed/replicated-eventsourcing.html" class="page">Replicated Event Sourcing</a></li>
+    <li><a href="../typed/cqrs.html" class="page">CQRS</a></li>
+    <li><a href="../typed/persistence-style.html" class="page">Style Guide</a></li>
+    <li><a href="../typed/persistence-snapshot.html" class="page">Snapshotting</a></li>
+    <li><a href="../typed/persistence-testing.html" class="page">Testing</a></li>
+    <li><a href="../typed/persistence-fsm.html" class="page">EventSourced behaviors as finite state machines</a></li>
+    <li><a href="../persistence-schema-evolution.html" class="page">Schema Evolution for Event Sourced Actors</a></li>
+    <li><a href="../persistence-query.html" class="page">Persistence Query</a></li>
+    <li><a href="../persistence-query-leveldb.html" class="page">Persistence Query for LevelDB</a></li>
+    <li><a href="../persistence-plugins.html" class="page">Persistence Plugins</a></li>
+    <li><a href="../persistence-journals.html" class="page">Persistence - Building a storage backend</a></li>
+    <li><a href="../typed/replicated-eventsourcing-examples.html" class="page">Replicated Event Sourcing Examples</a>
+    <ul>
+      <li><a href="../typed/replicated-eventsourcing-auction.html" class="page">Auction example</a></li>
+      <li><a href="../typed/replicated-eventsourcing-cart.html#shopping-cart-example" class="active page">Shopping cart example</a></li>
+    </ul></li>
+  </ul></li>
+  <li><a href="../typed/index-persistence-durable-state.html" class="page">Persistence (Durable State)</a></li>
+  <li><a href="../stream/index.html" class="page">Streams</a></li>
+  <li><a href="../discovery/index.html" class="page">Discovery</a></li>
+  <li><a href="../index-utilities.html" class="page">Utilities</a></li>
+  <li><a href="../common/other-modules.html" class="page">Other Akka modules</a></li>
+  <li><a href="../additional/deploy.html" class="page">Package, Deploy and Run</a></li>
+  <li><a href="../project/index.html" class="page">Project Information</a></li>
+  <li><a href="../index-classic.html" class="page">Akka Classic</a></li>
+</ul>
+</div>
+</nav>
+<footer class="nav-footer sticky-sidebar-footer">
+<a href="https://akka.io"><img class="logo" src="../images/akka-logo-reverse.svg"/></a>
+
+</footer>
+</aside>
+<main class="fixed-shift-for-large expanded row">
+<section class="site-content small-12 column">
+<article class="page-content row">
+<div class="small-12 column" id="docs">
+<h1><a href="#shopping-cart-example" name="shopping-cart-example" class="anchor"><span class="anchor-link"></span></a>Shopping cart example</h1>
+<p>The provided CRDT data structures can be used as the root state of a replicated <code>EventSourcedBehavior</code> but they can also be nested inside another data structure. This requires a bit more careful thinking about the eventual consistency.</p>
+<p>In this sample we model a shopping cart as a map of product ids and the number of that product added or removed in the shopping cart. By using the <span class="group-scala"><a href="https://doc.akka.io/api/akka/2.7/akka/persistence/typed/crdt/Counter.html" title="akka.persistence.typed.crdt.Counter"><code>Counter</code></a></span><span class="group-java"><a href="https://doc.akka.io/japi/akka/2.7/akka/persistence/typed/crdt/Counter.html" title="akka.persistence.typed.crdt.Counter"><code>Counter</code></a></span> CRDT and persisting its <code>Update</code> in our events we can be sure that an add or remove of items in any data center will eventually lead to all data centers ending up with the same number of each product. </p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.7.0-M5/akka-persistence-typed-tests/src/test/scala/docs/akka/persistence/typed/ReplicatedShoppingCartExampleSpec.scala#L28-L81" target="_blank" title="Go to snippet source">source</a><code class="language-scala">object ShoppingCart {
+
+  type ProductId = String
+
+  sealed trait Command extends CborSerializable
+  final case class AddItem(id: ProductId, count: Int) extends Command
+  final case class RemoveItem(id: ProductId, count: Int) extends Command
+  final case class GetCartItems(replyTo: ActorRef[CartItems]) extends Command
+  final case class CartItems(items: Map[ProductId, Int]) extends CborSerializable
+
+  sealed trait Event extends CborSerializable
+  final case class ItemUpdated(id: ProductId, update: Counter.Updated) extends Event
+
+  final case class State(items: Map[ProductId, Counter])
+
+  def apply(entityId: String, replicaId: ReplicaId, allReplicaIds: Set[ReplicaId]): Behavior[Command] = {
+    ReplicatedEventSourcing.commonJournalConfig(
+      ReplicationId(&quot;blog&quot;, entityId, replicaId),
+      allReplicaIds,
+      PersistenceTestKitReadJournal.Identifier) { replicationContext =&gt;
+      EventSourcedBehavior[Command, Event, State](
+        replicationContext.persistenceId,
+        State(Map.empty),
+        (state, cmd) =&gt; commandHandler(state, cmd),
+        (state, event) =&gt; eventHandler(state, event))
+    }
+  }
+
+  private def commandHandler(state: State, cmd: Command): Effect[Event, State] = {
+    cmd match {
+      case AddItem(productId, count) =&gt;
+        Effect.persist(ItemUpdated(productId, Counter.Updated(count)))
+      case RemoveItem(productId, count) =&gt;
+        Effect.persist(ItemUpdated(productId, Counter.Updated(-count)))
+      case GetCartItems(replyTo) =&gt;
+        val items = state.items.collect {
+          case (id, counter) if counter.value &gt; 0 =&gt; id -&gt; counter.value.toInt
+        }
+        replyTo ! CartItems(items)
+        Effect.none
+    }
+  }
+
+  private def eventHandler(state: State, event: Event): State = {
+    event match {
+      case ItemUpdated(id, update) =&gt;
+        val newItems = state.items.get(id) match {
+          case Some(counter) =&gt; state.items + (id -&gt; counter.applyOperation(update))
+          case None          =&gt; state.items + (id -&gt; Counter.empty.applyOperation(update))
+        }
+        State(newItems)
+    }
+  }
+}</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.7.0-M5/akka-persistence-typed-tests/src/test/java/jdocs/akka/persistence/typed/ReplicatedShoppingCartExample.java#L28-L156" target="_blank" title="Go to snippet source">source</a><code class="language-java">public final class ShoppingCart
+    extends ReplicatedEventSourcedBehavior&lt;
+        ShoppingCart.Command, ShoppingCart.Event, ShoppingCart.State&gt; {
+
+  public interface Event {}
+
+  public static final class ItemUpdated implements Event {
+    public final String productId;
+    public final Counter.Updated update;
+
+    public ItemUpdated(String productId, Counter.Updated update) {
+      this.productId = productId;
+      this.update = update;
+    }
+  }
+
+  public interface Command {}
+
+  public static final class AddItem implements Command {
+    public final String productId;
+    public final int count;
+
+    public AddItem(String productId, int count) {
+      this.productId = productId;
+      this.count = count;
+    }
+  }
+
+  public static final class RemoveItem implements Command {
+    public final String productId;
+    public final int count;
+
+    public RemoveItem(String productId, int count) {
+      this.productId = productId;
+      this.count = count;
+    }
+  }
+
+  public static class GetCartItems implements Command {
+    public final ActorRef&lt;CartItems&gt; replyTo;
+
+    public GetCartItems(ActorRef&lt;CartItems&gt; replyTo) {
+      this.replyTo = replyTo;
+    }
+  }
+
+  public static final class CartItems {
+    public final Map&lt;String, Integer&gt; items;
+
+    public CartItems(Map&lt;String, Integer&gt; items) {
+      this.items = items;
+    }
+  }
+
+  public static final class State {
+    public final Map&lt;String, Counter&gt; items = new HashMap&lt;&gt;();
+  }
+
+  public static Behavior&lt;Command&gt; create(
+      String entityId, ReplicaId replicaId, Set&lt;ReplicaId&gt; allReplicas) {
+    return ReplicatedEventSourcing.commonJournalConfig(
+        new ReplicationId(&quot;blog&quot;, entityId, replicaId),
+        allReplicas,
+        PersistenceTestKitReadJournal.Identifier(),
+        ShoppingCart::new);
+  }
+
+  private ShoppingCart(ReplicationContext replicationContext) {
+    super(replicationContext);
+  }
+
+  @Override
+  public State emptyState() {
+    return new State();
+  }
+
+  @Override
+  public CommandHandler&lt;Command, Event, State&gt; commandHandler() {
+    return newCommandHandlerBuilder()
+        .forAnyState()
+        .onCommand(AddItem.class, this::onAddItem)
+        .onCommand(RemoveItem.class, this::onRemoveItem)
+        .onCommand(GetCartItems.class, this::onGetCartItems)
+        .build();
+  }
+
+  private Effect&lt;Event, State&gt; onAddItem(State state, AddItem command) {
+    return Effect()
+        .persist(new ItemUpdated(command.productId, new Counter.Updated(command.count)));
+  }
+
+  private Effect&lt;Event, State&gt; onRemoveItem(State state, RemoveItem command) {
+    return Effect()
+        .persist(new ItemUpdated(command.productId, new Counter.Updated(-command.count)));
+  }
+
+  private Effect&lt;Event, State&gt; onGetCartItems(State state, GetCartItems command) {
+    command.replyTo.tell(new CartItems(filterEmptyAndNegative(state.items)));
+    return Effect().none();
+  }
+
+  private Map&lt;String, Integer&gt; filterEmptyAndNegative(Map&lt;String, Counter&gt; cart) {
+    Map&lt;String, Integer&gt; result = new HashMap&lt;&gt;();
+    for (Map.Entry&lt;String, Counter&gt; entry : cart.entrySet()) {
+      int count = entry.getValue().value().intValue();
+      if (count &gt; 0) result.put(entry.getKey(), count);
+    }
+    return Collections.unmodifiableMap(result);
+  }
+
+  @Override
+  public EventHandler&lt;State, Event&gt; eventHandler() {
+    return newEventHandlerBuilder()
+        .forAnyState()
+        .onEvent(ItemUpdated.class, this::onItemUpdated)
+        .build();
+  }
+
+  private State onItemUpdated(State state, ItemUpdated event) {
+    final Counter counterForProduct;
+    if (state.items.containsKey(event.productId)) {
+      counterForProduct = state.items.get(event.productId);
+    } else {
+      counterForProduct = Counter.empty();
+    }
+    state.items.put(event.productId, counterForProduct.applyOperation(event.update));
+    return state;
+  }
+}</code></pre></dd>
+</dl>
+<p>With this model we cannot have a <code>ClearCart</code> command as that could give different states in different data centers. It is quite easy to imagine such a scenario: commands arriving in the order <code>ClearCart</code>, <code>AddItem(&#39;a&#39;, 5)</code> in one data center and the order <code>AddItem(&#39;a&#39;, 5), ClearCart</code> in another.</p>
+<p>To clear a cart a client would instead have to remove as many items of each product as it sees in the cart at the time of removal.</p>
+</div>
+</article>
+<div class="row">
+<div class="small-12 column">
+<section class="nav-prev-next row">
+<div class="nav-prev small-6 column">
+<a href="../typed/replicated-eventsourcing-auction.html"><i class="icon-prev"></i> <span class="link-prev">Auction example</span></a>
+</div>
+<div class="nav-next small-6 column clearfix">
+<a class="float-right" href="../typed/index-persistence-durable-state.html">Persistence (Durable State) <i class="icon-next"></i></a>
+</div>
+</section>
+</div>
+</div>
+<div class="source-github row">
+Found an error in this documentation? The source code for this page can be found <a href="https://github.com/akka/akka/tree/v2.7.0-M5/akka-docs/src/main/paradox/typed/replicated-eventsourcing-cart.md">here</a>.
+Please feel free to edit and contribute a pull request.
+</div>
+
+<footer class="page-footer row clearfix">
+<img class="akka-icon float-left show-for-medium" src="../images/akka-icon.svg" />
+<section class="copyright">
+<div>Akka is available under the <a href="https://www.lightbend.com/akka/license" target="_blank">Business Source License 1.1</a>.</div>
+<p class="legal">
+&copy; 2011-2022 <a href="https://www.lightbend.com" target="_blank">Lightbend, Inc.</a> |
+<a href="https://www.lightbend.com/legal/licenses" target="_blank">Licenses</a> |
+<a href="https://www.lightbend.com/legal/terms" target="_blank">Terms</a> |
+<a href="https://www.lightbend.com/legal/privacy" target="_blank">Privacy Policy</a> |
+<a href="https://akka.io/cookie/" target="_blank">Cookie Listing</a> |
+<a class="optanon-toggle-display">Cookie Settings</a>
+</p>
+</section>
+
+</footer>
+</section>
+</main>
+</div>
+
+<script type="text/javascript" src="../js/scrollsneak.js"></script>
+<script type="text/javascript">jQuery(document).foundation();</script>
+<script type="text/javascript" src="../js/groups.js"></script>
+<script type="text/javascript" src="../js/page.js"></script>
+<script type="text/javascript" src="../js/snippets.js"></script>
+<script type="text/javascript" src="../js/magellan.js"></script>
+<script type="text/javascript" src="../js/metadata-toggle.js"></script>
+<script type="text/javascript" src="../js/lbHeader.js"></script>
+
+<style type="text/css">@import "../lib/prettify/prettify.css";</style>
+<script type="text/javascript" src="../lib/prettify/prettify.js"></script>
+<script type="text/javascript" src="../lib/prettify/lang-scala.js"></script>
+<script type="text/javascript">//<![CDATA[
+jQuery(function(){window.prettyPrint && prettyPrint()});
+//]]></script>
+<!-- Algolia docs search -->
+<script type="text/javascript" src="https://cdn.jsdelivr.net/docsearch.js/2/docsearch.min.js"></script>
+<style>.algolia-autocomplete { display: block !important }</style>
+<script type="text/javascript">
+docsearch({
+apiKey: '543bad5ad786495d9ccd445ed34ed082',
+indexName: 'akka_io',
+inputSelector: '#search',
+algoliaOptions: {
+hitsPerPage: 5
+}
+});
+
+docsearch({
+apiKey: '543bad5ad786495d9ccd445ed34ed082',
+indexName: 'akka_io',
+inputSelector: '#overlay-search',
+algoliaOptions: {
+hitsPerPage: 5
+}
+});
+
+// set up "/" as global shortcut for focusing on search
+jQuery(document).keypress(function (event) {
+if (event.keyCode == 47) {
+jQuery("#search").focus();
+return false; // swallow key event, otherwise the / char would be input into the search box
+}
+});
+</script>
+
+<script type="text/javascript" src="../assets/js/warnOldDocs.js"></script>
+<script type="text/javascript" src="../assets/js/scalafiddle.js"></script>
+
+
+</body>
+</html>

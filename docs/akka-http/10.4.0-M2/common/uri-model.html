@@ -1,0 +1,796 @@
+<!DOCTYPE html>
+<html class="no-js" lang="en">
+
+<head>
+<title>The URI model &bull; Akka HTTP</title>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta name="description" content="Akka Http: Modern, fast, asynchronous, streaming-first HTTP server and client."/>
+<link rel="canonical" href="https://doc.akka.io/docs/akka-http/current/common/uri-model.html"/>
+<script type="text/javascript" src="../lib/jquery/jquery.min.js"></script>
+<script type="text/javascript" src="../lib/foundation/dist/js/foundation.min.js"></script>
+<link rel="stylesheet" type="text/css" href="../lib/normalize.css/normalize.css"/>
+<link rel="stylesheet" type="text/css" href="../lib/foundation/dist/css/foundation.min.css"/>
+<link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/docsearch.js/2/docsearch.min.css" />
+<link rel="stylesheet" type="text/css" href="../css/icons.css"/>
+<link rel="stylesheet" type="text/css" href="../css/page-8.css"/>
+<link rel="stylesheet" type="text/css" href="../css/banner-2.css"/>
+<link rel="shortcut icon" href="../images/favicon.ico" />
+<link rel="apple-touch-icon" sizes="180x180" href="../images/apple-touch-icon.png"/>
+<link rel="icon" type="image/png" sizes="32x32" href="../images/favicon-32x32.png"/>
+<link rel="icon" type="image/png" sizes="16x16" href="../images/favicon-16x16.png"/>
+<link rel="manifest" href="../images/manifest.json"/>
+<meta name="msapplication-TileImage" content="../images/mstile-150x150.png"/>
+<meta name="msapplication-TileColor" content="#15a9ce"/>
+<meta name="theme-color" content="#15a9ce"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<!-- OneTrust Cookies Consent Notice (Production Standard, akka.io, en-GB) start -->
+<script src="https://cdn.cookielaw.org/scripttemplates/otSDKStub.js"  type="text/javascript" charset="UTF-8" data-domain-script="28b912e7-09e9-43d5-91e4-3d1897044004" ></script>
+<script type="text/javascript">
+function OptanonWrapper() { }
+</script>
+<!-- OneTrust Cookies Consent Notice (Production Standard, akka.io, en-GB) end -->
+<!--Google Analytics-->
+<script type="text/plain" class="optanon-category-2">
+var _gaq = _gaq || [];
+_gaq.push(['_setAccount', 'UA-21117439-1']);
+_gaq.push(['_setDomainName', 'akka.io']);
+_gaq.push(['_trackPageview']);
+(function() {
+var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+})()
+</script>
+<!-- Google Tag Manager -->
+<script type="text/plain" class="optanon-category-2">
+(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+})(window,document,'script','dataLayer','GTM-KBJGH35');
+</script>
+<!--Marketo-->
+<script type="text/plain" class="optanon-category-3">
+(function() {
+var didInit = false;
+function initMunchkin() {
+if(didInit === false) {
+didInit = true;
+Munchkin.init('558-NCX-702', { 'asyncOnly': true, 'disableClickDelay': true });
+}
+}
+var s = document.createElement('script');
+s.type = 'text/javascript';
+s.async = true;
+s.src = '//munchkin.marketo.net/munchkin.js';
+s.onreadystatechange = function() {
+if (this.readyState == 'complete' || this.readyState == 'loaded') {
+initMunchkin();
+}
+};
+s.onload = initMunchkin;
+document.getElementsByTagName('head')[0].appendChild(s);
+})();
+</script>
+</head>
+
+<body id="underlay" data-toggler="nav-open">
+<div id="lightbend-banner" class="lightbend-banner akka full-width" data-category="OSS Lightbend Banner Impression" data-label="Akka Banner Impression">
+<div class="oss-wrapper">
+<div class="oss-brand">
+<a class="oss-track-link-label" data-category="OSS Lightbend Banner Clicks" data-label="Lightbend Logo - Akka Banner" href="https://www.lightbend.com">
+<img class="lightbend-logo" src="../images/banner-logos/lightbend-reverse.svg" alt="Lightbend" title="Lightbend">
+</a>
+</div>
+<div class="oss-ad no-drop-down">
+<nav id="lightbendRotator" class="lightbend-rotator">
+<a class="oss-track-link-label" data-category="OSS Lightbend Banner Clicks" data-label="Promo Rotator - Lightbend is Changing its Software Licensing Model for Akka Technology. [License FAQ] - Akka Banner" href="https://www.lightbend.com/akka/license-faq">
+<strong>Lightbend</strong> is Changing its Software Licensing Model for Akka Technology. <span class="akka-btn">License FAQ</span>
+</a>
+</nav>
+</div>
+</div>
+</div>
+
+<header class="site-header hide-for-large">
+<div class="sticky-header clearfix">
+<a href="https://akka.io"><img class="logo" src="../images/akka-logo-reverse.svg"/></a>
+
+<button class="menu-icon float-right" type="button" data-toggle="underlay overlay"></button>
+</div>
+<div id="overlay" class="overlay-nav" data-toggler="nav-open">
+<header class="nav-header">
+<div class="nav-header-title">
+<h1><a href="../index.html">Akka HTTP</a></h1>
+</div>
+<div class="nav-header-version">
+Version 10.4.0-M2
+</div>
+<div class="nav-header-groups">
+<select class="supergroup" name="Language"><option class="group" value="group-scala">Scala</option><option class="group" value="group-java">Java</option></select>
+</div>
+<div id="overlay-search-container" class="nav-header-search">
+<input id="overlay-search" type="search" class="search" placeholder="Search" />
+</div>
+</header>
+<nav class="nav-toc">
+<ul>
+  <li><a href="../security.html" class="page">! Security Announcements !</a></li>
+  <li><a href="../release-notes/index.html" class="page">0. Release Notes</a></li>
+  <li><a href="../introduction.html" class="page">1. Introduction</a></li>
+  <li><a href="../usage.html" class="page">2. Usage</a></li>
+  <li><a href="../common/index.html" class="page">3. Data Types &amp; Abstractions</a>
+  <ul>
+    <li><a href="../common/http-model.html" class="page">HTTP Model</a></li>
+    <li><a href="../common/uri-model.html#the-uri-model" class="active page">The URI model</a>
+    <ul>
+      <li><a href="../common/uri-model.html#parsing-a-uri-string" class="header">Parsing a URI string</a></li>
+      <li><a href="../common/uri-model.html#obtaining-the-raw-request-uri" class="header">Obtaining the raw request URI</a></li>
+      <li><a href="../common/uri-model.html#query-string-in-uri" class="header">Query string in URI</a></li>
+    </ul></li>
+    <li><a href="../common/marshalling.html" class="page">Marshalling</a></li>
+    <li><a href="../common/unmarshalling.html" class="page">Unmarshalling</a></li>
+    <li><a href="../common/encoding.html" class="page">Encoding / Decoding</a></li>
+    <li><a href="../common/json-support.html" class="page">JSON Support</a></li>
+    <li><a href="../common/xml-support.html" class="page">XML Support</a></li>
+    <li><a href="../common/sse-support.html" class="page">Server-Sent Events Support</a></li>
+    <li><a href="../common/timeouts.html" class="page">Timeouts</a></li>
+    <li><a href="../common/caching.html" class="page">Caching</a></li>
+  </ul></li>
+  <li><a href="../server-side/index.html" class="page">4. Server API</a></li>
+  <li><a href="../client-side/index.html" class="page">5. Client API</a></li>
+  <li><a href="../extensions.html" class="page">6. Extensions</a></li>
+  <li><a href="../technologies.html" class="page">7. Supported Technologies</a></li>
+  <li><a href="../tipsandtricks.html" class="page">8. Tips And Tricks</a></li>
+  <li><a href="../contributing.html" class="page">9. Contributing</a></li>
+  <li><a href="../reference.html" class="page">10. Reference</a></li>
+</ul>
+</nav>
+</div>
+</header>
+<div class="site-content-wrapper">
+<aside class="sticky-sidebar show-for-large">
+<header class="nav-header sticky-sidebar-header">
+<div class="nav-header-title">
+<h1><a href="../index.html">Akka HTTP</a></h1>
+</div>
+<div class="nav-header-version">
+Version 10.4.0-M2
+</div>
+<div class="nav-header-groups">
+<select class="supergroup" name="Language"><option class="group" value="group-scala">Scala</option><option class="group" value="group-java">Java</option></select>
+</div>
+<div class="nav-header-search">
+<input id="search" type="search" class="search" placeholder="Search" />
+</div>
+</header>
+<nav class="site-nav sticky-sidebar-contents">
+<div class="nav-toc">
+<ul>
+  <li><a href="../security.html" class="page">! Security Announcements !</a></li>
+  <li><a href="../release-notes/index.html" class="page">0. Release Notes</a></li>
+  <li><a href="../introduction.html" class="page">1. Introduction</a></li>
+  <li><a href="../usage.html" class="page">2. Usage</a></li>
+  <li><a href="../common/index.html" class="page">3. Data Types &amp; Abstractions</a>
+  <ul>
+    <li><a href="../common/http-model.html" class="page">HTTP Model</a></li>
+    <li><a href="../common/uri-model.html#the-uri-model" class="active page">The URI model</a>
+    <ul>
+      <li><a href="../common/uri-model.html#parsing-a-uri-string" class="header">Parsing a URI string</a></li>
+      <li><a href="../common/uri-model.html#obtaining-the-raw-request-uri" class="header">Obtaining the raw request URI</a></li>
+      <li><a href="../common/uri-model.html#query-string-in-uri" class="header">Query string in URI</a></li>
+    </ul></li>
+    <li><a href="../common/marshalling.html" class="page">Marshalling</a></li>
+    <li><a href="../common/unmarshalling.html" class="page">Unmarshalling</a></li>
+    <li><a href="../common/encoding.html" class="page">Encoding / Decoding</a></li>
+    <li><a href="../common/json-support.html" class="page">JSON Support</a></li>
+    <li><a href="../common/xml-support.html" class="page">XML Support</a></li>
+    <li><a href="../common/sse-support.html" class="page">Server-Sent Events Support</a></li>
+    <li><a href="../common/timeouts.html" class="page">Timeouts</a></li>
+    <li><a href="../common/caching.html" class="page">Caching</a></li>
+  </ul></li>
+  <li><a href="../server-side/index.html" class="page">4. Server API</a></li>
+  <li><a href="../client-side/index.html" class="page">5. Client API</a></li>
+  <li><a href="../extensions.html" class="page">6. Extensions</a></li>
+  <li><a href="../technologies.html" class="page">7. Supported Technologies</a></li>
+  <li><a href="../tipsandtricks.html" class="page">8. Tips And Tricks</a></li>
+  <li><a href="../contributing.html" class="page">9. Contributing</a></li>
+  <li><a href="../reference.html" class="page">10. Reference</a></li>
+</ul>
+</div>
+</nav>
+<footer class="nav-footer sticky-sidebar-footer">
+<a href="https://akka.io"><img class="logo" src="../images/akka-logo-reverse.svg"/></a>
+
+</footer>
+</aside>
+<main class="fixed-shift-for-large expanded row">
+<section class="site-content small-12 column">
+<article class="page-content row">
+<div class="small-12 column" id="docs">
+<h2><a href="#the-uri-model" name="the-uri-model" class="anchor"><span class="anchor-link"></span></a>The URI model</h2>
+<p>Akka HTTP offers its own specialised <span class="group-java"><a href="https://doc.akka.io/japi/akka-http/10.4.0-M2/akka/http/javadsl/model/Uri.html" title="akka.http.javadsl.model.Uri"><code>Uri</code></a></span><span class="group-scala"><a href="https://doc.akka.io/api/akka-http/10.4.0-M2/akka/http/scaladsl/model/Uri.html" title="akka.http.scaladsl.model.Uri"><code>Uri</code></a></span> model class which is tuned for both performance and idiomatic usage within other types of the HTTP model. For example, an <span class="group-java"><a href="https://doc.akka.io/japi/akka-http/10.4.0-M2/akka/http/javadsl/model/HttpRequest.html" title="akka.http.javadsl.model.HttpRequest"><code>HttpRequest</code></a></span><span class="group-scala"><a href="https://doc.akka.io/api/akka-http/10.4.0-M2/akka/http/scaladsl/model/HttpRequest.html" title="akka.http.scaladsl.model.HttpRequest"><code>HttpRequest</code></a></span>&rsquo;s target URI is parsed into this type, where all character escaping and other URI specific semantics are applied.</p>
+<h3><a href="#parsing-a-uri-string" name="parsing-a-uri-string" class="anchor"><span class="anchor-link"></span></a>Parsing a URI string</h3>
+<p>We follow <a href="https://tools.ietf.org/html/rfc3986#section-1.1.2">RFC 3986</a> to implement the URI parsing rules. When you try to parse a URI string, Akka HTTP internally creates an instance of the <span class="group-java"><a href="https://doc.akka.io/japi/akka-http/10.4.0-M2/akka/http/javadsl/model/Uri.html" title="akka.http.javadsl.model.Uri"><code>Uri</code></a></span><span class="group-scala"><a href="https://doc.akka.io/api/akka-http/10.4.0-M2/akka/http/scaladsl/model/Uri.html" title="akka.http.scaladsl.model.Uri"><code>Uri</code></a></span> class, which holds the modeled URI components inside.</p>
+<p>For example, the following creates an instance of a simple valid URI:</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre><code>Uri(&quot;http://localhost&quot;)
+</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre><code>Uri.create(&quot;http://localhost&quot;);
+</code></pre></dd>
+</dl>
+<p>Below are some more examples of valid URI strings, and how you can construct a <span class="group-java"><a href="https://doc.akka.io/japi/akka-http/10.4.0-M2/akka/http/javadsl/model/Uri.html" title="akka.http.javadsl.model.Uri"><code>Uri</code></a></span><span class="group-scala"><a href="https://doc.akka.io/api/akka-http/10.4.0-M2/akka/http/scaladsl/model/Uri.html" title="akka.http.scaladsl.model.Uri"><code>Uri</code></a></span> model class instances <span class="group-scala">,using <code>Uri.from()</code> method by passing <code>scheme</code>, <code>host</code>, <code>path</code> and <code>query</code> parameters</span>.</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka-http/tree/v10.4.0-M2/akka-http-core/src/test/scala/akka/http/scaladsl/model/UriSpec.scala#L481-L506" target="_blank" title="Go to snippet source">source</a><code class="language-scala">Uri(&quot;ftp://ftp.is.co.za/rfc/rfc1808.txt&quot;) shouldEqual
+  Uri.from(scheme = &quot;ftp&quot;, host = &quot;ftp.is.co.za&quot;, path = &quot;/rfc/rfc1808.txt&quot;)
+
+Uri(&quot;http://www.ietf.org/rfc/rfc2396.txt&quot;) shouldEqual
+  Uri.from(scheme = &quot;http&quot;, host = &quot;www.ietf.org&quot;, path = &quot;/rfc/rfc2396.txt&quot;)
+
+Uri(&quot;ldap://[2001:db8::7]/c=GB?objectClass?one&quot;) shouldEqual
+  Uri.from(scheme = &quot;ldap&quot;, host = &quot;[2001:db8::7]&quot;, path = &quot;/c=GB&quot;, queryString = Some(&quot;objectClass?one&quot;))
+
+Uri(&quot;mailto:John.Doe@example.com&quot;) shouldEqual
+  Uri.from(scheme = &quot;mailto&quot;, path = &quot;John.Doe@example.com&quot;)
+
+Uri(&quot;news:comp.infosystems.www.servers.unix&quot;) shouldEqual
+  Uri.from(scheme = &quot;news&quot;, path = &quot;comp.infosystems.www.servers.unix&quot;)
+
+Uri(&quot;tel:+1-816-555-1212&quot;) shouldEqual
+  Uri.from(scheme = &quot;tel&quot;, path = &quot;+1-816-555-1212&quot;)
+
+Uri(&quot;s3:image.png&quot;) shouldEqual
+  Uri.from(scheme = &quot;s3&quot;, path = &quot;image.png&quot;)
+
+Uri(&quot;telnet://192.0.2.16:80/&quot;) shouldEqual
+  Uri.from(scheme = &quot;telnet&quot;, host = &quot;192.0.2.16&quot;, port = 80, path = &quot;/&quot;)
+
+Uri(&quot;urn:oasis:names:specification:docbook:dtd:xml:4.1.2&quot;) shouldEqual
+  Uri.from(scheme = &quot;urn&quot;, path = &quot;oasis:names:specification:docbook:dtd:xml:4.1.2&quot;)</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka-http/tree/v10.4.0-M2/akka-http-core/src/test/java/akka/http/javadsl/model/UriTest.java#L20-L54" target="_blank" title="Go to snippet source">source</a><code class="language-java">Uri uri1 = Uri.create(&quot;ftp://ftp.is.co.za/rfc/rfc1808.txt&quot;);
+assertEquals(&quot;ftp&quot;, uri1.getScheme());
+assertEquals(Host.create(&quot;ftp.is.co.za&quot;), uri1.getHost());
+assertEquals(&quot;/rfc/rfc1808.txt&quot;, uri1.getPathString());
+
+Uri uri2 = Uri.create(&quot;http://www.ietf.org/rfc/rfc2396.txt&quot;);
+assertEquals(&quot;http&quot;, uri2.getScheme());
+assertEquals(Host.create(&quot;www.ietf.org&quot;), uri2.getHost());
+assertEquals(&quot;/rfc/rfc2396.txt&quot;, uri2.getPathString());
+
+Uri uri3 = Uri.create(&quot;ldap://[2001:db8::7]/c=GB?objectClass?one&quot;);
+assertEquals(&quot;ldap&quot;, uri3.getScheme());
+assertEquals(Host.create(&quot;[2001:db8::7]&quot;), uri3.getHost());
+assertEquals(&quot;objectClass?one&quot;, uri3.query().toString());
+
+Uri uri4 = Uri.create(&quot;mailto:John.Doe@example.com&quot;);
+assertEquals(&quot;mailto&quot;, uri4.getScheme());
+assertEquals(&quot;John.Doe@example.com&quot;, uri4.getPathString());
+
+Uri uri5 = Uri.create(&quot;news:comp.infosystems.www.servers.unix&quot;);
+assertEquals(&quot;news&quot;, uri5.getScheme());
+assertEquals(&quot;comp.infosystems.www.servers.unix&quot;, uri5.getPathString());
+
+Uri uri6 = Uri.create(&quot;tel:+1-816-555-1212&quot;);
+assertEquals(&quot;tel&quot;, uri6.getScheme());
+assertEquals(&quot;+1-816-555-1212&quot;, uri6.getPathString());
+
+Uri uri7 = Uri.create(&quot;telnet://192.0.2.16:80/&quot;);
+assertEquals(&quot;telnet&quot;, uri7.getScheme());
+assertEquals(Host.create(&quot;192.0.2.16&quot;), uri7.getHost());
+assertEquals(&quot;/&quot;, uri7.getPathString());
+
+Uri uri8 = Uri.create(&quot;urn:oasis:names:specification:docbook:dtd:xml:4.1.2&quot;);
+assertEquals(&quot;urn&quot;, uri8.getScheme());
+assertEquals(&quot;oasis:names:specification:docbook:dtd:xml:4.1.2&quot;, uri8.getPathString());</code></pre></dd>
+</dl>
+<p>For exact definitions of the parts of a URI, like <code>scheme</code>, <code>path</code> and <code>query</code> refer to <a href="https://tools.ietf.org/html/rfc3986#section-1.1.2">RFC 3986</a>. Here&rsquo;s a little overview:</p>
+<pre><code>  foo://example.com:8042/over/there?name=ferret#nose
+  \_/   \______________/\_________/ \_________/ \__/
+   |           |            |            |        |
+scheme     authority       path        query   fragment
+   |   _____________________|__
+  / \ /                        \
+  urn:example:animal:ferret:nose
+</code></pre>
+<p>For &ldquo;special&rdquo; characters in URI, you typically use percent encoding like below. Percent encoding is discussed in more detail in the <a href="uri-model.html#query-string-in-uri">Query String in URI</a> section.</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka-http/tree/v10.4.0-M2/akka-http-core/src/test/scala/akka/http/scaladsl/model/UriSpec.scala#L523-L525" target="_blank" title="Go to snippet source">source</a><code class="language-scala">// don&#39;t double decode
+Uri(&quot;%2520&quot;).path.head shouldEqual &quot;%20&quot;
+Uri(&quot;/%2F%5C&quot;).path shouldEqual Path / &quot;&quot;&quot;/\&quot;&quot;&quot;</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka-http/tree/v10.4.0-M2/akka-http-core/src/test/java/akka/http/javadsl/model/UriTest.java#L61-L64" target="_blank" title="Go to snippet source">source</a><code class="language-java">Uri uri1 = Uri.create(&quot;http://foo.com?foo=%2520&quot;);
+assertEquals(Optional.of(&quot;%20&quot;), uri1.query().get(&quot;foo&quot;));
+Uri uri2 = Uri.create(&quot;http://foo.com?foo=%2F%5C&quot;);
+assertEquals(Optional.of(&quot;/\\&quot;), uri2.query().get(&quot;foo&quot;));</code></pre></dd>
+</dl>
+<h4><a href="#invalid-uri-strings-and-illegaluriexception" name="invalid-uri-strings-and-illegaluriexception" class="anchor"><span class="anchor-link"></span></a>Invalid URI strings and IllegalUriException</h4>
+<p>When an invalid URI string is passed to <code>Uri()</code> as below, an <code>IllegalUriException</code> is thrown.</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka-http/tree/v10.4.0-M2/akka-http-core/src/test/scala/akka/http/scaladsl/model/UriSpec.scala#L628-L689" target="_blank" title="Go to snippet source">source</a><code class="language-scala">//illegal scheme
+the[IllegalUriException] thrownBy Uri(&quot;foö:/a&quot;) shouldBe {
+  IllegalUriException(
+    &quot;Illegal URI reference: Invalid input &#39;ö&#39;, expected scheme-char, &#39;EOI&#39;, &#39;#&#39;, &#39;:&#39;, &#39;?&#39;, slashSegments or pchar (line 1, column 3)&quot;,
+    &quot;foö:/a\n&quot; +
+      &quot;  ^&quot;)
+}
+
+// illegal userinfo
+the[IllegalUriException] thrownBy Uri(&quot;http://user:ö@host&quot;) shouldBe {
+  IllegalUriException(
+    &quot;Illegal URI reference: Invalid input &#39;ö&#39;, expected userinfo-char, pct-encoded, &#39;@&#39; or port (line 1, column 13)&quot;,
+    &quot;http://user:ö@host\n&quot; +
+      &quot;            ^&quot;)
+}
+
+// illegal percent-encoding
+the[IllegalUriException] thrownBy Uri(&quot;http://use%2G@host&quot;) shouldBe {
+  IllegalUriException(
+    &quot;Illegal URI reference: Invalid input &#39;G&#39;, expected HEXDIG (line 1, column 13)&quot;,
+    &quot;http://use%2G@host\n&quot; +
+      &quot;            ^&quot;)
+}
+
+// illegal percent-encoding ends with %
+the[IllegalUriException] thrownBy Uri(&quot;http://www.example.com/%CE%B8%&quot;) shouldBe {
+  IllegalUriException(
+    &quot;Illegal URI reference: Unexpected end of input, expected HEXDIG (line 1, column 31)&quot;,
+    &quot;http://www.example.com/%CE%B8%\n&quot; +
+      &quot;                              ^&quot;)
+}
+
+// illegal percent-encoding in a query string
+the[IllegalUriException] thrownBy Uri(&quot;http://host?use%2G&quot;) shouldBe {
+  IllegalUriException(
+    &quot;Illegal URI reference: Invalid input &#39;G&#39;, expected HEXDIG (line 1, column 18)&quot;,
+    &quot;http://host?use%2G\n&quot; +
+      &quot;                 ^&quot;)
+}
+// illegal percent-encoding in a fragment
+the[IllegalUriException] thrownBy Uri(&quot;http://host#use%2G&quot;) shouldBe {
+  IllegalUriException(
+    &quot;Illegal URI reference: Invalid input &#39;G&#39;, expected HEXDIG (line 1, column 18)&quot;,
+    &quot;http://host#use%2G\n&quot; +
+      &quot;                 ^&quot;)
+}
+
+// illegal path
+the[IllegalUriException] thrownBy Uri(&quot;http://www.example.com/name with spaces/&quot;) shouldBe {
+  IllegalUriException(
+    &quot;Illegal URI reference: Invalid input &#39; &#39;, expected &#39;/&#39;, &#39;EOI&#39;, &#39;#&#39;, &#39;?&#39; or pchar (line 1, column 28)&quot;,
+    &quot;http://www.example.com/name with spaces/\n&quot; +
+      &quot;                           ^&quot;)
+}
+
+// illegal path with control character
+the[IllegalUriException] thrownBy Uri(&quot;http:///with\newline&quot;) shouldBe {
+  IllegalUriException(
+    &quot;Illegal URI reference: Invalid input &#39;\\n&#39;, expected &#39;/&#39;, &#39;EOI&#39;, &#39;#&#39;, &#39;?&#39; or pchar (line 1, column 13)&quot;,
+    &quot;http:///with\n&quot; +
+      &quot;            ^&quot;)
+}</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka-http/tree/v10.4.0-M2/akka-http-core/src/test/java/akka/http/javadsl/model/UriTest.java#L77-L85" target="_blank" title="Go to snippet source">source</a><code class="language-java">@Test(expected = IllegalUriException.class)
+public void testIllegalScheme() {
+  Uri.create(&quot;foö:/a&quot;);
+  //IllegalUriException(
+  //  &quot;Illegal URI reference: Invalid input &#39;ö&#39;, expected scheme-char, &#39;EOI&#39;, &#39;#&#39;, &#39;:&#39;, &#39;?&#39;, slashSegments or pchar (line 1, column 3)&quot;,
+  //  &quot;http://user:ö@host\n&quot; +
+  //  &quot;            ^&quot;
+  //)
+}
+@Test(expected = IllegalUriException.class)
+public void testIllegalUserInfo() {
+  Uri.create(&quot;http://user:ö@host&quot;);
+  //IllegalUriException(
+  //  &quot;Illegal URI reference: Invalid input &#39;ö&#39;, expected userinfo-char, pct-encoded, &#39;@&#39; or port (line 1, column 13)&quot;,
+  //  &quot;http://use%2G@host\n&quot; +
+  //  &quot;            ^&quot;
+  //)
+}
+@Test(expected = IllegalUriException.class)
+public void testIllegalPercentEncoding() {
+  Uri.create(&quot;http://use%2G@host&quot;);
+  //IllegalUriException(
+  //  &quot;Illegal URI reference: Invalid input &#39;G&#39;, expected HEXDIG (line 1, column 13)&quot;,
+  //  &quot;http://www.example.com/name with spaces/\n&quot; +
+  //  &quot;                           ^&quot;
+  //)
+}
+@Test(expected = IllegalUriException.class)
+public void testIllegalPath() {
+  Uri.create(&quot;http://www.example.com/name with spaces/&quot;);
+  //IllegalUriException(
+  //  &quot;Illegal URI reference: Invalid input &#39; &#39;, expected &#39;/&#39;, &#39;EOI&#39;, &#39;#&#39;, &#39;?&#39; or pchar (line 1, column 28)&quot;,
+  //  &quot;http://www.example.com/name with spaces/\n&quot; +
+  //  &quot;                           ^&quot;
+  //)
+}
+@Test(expected = IllegalUriException.class)
+public void testIllegalPathWithControlCharacter() {
+  Uri.create(&quot;http:///with\newline&quot;);
+  //IllegalUriException(
+  //  &quot;Illegal URI reference: Invalid input &#39;\\n&#39;, expected &#39;/&#39;, &#39;EOI&#39;, &#39;#&#39;, &#39;?&#39; or pchar (line 1, column 13)&quot;,
+  //  &quot;http:///with\n&quot; +
+  //  &quot;            ^&quot;
+  //)
+}</code></pre></dd>
+</dl>
+<h4><a href="#directives-to-extract-uri-components" name="directives-to-extract-uri-components" class="anchor"><span class="anchor-link"></span></a>Directives to extract URI components</h4>
+<p>To extract URI components with directives, see following references:</p>
+<ul>
+  <li><a href="../routing-dsl/directives/basic-directives/extractUri.html">extractUri</a></li>
+  <li><a href="../routing-dsl/directives/scheme-directives/extractScheme.html">extractScheme</a></li>
+  <li><a href="../routing-dsl/directives/scheme-directives/scheme.html">scheme</a></li>
+  <li><a href="../routing-dsl/directives/path-directives/index.html">PathDirectives</a></li>
+  <li><a href="../routing-dsl/directives/parameter-directives/index.html">ParameterDirectives</a></li>
+</ul>
+<h3><a href="#obtaining-the-raw-request-uri" name="obtaining-the-raw-request-uri" class="anchor"><span class="anchor-link"></span></a>Obtaining the raw request URI</h3>
+<p>Sometimes it may be needed to obtain the &ldquo;raw&rdquo; value of an incoming URI, without applying any escaping or parsing to it. While this use case is rare, it comes up every once in a while. It is possible to obtain the &ldquo;raw&rdquo; request URI in Akka HTTP Server side by turning on the <code>akka.http.server.raw-request-uri-header</code> flag. When enabled, a <code>Raw-Request-URI</code> header will be added to each request. This header will hold the original raw request&rsquo;s URI that was used. For an example check the reference configuration.</p>
+<h3><a href="#query-string-in-uri" name="query-string-in-uri" class="anchor"><span class="anchor-link"></span></a>Query string in URI</h3>
+<p>Although any part of URI can have special characters, it is more common for the query string in URI to have special characters, which are typically <a href="https://en.wikipedia.org/wiki/Percent-encoding">percent encoded</a>.</p>
+<p><span class="group-scala"><span class="group-java"><a href="https://doc.akka.io/japi/akka-http/10.4.0-M2/akka/http/javadsl/model/Uri.html" title="akka.http.javadsl.model.Uri"><code>Uri</code></a></span><span class="group-scala"><a href="https://doc.akka.io/api/akka-http/10.4.0-M2/akka/http/scaladsl/model/Uri.html" title="akka.http.scaladsl.model.Uri"><code>Uri</code></a></span> class&rsquo;s <code>query()</code> method</span><span class="group-java">The method <code>Uri::query()</code></span> returns the query string of the URI, which is modeled in an instance of the <code>Query</code> class. When you instantiate a <span class="group-java"><a href="https://doc.akka.io/japi/akka-http/10.4.0-M2/akka/http/javadsl/model/Uri.html" title="akka.http.javadsl.model.Uri"><code>Uri</code></a></span><span class="group-scala"><a href="https://doc.akka.io/api/akka-http/10.4.0-M2/akka/http/scaladsl/model/Uri.html" title="akka.http.scaladsl.model.Uri"><code>Uri</code></a></span> class by passing a URI string, the query string is stored in its raw string form. Then, when you call the <code>query()</code> method, the query string is parsed from the raw string.</p>
+<p>You can add query parameters with <span class="group-java"><a href="https://doc.akka.io/japi/akka-http/10.4.0-M2/akka/http/javadsl/model/Uri.html" title="akka.http.javadsl.model.Uri"><code>Uri</code></a></span><span class="group-scala"><a href="https://doc.akka.io/api/akka-http/10.4.0-M2/akka/http/scaladsl/model/Uri.html" title="akka.http.scaladsl.model.Uri"><code>Uri</code></a></span> class&rsquo;s <span class="group-scala"><code>withQuery()</code> method</span><span class="group-java"><code>Uri::query()</code> method</span></p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka-http/tree/v10.4.0-M2/akka-http-core/src/test/scala/akka/http/scaladsl/model/UriSpec.scala#L783" target="_blank" title="Go to snippet source">source</a><code class="language-scala">val uriWithQuery = uri.withQuery(Query(&quot;param1&quot; -&gt; &quot;value1&quot;))</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka-http/tree/v10.4.0-M2/akka-http-core/src/test/java/akka/http/javadsl/model/UriTest.java#L71" target="_blank" title="Go to snippet source">source</a><code class="language-java">Uri uri = Uri.create(&quot;http://foo.com&quot;).query(Query.create(Pair.create(&quot;foo&quot;,&quot;bar&quot;)));</code></pre></dd>
+</dl>
+<p>The below code illustrates how valid query strings are parsed. Especially, you can check how percent encoding is used and how special characters like <code>+</code> and <code>;</code> are parsed.</p><div class="callout note "><div class="callout-title">Note</div>
+<p>The <code>mode</code> parameter to <code>Query()</code> and <code>Uri.query()</code> is discussed in <a href="uri-model.html#strict-and-relaxed-mode">Strict and Relaxed Mode</a>.</p></div>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka-http/tree/v10.4.0-M2/akka-http-core/src/test/scala/akka/http/scaladsl/model/UriSpec.scala#L313" target="_blank" title="Go to snippet source">source</a><code class="language-scala">def strict(queryString: String): Query = Query(queryString, mode = Uri.ParsingMode.Strict)</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka-http/tree/v10.4.0-M2/akka-http-core/src/test/java/akka/http/javadsl/model/UriTest.java#L149-L151" target="_blank" title="Go to snippet source">source</a><code class="language-java">public Query strict(String query){
+  return Query.create(query, akka.http.javadsl.model.Uri.STRICT);
+}</code></pre></dd>
+</dl>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka-http/tree/v10.4.0-M2/akka-http-core/src/test/scala/akka/http/scaladsl/model/UriSpec.scala#L317-L340" target="_blank" title="Go to snippet source">source</a><code class="language-scala">//query component &quot;a=b&quot; is parsed into parameter name: &quot;a&quot;, and value: &quot;b&quot;
+strict(&quot;a=b&quot;) shouldEqual (&quot;a&quot;, &quot;b&quot;) +: Query.Empty
+
+strict(&quot;&quot;) shouldEqual Query.Empty
+strict(&quot;a&quot;) shouldEqual (&quot;a&quot;, &quot;&quot;) +: Query.Empty
+strict(&quot;a=&quot;) shouldEqual (&quot;a&quot;, &quot;&quot;) +: Query.Empty
+strict(&quot;a=+&quot;) shouldEqual (&quot;a&quot;, &quot; &quot;) +: Query.Empty //&#39;+&#39; is parsed to &#39; &#39;
+strict(&quot;a=%2B&quot;) shouldEqual (&quot;a&quot;, &quot;+&quot;) +: Query.Empty
+strict(&quot;=a&quot;) shouldEqual (&quot;&quot;, &quot;a&quot;) +: Query.Empty
+strict(&quot;a&amp;&quot;) shouldEqual (&quot;a&quot;, &quot;&quot;) +: (&quot;&quot;, &quot;&quot;) +: Query.Empty
+strict(&quot;a=%62&quot;) shouldEqual (&quot;a&quot;, &quot;b&quot;) +: Query.Empty
+
+strict(&quot;a%3Db=c&quot;) shouldEqual (&quot;a=b&quot;, &quot;c&quot;) +: Query.Empty
+strict(&quot;a%26b=c&quot;) shouldEqual (&quot;a&amp;b&quot;, &quot;c&quot;) +: Query.Empty
+strict(&quot;a%2Bb=c&quot;) shouldEqual (&quot;a+b&quot;, &quot;c&quot;) +: Query.Empty
+strict(&quot;a%3Bb=c&quot;) shouldEqual (&quot;a;b&quot;, &quot;c&quot;) +: Query.Empty
+
+strict(&quot;a=b%3Dc&quot;) shouldEqual (&quot;a&quot;, &quot;b=c&quot;) +: Query.Empty
+strict(&quot;a=b%26c&quot;) shouldEqual (&quot;a&quot;, &quot;b&amp;c&quot;) +: Query.Empty
+strict(&quot;a=b%2Bc&quot;) shouldEqual (&quot;a&quot;, &quot;b+c&quot;) +: Query.Empty
+strict(&quot;a=b%3Bc&quot;) shouldEqual (&quot;a&quot;, &quot;b;c&quot;) +: Query.Empty
+
+strict(&quot;a+b=c&quot;) shouldEqual (&quot;a b&quot;, &quot;c&quot;) +: Query.Empty //&#39;+&#39; is parsed to &#39; &#39;
+strict(&quot;a=b+c&quot;) shouldEqual (&quot;a&quot;, &quot;b c&quot;) +: Query.Empty //&#39;+&#39; is parsed to &#39; &#39;</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka-http/tree/v10.4.0-M2/akka-http-core/src/test/java/akka/http/javadsl/model/UriTest.java#L158-L181" target="_blank" title="Go to snippet source">source</a><code class="language-java">//query component (name: &quot;a&quot;, and value: &quot;b&quot;) is equal to parsed query string &quot;a=b&quot;
+assertEquals(Query.create(Pair.create(&quot;a&quot;, &quot;b&quot;)), strict(&quot;a=b&quot;));
+
+assertEquals(Query.EMPTY, strict(&quot;&quot;));
+assertEquals(Query.create(Pair.create(&quot;a&quot;, &quot;&quot;)), strict(&quot;a&quot;));
+assertEquals(Query.create(Pair.create(&quot;a&quot;, &quot;&quot;)), strict(&quot;a=&quot;));
+assertEquals(Query.create(Pair.create(&quot;a&quot;, &quot; &quot;)), strict(&quot;a=+&quot;));
+assertEquals(Query.create(Pair.create(&quot;a&quot;, &quot;+&quot;)), strict(&quot;a=%2B&quot;));
+assertEquals(Query.create(Pair.create(&quot;&quot;, &quot;a&quot;)), strict(&quot;=a&quot;));
+assertEquals(Query.create(Pair.create(&quot;a&quot;, &quot;&quot;)).withParam(&quot;&quot;, &quot;&quot;), strict(&quot;a&amp;&quot;));
+assertEquals(Query.create(Pair.create(&quot;a&quot;, &quot;b&quot;)), strict(&quot;a=%62&quot;));
+
+assertEquals(Query.create(Pair.create(&quot;a=b&quot;, &quot;c&quot;)), strict(&quot;a%3Db=c&quot;));
+assertEquals(Query.create(Pair.create(&quot;a&amp;b&quot;, &quot;c&quot;)), strict(&quot;a%26b=c&quot;));
+assertEquals(Query.create(Pair.create(&quot;a+b&quot;, &quot;c&quot;)), strict(&quot;a%2Bb=c&quot;));
+assertEquals(Query.create(Pair.create(&quot;a;b&quot;, &quot;c&quot;)), strict(&quot;a%3Bb=c&quot;));
+
+assertEquals(Query.create(Pair.create(&quot;a&quot;, &quot;b=c&quot;)), strict(&quot;a=b%3Dc&quot;));
+assertEquals(Query.create(Pair.create(&quot;a&quot;, &quot;b&amp;c&quot;)), strict(&quot;a=b%26c&quot;));
+assertEquals(Query.create(Pair.create(&quot;a&quot;, &quot;b+c&quot;)), strict(&quot;a=b%2Bc&quot;));
+assertEquals(Query.create(Pair.create(&quot;a&quot;, &quot;b;c&quot;)), strict(&quot;a=b%3Bc&quot;));
+
+assertEquals(Query.create(Pair.create(&quot;a b&quot;, &quot;c&quot;)), strict(&quot;a+b=c&quot;)); //&#39;+&#39; is parsed to &#39; &#39;
+assertEquals(Query.create(Pair.create(&quot;a&quot;, &quot;b c&quot;)), strict(&quot;a=b+c&quot;)); //&#39;+&#39; is parsed to &#39; &#39;</code></pre></dd>
+</dl>
+<p>Note that:</p>
+<pre><code>  Uri(&quot;http://localhost?a=b&quot;).query()
+</code></pre>
+<p>is equivalent to:</p>
+<pre><code>  Query(&quot;a=b&quot;)
+</code></pre>
+<p>As in the <a href="https://tools.ietf.org/html/rfc3986#section-3.4">section 3.4 of RFC 3986</a>, some special characters like &ldquo;/&rdquo; and &ldquo;?&rdquo; are allowed inside a query string, without escaping them using (&ldquo;%&rdquo;) signs.</p>
+<blockquote>
+  <p>The characters slash (&ldquo;/&rdquo;) and question mark (&ldquo;?&rdquo;) may represent data within the query component.</p>
+</blockquote>
+<p>&ldquo;/&rdquo; and &ldquo;?&rdquo; are commonly used when you have a URI whose query parameter has another URI.</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka-http/tree/v10.4.0-M2/akka-http-core/src/test/scala/akka/http/scaladsl/model/UriSpec.scala#L344-L348" target="_blank" title="Go to snippet source">source</a><code class="language-scala">strict(&quot;a?b=c&quot;) shouldEqual (&quot;a?b&quot;, &quot;c&quot;) +: Query.Empty
+strict(&quot;a/b=c&quot;) shouldEqual (&quot;a/b&quot;, &quot;c&quot;) +: Query.Empty
+
+strict(&quot;a=b?c&quot;) shouldEqual (&quot;a&quot;, &quot;b?c&quot;) +: Query.Empty
+strict(&quot;a=b/c&quot;) shouldEqual (&quot;a&quot;, &quot;b/c&quot;) +: Query.Empty</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka-http/tree/v10.4.0-M2/akka-http-core/src/test/java/akka/http/javadsl/model/UriTest.java#L185-L189" target="_blank" title="Go to snippet source">source</a><code class="language-java">assertEquals(Query.create(Pair.create(&quot;a?b&quot;, &quot;c&quot;)), strict(&quot;a?b=c&quot;));
+assertEquals(Query.create(Pair.create(&quot;a/b&quot;, &quot;c&quot;)), strict(&quot;a/b=c&quot;));
+
+assertEquals(Query.create(Pair.create(&quot;a&quot;, &quot;b?c&quot;)), strict(&quot;a=b?c&quot;));
+assertEquals(Query.create(Pair.create(&quot;a&quot;, &quot;b/c&quot;)), strict(&quot;a=b/c&quot;));</code></pre></dd>
+</dl>
+<p>However, some other special characters can cause <code>IllegalUriException</code> without percent encoding as follows.</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka-http/tree/v10.4.0-M2/akka-http-core/src/test/scala/akka/http/scaladsl/model/UriSpec.scala#L352-L363" target="_blank" title="Go to snippet source">source</a><code class="language-scala">the[IllegalUriException] thrownBy strict(&quot;a^=b&quot;) shouldBe {
+  IllegalUriException(
+    &quot;Illegal query: Invalid input &#39;^&#39;, expected &#39;+&#39;, &#39;=&#39;, query-char, &#39;EOI&#39;, &#39;&amp;&#39; or pct-encoded (line 1, column 2)&quot;,
+    &quot;a^=b\n&quot; +
+      &quot; ^&quot;)
+}
+the[IllegalUriException] thrownBy strict(&quot;a;=b&quot;) shouldBe {
+  IllegalUriException(
+    &quot;Illegal query: Invalid input &#39;;&#39;, expected &#39;+&#39;, &#39;=&#39;, query-char, &#39;EOI&#39;, &#39;&amp;&#39; or pct-encoded (line 1, column 2)&quot;,
+    &quot;a;=b\n&quot; +
+      &quot; ^&quot;)
+}</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka-http/tree/v10.4.0-M2/akka-http-core/src/test/java/akka/http/javadsl/model/UriTest.java#L194-L201" target="_blank" title="Go to snippet source">source</a><code class="language-java">@Test(expected = IllegalUriException.class)
+public void testStrictModeException1() {
+  strict(&quot;a^=b&quot;);
+  //IllegalUriException(
+  //  &quot;Illegal query: Invalid input &#39;^&#39;, expected &#39;+&#39;, &#39;=&#39;, query-char, &#39;EOI&#39;, &#39;&amp;&#39; or pct-encoded (line 1, column 2)&quot;,
+  //  &quot;a^=b\n&quot; +
+  //  &quot; ^&quot;)
+}</code></pre></dd>
+</dl>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka-http/tree/v10.4.0-M2/akka-http-core/src/test/scala/akka/http/scaladsl/model/UriSpec.scala#L367-L380" target="_blank" title="Go to snippet source">source</a><code class="language-scala">//double &#39;=&#39; in query string is invalid
+the[IllegalUriException] thrownBy strict(&quot;a=b=c&quot;) shouldBe {
+  IllegalUriException(
+    &quot;Illegal query: Invalid input &#39;=&#39;, expected &#39;+&#39;, query-char, &#39;EOI&#39;, &#39;&amp;&#39; or pct-encoded (line 1, column 4)&quot;,
+    &quot;a=b=c\n&quot; +
+      &quot;   ^&quot;)
+}
+//following &#39;%&#39;, it should be percent encoding (HEXDIG), but &quot;%b=&quot; is not a valid percent encoding
+the[IllegalUriException] thrownBy strict(&quot;a%b=c&quot;) shouldBe {
+  IllegalUriException(
+    &quot;Illegal query: Invalid input &#39;=&#39;, expected HEXDIG (line 1, column 4)&quot;,
+    &quot;a%b=c\n&quot; +
+      &quot;   ^&quot;)
+}</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka-http/tree/v10.4.0-M2/akka-http-core/src/test/java/akka/http/javadsl/model/UriTest.java#L205-L212" target="_blank" title="Go to snippet source">source</a><code class="language-java">@Test(expected = IllegalUriException.class)
+public void testStrictModeException2() {
+  strict(&quot;a;=b&quot;);
+  //IllegalUriException(
+  //  &quot;Illegal query: Invalid input &#39;;&#39;, expected &#39;+&#39;, &#39;=&#39;, query-char, &#39;EOI&#39;, &#39;&amp;&#39; or pct-encoded (line 1, column 2)&quot;,
+  //  &quot;a;=b\n&quot; +
+  //  &quot; ^&quot;)
+}</code></pre></dd>
+</dl>
+<h4><a href="#strict-and-relaxed-mode" name="strict-and-relaxed-mode" class="anchor"><span class="anchor-link"></span></a>Strict and Relaxed Mode</h4>
+<p>The <code>Uri.query()</code> method and <code>Query()</code> take a parameter <code>mode</code>, which is either <code>Uri.ParsingMode.Strict</code> or <code>Uri.ParsingMode.Relaxed</code>. Switching the mode gives different behavior on parsing some special characters in URI.</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka-http/tree/v10.4.0-M2/akka-http-core/src/test/scala/akka/http/scaladsl/model/UriSpec.scala#L385" target="_blank" title="Go to snippet source">source</a><code class="language-scala">def relaxed(queryString: String): Query = Query(queryString, mode = Uri.ParsingMode.Relaxed)</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka-http/tree/v10.4.0-M2/akka-http-core/src/test/java/akka/http/javadsl/model/UriTest.java#L240-L242" target="_blank" title="Go to snippet source">source</a><code class="language-java">public Query relaxed(String query){
+  return Query.create(query,  akka.http.javadsl.model.Uri.RELAXED);
+}</code></pre></dd>
+</dl>
+<p>The below two cases threw <code>IllegalUriException</code> when you specified the <code>Strict</code> mode,</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka-http/tree/v10.4.0-M2/akka-http-core/src/test/scala/akka/http/scaladsl/model/UriSpec.scala#L352-L363" target="_blank" title="Go to snippet source">source</a><code class="language-scala">the[IllegalUriException] thrownBy strict(&quot;a^=b&quot;) shouldBe {
+  IllegalUriException(
+    &quot;Illegal query: Invalid input &#39;^&#39;, expected &#39;+&#39;, &#39;=&#39;, query-char, &#39;EOI&#39;, &#39;&amp;&#39; or pct-encoded (line 1, column 2)&quot;,
+    &quot;a^=b\n&quot; +
+      &quot; ^&quot;)
+}
+the[IllegalUriException] thrownBy strict(&quot;a;=b&quot;) shouldBe {
+  IllegalUriException(
+    &quot;Illegal query: Invalid input &#39;;&#39;, expected &#39;+&#39;, &#39;=&#39;, query-char, &#39;EOI&#39;, &#39;&amp;&#39; or pct-encoded (line 1, column 2)&quot;,
+    &quot;a;=b\n&quot; +
+      &quot; ^&quot;)
+}</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka-http/tree/v10.4.0-M2/akka-http-core/src/test/java/akka/http/javadsl/model/UriTest.java#L194-L201" target="_blank" title="Go to snippet source">source</a><code class="language-java">@Test(expected = IllegalUriException.class)
+public void testStrictModeException1() {
+  strict(&quot;a^=b&quot;);
+  //IllegalUriException(
+  //  &quot;Illegal query: Invalid input &#39;^&#39;, expected &#39;+&#39;, &#39;=&#39;, query-char, &#39;EOI&#39;, &#39;&amp;&#39; or pct-encoded (line 1, column 2)&quot;,
+  //  &quot;a^=b\n&quot; +
+  //  &quot; ^&quot;)
+}
+@Test(expected = IllegalUriException.class)
+public void testStrictModeException2() {
+  strict(&quot;a;=b&quot;);
+  //IllegalUriException(
+  //  &quot;Illegal query: Invalid input &#39;;&#39;, expected &#39;+&#39;, &#39;=&#39;, query-char, &#39;EOI&#39;, &#39;&amp;&#39; or pct-encoded (line 1, column 2)&quot;,
+  //  &quot;a;=b\n&quot; +
+  //  &quot; ^&quot;)
+}</code></pre></dd>
+</dl>
+<p>but the <code>Relaxed</code> mode parses them as they are.</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka-http/tree/v10.4.0-M2/akka-http-core/src/test/scala/akka/http/scaladsl/model/UriSpec.scala#L419-L421" target="_blank" title="Go to snippet source">source</a><code class="language-scala">relaxed(&quot;a^=b&quot;) shouldEqual (&quot;a^&quot;, &quot;b&quot;) +: Query.Empty
+relaxed(&quot;a;=b&quot;) shouldEqual (&quot;a;&quot;, &quot;b&quot;) +: Query.Empty
+relaxed(&quot;a=b=c&quot;) shouldEqual (&quot;a&quot;, &quot;b=c&quot;) +: Query.Empty</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka-http/tree/v10.4.0-M2/akka-http-core/src/test/java/akka/http/javadsl/model/UriTest.java#L280-L282" target="_blank" title="Go to snippet source">source</a><code class="language-java">assertEquals(Query.create(Pair.create(&quot;a^&quot;, &quot;b&quot;)), relaxed(&quot;a^=b&quot;));
+assertEquals(Query.create(Pair.create(&quot;a;&quot;, &quot;b&quot;)), relaxed(&quot;a;=b&quot;));
+assertEquals(Query.create(Pair.create(&quot;a&quot;, &quot;b=c&quot;)), relaxed(&quot;a=b=c&quot;));</code></pre></dd>
+</dl>
+<p>However, even with the <code>Relaxed</code> mode, there are still invalid special characters which require percent encoding.</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka-http/tree/v10.4.0-M2/akka-http-core/src/test/scala/akka/http/scaladsl/model/UriSpec.scala#L425-L432" target="_blank" title="Go to snippet source">source</a><code class="language-scala">//following &#39;%&#39;, it should be percent encoding (HEXDIG), but &quot;%b=&quot; is not a valid percent encoding
+//still invalid even in relaxed mode
+the[IllegalUriException] thrownBy relaxed(&quot;a%b=c&quot;) shouldBe {
+  IllegalUriException(
+    &quot;Illegal query: Invalid input &#39;=&#39;, expected HEXDIG (line 1, column 4)&quot;,
+    &quot;a%b=c\n&quot; +
+      &quot;   ^&quot;)
+}</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka-http/tree/v10.4.0-M2/akka-http-core/src/test/java/akka/http/javadsl/model/UriTest.java#L287-L296" target="_blank" title="Go to snippet source">source</a><code class="language-java">@Test(expected = IllegalUriException.class)
+public void testRelaxedModeException1() {
+  //following &#39;%&#39;, it should be percent encoding (HEXDIG), but &quot;%b=&quot; is not a valid percent encoding
+  //still invalid even in relaxed mode
+  relaxed(&quot;a%b=c&quot;);
+  //IllegalUriException(
+  //  &quot;Illegal query: Invalid input &#39;=&#39;, expected &#39;+&#39;, query-char, &#39;EOI&#39;, &#39;&amp;&#39; or pct-encoded (line 1, column 4)&quot;,
+  //  &quot;a%b=c\n&quot; +
+  //  &quot;   ^&quot;)
+}</code></pre></dd>
+</dl>
+<p>Other than specifying the <code>mode</code> in the parameters, like when using directives, you can specify the <code>mode</code> in your configuration as follows.</p>
+<pre><code>    # Sets the strictness mode for parsing request target URIs.
+    # The following values are defined:
+    #
+    # `strict`: RFC3986-compliant URIs are required,
+    #     a 400 response is triggered on violations
+    #
+    # `relaxed`: all visible 7-Bit ASCII chars are allowed
+    #
+    uri-parsing-mode = strict
+</code></pre>
+<p>To access the raw, unparsed representation of the query part of a URI use the <code>rawQueryString</code> member of the <span class="group-java"><a href="https://doc.akka.io/japi/akka-http/10.4.0-M2/akka/http/javadsl/model/Uri.html" title="akka.http.javadsl.model.Uri"><code>Uri</code></a></span><span class="group-scala"><a href="https://doc.akka.io/api/akka-http/10.4.0-M2/akka/http/scaladsl/model/Uri.html" title="akka.http.scaladsl.model.Uri"><code>Uri</code></a></span> class.</p>
+<h4><a href="#directives-to-extract-query-parameters" name="directives-to-extract-query-parameters" class="anchor"><span class="anchor-link"></span></a>Directives to extract query parameters</h4>
+<p>If you want to use directives to extract query parameters, see below pages.</p>
+<ul>
+  <li><a href="../routing-dsl/directives/parameter-directives/parameters.html">parameters</a></li>
+  <li><a href="../routing-dsl/directives/parameter-directives/parameter.html">parameter</a></li>
+</ul>
+</div>
+</article>
+<div class="row">
+<div class="small-12 column">
+<section class="nav-prev-next row">
+<div class="nav-prev small-6 column">
+<a href="../common/http-model.html"><i class="icon-prev"></i> <span class="link-prev">HTTP Model</span></a>
+</div>
+<div class="nav-next small-6 column clearfix">
+<a class="float-right" href="../common/marshalling.html">Marshalling <i class="icon-next"></i></a>
+</div>
+</section>
+</div>
+</div>
+<div class="source-github row">
+Found an error in this documentation? The source code for this page can be found <a href="https://github.com/akka/akka-http/tree/v10.4.0-M2/docs/src/main/paradox/common/uri-model.md">here</a>.
+Please feel free to edit and contribute a pull request.
+</div>
+
+<footer class="page-footer row clearfix">
+<img class="akka-icon float-left show-for-medium" src="../images/akka-icon.svg" />
+<section class="copyright">
+<div>Akka HTTP is available under the <a href="https://www.lightbend.com/akka/license" target="_blank">Business Source License 1.1</a>.</div>
+<p class="legal">
+&copy; 2011-2022 <a href="https://www.lightbend.com" target="_blank">Lightbend, Inc.</a> |
+<a href="https://www.lightbend.com/legal/licenses" target="_blank">Licenses</a> |
+<a href="https://www.lightbend.com/legal/terms" target="_blank">Terms</a> |
+<a href="https://www.lightbend.com/legal/privacy" target="_blank">Privacy Policy</a> |
+<a href="https://akka.io/cookie/" target="_blank">Cookie Listing</a> |
+<a class="optanon-toggle-display">Cookie Settings</a>
+</p>
+</section>
+
+</footer>
+</section>
+</main>
+</div>
+
+<script type="text/javascript" src="../js/scrollsneak.js"></script>
+<script type="text/javascript">jQuery(document).foundation();</script>
+<script type="text/javascript" src="../js/groups.js"></script>
+<script type="text/javascript" src="../js/page.js"></script>
+<script type="text/javascript" src="../js/snippets.js"></script>
+<script type="text/javascript" src="../js/magellan.js"></script>
+<script type="text/javascript" src="../js/metadata-toggle.js"></script>
+<script type="text/javascript" src="../js/lbHeader.js"></script>
+
+<style type="text/css">@import "../lib/prettify/prettify.css";</style>
+<script type="text/javascript" src="../lib/prettify/prettify.js"></script>
+<script type="text/javascript" src="../lib/prettify/lang-scala.js"></script>
+<script type="text/javascript">//<![CDATA[
+jQuery(function(){window.prettyPrint && prettyPrint()});
+//]]></script>
+<!-- Algolia docs search -->
+<script type="text/javascript" src="https://cdn.jsdelivr.net/docsearch.js/2/docsearch.min.js"></script>
+<style>.algolia-autocomplete { display: block !important }</style>
+<script type="text/javascript">
+docsearch({
+apiKey: '0ccbb8bf5148554a406fbf07df0a93b9',
+indexName: 'akka-http',
+inputSelector: '#search',
+algoliaOptions: {
+hitsPerPage: 5
+}
+});
+
+docsearch({
+apiKey: '0ccbb8bf5148554a406fbf07df0a93b9',
+indexName: 'akka-http',
+inputSelector: '#overlay-search',
+algoliaOptions: {
+hitsPerPage: 5
+}
+});
+
+// set up "/" as global shortcut for focusing on search
+jQuery(document).keypress(function (event) {
+if (event.keyCode == 47) {
+jQuery("#search").focus();
+return false; // swallow key event, otherwise the / char would be input into the search box
+}
+});
+</script>
+
+<script type="text/javascript" src="../assets/js/warnOldDocs.js"></script>
+<script type="text/javascript" src="../assets/js/scrollToFragment.js"></script>
+
+
+</body>
+</html>

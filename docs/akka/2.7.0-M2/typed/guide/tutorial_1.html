@@ -1,0 +1,744 @@
+<!DOCTYPE html>
+<html class="no-js" lang="en">
+
+<head>
+<title>Part 1: Actor Architecture &bull; Akka Documentation</title>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta name="description" content="Akka is a toolkit for building highly concurrent, distributed, and resilient message-driven applications for Java and Scala."/>
+<link rel="canonical" href="https://doc.akka.io/docs/akka/current/typed/guide/tutorial_1.html"/>
+<script type="text/javascript" src="../../lib/jquery/jquery.min.js"></script>
+<script type="text/javascript" src="../../lib/foundation/dist/js/foundation.min.js"></script>
+<link rel="stylesheet" type="text/css" href="../../lib/normalize.css/normalize.css"/>
+<link rel="stylesheet" type="text/css" href="../../lib/foundation/dist/css/foundation.min.css"/>
+<link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/docsearch.js/2/docsearch.min.css" />
+<link rel="stylesheet" type="text/css" href="../../css/icons.css"/>
+<link rel="stylesheet" type="text/css" href="../../css/page-8.css"/>
+<link rel="stylesheet" type="text/css" href="../../css/banner-2.css"/>
+<link rel="shortcut icon" href="../../images/favicon.ico" />
+<link rel="apple-touch-icon" sizes="180x180" href="../../images/apple-touch-icon.png"/>
+<link rel="icon" type="image/png" sizes="32x32" href="../../images/favicon-32x32.png"/>
+<link rel="icon" type="image/png" sizes="16x16" href="../../images/favicon-16x16.png"/>
+<link rel="manifest" href="../../images/manifest.json"/>
+<meta name="msapplication-TileImage" content="../../images/mstile-150x150.png"/>
+<meta name="msapplication-TileColor" content="#15a9ce"/>
+<meta name="theme-color" content="#15a9ce"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<!-- OneTrust Cookies Consent Notice (Production Standard, akka.io, en-GB) start -->
+<script src="https://cdn.cookielaw.org/scripttemplates/otSDKStub.js"  type="text/javascript" charset="UTF-8" data-domain-script="28b912e7-09e9-43d5-91e4-3d1897044004" ></script>
+<script type="text/javascript">
+function OptanonWrapper() { }
+</script>
+<!-- OneTrust Cookies Consent Notice (Production Standard, akka.io, en-GB) end -->
+<!--Google Analytics-->
+<script type="text/plain" class="optanon-category-2">
+var _gaq = _gaq || [];
+_gaq.push(['_setAccount', 'UA-21117439-1']);
+_gaq.push(['_setDomainName', 'akka.io']);
+_gaq.push(['_trackPageview']);
+(function() {
+var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+})()
+</script>
+<!-- Google Tag Manager -->
+<script type="text/plain" class="optanon-category-2">
+(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+})(window,document,'script','dataLayer','GTM-KBJGH35');
+</script>
+<!--Marketo-->
+<script type="text/plain" class="optanon-category-3">
+(function() {
+var didInit = false;
+function initMunchkin() {
+if(didInit === false) {
+didInit = true;
+Munchkin.init('558-NCX-702', { 'asyncOnly': true, 'disableClickDelay': true });
+}
+}
+var s = document.createElement('script');
+s.type = 'text/javascript';
+s.async = true;
+s.src = '//munchkin.marketo.net/munchkin.js';
+s.onreadystatechange = function() {
+if (this.readyState == 'complete' || this.readyState == 'loaded') {
+initMunchkin();
+}
+};
+s.onload = initMunchkin;
+document.getElementsByTagName('head')[0].appendChild(s);
+})();
+</script>
+</head>
+
+<body id="underlay" data-toggler="nav-open">
+<div id="lightbend-banner" class="lightbend-banner akka full-width" data-category="OSS Lightbend Banner Impression" data-label="Akka Banner Impression">
+<div class="oss-wrapper">
+<div class="oss-brand">
+<a class="oss-track-link-label" data-category="OSS Lightbend Banner Clicks" data-label="Lightbend Logo - Akka Banner" href="https://www.lightbend.com">
+<img class="lightbend-logo" src="../../images/banner-logos/lightbend-reverse.svg" alt="Lightbend" title="Lightbend">
+</a>
+</div>
+<div class="oss-ad no-drop-down">
+<nav id="lightbendRotator" class="lightbend-rotator">
+<a class="oss-track-link-label" data-category="OSS Lightbend Banner Clicks" data-label="Promo Rotator - Lightbend is Changing its Software Licensing Model for Akka Technology. [License FAQ] - Akka Banner" href="https://www.lightbend.com/akka/license-faq">
+<strong>Lightbend</strong> is Changing its Software Licensing Model for Akka Technology. <span class="akka-btn">License FAQ</span>
+</a>
+</nav>
+</div>
+</div>
+</div>
+
+<header class="site-header hide-for-large">
+<div class="sticky-header clearfix">
+<a href="https://akka.io"><img class="logo" src="../../images/akka-logo-reverse.svg"/></a>
+
+<button class="menu-icon float-right" type="button" data-toggle="underlay overlay"></button>
+</div>
+<div id="overlay" class="overlay-nav" data-toggler="nav-open">
+<header class="nav-header">
+<div class="nav-header-title">
+<h1><a href="../../index.html">Akka Documentation</a></h1>
+</div>
+<div class="nav-header-version">
+Version 2.7.0-M2
+</div>
+<div class="nav-header-groups">
+<select class="supergroup" name="Language"><option class="group" value="group-scala">Scala</option><option class="group" value="group-java">Java</option></select>
+</div>
+<div id="overlay-search-container" class="nav-header-search">
+<input id="overlay-search" type="search" class="search" placeholder="Search" />
+</div>
+</header>
+<nav class="nav-toc">
+<ul>
+  <li><a href="../../security/index.html" class="page">Security Announcements</a></li>
+  <li><a href="../../typed/guide/index.html" class="page">Getting Started Guide</a>
+  <ul>
+    <li><a href="../../typed/guide/introduction.html" class="page">Introduction to Akka</a></li>
+    <li><a href="../../typed/guide/actors-motivation.html" class="page">Why modern systems need a new programming model</a></li>
+    <li><a href="../../typed/guide/actors-intro.html" class="page">How the Actor Model Meets the Needs of Modern, Distributed Systems</a></li>
+    <li><a href="../../typed/guide/modules.html" class="page">Overview of Akka libraries and modules</a></li>
+    <li><a href="../../typed/guide/tutorial.html" class="page">Introduction to the Example</a></li>
+    <li><a href="../../typed/guide/tutorial_1.html#part-1-actor-architecture" class="active page">Part 1: Actor Architecture</a>
+    <ul>
+      <li><a href="../../typed/guide/tutorial_1.html#dependency" class="header">Dependency</a></li>
+      <li><a href="../../typed/guide/tutorial_1.html#introduction" class="header">Introduction</a></li>
+      <li><a href="../../typed/guide/tutorial_1.html#the-akka-actor-hierarchy" class="header">The Akka actor hierarchy</a></li>
+      <li><a href="../../typed/guide/tutorial_1.html#summary" class="header">Summary</a></li>
+    </ul></li>
+    <li><a href="../../typed/guide/tutorial_2.html" class="page">Part 2: Creating the First Actor</a></li>
+    <li><a href="../../typed/guide/tutorial_3.html" class="page">Part 3: Working with Device Actors</a></li>
+    <li><a href="../../typed/guide/tutorial_4.html" class="page">Part 4: Working with Device Groups</a></li>
+    <li><a href="../../typed/guide/tutorial_5.html" class="page">Part 5: Querying Device Groups</a></li>
+  </ul></li>
+  <li><a href="../../general/index.html" class="page">General Concepts</a></li>
+  <li><a href="../../typed/index.html" class="page">Actors</a></li>
+  <li><a href="../../typed/index-cluster.html" class="page">Cluster</a></li>
+  <li><a href="../../typed/index-persistence.html" class="page">Persistence (Event Sourcing)</a></li>
+  <li><a href="../../typed/index-persistence-durable-state.html" class="page">Persistence (Durable State)</a></li>
+  <li><a href="../../stream/index.html" class="page">Streams</a></li>
+  <li><a href="../../discovery/index.html" class="page">Discovery</a></li>
+  <li><a href="../../index-utilities.html" class="page">Utilities</a></li>
+  <li><a href="../../common/other-modules.html" class="page">Other Akka modules</a></li>
+  <li><a href="../../additional/deploy.html" class="page">Package, Deploy and Run</a></li>
+  <li><a href="../../project/index.html" class="page">Project Information</a></li>
+  <li><a href="../../index-classic.html" class="page">Akka Classic</a></li>
+</ul>
+</nav>
+</div>
+</header>
+<div class="site-content-wrapper">
+<aside class="sticky-sidebar show-for-large">
+<header class="nav-header sticky-sidebar-header">
+<div class="nav-header-title">
+<h1><a href="../../index.html">Akka Documentation</a></h1>
+</div>
+<div class="nav-header-version">
+Version 2.7.0-M2
+</div>
+<div class="nav-header-groups">
+<select class="supergroup" name="Language"><option class="group" value="group-scala">Scala</option><option class="group" value="group-java">Java</option></select>
+</div>
+<div class="nav-header-search">
+<input id="search" type="search" class="search" placeholder="Search" />
+</div>
+</header>
+<nav class="site-nav sticky-sidebar-contents">
+<div class="nav-toc">
+<ul>
+  <li><a href="../../security/index.html" class="page">Security Announcements</a></li>
+  <li><a href="../../typed/guide/index.html" class="page">Getting Started Guide</a>
+  <ul>
+    <li><a href="../../typed/guide/introduction.html" class="page">Introduction to Akka</a></li>
+    <li><a href="../../typed/guide/actors-motivation.html" class="page">Why modern systems need a new programming model</a></li>
+    <li><a href="../../typed/guide/actors-intro.html" class="page">How the Actor Model Meets the Needs of Modern, Distributed Systems</a></li>
+    <li><a href="../../typed/guide/modules.html" class="page">Overview of Akka libraries and modules</a></li>
+    <li><a href="../../typed/guide/tutorial.html" class="page">Introduction to the Example</a></li>
+    <li><a href="../../typed/guide/tutorial_1.html#part-1-actor-architecture" class="active page">Part 1: Actor Architecture</a>
+    <ul>
+      <li><a href="../../typed/guide/tutorial_1.html#dependency" class="header">Dependency</a></li>
+      <li><a href="../../typed/guide/tutorial_1.html#introduction" class="header">Introduction</a></li>
+      <li><a href="../../typed/guide/tutorial_1.html#the-akka-actor-hierarchy" class="header">The Akka actor hierarchy</a></li>
+      <li><a href="../../typed/guide/tutorial_1.html#summary" class="header">Summary</a></li>
+    </ul></li>
+    <li><a href="../../typed/guide/tutorial_2.html" class="page">Part 2: Creating the First Actor</a></li>
+    <li><a href="../../typed/guide/tutorial_3.html" class="page">Part 3: Working with Device Actors</a></li>
+    <li><a href="../../typed/guide/tutorial_4.html" class="page">Part 4: Working with Device Groups</a></li>
+    <li><a href="../../typed/guide/tutorial_5.html" class="page">Part 5: Querying Device Groups</a></li>
+  </ul></li>
+  <li><a href="../../general/index.html" class="page">General Concepts</a></li>
+  <li><a href="../../typed/index.html" class="page">Actors</a></li>
+  <li><a href="../../typed/index-cluster.html" class="page">Cluster</a></li>
+  <li><a href="../../typed/index-persistence.html" class="page">Persistence (Event Sourcing)</a></li>
+  <li><a href="../../typed/index-persistence-durable-state.html" class="page">Persistence (Durable State)</a></li>
+  <li><a href="../../stream/index.html" class="page">Streams</a></li>
+  <li><a href="../../discovery/index.html" class="page">Discovery</a></li>
+  <li><a href="../../index-utilities.html" class="page">Utilities</a></li>
+  <li><a href="../../common/other-modules.html" class="page">Other Akka modules</a></li>
+  <li><a href="../../additional/deploy.html" class="page">Package, Deploy and Run</a></li>
+  <li><a href="../../project/index.html" class="page">Project Information</a></li>
+  <li><a href="../../index-classic.html" class="page">Akka Classic</a></li>
+</ul>
+</div>
+</nav>
+<footer class="nav-footer sticky-sidebar-footer">
+<a href="https://akka.io"><img class="logo" src="../../images/akka-logo-reverse.svg"/></a>
+
+</footer>
+</aside>
+<main class="fixed-shift-for-large expanded row">
+<section class="site-content small-12 column">
+<article class="page-content row">
+<div class="small-12 column" id="docs">
+<h1><a href="#part-1-actor-architecture" name="part-1-actor-architecture" class="anchor"><span class="anchor-link"></span></a>Part 1: Actor Architecture</h1>
+<h2><a href="#dependency" name="dependency" class="anchor"><span class="anchor-link"></span></a>Dependency</h2>
+<p>Add the following dependency in your project:</p><dl class="dependency"><dt>sbt</dt><dd><pre class="prettyprint"><code class="language-scala">val AkkaVersion = "2.7.0-M2"
+libraryDependencies += "com.typesafe.akka" %% "akka-actor-typed" % AkkaVersion</code></pre></dd><dt>Maven</dt><dd><pre class="prettyprint"><code class="language-xml">&lt;properties&gt;
+  &lt;scala.binary.version&gt;2.13&lt;/scala.binary.version&gt;
+&lt;/properties&gt;
+&lt;dependencyManagement&gt;
+  &lt;dependencies&gt;
+    &lt;dependency&gt;
+      &lt;groupId&gt;com.typesafe.akka&lt;/groupId&gt;
+      &lt;artifactId&gt;akka-bom_${scala.binary.version}&lt;/artifactId&gt;
+      &lt;version&gt;2.7.0-M2&lt;/version&gt;
+      &lt;type&gt;pom&lt;/type&gt;
+      &lt;scope&gt;import&lt;/scope&gt;
+    &lt;/dependency&gt
+  &lt;/dependencies&gt;
+&lt;/dependencyManagement&gt;
+&lt;dependencies&gt
+  &lt;dependency&gt;
+    &lt;groupId&gt;com.typesafe.akka&lt;/groupId&gt;
+    &lt;artifactId&gt;akka-actor-typed_${scala.binary.version}&lt;/artifactId&gt;
+  &lt;/dependency&gt
+&lt;/dependencies&gt;</code></pre></dd><dt>Gradle</dt><dd><pre class="prettyprint"><code class="language-gradle">def versions = [
+  ScalaBinary: "2.13"
+]
+dependencies {
+  implementation platform("com.typesafe.akka:akka-bom_${versions.ScalaBinary}:2.7.0-M2")
+
+  implementation "com.typesafe.akka:akka-actor-typed_${versions.ScalaBinary}"
+}</code></pre></dd></dl>
+<h2><a href="#introduction" name="introduction" class="anchor"><span class="anchor-link"></span></a>Introduction</h2>
+<p>Use of Akka relieves you from creating the infrastructure for an actor system and from writing the low-level code necessary to control basic behavior. To appreciate this, let&rsquo;s look at the relationships between actors you create in your code and those that Akka creates and manages for you internally, the actor lifecycle, and failure handling.</p>
+<h2><a href="#the-akka-actor-hierarchy" name="the-akka-actor-hierarchy" class="anchor"><span class="anchor-link"></span></a>The Akka actor hierarchy</h2>
+<p>An actor in Akka always belongs to a parent. You create an actor by calling <span class="group-java"><a href="https://doc.akka.io/japi/akka/2.7/akka/actor/typed/javadsl/ActorContext.html#spawn(akka.actor.typed.Behavior,java.lang.String,akka.actor.typed.Props)" title="akka.actor.typed.javadsl.ActorContext"><code>ActorContext.spawn()</code></a></span><span class="group-scala"><a href="https://doc.akka.io/api/akka/2.7/akka/actor/typed/scaladsl/ActorContext.html#spawn[U](behavior:akka.actor.typed.Behavior[U],name:String,props:akka.actor.typed.Props):akka.actor.typed.ActorRef[U]" title="akka.actor.typed.scaladsl.ActorContext"><code>ActorContext.spawn()</code></a></span>. The creator actor becomes the <em>parent</em> of the newly created <em>child</em> actor. You might ask then, who is the parent of the <em>first</em> actor you create?</p>
+<p>As illustrated below, all actors have a common parent, the user guardian, which is defined and created when you start the <span class="group-scala"><a href="https://doc.akka.io/api/akka/2.7/akka/actor/typed/ActorSystem.html" title="akka.actor.typed.ActorSystem"><code>ActorSystem</code></a></span><span class="group-java"><a href="https://doc.akka.io/japi/akka/2.7/akka/actor/typed/ActorSystem.html" title="akka.actor.typed.ActorSystem"><code>ActorSystem</code></a></span>. As we covered in the <span class="group-scala"><a href="https://developer.lightbend.com/guides/akka-quickstart-scala/">Quickstart Guide</a></span><span class="group-java"><a href="https://developer.lightbend.com/guides/akka-quickstart-java/">Quickstart Guide</a></span>, creation of an actor returns a reference that is a valid URL. So, for example, if we create an actor named <code>someActor</code> from the user guardian with <code>context.spawn(someBehavior, &quot;someActor&quot;)</code>, its reference will include the path <code>/user/someActor</code>.</p>
+<p><img src="diagrams/actor_top_tree.png" alt="actor tree diagram" /></p>
+<p>In fact, before your first actor is started, Akka has already created two actors in the system. The names of these built-in actors contain <em>guardian</em>. The guardian actors include:</p>
+<ul>
+  <li><code>/</code> the so-called <em>root guardian</em>. This is the parent of all actors in the system, and the last one to stop when the system itself is terminated.</li>
+  <li><code>/system</code> the <em>system guardian</em>. Akka or other libraries built on top of Akka may create actors in the <em>system</em> namespace.</li>
+  <li><code>/user</code> the <em>user guardian</em>. This is the top level actor that you provide to start all other actors in your application.</li>
+</ul>
+<p>The easiest way to see the actor hierarchy in action is to print <span class="group-scala"><a href="https://doc.akka.io/api/akka/2.7/akka/actor/typed/ActorRef.html" title="akka.actor.typed.ActorRef"><code>ActorRef</code></a></span><span class="group-java"><a href="https://doc.akka.io/japi/akka/2.7/akka/actor/typed/ActorRef.html" title="akka.actor.typed.ActorRef"><code>ActorRef</code></a></span> instances. In this small experiment, we create an actor, print its reference, create a child of this actor, and print the child&rsquo;s reference. We start with the Hello World project, if you have not downloaded it, download the Quickstart project from the <span class="group-scala"><a href="https://developer.lightbend.com/start/?group=akka&amp;project=akka-quickstart-scala">Lightbend Tech Hub</a></span><span class="group-java"><a href="https://developer.lightbend.com/start/?group=akka&amp;project=akka-quickstart-java">Lightbend Tech Hub</a></span>.</p>
+<p>In your Hello World project, navigate to the <code>com.example</code> package and create <span class="group-scala">a new Scala file called <code>ActorHierarchyExperiments.scala</code> here. Copy and paste the code from the snippet below to this new source file</span><span class="group-java">a Java file for each of the classes in the snippet below and copy the respective contents</span>. Save your <span class="group-scala">file and run <code>sbt &quot;runMain com.example.ActorHierarchyExperiments&quot;</code></span><span class="group-java">files and run <code>com.example.ActorHierarchyExperiments</code> from your build tool or IDE</span> to observe the output.</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.7.0-M2/akka-docs/src/test/scala/typed/tutorial_1/ActorHierarchyExperiments.scala#L9-L158" target="_blank" title="Go to snippet source">source</a><code class="language-scala">package com.example
+
+import akka.actor.typed.ActorSystem
+import akka.actor.typed.Behavior
+import akka.actor.typed.scaladsl.AbstractBehavior
+import akka.actor.typed.scaladsl.ActorContext
+import akka.actor.typed.scaladsl.Behaviors
+
+object PrintMyActorRefActor {
+  def apply(): Behavior[String] =
+    Behaviors.setup(context =&gt; new PrintMyActorRefActor(context))
+}
+
+class PrintMyActorRefActor(context: ActorContext[String]) extends AbstractBehavior[String](context) {
+
+  override def onMessage(msg: String): Behavior[String] =
+    msg match {
+      case &quot;printit&quot; =&gt;
+        val secondRef = context.spawn(Behaviors.empty[String], &quot;second-actor&quot;)
+        println(s&quot;Second: $secondRef&quot;)
+        this
+    }
+}
+
+object Main {
+  def apply(): Behavior[String] =
+    Behaviors.setup(context =&gt; new Main(context))
+
+}
+
+class Main(context: ActorContext[String]) extends AbstractBehavior[String](context) {
+  override def onMessage(msg: String): Behavior[String] =
+    msg match {
+      case &quot;start&quot; =&gt;
+        val firstRef = context.spawn(PrintMyActorRefActor(), &quot;first-actor&quot;)
+        println(s&quot;First: $firstRef&quot;)
+        firstRef ! &quot;printit&quot;
+        this
+    }
+}
+
+object ActorHierarchyExperiments extends App {
+  val testSystem = ActorSystem(Main(), &quot;testSystem&quot;)
+  testSystem ! &quot;start&quot;
+}</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.7.0-M2/akka-docs/src/test/java/jdocs/typed/tutorial_1/ActorHierarchyExperiments.java#L9-L197" target="_blank" title="Go to snippet source">source</a><code class="language-java">package com.example;
+
+import akka.actor.typed.ActorRef;
+import akka.actor.typed.ActorSystem;
+import akka.actor.typed.Behavior;
+import akka.actor.typed.javadsl.AbstractBehavior;
+import akka.actor.typed.javadsl.ActorContext;
+import akka.actor.typed.javadsl.Behaviors;
+import akka.actor.typed.javadsl.Receive;
+
+class PrintMyActorRefActor extends AbstractBehavior&lt;String&gt; {
+
+  static Behavior&lt;String&gt; create() {
+    return Behaviors.setup(PrintMyActorRefActor::new);
+  }
+
+  private PrintMyActorRefActor(ActorContext&lt;String&gt; context) {
+    super(context);
+  }
+
+  @Override
+  public Receive&lt;String&gt; createReceive() {
+    return newReceiveBuilder().onMessageEquals(&quot;printit&quot;, this::printIt).build();
+  }
+
+  private Behavior&lt;String&gt; printIt() {
+    ActorRef&lt;String&gt; secondRef = getContext().spawn(Behaviors.empty(), &quot;second-actor&quot;);
+    System.out.println(&quot;Second: &quot; + secondRef);
+    return this;
+  }
+}
+
+class Main extends AbstractBehavior&lt;String&gt; {
+
+  static Behavior&lt;String&gt; create() {
+    return Behaviors.setup(Main::new);
+  }
+
+  private Main(ActorContext&lt;String&gt; context) {
+    super(context);
+  }
+
+  @Override
+  public Receive&lt;String&gt; createReceive() {
+    return newReceiveBuilder().onMessageEquals(&quot;start&quot;, this::start).build();
+  }
+
+  private Behavior&lt;String&gt; start() {
+    ActorRef&lt;String&gt; firstRef = getContext().spawn(PrintMyActorRefActor.create(), &quot;first-actor&quot;);
+
+    System.out.println(&quot;First: &quot; + firstRef);
+    firstRef.tell(&quot;printit&quot;);
+    return Behaviors.same();
+  }
+}
+
+public class ActorHierarchyExperiments {
+  public static void main(String[] args) {
+    ActorRef&lt;String&gt; testSystem = ActorSystem.create(Main.create(), &quot;testSystem&quot;);
+    testSystem.tell(&quot;start&quot;);
+  }
+}</code></pre></dd>
+</dl>
+<p>Note the way a message asked the first actor to do its work. We sent the message by using the parent&rsquo;s reference: <span class="group-scala"><code>firstRef ! &quot;printit&quot;</code></span><span class="group-java"><code>firstRef.tell(&quot;printit&quot;, ActorRef.noSender())</code></span>. When the code executes, the output includes the references for the first actor and the child it created as part of the <code>printit</code> case. Your output should look similar to the following:</p>
+<pre><code>First: Actor[akka://testSystem/user/first-actor#1053618476]
+Second: Actor[akka://testSystem/user/first-actor/second-actor#-1544706041]
+</code></pre>
+<p>Notice the structure of the references:</p>
+<ul>
+  <li>Both paths start with <code>akka://testSystem/</code>. Since all actor references are valid URLs, <code>akka://</code> is the value of the protocol field.</li>
+  <li>Next, just like on the World Wide Web, the URL identifies the system. In this example, the system is named <code>testSystem</code>, but it could be any other name. If remote communication between multiple systems is enabled, this part of the URL includes the hostname so other systems can find it on the network.</li>
+  <li>Because the second actor&rsquo;s reference includes the path <code>/first-actor/</code>, it identifies it as a child of the first.</li>
+  <li>The last part of the actor reference, <code>#1053618476</code> or <code>#-1544706041</code> is a unique identifier that you can ignore in most cases.</li>
+</ul>
+<p>Now that you understand what the actor hierarchy looks like, you might be wondering: <em>Why do we need this hierarchy? What is it used for?</em></p>
+<p>An important role of the hierarchy is to safely manage actor lifecycles. Let&rsquo;s consider this next and see how that knowledge can help us write better code.</p>
+<h3><a href="#the-actor-lifecycle" name="the-actor-lifecycle" class="anchor"><span class="anchor-link"></span></a>The actor lifecycle</h3>
+<p>Actors pop into existence when created, then later, at user requests, they are stopped. Whenever an actor is stopped, all of its children are <em>recursively stopped</em> too. This behavior greatly simplifies resource cleanup and helps avoid resource leaks such as those caused by open sockets and files. In fact, a commonly overlooked difficulty when dealing with low-level multi-threaded code is the lifecycle management of various concurrent resources.</p>
+<p>To stop an actor, the recommended pattern is to return <span class="group-java"><a href="https://doc.akka.io/japi/akka/2.7/akka/actor/typed/javadsl/Behaviors.html#stopped()" title="akka.actor.typed.javadsl.Behaviors"><code>Behaviors.stopped</code></a></span><span class="group-scala"><a href="https://doc.akka.io/api/akka/2.7/akka/actor/typed/scaladsl/Behaviors$.html#stopped[T]:akka.actor.typed.Behavior[T]" title="akka.actor.typed.scaladsl.Behaviors"><code>Behaviors.stopped</code></a></span> inside the actor to stop itself, usually as a response to some user defined stop message or when the actor is done with its job. Stopping a child actor is technically possible by calling <span class="group-java"><a href="https://doc.akka.io/japi/akka/2.7/akka/actor/typed/javadsl/ActorContext.html#stop(akka.actor.typed.ActorRef)" title="akka.actor.typed.javadsl.ActorContext"><code>context.stop(childRef)</code></a></span><span class="group-scala"><a href="https://doc.akka.io/api/akka/2.7/akka/actor/typed/scaladsl/ActorContext.html#stop[U](child:akka.actor.typed.ActorRef[U]):Unit" title="akka.actor.typed.scaladsl.ActorContext"><code>context.stop(childRef)</code></a></span> from the parent, but it&rsquo;s not possible to stop arbitrary (non-child) actors this way.</p>
+<p>The Akka actor API exposes some lifecycle signals, for example <span class="group-scala"><a href="https://doc.akka.io/api/akka/2.7/akka/actor/typed/PostStop.html" title="akka.actor.typed.PostStop"><code>PostStop</code></a></span><span class="group-java"><a href="https://doc.akka.io/japi/akka/2.7/akka/actor/typed/PostStop.html" title="akka.actor.typed.PostStop"><code>PostStop</code></a></span> is sent just after the actor has been stopped. No messages are processed after this point.</p>
+<p>Let&rsquo;s use the <code>PostStop</code> lifecycle signal in a simple experiment to observe the behavior when we stop an actor. First, add the following 2 actor classes to your project:</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.7.0-M2/akka-docs/src/test/scala/typed/tutorial_1/ActorHierarchyExperiments.scala#L46-L87" target="_blank" title="Go to snippet source">source</a><code class="language-scala">object StartStopActor1 {
+  def apply(): Behavior[String] =
+    Behaviors.setup(context =&gt; new StartStopActor1(context))
+}
+
+class StartStopActor1(context: ActorContext[String]) extends AbstractBehavior[String](context) {
+  println(&quot;first started&quot;)
+  context.spawn(StartStopActor2(), &quot;second&quot;)
+
+  override def onMessage(msg: String): Behavior[String] =
+    msg match {
+      case &quot;stop&quot; =&gt; Behaviors.stopped
+    }
+
+  override def onSignal: PartialFunction[Signal, Behavior[String]] = {
+    case PostStop =&gt;
+      println(&quot;first stopped&quot;)
+      this
+  }
+
+}
+
+object StartStopActor2 {
+  def apply(): Behavior[String] =
+    Behaviors.setup(new StartStopActor2(_))
+}
+
+class StartStopActor2(context: ActorContext[String]) extends AbstractBehavior[String](context) {
+  println(&quot;second started&quot;)
+
+  override def onMessage(msg: String): Behavior[String] = {
+    // no messages handled by this actor
+    Behaviors.unhandled
+  }
+
+  override def onSignal: PartialFunction[Signal, Behavior[String]] = {
+    case PostStop =&gt;
+      println(&quot;second stopped&quot;)
+      this
+  }
+
+}</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.7.0-M2/akka-docs/src/test/java/jdocs/typed/tutorial_1/ActorHierarchyExperiments.java#L51-L98" target="_blank" title="Go to snippet source">source</a><code class="language-java">class StartStopActor1 extends AbstractBehavior&lt;String&gt; {
+
+  static Behavior&lt;String&gt; create() {
+    return Behaviors.setup(StartStopActor1::new);
+  }
+
+  private StartStopActor1(ActorContext&lt;String&gt; context) {
+    super(context);
+    System.out.println(&quot;first started&quot;);
+
+    context.spawn(StartStopActor2.create(), &quot;second&quot;);
+  }
+
+  @Override
+  public Receive&lt;String&gt; createReceive() {
+    return newReceiveBuilder()
+        .onMessageEquals(&quot;stop&quot;, Behaviors::stopped)
+        .onSignal(PostStop.class, signal -&gt; onPostStop())
+        .build();
+  }
+
+  private Behavior&lt;String&gt; onPostStop() {
+    System.out.println(&quot;first stopped&quot;);
+    return this;
+  }
+}
+
+class StartStopActor2 extends AbstractBehavior&lt;String&gt; {
+
+  static Behavior&lt;String&gt; create() {
+    return Behaviors.setup(StartStopActor2::new);
+  }
+
+  private StartStopActor2(ActorContext&lt;String&gt; context) {
+    super(context);
+    System.out.println(&quot;second started&quot;);
+  }
+
+  @Override
+  public Receive&lt;String&gt; createReceive() {
+    return newReceiveBuilder().onSignal(PostStop.class, signal -&gt; onPostStop()).build();
+  }
+
+  private Behavior&lt;String&gt; onPostStop() {
+    System.out.println(&quot;second stopped&quot;);
+    return this;
+  }
+}</code></pre></dd>
+</dl>
+<p>And create a &lsquo;main&rsquo; class like above to start the actors and then send them a <code>&quot;stop&quot;</code> message:</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.7.0-M2/akka-docs/src/test/scala/typed/tutorial_1/ActorHierarchyExperiments.scala#L169-L170" target="_blank" title="Go to snippet source">source</a><code class="language-scala">val first = context.spawn(StartStopActor1(), &quot;first&quot;)
+first ! &quot;stop&quot;</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.7.0-M2/akka-docs/src/test/java/jdocs/typed/tutorial_1/ActorHierarchyExperiments.java#L206-L207" target="_blank" title="Go to snippet source">source</a><code class="language-java">ActorRef&lt;String&gt; first = context.spawn(StartStopActor1.create(), &quot;first&quot;);
+first.tell(&quot;stop&quot;);</code></pre></dd>
+</dl>
+<p>You can again use <code>sbt</code> to start this program. The output should look like this:</p>
+<pre><code>first started
+second started
+second stopped
+first stopped
+</code></pre>
+<p>When we stopped actor <code>first</code>, it stopped its child actor, <code>second</code>, before stopping itself. This ordering is strict, <em>all</em> <span class="group-scala"><a href="https://doc.akka.io/api/akka/2.7/akka/actor/typed/PostStop.html" title="akka.actor.typed.PostStop"><code>PostStop</code></a></span><span class="group-java"><a href="https://doc.akka.io/japi/akka/2.7/akka/actor/typed/PostStop.html" title="akka.actor.typed.PostStop"><code>PostStop</code></a></span> signals of the children are processed before the <code>PostStop</code> signal of the parent is processed.</p>
+<h3><a href="#failure-handling" name="failure-handling" class="anchor"><span class="anchor-link"></span></a>Failure handling</h3>
+<p>Parents and children are connected throughout their lifecycles. Whenever an actor fails (throws an exception or an unhandled exception bubbles out from <span class="group-scala"><a href="https://doc.akka.io/api/akka/2.7/akka/actor/typed/scaladsl/AbstractBehavior.html#onMessage(msg:T):akka.actor.typed.Behavior[T]" title="akka.actor.typed.scaladsl.AbstractBehavior"><code>onMessage</code></a></span><span class="group-java"><a href="https://doc.akka.io/japi/akka/2.7/akka/actor/typed/javadsl/Receive.html" title="akka.actor.typed.javadsl.Receive"><code>Receive</code></a></span>) the failure information is propagated to the supervision strategy, which then decides how to handle the exception caused by the actor. The supervision strategy is typically defined by the parent actor when it spawns a child actor. In this way, parents act as supervisors for their children. The default <em>supervisor strategy</em> is to stop the child. If you don&rsquo;t define the strategy all failures result in a stop.</p>
+<p>Let&rsquo;s observe a restart supervision strategy in a simple experiment. Add the following classes to your project, just as you did with the previous ones:</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.7.0-M2/akka-docs/src/test/scala/typed/tutorial_1/ActorHierarchyExperiments.scala#L91-L133" target="_blank" title="Go to snippet source">source</a><code class="language-scala">object SupervisingActor {
+  def apply(): Behavior[String] =
+    Behaviors.setup(context =&gt; new SupervisingActor(context))
+}
+
+class SupervisingActor(context: ActorContext[String]) extends AbstractBehavior[String](context) {
+  private val child = context.spawn(
+    Behaviors.supervise(SupervisedActor()).onFailure(SupervisorStrategy.restart),
+    name = &quot;supervised-actor&quot;)
+
+  override def onMessage(msg: String): Behavior[String] =
+    msg match {
+      case &quot;failChild&quot; =&gt;
+        child ! &quot;fail&quot;
+        this
+    }
+}
+
+object SupervisedActor {
+  def apply(): Behavior[String] =
+    Behaviors.setup(context =&gt; new SupervisedActor(context))
+}
+
+class SupervisedActor(context: ActorContext[String]) extends AbstractBehavior[String](context) {
+  println(&quot;supervised actor started&quot;)
+
+  override def onMessage(msg: String): Behavior[String] =
+    msg match {
+      case &quot;fail&quot; =&gt;
+        println(&quot;supervised actor fails now&quot;)
+        throw new Exception(&quot;I failed!&quot;)
+    }
+
+  override def onSignal: PartialFunction[Signal, Behavior[String]] = {
+    case PreRestart =&gt;
+      println(&quot;supervised actor will be restarted&quot;)
+      this
+    case PostStop =&gt;
+      println(&quot;supervised actor stopped&quot;)
+      this
+  }
+
+}</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.7.0-M2/akka-docs/src/test/java/jdocs/typed/tutorial_1/ActorHierarchyExperiments.java#L102-L163" target="_blank" title="Go to snippet source">source</a><code class="language-java">class SupervisingActor extends AbstractBehavior&lt;String&gt; {
+
+  static Behavior&lt;String&gt; create() {
+    return Behaviors.setup(SupervisingActor::new);
+  }
+
+  private final ActorRef&lt;String&gt; child;
+
+  private SupervisingActor(ActorContext&lt;String&gt; context) {
+    super(context);
+    child =
+        context.spawn(
+            Behaviors.supervise(SupervisedActor.create()).onFailure(SupervisorStrategy.restart()),
+            &quot;supervised-actor&quot;);
+  }
+
+  @Override
+  public Receive&lt;String&gt; createReceive() {
+    return newReceiveBuilder().onMessageEquals(&quot;failChild&quot;, this::onFailChild).build();
+  }
+
+  private Behavior&lt;String&gt; onFailChild() {
+    child.tell(&quot;fail&quot;);
+    return this;
+  }
+}
+
+class SupervisedActor extends AbstractBehavior&lt;String&gt; {
+
+  static Behavior&lt;String&gt; create() {
+    return Behaviors.setup(SupervisedActor::new);
+  }
+
+  private SupervisedActor(ActorContext&lt;String&gt; context) {
+    super(context);
+    System.out.println(&quot;supervised actor started&quot;);
+  }
+
+  @Override
+  public Receive&lt;String&gt; createReceive() {
+    return newReceiveBuilder()
+        .onMessageEquals(&quot;fail&quot;, this::fail)
+        .onSignal(PreRestart.class, signal -&gt; preRestart())
+        .onSignal(PostStop.class, signal -&gt; postStop())
+        .build();
+  }
+
+  private Behavior&lt;String&gt; fail() {
+    System.out.println(&quot;supervised actor fails now&quot;);
+    throw new RuntimeException(&quot;I failed!&quot;);
+  }
+
+  private Behavior&lt;String&gt; preRestart() {
+    System.out.println(&quot;supervised will be restarted&quot;);
+    return this;
+  }
+
+  private Behavior&lt;String&gt; postStop() {
+    System.out.println(&quot;supervised stopped&quot;);
+    return this;
+  }
+}</code></pre></dd>
+</dl>
+<p>And run with:</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.7.0-M2/akka-docs/src/test/scala/typed/tutorial_1/ActorHierarchyExperiments.scala#L176-L177" target="_blank" title="Go to snippet source">source</a><code class="language-scala">val supervisingActor = context.spawn(SupervisingActor(), &quot;supervising-actor&quot;)
+supervisingActor ! &quot;failChild&quot;</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.7.0-M2/akka-docs/src/test/java/jdocs/typed/tutorial_1/ActorHierarchyExperiments.java#L217-L219" target="_blank" title="Go to snippet source">source</a><code class="language-java">ActorRef&lt;String&gt; supervisingActor =
+    context.spawn(SupervisingActor.create(), &quot;supervising-actor&quot;);
+supervisingActor.tell(&quot;failChild&quot;);</code></pre></dd>
+</dl>
+<p>You should see output similar to the following:</p>
+<pre><code>supervised actor started
+supervised actor fails now
+supervised actor will be restarted
+supervised actor started
+[ERROR] [11/12/2018 12:03:27.171] [ActorHierarchyExperiments-akka.actor.default-dispatcher-2] [akka://ActorHierarchyExperiments/user/supervising-actor/supervised-actor] Supervisor akka.actor.typed.internal.RestartSupervisor@1c452254 saw failure: I failed!
+java.lang.Exception: I failed!
+	at typed.tutorial_1.SupervisedActor.onMessage(ActorHierarchyExperiments.scala:113)
+	at typed.tutorial_1.SupervisedActor.onMessage(ActorHierarchyExperiments.scala:106)
+	at akka.actor.typed.scaladsl.AbstractBehavior.receive(AbstractBehavior.scala:59)
+	at akka.actor.typed.Behavior$.interpret(Behavior.scala:395)
+	at akka.actor.typed.Behavior$.interpretMessage(Behavior.scala:369)
+	at akka.actor.typed.internal.InterceptorImpl$$anon$2.apply(InterceptorImpl.scala:49)
+	at akka.actor.typed.internal.SimpleSupervisor.aroundReceive(Supervision.scala:85)
+	at akka.actor.typed.internal.InterceptorImpl.receive(InterceptorImpl.scala:70)
+	at akka.actor.typed.Behavior$.interpret(Behavior.scala:395)
+	at akka.actor.typed.Behavior$.interpretMessage(Behavior.scala:369)
+</code></pre>
+<p>We see that after failure the supervised actor is stopped and immediately restarted. We also see a log entry reporting the exception that was handled, in this case, our test exception. In this example we also used the <span class="group-scala"><a href="https://doc.akka.io/api/akka/2.7/akka/actor/typed/PreRestart.html" title="akka.actor.typed.PreRestart"><code>PreRestart</code></a></span><span class="group-java"><a href="https://doc.akka.io/japi/akka/2.7/akka/actor/typed/PreRestart.html" title="akka.actor.typed.PreRestart"><code>PreRestart</code></a></span> signal which is processed before restarts.</p>
+<p>For the impatient, we also recommend looking into the <a href="../fault-tolerance.html">fault tolerance reference page</a> for more in-depth details.</p>
+<h1><a href="#summary" name="summary" class="anchor"><span class="anchor-link"></span></a>Summary</h1>
+<p>We&rsquo;ve learned about how Akka manages actors in hierarchies where parents supervise their children and handle exceptions. We saw how to create a very simple actor and child. Next, we&rsquo;ll apply this knowledge to our example use case by modeling the communication necessary to get information from device actors. Later, we&rsquo;ll deal with how to manage the actors in groups.</p>
+</div>
+</article>
+<div class="row">
+<div class="small-12 column">
+<section class="nav-prev-next row">
+<div class="nav-prev small-6 column">
+<a href="../../typed/guide/tutorial.html"><i class="icon-prev"></i> <span class="link-prev">Introduction to the Example</span></a>
+</div>
+<div class="nav-next small-6 column clearfix">
+<a class="float-right" href="../../typed/guide/tutorial_2.html">Part 2: Creating the First Actor <i class="icon-next"></i></a>
+</div>
+</section>
+</div>
+</div>
+<div class="source-github row">
+Found an error in this documentation? The source code for this page can be found <a href="https://github.com/akka/akka/tree/v2.7.0-M2/akka-docs/src/main/paradox/typed/guide/tutorial_1.md">here</a>.
+Please feel free to edit and contribute a pull request.
+</div>
+
+<footer class="page-footer row clearfix">
+<img class="akka-icon float-left show-for-medium" src="../../images/akka-icon.svg" />
+<section class="copyright">
+<div>Akka is available under the <a href="https://www.lightbend.com/akka/license" target="_blank">Business Source License 1.1</a>.</div>
+<p class="legal">
+&copy; 2011-2022 <a href="https://www.lightbend.com" target="_blank">Lightbend, Inc.</a> |
+<a href="https://www.lightbend.com/legal/licenses" target="_blank">Licenses</a> |
+<a href="https://www.lightbend.com/legal/terms" target="_blank">Terms</a> |
+<a href="https://www.lightbend.com/legal/privacy" target="_blank">Privacy Policy</a> |
+<a href="https://akka.io/cookie/" target="_blank">Cookie Listing</a> |
+<a class="optanon-toggle-display">Cookie Settings</a>
+</p>
+</section>
+
+</footer>
+</section>
+</main>
+</div>
+
+<script type="text/javascript" src="../../js/scrollsneak.js"></script>
+<script type="text/javascript">jQuery(document).foundation();</script>
+<script type="text/javascript" src="../../js/groups.js"></script>
+<script type="text/javascript" src="../../js/page.js"></script>
+<script type="text/javascript" src="../../js/snippets.js"></script>
+<script type="text/javascript" src="../../js/magellan.js"></script>
+<script type="text/javascript" src="../../js/metadata-toggle.js"></script>
+<script type="text/javascript" src="../../js/lbHeader.js"></script>
+
+<style type="text/css">@import "../../lib/prettify/prettify.css";</style>
+<script type="text/javascript" src="../../lib/prettify/prettify.js"></script>
+<script type="text/javascript" src="../../lib/prettify/lang-scala.js"></script>
+<script type="text/javascript">//<![CDATA[
+jQuery(function(){window.prettyPrint && prettyPrint()});
+//]]></script>
+<!-- Algolia docs search -->
+<script type="text/javascript" src="https://cdn.jsdelivr.net/docsearch.js/2/docsearch.min.js"></script>
+<style>.algolia-autocomplete { display: block !important }</style>
+<script type="text/javascript">
+docsearch({
+apiKey: '543bad5ad786495d9ccd445ed34ed082',
+indexName: 'akka_io',
+inputSelector: '#search',
+algoliaOptions: {
+hitsPerPage: 5
+}
+});
+
+docsearch({
+apiKey: '543bad5ad786495d9ccd445ed34ed082',
+indexName: 'akka_io',
+inputSelector: '#overlay-search',
+algoliaOptions: {
+hitsPerPage: 5
+}
+});
+
+// set up "/" as global shortcut for focusing on search
+jQuery(document).keypress(function (event) {
+if (event.keyCode == 47) {
+jQuery("#search").focus();
+return false; // swallow key event, otherwise the / char would be input into the search box
+}
+});
+</script>
+
+<script type="text/javascript" src="../../assets/js/warnOldDocs.js"></script>
+<script type="text/javascript" src="../../assets/js/scalafiddle.js"></script>
+
+
+</body>
+</html>

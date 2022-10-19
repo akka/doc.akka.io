@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html class="no-js" lang="en">
+
+<head>
+<title>Coordination &bull; Akka Documentation</title>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta name="description" content="A distributed lock with Akka Coordination using a pluggable lease API."/>
+<link rel="canonical" href="https://doc.akka.io/docs/akka/current/coordination.html"/>
+<script type="text/javascript" src="lib/jquery/jquery.min.js"></script>
+<script type="text/javascript" src="lib/foundation/dist/js/foundation.min.js"></script>
+<link rel="stylesheet" type="text/css" href="lib/normalize.css/normalize.css"/>
+<link rel="stylesheet" type="text/css" href="lib/foundation/dist/css/foundation.min.css"/>
+<link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/docsearch.js/2/docsearch.min.css" />
+<link rel="stylesheet" type="text/css" href="css/icons.css"/>
+<link rel="stylesheet" type="text/css" href="css/page-8.css"/>
+<link rel="stylesheet" type="text/css" href="css/banner-2.css"/>
+<link rel="shortcut icon" href="images/favicon.ico" />
+<link rel="apple-touch-icon" sizes="180x180" href="images/apple-touch-icon.png"/>
+<link rel="icon" type="image/png" sizes="32x32" href="images/favicon-32x32.png"/>
+<link rel="icon" type="image/png" sizes="16x16" href="images/favicon-16x16.png"/>
+<link rel="manifest" href="images/manifest.json"/>
+<meta name="msapplication-TileImage" content="images/mstile-150x150.png"/>
+<meta name="msapplication-TileColor" content="#15a9ce"/>
+<meta name="theme-color" content="#15a9ce"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<!-- OneTrust Cookies Consent Notice (Production Standard, akka.io, en-GB) start -->
+<script src="https://cdn.cookielaw.org/scripttemplates/otSDKStub.js"  type="text/javascript" charset="UTF-8" data-domain-script="28b912e7-09e9-43d5-91e4-3d1897044004" ></script>
+<script type="text/javascript">
+function OptanonWrapper() { }
+</script>
+<!-- OneTrust Cookies Consent Notice (Production Standard, akka.io, en-GB) end -->
+<!--Google Analytics-->
+<script type="text/plain" class="optanon-category-2">
+var _gaq = _gaq || [];
+_gaq.push(['_setAccount', 'UA-21117439-1']);
+_gaq.push(['_setDomainName', 'akka.io']);
+_gaq.push(['_trackPageview']);
+(function() {
+var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+})()
+</script>
+<!-- Google Tag Manager -->
+<script type="text/plain" class="optanon-category-2">
+(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+})(window,document,'script','dataLayer','GTM-KBJGH35');
+</script>
+<!--Marketo-->
+<script type="text/plain" class="optanon-category-3">
+(function() {
+var didInit = false;
+function initMunchkin() {
+if(didInit === false) {
+didInit = true;
+Munchkin.init('558-NCX-702', { 'asyncOnly': true, 'disableClickDelay': true });
+}
+}
+var s = document.createElement('script');
+s.type = 'text/javascript';
+s.async = true;
+s.src = '//munchkin.marketo.net/munchkin.js';
+s.onreadystatechange = function() {
+if (this.readyState == 'complete' || this.readyState == 'loaded') {
+initMunchkin();
+}
+};
+s.onload = initMunchkin;
+document.getElementsByTagName('head')[0].appendChild(s);
+})();
+</script>
+</head>
+
+<body id="underlay" data-toggler="nav-open">
+<div id="lightbend-banner" class="lightbend-banner akka full-width" data-category="OSS Lightbend Banner Impression" data-label="Akka Banner Impression">
+<div class="oss-wrapper">
+<div class="oss-brand">
+<a class="oss-track-link-label" data-category="OSS Lightbend Banner Clicks" data-label="Lightbend Logo - Akka Banner" href="https://www.lightbend.com">
+<img class="lightbend-logo" src="images/banner-logos/lightbend-reverse.svg" alt="Lightbend" title="Lightbend">
+</a>
+</div>
+<div class="oss-ad no-drop-down">
+<nav id="lightbendRotator" class="lightbend-rotator">
+<a class="oss-track-link-label" data-category="OSS Lightbend Banner Clicks" data-label="Promo Rotator - Lightbend is Changing its Software Licensing Model for Akka Technology. [License FAQ] - Akka Banner" href="https://www.lightbend.com/akka/license-faq">
+<strong>Lightbend</strong> is Changing its Software Licensing Model for Akka Technology. <span class="akka-btn">License FAQ</span>
+</a>
+</nav>
+</div>
+</div>
+</div>
+
+<header class="site-header hide-for-large">
+<div class="sticky-header clearfix">
+<a href="https://akka.io"><img class="logo" src="images/akka-logo-reverse.svg"/></a>
+
+<button class="menu-icon float-right" type="button" data-toggle="underlay overlay"></button>
+</div>
+<div id="overlay" class="overlay-nav" data-toggler="nav-open">
+<header class="nav-header">
+<div class="nav-header-title">
+<h1><a href="index.html">Akka Documentation</a></h1>
+</div>
+<div class="nav-header-version">
+Version 2.7.0-M3
+</div>
+<div class="nav-header-groups">
+<select class="supergroup" name="Language"><option class="group" value="group-scala">Scala</option><option class="group" value="group-java">Java</option></select>
+</div>
+<div id="overlay-search-container" class="nav-header-search">
+<input id="overlay-search" type="search" class="search" placeholder="Search" />
+</div>
+</header>
+<nav class="nav-toc">
+<ul>
+  <li><a href="security/index.html" class="page">Security Announcements</a></li>
+  <li><a href="typed/guide/index.html" class="page">Getting Started Guide</a></li>
+  <li><a href="general/index.html" class="page">General Concepts</a></li>
+  <li><a href="typed/index.html" class="page">Actors</a></li>
+  <li><a href="typed/index-cluster.html" class="page">Cluster</a>
+  <ul>
+    <li><a href="typed/cluster.html" class="page">Cluster Usage</a></li>
+    <li><a href="typed/cluster-concepts.html" class="page">Cluster Specification</a></li>
+    <li><a href="typed/cluster-membership.html" class="page">Cluster Membership Service</a></li>
+    <li><a href="typed/failure-detector.html" class="page">Phi Accrual Failure Detector</a></li>
+    <li><a href="typed/distributed-data.html" class="page">Distributed Data</a></li>
+    <li><a href="typed/cluster-singleton.html" class="page">Cluster Singleton</a></li>
+    <li><a href="typed/cluster-sharding.html" class="page">Cluster Sharding</a></li>
+    <li><a href="typed/cluster-sharding-concepts.html" class="page">Cluster Sharding concepts</a></li>
+    <li><a href="typed/cluster-sharded-daemon-process.html" class="page">Sharded Daemon Process</a></li>
+    <li><a href="typed/cluster-dc.html" class="page">Multi-DC Cluster</a></li>
+    <li><a href="typed/distributed-pub-sub.html" class="page">Distributed Publish Subscribe in Cluster</a></li>
+    <li><a href="typed/reliable-delivery.html" class="page">Reliable delivery</a></li>
+    <li><a href="serialization.html" class="page">Serialization</a></li>
+    <li><a href="serialization-jackson.html" class="page">Serialization with Jackson</a></li>
+    <li><a href="multi-jvm-testing.html" class="page">Multi JVM Testing</a></li>
+    <li><a href="multi-node-testing.html" class="page">Multi Node Testing</a></li>
+    <li><a href="remoting-artery.html" class="page">Artery Remoting</a></li>
+    <li><a href="remoting.html" class="page">Classic Remoting (Deprecated)</a></li>
+    <li><a href="split-brain-resolver.html" class="page">Split Brain Resolver</a></li>
+    <li><a href="coordination.html#coordination" class="active page">Coordination</a>
+    <ul>
+      <li><a href="coordination.html#module-info" class="header">Module info</a></li>
+      <li><a href="coordination.html#lease" class="header">Lease</a></li>
+      <li><a href="coordination.html#using-a-lease" class="header">Using a lease</a></li>
+      <li><a href="coordination.html#usages-in-other-akka-modules" class="header">Usages in other Akka modules</a></li>
+      <li><a href="coordination.html#lease-implementations" class="header">Lease implementations</a></li>
+      <li><a href="coordination.html#implementing-a-lease" class="header">Implementing a lease</a></li>
+    </ul></li>
+    <li><a href="typed/choosing-cluster.html" class="page">Choosing Akka Cluster</a></li>
+  </ul></li>
+  <li><a href="typed/index-persistence.html" class="page">Persistence (Event Sourcing)</a></li>
+  <li><a href="typed/index-persistence-durable-state.html" class="page">Persistence (Durable State)</a></li>
+  <li><a href="stream/index.html" class="page">Streams</a></li>
+  <li><a href="discovery/index.html" class="page">Discovery</a></li>
+  <li><a href="index-utilities.html" class="page">Utilities</a></li>
+  <li><a href="common/other-modules.html" class="page">Other Akka modules</a></li>
+  <li><a href="additional/deploy.html" class="page">Package, Deploy and Run</a></li>
+  <li><a href="project/index.html" class="page">Project Information</a></li>
+  <li><a href="index-classic.html" class="page">Akka Classic</a></li>
+</ul>
+</nav>
+</div>
+</header>
+<div class="site-content-wrapper">
+<aside class="sticky-sidebar show-for-large">
+<header class="nav-header sticky-sidebar-header">
+<div class="nav-header-title">
+<h1><a href="index.html">Akka Documentation</a></h1>
+</div>
+<div class="nav-header-version">
+Version 2.7.0-M3
+</div>
+<div class="nav-header-groups">
+<select class="supergroup" name="Language"><option class="group" value="group-scala">Scala</option><option class="group" value="group-java">Java</option></select>
+</div>
+<div class="nav-header-search">
+<input id="search" type="search" class="search" placeholder="Search" />
+</div>
+</header>
+<nav class="site-nav sticky-sidebar-contents">
+<div class="nav-toc">
+<ul>
+  <li><a href="security/index.html" class="page">Security Announcements</a></li>
+  <li><a href="typed/guide/index.html" class="page">Getting Started Guide</a></li>
+  <li><a href="general/index.html" class="page">General Concepts</a></li>
+  <li><a href="typed/index.html" class="page">Actors</a></li>
+  <li><a href="typed/index-cluster.html" class="page">Cluster</a>
+  <ul>
+    <li><a href="typed/cluster.html" class="page">Cluster Usage</a></li>
+    <li><a href="typed/cluster-concepts.html" class="page">Cluster Specification</a></li>
+    <li><a href="typed/cluster-membership.html" class="page">Cluster Membership Service</a></li>
+    <li><a href="typed/failure-detector.html" class="page">Phi Accrual Failure Detector</a></li>
+    <li><a href="typed/distributed-data.html" class="page">Distributed Data</a></li>
+    <li><a href="typed/cluster-singleton.html" class="page">Cluster Singleton</a></li>
+    <li><a href="typed/cluster-sharding.html" class="page">Cluster Sharding</a></li>
+    <li><a href="typed/cluster-sharding-concepts.html" class="page">Cluster Sharding concepts</a></li>
+    <li><a href="typed/cluster-sharded-daemon-process.html" class="page">Sharded Daemon Process</a></li>
+    <li><a href="typed/cluster-dc.html" class="page">Multi-DC Cluster</a></li>
+    <li><a href="typed/distributed-pub-sub.html" class="page">Distributed Publish Subscribe in Cluster</a></li>
+    <li><a href="typed/reliable-delivery.html" class="page">Reliable delivery</a></li>
+    <li><a href="serialization.html" class="page">Serialization</a></li>
+    <li><a href="serialization-jackson.html" class="page">Serialization with Jackson</a></li>
+    <li><a href="multi-jvm-testing.html" class="page">Multi JVM Testing</a></li>
+    <li><a href="multi-node-testing.html" class="page">Multi Node Testing</a></li>
+    <li><a href="remoting-artery.html" class="page">Artery Remoting</a></li>
+    <li><a href="remoting.html" class="page">Classic Remoting (Deprecated)</a></li>
+    <li><a href="split-brain-resolver.html" class="page">Split Brain Resolver</a></li>
+    <li><a href="coordination.html#coordination" class="active page">Coordination</a>
+    <ul>
+      <li><a href="coordination.html#module-info" class="header">Module info</a></li>
+      <li><a href="coordination.html#lease" class="header">Lease</a></li>
+      <li><a href="coordination.html#using-a-lease" class="header">Using a lease</a></li>
+      <li><a href="coordination.html#usages-in-other-akka-modules" class="header">Usages in other Akka modules</a></li>
+      <li><a href="coordination.html#lease-implementations" class="header">Lease implementations</a></li>
+      <li><a href="coordination.html#implementing-a-lease" class="header">Implementing a lease</a></li>
+    </ul></li>
+    <li><a href="typed/choosing-cluster.html" class="page">Choosing Akka Cluster</a></li>
+  </ul></li>
+  <li><a href="typed/index-persistence.html" class="page">Persistence (Event Sourcing)</a></li>
+  <li><a href="typed/index-persistence-durable-state.html" class="page">Persistence (Durable State)</a></li>
+  <li><a href="stream/index.html" class="page">Streams</a></li>
+  <li><a href="discovery/index.html" class="page">Discovery</a></li>
+  <li><a href="index-utilities.html" class="page">Utilities</a></li>
+  <li><a href="common/other-modules.html" class="page">Other Akka modules</a></li>
+  <li><a href="additional/deploy.html" class="page">Package, Deploy and Run</a></li>
+  <li><a href="project/index.html" class="page">Project Information</a></li>
+  <li><a href="index-classic.html" class="page">Akka Classic</a></li>
+</ul>
+</div>
+</nav>
+<footer class="nav-footer sticky-sidebar-footer">
+<a href="https://akka.io"><img class="logo" src="images/akka-logo-reverse.svg"/></a>
+
+</footer>
+</aside>
+<main class="fixed-shift-for-large expanded row">
+<section class="site-content small-12 column">
+<article class="page-content row">
+<div class="small-12 column" id="docs">
+<h1><a href="#coordination" name="coordination" class="anchor"><span class="anchor-link"></span></a>Coordination</h1>
+<p>Akka Coordination is a set of tools for distributed coordination.</p>
+<h2><a href="#module-info" name="module-info" class="anchor"><span class="anchor-link"></span></a>Module info</h2><dl class="dependency"><dt>sbt</dt><dd><pre class="prettyprint"><code class="language-scala">val AkkaVersion = "2.7.0-M3"
+libraryDependencies += "com.typesafe.akka" %% "akka-coordination" % AkkaVersion</code></pre></dd><dt>Gradle</dt><dd><pre class="prettyprint"><code class="language-gradle">def versions = [
+  ScalaBinary: "2.13"
+]
+dependencies {
+  implementation platform("com.typesafe.akka:akka-bom_${versions.ScalaBinary}:2.7.0-M3")
+
+  implementation "com.typesafe.akka:akka-coordination_${versions.ScalaBinary}"
+}</code></pre></dd><dt>Maven</dt><dd><pre class="prettyprint"><code class="language-xml">&lt;properties&gt;
+  &lt;scala.binary.version&gt;2.13&lt;/scala.binary.version&gt;
+&lt;/properties&gt;
+&lt;dependencyManagement&gt;
+  &lt;dependencies&gt;
+    &lt;dependency&gt;
+      &lt;groupId&gt;com.typesafe.akka&lt;/groupId&gt;
+      &lt;artifactId&gt;akka-bom_${scala.binary.version}&lt;/artifactId&gt;
+      &lt;version&gt;2.7.0-M3&lt;/version&gt;
+      &lt;type&gt;pom&lt;/type&gt;
+      &lt;scope&gt;import&lt;/scope&gt;
+    &lt;/dependency&gt
+  &lt;/dependencies&gt;
+&lt;/dependencyManagement&gt;
+&lt;dependencies&gt
+  &lt;dependency&gt;
+    &lt;groupId&gt;com.typesafe.akka&lt;/groupId&gt;
+    &lt;artifactId&gt;akka-coordination_${scala.binary.version}&lt;/artifactId&gt;
+  &lt;/dependency&gt
+&lt;/dependencies&gt;</code></pre></dd></dl>
+<table class="project-info">
+<tr><th colspan="2">Project Info: Akka Coordination</th></tr>
+  <tr><th>Artifact</th><td><div>com.typesafe.akka</div>
+  <div>akka-coordination</div>
+  <div>2.7.0-M3</div>
+  <div><a href="project/links.html#snapshots-repository">Snapshots are available</a></div>
+  </td></tr>
+  <tr><th>JDK versions</th><td><div>Adopt OpenJDK 8</div><div>Adopt OpenJDK 11</div></td></tr>
+  <tr><th>Scala versions</th><td>2.13.8, 2.12.16, 3.1.3</td></tr>
+  <tr><th>JPMS module name</th><td>akka.coordination</td></tr>
+  <tr><th>License</th><td><div><a href="https://raw.githubusercontent.com/akka/akka/main/LICENSE" target="_blank" rel="noopener noreferrer">BUSL-1.1</a></div>
+  </td></tr>
+  <tr><th>Readiness level</th><td><div class="readiness-level"><a href="https://developer.lightbend.com/docs/introduction/getting-help/support-terminology.html#supported" target="_blank" rel="noopener">Supported</a>, <a href="https://www.lightbend.com/lightbend-subscription" target="_blank" rel="noopener">Lightbend Subscription</a> provides support</div>
+  <div>Since 2.5.22, 2019-04-03</div>
+  </td></tr>
+  <tr><th>Home page</th><td><a href="https://akka.io/">https://akka.io/</a></td></tr>
+  <tr><th>API documentation</th><td>
+  <div><a href="https://doc.akka.io/api/akka/2.7.0-M3/akka/coordination/index.html" target="_blank" rel="noopener noreferrer">API (Scaladoc)</a></div>
+  <div><a href="https://doc.akka.io/japi/akka/2.7.0-M3/akka/coordination/lease/package-summary.html" target="_blank" rel="noopener noreferrer">API (Javadoc)</a></div>
+  </td></tr>
+  <tr><th>Forums</th><td>
+  <div><a href="https://discuss.akka.io" target="_blank" rel="noopener noreferrer">Lightbend Discuss</a></div>
+  <div><a href="https://gitter.im/akka/akka" target="_blank" rel="noopener noreferrer">akka/akka Gitter channel</a></div>
+  </td></tr>
+  <tr><th>Release notes</th><td><a href="https://akka.io/blog/news-archive.html">akka.io blog</a></td></tr>
+  <tr><th>Issues</th><td><a href="https://github.com/akka/akka/issues" target="_blank" rel="noopener noreferrer">Github issues</a></td></tr>
+  <tr><th>Sources</th><td><a href="https://github.com/akka/akka" target="_blank" rel="noopener noreferrer">https://github.com/akka/akka</a></td></tr>
+</table>
+
+<h2><a href="#lease" name="lease" class="anchor"><span class="anchor-link"></span></a>Lease</h2>
+
+<p>The lease is a pluggable API for a distributed lock. </p>
+
+<h2><a href="#using-a-lease" name="using-a-lease" class="anchor"><span class="anchor-link"></span></a>Using a lease</h2>
+
+<p>Leases are loaded with:</p>
+
+<ul>
+  <li>Lease name</li>
+  <li>Config location to indicate which implementation should be loaded</li>
+  <li>Owner name</li>
+</ul>
+<p>Any lease implementation should provide the following guarantees:</p>
+<ul>
+  <li>A lease with the same name loaded multiple times, even on different nodes, is the same lease</li>
+  <li>Only one owner can acquire the lease at a time</li>
+</ul>
+<p>To acquire a lease:</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.7.0-M3/akka-docs/src/test/scala/docs/coordination/LeaseDocSpec.scala#L72-L75" target="_blank" title="Go to snippet source">source</a><code class="language-scala">val lease = LeaseProvider(system).getLease(&quot;&lt;name of the lease&gt;&quot;, &quot;docs-lease&quot;, &quot;owner&quot;)
+val acquired: Future[Boolean] = lease.acquire()
+val stillAcquired: Boolean = lease.checkLease()
+val released: Future[Boolean] = lease.release()</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.7.0-M3/akka-docs/src/test/java/jdocs/coordination/LeaseDocTest.java#L79-L83" target="_blank" title="Go to snippet source">source</a><code class="language-java">Lease lease =
+    LeaseProvider.get(system).getLease(&quot;&lt;name of the lease&gt;&quot;, &quot;jdocs-lease&quot;, &quot;&lt;owner name&gt;&quot;);
+CompletionStage&lt;Boolean&gt; acquired = lease.acquire();
+boolean stillAcquired = lease.checkLease();
+CompletionStage&lt;Boolean&gt; released = lease.release();</code></pre></dd>
+</dl>
+<p>Acquiring a lease returns a <span class="group-scala">Future</span><span class="group-java">CompletionStage</span> as lease implementations typically are implemented via a third party system such as the Kubernetes API server or Zookeeper.</p>
+<p>Once a lease is acquired, <code>checkLease</code> can be called to ensure that the lease is still acquired. As lease implementations are based on other distributed systems, a lease can be lost due to a timeout with the third party system. This operation is not asynchronous, so it can be called before performing any action for which having the lease is important.</p>
+<p>A lease has an owner. If the same owner tries to acquire the lease multiple times, it will succeed i.e. leases are reentrant. </p>
+<p>It is important to pick a lease name that will be unique for your use case. If a lease needs to be unique for each node in a Cluster the cluster host port can be used:</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.7.0-M3/akka-docs/src/test/scala/docs/coordination/LeaseDocSpec.scala#L83" target="_blank" title="Go to snippet source">source</a><code class="language-scala">val owner = Cluster(system).selfAddress.hostPort</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.7.0-M3/akka-docs/src/test/java/jdocs/coordination/LeaseDocTest.java#L91" target="_blank" title="Go to snippet source">source</a><code class="language-java">// String owner = Cluster.get(system).selfAddress().hostPort();</code></pre></dd>
+</dl>
+<p>For use cases where multiple different leases on the same node then something unique must be added to the name. For example a lease can be used with Cluster Sharding and in this case the shard Id is included in the lease name for each shard.</p>
+<h3><a href="#setting-a-lease-heartbeat" name="setting-a-lease-heartbeat" class="anchor"><span class="anchor-link"></span></a>Setting a lease heartbeat</h3>
+<p>If a node with a lease crashes or is unresponsive the <code>heartbeat-timeout</code> is how long before other nodes can acquire the lease. Without this timeout operator intervention would be needed to release a lease in the case of a node crash. This is the safest option but not practical in all cases.</p>
+<p>The value should be greater than the max expected JVM pause e.g. garbage collection, otherwise a lease can be acquired by another node and then when the original node becomes responsive again there will be a short time before the original lease owner can take action e.g. shutdown shards or singletons.</p>
+<h2><a href="#usages-in-other-akka-modules" name="usages-in-other-akka-modules" class="anchor"><span class="anchor-link"></span></a>Usages in other Akka modules</h2>
+<p>Leases can be used for <a href="split-brain-resolver.html#lease">Split Brain Resolver</a>, <a href="cluster-singleton.html#lease">Cluster Singleton</a>, and <a href="cluster-sharding.html#lease">Cluster Sharding</a>. </p>
+<h2><a href="#lease-implementations" name="lease-implementations" class="anchor"><span class="anchor-link"></span></a>Lease implementations</h2>
+<ul>
+  <li><a href="https://doc.akka.io/docs/akka-management/current/kubernetes-lease.html">Kubernetes API</a></li>
+</ul>
+<h2><a href="#implementing-a-lease" name="implementing-a-lease" class="anchor"><span class="anchor-link"></span></a>Implementing a lease</h2>
+<p>Implementations should extend the <span class="group-scala"><code>akka.coordination.lease.scaladsl.Lease</code></span><span class="group-java"><code>akka.coordination.lease.javadsl.Lease</code></span> </p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.7.0-M3/akka-docs/src/test/scala/docs/coordination/LeaseDocSpec.scala#L18-L35" target="_blank" title="Go to snippet source">source</a><code class="language-scala">class SampleLease(settings: LeaseSettings) extends Lease(settings) {
+
+  override def acquire(): Future[Boolean] = {
+    Future.successful(true)
+  }
+
+  override def acquire(leaseLostCallback: Option[Throwable] =&gt; Unit): Future[Boolean] = {
+    Future.successful(true)
+  }
+
+  override def release(): Future[Boolean] = {
+    Future.successful(true)
+  }
+
+  override def checkLease(): Boolean = {
+    true
+  }
+}</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.7.0-M3/akka-docs/src/test/java/jdocs/coordination/LeaseDocTest.java#L26-L58" target="_blank" title="Go to snippet source">source</a><code class="language-java">static class SampleLease extends Lease {
+
+  private LeaseSettings settings;
+
+  public SampleLease(LeaseSettings settings) {
+    this.settings = settings;
+  }
+
+  @Override
+  public LeaseSettings getSettings() {
+    return settings;
+  }
+
+  @Override
+  public CompletionStage&lt;Boolean&gt; acquire() {
+    return CompletableFuture.completedFuture(true);
+  }
+
+  @Override
+  public CompletionStage&lt;Boolean&gt; acquire(Consumer&lt;Optional&lt;Throwable&gt;&gt; leaseLostCallback) {
+    return CompletableFuture.completedFuture(true);
+  }
+
+  @Override
+  public CompletionStage&lt;Boolean&gt; release() {
+    return CompletableFuture.completedFuture(true);
+  }
+
+  @Override
+  public boolean checkLease() {
+    return true;
+  }
+}</code></pre></dd>
+</dl>
+<p>The methods should provide the following guarantees:</p>
+<ul>
+  <li><code>acquire</code> should complete with: <code>true</code> if the lease has been acquired, <code>false</code> if the lease is taken by another owner, or fail if it can&rsquo;t communicate with the third party system implementing the lease.</li>
+  <li><code>release</code> should complete with: <code>true</code> if the lease has definitely been released, <code>false</code> if the lease has definitely not been released, or fail if it is unknown if the lease has been released.</li>
+  <li><code>checkLease</code> should return <code>true</code> if the lease has been acquired, should return <code>false</code> until an <code>acquire</code> <span class="group-scala">Future</span><span class="group-java">CompletionStage</span> has completed, and should return <code>false</code> if the lease is lost due to an error communicating with the third party. Check lease should not block.</li>
+  <li>The <code>acquire</code> lease lost callback should only be called after an <code>acquire</code> <span class="group-scala">Future</span><span class="group-java">CompletionStage</span> has completed and should be called if the lease is lost e.g. due to losing communication with the third party system.</li>
+</ul>
+<p>In addition, it is expected that a lease implementation will include a time to live mechanism meaning that a lease won&rsquo;t be held for ever in case the node crashes. If a user prefers to have outside intervention in this case for maximum safety then the time to live can be set to infinite.</p>
+<p>The configuration must define the <code>lease-class</code> property for the FQCN of the lease implementation.</p>
+<p>The lease implementation should have support for the following properties where the defaults come from <code>akka.coordination.lease</code>:</p>
+<pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.7.0-M3/akka-coordination/src/main/resources/reference.conf#L10-L19" target="_blank" title="Go to snippet source">source</a><code class="language-conf"># if the node that acquired the leases crashes, how long should the lease be held before another owner can get it
+heartbeat-timeout = 120s
+
+# interval for communicating with the third party to confirm the lease is still held
+heartbeat-interval = 12s
+
+# lease implementations are expected to time out acquire and release calls or document
+# that they do not implement an operation timeout
+lease-operation-timeout = 5s
+</code></pre>
+<p>This configuration location is passed into <code>getLease</code>.</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.7.0-M3/akka-docs/src/test/scala/docs/coordination/LeaseDocSpec.scala#L44-L51" target="_blank" title="Go to snippet source">source</a><code class="language-scala">akka.actor.provider = cluster
+docs-lease {
+  lease-class = &quot;docs.coordination.SampleLease&quot;
+  heartbeat-timeout = 100s
+  heartbeat-interval = 1s
+  lease-operation-timeout = 1s
+  # Any lease specific configuration
+}</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.7.0-M3/akka-docs/src/test/scala/docs/coordination/LeaseDocSpec.scala#L44-L51" target="_blank" title="Go to snippet source">source</a><code class="language-scala">akka.actor.provider = cluster
+docs-lease {
+  lease-class = &quot;docs.coordination.SampleLease&quot;
+  heartbeat-timeout = 100s
+  heartbeat-interval = 1s
+  lease-operation-timeout = 1s
+  # Any lease specific configuration
+}</code></pre></dd>
+</dl>
+</div>
+</article>
+<div class="row">
+<div class="small-12 column">
+<section class="nav-prev-next row">
+<div class="nav-prev small-6 column">
+<a href="split-brain-resolver.html"><i class="icon-prev"></i> <span class="link-prev">Split Brain Resolver</span></a>
+</div>
+<div class="nav-next small-6 column clearfix">
+<a class="float-right" href="typed/choosing-cluster.html">Choosing Akka Cluster <i class="icon-next"></i></a>
+</div>
+</section>
+</div>
+</div>
+<div class="source-github row">
+Found an error in this documentation? The source code for this page can be found <a href="https://github.com/akka/akka/tree/v2.7.0-M3/akka-docs/src/main/paradox/coordination.md">here</a>.
+Please feel free to edit and contribute a pull request.
+</div>
+
+<footer class="page-footer row clearfix">
+<img class="akka-icon float-left show-for-medium" src="images/akka-icon.svg" />
+<section class="copyright">
+<div>Akka is available under the <a href="https://www.lightbend.com/akka/license" target="_blank">Business Source License 1.1</a>.</div>
+<p class="legal">
+&copy; 2011-2022 <a href="https://www.lightbend.com" target="_blank">Lightbend, Inc.</a> |
+<a href="https://www.lightbend.com/legal/licenses" target="_blank">Licenses</a> |
+<a href="https://www.lightbend.com/legal/terms" target="_blank">Terms</a> |
+<a href="https://www.lightbend.com/legal/privacy" target="_blank">Privacy Policy</a> |
+<a href="https://akka.io/cookie/" target="_blank">Cookie Listing</a> |
+<a class="optanon-toggle-display">Cookie Settings</a>
+</p>
+</section>
+
+</footer>
+</section>
+</main>
+</div>
+
+<script type="text/javascript" src="js/scrollsneak.js"></script>
+<script type="text/javascript">jQuery(document).foundation();</script>
+<script type="text/javascript" src="js/groups.js"></script>
+<script type="text/javascript" src="js/page.js"></script>
+<script type="text/javascript" src="js/snippets.js"></script>
+<script type="text/javascript" src="js/magellan.js"></script>
+<script type="text/javascript" src="js/metadata-toggle.js"></script>
+<script type="text/javascript" src="js/lbHeader.js"></script>
+
+<style type="text/css">@import "lib/prettify/prettify.css";</style>
+<script type="text/javascript" src="lib/prettify/prettify.js"></script>
+<script type="text/javascript" src="lib/prettify/lang-scala.js"></script>
+<script type="text/javascript">//<![CDATA[
+jQuery(function(){window.prettyPrint && prettyPrint()});
+//]]></script>
+<!-- Algolia docs search -->
+<script type="text/javascript" src="https://cdn.jsdelivr.net/docsearch.js/2/docsearch.min.js"></script>
+<style>.algolia-autocomplete { display: block !important }</style>
+<script type="text/javascript">
+docsearch({
+apiKey: '543bad5ad786495d9ccd445ed34ed082',
+indexName: 'akka_io',
+inputSelector: '#search',
+algoliaOptions: {
+hitsPerPage: 5
+}
+});
+
+docsearch({
+apiKey: '543bad5ad786495d9ccd445ed34ed082',
+indexName: 'akka_io',
+inputSelector: '#overlay-search',
+algoliaOptions: {
+hitsPerPage: 5
+}
+});
+
+// set up "/" as global shortcut for focusing on search
+jQuery(document).keypress(function (event) {
+if (event.keyCode == 47) {
+jQuery("#search").focus();
+return false; // swallow key event, otherwise the / char would be input into the search box
+}
+});
+</script>
+
+<script type="text/javascript" src="assets/js/warnOldDocs.js"></script>
+<script type="text/javascript" src="assets/js/scalafiddle.js"></script>
+
+
+</body>
+</html>
