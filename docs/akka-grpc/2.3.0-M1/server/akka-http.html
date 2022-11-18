@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html class="no-js" lang="en">
+
+<head>
+<title>Akka HTTP interop &bull; Akka gRPC</title>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta name="description" content="Akka gRPC - Support for building streaming gRPC servers and clients on top of Akka Streams."/>
+<link rel="canonical" href="https://doc.akka.io/docs/akka-grpc/current/server/akka-http.html"/>
+<script type="text/javascript" src="../lib/jquery/jquery.min.js"></script>
+<script type="text/javascript" src="../lib/foundation/dist/js/foundation.min.js"></script>
+<link rel="stylesheet" type="text/css" href="../lib/normalize.css/normalize.css"/>
+<link rel="stylesheet" type="text/css" href="../lib/foundation/dist/css/foundation.min.css"/>
+<link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/docsearch.js/2/docsearch.min.css" />
+<link rel="stylesheet" type="text/css" href="../css/icons.css"/>
+<link rel="stylesheet" type="text/css" href="../css/page-8.css"/>
+<link rel="stylesheet" type="text/css" href="../css/banner-2.css"/>
+<link rel="shortcut icon" href="../images/favicon.ico" />
+<link rel="apple-touch-icon" sizes="180x180" href="../images/apple-touch-icon.png"/>
+<link rel="icon" type="image/png" sizes="32x32" href="../images/favicon-32x32.png"/>
+<link rel="icon" type="image/png" sizes="16x16" href="../images/favicon-16x16.png"/>
+<link rel="manifest" href="../images/manifest.json"/>
+<meta name="msapplication-TileImage" content="../images/mstile-150x150.png"/>
+<meta name="msapplication-TileColor" content="#15a9ce"/>
+<meta name="theme-color" content="#15a9ce"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<!-- OneTrust Cookies Consent Notice (Production Standard, akka.io, en-GB) start -->
+<script src="https://cdn.cookielaw.org/scripttemplates/otSDKStub.js"  type="text/javascript" charset="UTF-8" data-domain-script="28b912e7-09e9-43d5-91e4-3d1897044004" ></script>
+<script type="text/javascript">
+function OptanonWrapper() { }
+</script>
+<!-- OneTrust Cookies Consent Notice (Production Standard, akka.io, en-GB) end -->
+<!--Google Analytics-->
+<script type="text/plain" class="optanon-category-2">
+var _gaq = _gaq || [];
+_gaq.push(['_setAccount', '']);
+_gaq.push(['_setDomainName', '']);
+_gaq.push(['_trackPageview']);
+(function() {
+var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+})()
+</script>
+<!-- Google Tag Manager -->
+<script type="text/plain" class="optanon-category-2">
+(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+})(window,document,'script','dataLayer','GTM-KBJGH35');
+</script>
+<!--Marketo-->
+<script type="text/plain" class="optanon-category-3">
+(function() {
+var didInit = false;
+function initMunchkin() {
+if(didInit === false) {
+didInit = true;
+Munchkin.init('558-NCX-702', { 'asyncOnly': true, 'disableClickDelay': true });
+}
+}
+var s = document.createElement('script');
+s.type = 'text/javascript';
+s.async = true;
+s.src = '//munchkin.marketo.net/munchkin.js';
+s.onreadystatechange = function() {
+if (this.readyState == 'complete' || this.readyState == 'loaded') {
+initMunchkin();
+}
+};
+s.onload = initMunchkin;
+document.getElementsByTagName('head')[0].appendChild(s);
+})();
+</script>
+</head>
+
+<body id="underlay" data-toggler="nav-open">
+<div id="lightbend-banner" class="lightbend-banner akka full-width" data-category="OSS Lightbend Banner Impression" data-label="Akka Banner Impression">
+<div class="oss-wrapper">
+<div class="oss-brand">
+<a class="oss-track-link-label" data-category="OSS Lightbend Banner Clicks" data-label="Lightbend Logo - Akka Banner" href="https://www.lightbend.com">
+<img class="lightbend-logo" src="../images/banner-logos/lightbend-reverse.svg" alt="Lightbend" title="Lightbend">
+</a>
+</div>
+<div class="oss-ad no-drop-down">
+<nav id="lightbendRotator" class="lightbend-rotator">
+<a class="oss-track-link-label" data-category="OSS Lightbend Banner Clicks" data-label="Promo Rotator - Lightbend is Changing its Software Licensing Model for Akka Technology. [License FAQ] - Akka Banner" href="https://www.lightbend.com/akka/license-faq">
+<strong>Lightbend</strong> is Changing its Software Licensing Model for Akka Technology. <span class="akka-btn">License FAQ</span>
+</a>
+</nav>
+</div>
+</div>
+</div>
+
+<header class="site-header hide-for-large">
+<div class="sticky-header clearfix">
+<a href="https://akka.io"><img class="logo" src="../images/akka-logo-reverse.svg"/></a>
+
+<button class="menu-icon float-right" type="button" data-toggle="underlay overlay"></button>
+</div>
+<div id="overlay" class="overlay-nav" data-toggler="nav-open">
+<header class="nav-header">
+<div class="nav-header-title">
+<h1><a href="../index.html">Akka gRPC</a></h1>
+</div>
+<div class="nav-header-version">
+Version 2.3.0-M1
+</div>
+<div class="nav-header-groups">
+<select class="supergroup" name="Language"><option class="group" value="group-java">Java</option><option class="group" value="group-scala">Scala</option></select>
+<select class="supergroup" name="Buildtool"><option class="group" value="group-sbt">sbt</option><option class="group" value="group-gradle">Gradle</option><option class="group" value="group-maven">Maven</option></select>
+</div>
+</header>
+<nav class="nav-toc">
+<ul>
+  <li><a href="../overview.html" class="page">Overview</a></li>
+  <li><a href="../whygrpc.html" class="page">Why gRPC?</a></li>
+  <li><a href="../getting-started.html" class="page">Getting started</a></li>
+  <li><a href="../proto.html" class="page">Protobuf Service Descriptors</a></li>
+  <li><a href="../server/index.html" class="page">Providing Services (Server)</a>
+  <ul>
+    <li><a href="../server/walkthrough.html" class="page">Walkthrough</a></li>
+    <li><a href="../server/grpc-web.html" class="page">gRPC-Web</a></li>
+    <li><a href="../server/reflection.html" class="page">Server Reflection</a></li>
+    <li><a href="../server/akka-http.html#akka-http-interop" class="active page">Akka HTTP interop</a>
+    <ul>
+      <li><a href="../server/akka-http.html#example-authentication-authorization" class="header">Example: authentication/authorization</a></li>
+      <li><a href="../server/akka-http.html#example-logging-error-handling-and-passing-request-context" class="header">Example: logging, error handling, and passing request context</a></li>
+      <li><a href="../server/akka-http.html#future-work" class="header">Future work</a></li>
+    </ul></li>
+    <li><a href="../server/details.html" class="page">Details</a></li>
+    <li><a href="../server/kubernetes.html" class="page">Kubernetes</a></li>
+  </ul></li>
+  <li><a href="../client/index.html" class="page">Consuming Services (Client)</a></li>
+  <li><a href="../buildtools/index.html" class="page">Build Tool Support</a></li>
+  <li><a href="../binary-compatibility.html" class="page">Binary compatibility</a></li>
+  <li><a href="../apidesign.html" class="page">API Design</a></li>
+  <li><a href="../deploy.html" class="page">Deployment</a></li>
+  <li><a href="../troubleshooting.html" class="page">Troubleshooting</a></li>
+</ul>
+</nav>
+</div>
+</header>
+<div class="site-content-wrapper">
+<aside class="sticky-sidebar show-for-large">
+<header class="nav-header sticky-sidebar-header">
+<div class="nav-header-title">
+<h1><a href="../index.html">Akka gRPC</a></h1>
+</div>
+<div class="nav-header-version">
+Version 2.3.0-M1
+</div>
+<div class="nav-header-groups">
+<select class="supergroup" name="Language"><option class="group" value="group-java">Java</option><option class="group" value="group-scala">Scala</option></select>
+<select class="supergroup" name="Buildtool"><option class="group" value="group-sbt">sbt</option><option class="group" value="group-gradle">Gradle</option><option class="group" value="group-maven">Maven</option></select>
+</div>
+</header>
+<nav class="site-nav sticky-sidebar-contents">
+<div class="nav-toc">
+<ul>
+  <li><a href="../overview.html" class="page">Overview</a></li>
+  <li><a href="../whygrpc.html" class="page">Why gRPC?</a></li>
+  <li><a href="../getting-started.html" class="page">Getting started</a></li>
+  <li><a href="../proto.html" class="page">Protobuf Service Descriptors</a></li>
+  <li><a href="../server/index.html" class="page">Providing Services (Server)</a>
+  <ul>
+    <li><a href="../server/walkthrough.html" class="page">Walkthrough</a></li>
+    <li><a href="../server/grpc-web.html" class="page">gRPC-Web</a></li>
+    <li><a href="../server/reflection.html" class="page">Server Reflection</a></li>
+    <li><a href="../server/akka-http.html#akka-http-interop" class="active page">Akka HTTP interop</a>
+    <ul>
+      <li><a href="../server/akka-http.html#example-authentication-authorization" class="header">Example: authentication/authorization</a></li>
+      <li><a href="../server/akka-http.html#example-logging-error-handling-and-passing-request-context" class="header">Example: logging, error handling, and passing request context</a></li>
+      <li><a href="../server/akka-http.html#future-work" class="header">Future work</a></li>
+    </ul></li>
+    <li><a href="../server/details.html" class="page">Details</a></li>
+    <li><a href="../server/kubernetes.html" class="page">Kubernetes</a></li>
+  </ul></li>
+  <li><a href="../client/index.html" class="page">Consuming Services (Client)</a></li>
+  <li><a href="../buildtools/index.html" class="page">Build Tool Support</a></li>
+  <li><a href="../binary-compatibility.html" class="page">Binary compatibility</a></li>
+  <li><a href="../apidesign.html" class="page">API Design</a></li>
+  <li><a href="../deploy.html" class="page">Deployment</a></li>
+  <li><a href="../troubleshooting.html" class="page">Troubleshooting</a></li>
+</ul>
+</div>
+</nav>
+<footer class="nav-footer sticky-sidebar-footer">
+<a href="https://akka.io"><img class="logo" src="../images/akka-logo-reverse.svg"/></a>
+
+</footer>
+</aside>
+<main class="fixed-shift-for-large expanded row">
+<section class="site-content small-12 column">
+<article class="page-content row">
+<div class="small-12 column" id="docs">
+<h1><a href="#akka-http-interop" name="akka-http-interop" class="anchor"><span class="anchor-link"></span></a>Akka HTTP interop</h1>
+<p>Akka gRPC is built on top of <a href="https://doc.akka.io/docs/akka-http">Akka HTTP</a>. This means it is possible to leverage the Akka HTTP API&rsquo;s to create more complicated services, for example serving non-gRPC endpoints next to gRPC endpoints or adding additional behavior around your gRPC routes.</p>
+<h2><a href="#example-authentication-authorization" name="example-authentication-authorization" class="anchor"><span class="anchor-link"></span></a>Example: authentication/authorization</h2>
+<p>One use case could be adding cross-cutting concerns such as authentication/authorization. Suppose you have an API that you want to secure using a token. You already have a regular HTTP API that users can use to obtain a token, and want to secure your gRPC routes to only accept calls that include this token.</p>
+<h3><a href="#akka-http-authentication-route" name="akka-http-authentication-route" class="anchor"><span class="anchor-link"></span></a>Akka HTTP authentication route</h3>
+<p>This route could be any arbitrary Akka HTTP route. For this example we just provide a hint in the response body:</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka-grpc/tree/v2.3.0-M1/plugin-tester-scala/src/main/scala/example/myapp/helloworld/AuthenticatedGreeterServer.scala#L37-L42" target="_blank" title="Go to snippet source">source</a><code class="language-scala">// A Route to authenticate with
+val authenticationRoute: Route = path(&quot;login&quot;) {
+  get {
+    complete(&quot;Psst, please use token XYZ!&quot;)
+  }
+}</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka-grpc/tree/v2.3.0-M1/plugin-tester-java/src/main/java/example/myapp/helloworld/AuthenticatedGreeterServer.java#L48-L53" target="_blank" title="Go to snippet source">source</a><code class="language-java">// A Route to authenticate with
+Route authentication = path(&quot;login&quot;, () -&gt;
+  get(() -&gt;
+    complete(&quot;Psst, please use token XYZ!&quot;)
+  )
+);</code></pre></dd>
+</dl>
+<h3><a href="#akka-grpc-route" name="akka-grpc-route" class="anchor"><span class="anchor-link"></span></a>Akka gRPC route</h3>
+<p>We create the Akka gRPC service implementation, and convert it to a <span class="group-java"><a href="https://doc.akka.io/japi/akka-http/10.4/?akka/http/javadsl/server/Route.html" title="akka.http.javadsl.server.Route"><code>Route</code></a></span><span class="group-scala"><a href="https://doc.akka.io/api/akka-http/10.4/akka/http/scaladsl/server/Route$.html" title="akka.http.scaladsl.server.Route"><code>Route</code></a></span> as well:</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka-grpc/tree/v2.3.0-M1/plugin-tester-scala/src/main/scala/example/myapp/helloworld/AuthenticatedGreeterServer.scala#L46-L51" target="_blank" title="Go to snippet source">source</a><code class="language-scala">// Create service handlers
+val handler: HttpRequest =&gt; Future[HttpResponse] =
+  GreeterServiceHandler(new GreeterServiceImpl())
+
+// As a Route
+val handlerRoute: Route = handle(handler)</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka-grpc/tree/v2.3.0-M1/plugin-tester-java/src/main/java/example/myapp/helloworld/AuthenticatedGreeterServer.java#L57-L62" target="_blank" title="Go to snippet source">source</a><code class="language-java">// Instantiate implementation
+GreeterService impl = new GreeterServiceImpl(mat);
+Function&lt;HttpRequest, CompletionStage&lt;HttpResponse&gt;&gt; handler = GreeterServiceHandlerFactory.create(impl, sys);
+
+// As a Route
+Route handlerRoute = handle(handler);</code></pre></dd>
+</dl>
+<h3><a href="#securing-the-akka-grpc-route" name="securing-the-akka-grpc-route" class="anchor"><span class="anchor-link"></span></a>Securing the Akka gRPC route</h3>
+<p>We can wrap the gRPC route just like any <span class="group-java"><a href="https://doc.akka.io/japi/akka-http/10.4/?akka/http/javadsl/server/Route.html" title="akka.http.javadsl.server.Route"><code>Route</code></a></span><span class="group-scala"><a href="https://doc.akka.io/api/akka-http/10.4/akka/http/scaladsl/server/Route$.html" title="akka.http.scaladsl.server.Route"><code>Route</code></a></span>, applying the authorization:</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka-grpc/tree/v2.3.0-M1/plugin-tester-scala/src/main/scala/example/myapp/helloworld/AuthenticatedGreeterServer.scala#L55-L60" target="_blank" title="Go to snippet source">source</a><code class="language-scala">// A directive to authorize calls
+val authorizationDirective: Directive0 =
+  headerValueByName(&quot;token&quot;).flatMap { token =&gt;
+    if (token == &quot;XYZ&quot;) pass
+    else reject
+  }</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka-grpc/tree/v2.3.0-M1/plugin-tester-java/src/main/java/example/myapp/helloworld/AuthenticatedGreeterServer.java#L66-L74" target="_blank" title="Go to snippet source">source</a><code class="language-java">// Protect the handler route
+Route protectedHandler =
+  headerValueByName(&quot;token&quot;, token -&gt; {
+    if (&quot;XYZ&quot;.equals(token)) {
+      return handlerRoute;
+    } else {
+      return complete(StatusCodes.UNAUTHORIZED);
+    }
+  });</code></pre></dd>
+</dl>
+<h3><a href="#tying-it-all-together" name="tying-it-all-together" class="anchor"><span class="anchor-link"></span></a>Tying it all together</h3>
+<p>Finally we can combine the routes and serve them. Remember we need to use <code>bindAndHandleAsync</code> to enable HTTP/2 support:</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka-grpc/tree/v2.3.0-M1/plugin-tester-scala/src/main/scala/example/myapp/helloworld/AuthenticatedGreeterServer.scala#L64-L71" target="_blank" title="Go to snippet source">source</a><code class="language-scala">val route = concat(
+  authenticationRoute,
+  authorizationDirective {
+    handlerRoute
+  })
+
+// Bind service handler servers to localhost:8082
+val binding = Http().newServerAt(&quot;127.0.0.1&quot;, 8082).bind(route)</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka-grpc/tree/v2.3.0-M1/plugin-tester-java/src/main/java/example/myapp/helloworld/AuthenticatedGreeterServer.java#L78-L85" target="_blank" title="Go to snippet source">source</a><code class="language-java">Route finalRoute = concat(
+  authentication,
+  protectedHandler
+);
+
+return Http.get(sys)
+  .newServerAt(&quot;127.0.0.1&quot;, 8090)
+  .bind(finalRoute);</code></pre></dd>
+</dl>
+<h2><a href="#example-logging-error-handling-and-passing-request-context" name="example-logging-error-handling-and-passing-request-context" class="anchor"><span class="anchor-link"></span></a>Example: logging, error handling, and passing request context</h2>
+<p>This example shows how we can wrap a gRPC service implementation into a <span class="group-java"><a href="https://doc.akka.io/japi/akka-http/10.4/?akka/http/javadsl/server/Route.html" title="akka.http.javadsl.server.Route"><code>Route</code></a></span><span class="group-scala"><a href="https://doc.akka.io/api/akka-http/10.4/akka/http/scaladsl/server/Route$.html" title="akka.http.scaladsl.server.Route"><code>Route</code></a></span> to get the following common server features:</p>
+<ol>
+  <li>Log the HTTP request and response corresponding to each RPC.</li>
+  <li>Pass the <span class="group-java"><a href="https://doc.akka.io/japi/akka-http/10.4/?akka/http/javadsl/server/RequestContext.html" title="akka.http.javadsl.server.RequestContext"><code>RequestContext</code></a></span><span class="group-scala"><a href="https://doc.akka.io/api/akka-http/10.4/akka/http/scaladsl/server/RequestContext.html" title="akka.http.scaladsl.server.RequestContext"><code>RequestContext</code></a></span> into the RPC handler.</li>
+  <li>If the RPC fails, apply a custom error handler and log the error.</li>
+</ol>
+<h3><a href="#implementation" name="implementation" class="anchor"><span class="anchor-link"></span></a>Implementation</h3>
+<p>We start with an implementation of the sayHello RPC that does some primitive validation on the name.<br/>If the name starts with a lowercase later, we return an <code>IllegalArgumentException</code>. Otherwise, we return a standard response.</p>
+<p>However, there&rsquo;s also a slight bug in the implementation. If the name is empty, the call to get the first character in the first if statement will throw an Exception.</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka-grpc/tree/v2.3.0-M1/plugin-tester-scala/src/main/scala/example/myapp/helloworld/LoggingErrorHandlingGreeterServer.scala#L36-L43" target="_blank" title="Go to snippet source">source</a><code class="language-scala">private final class Impl(mat: Materializer) extends GreeterServiceImpl()(mat) {
+  override def sayHello(in: HelloRequest): Future[HelloReply] =
+    if (in.name.head.isLower) {
+      Future.failed(new IllegalArgumentException(&quot;Name must be capitalized&quot;))
+    } else {
+      Future.successful(HelloReply(s&quot;Hello, ${in.name}&quot;))
+    }
+}</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka-grpc/tree/v2.3.0-M1/plugin-tester-java/src/main/java/example/myapp/helloworld/LoggingErrorHandlingGreeterServer.java#L50-L67" target="_blank" title="Go to snippet source">source</a><code class="language-java">private static class Impl extends GreeterServiceImpl {
+  public Impl(Materializer mat) {
+    super(mat);
+  }
+  @Override
+  public CompletionStage&lt;HelloReply&gt; sayHello(HelloRequest in) {
+    if (Character.isLowerCase(in.getName().charAt(0))) {
+      CompletableFuture&lt;HelloReply&gt; reply = new CompletableFuture&lt;&gt;();
+      reply.completeExceptionally(new IllegalArgumentException(&quot;Name must be capitalized&quot;));
+      return reply;
+    } else {
+      HelloReply reply = HelloReply.newBuilder()
+        .setMessage(&quot;Hello, &quot; + in.getName())
+        .build();
+      return CompletableFuture.completedFuture(reply);
+    }
+  }
+}</code></pre></dd>
+</dl>
+<h3><a href="#method-to-log-handle-and-recover-each-rpc" name="method-to-log-handle-and-recover-each-rpc" class="anchor"><span class="anchor-link"></span></a>Method to log, handle, and recover each RPC</h3>
+<p>We define a method that returns a <span class="group-java"><a href="https://doc.akka.io/japi/akka-http/10.4/?akka/http/javadsl/server/Route.html" title="akka.http.javadsl.server.Route"><code>Route</code></a></span><span class="group-scala"><a href="https://doc.akka.io/api/akka-http/10.4/akka/http/scaladsl/server/Route$.html" title="akka.http.scaladsl.server.Route"><code>Route</code></a></span> implementing our logging and error recovery features. The method takes three parameters.</p>
+<ol>
+  <li>A function that takes a <span class="group-java"><a href="https://doc.akka.io/japi/akka-http/10.4/?akka/http/javadsl/server/RequestContext.html" title="akka.http.javadsl.server.RequestContext"><code>RequestContext</code></a></span><span class="group-scala"><a href="https://doc.akka.io/api/akka-http/10.4/akka/http/scaladsl/server/RequestContext.html" title="akka.http.scaladsl.server.RequestContext"><code>RequestContext</code></a></span> and returns a service implementation. This gives us the opportunity to use the context in the implementation. If we don&rsquo;t need it, we can just ignore the context and return a fixed implementation.</li>
+  <li>A function that takes an <span class="group-scala"><a href="https://doc.akka.io/api/akka/2.7/akka/actor/ActorSystem.html" title="akka.actor.ActorSystem"><code>ActorSystem</code></a></span><span class="group-java"><a href="https://doc.akka.io/japi/akka/2.7/?akka/actor/ActorSystem.html" title="akka.actor.ActorSystem"><code>ActorSystem</code></a></span> and returns a partial function from Throwable to gRPC <span class="group-scala"><a href="/api/akka-grpc/2.3.0-M1/akka/grpc/Trailers.html" title="akka.grpc.Trailers"><code>Trailers</code></a></span><span class="group-java"><a href="/api/akka-grpc/2.3.0-M1/akka/grpc/Trailers.html" title="akka.grpc.Trailers"><code>Trailers</code></a></span>.</li>
+  <li>A function that takes the service implementation and an error handler and returns a request handler (a function from <span class="group-java"><a href="https://doc.akka.io/japi/akka-http/10.4/?akka/http/javadsl/model/HttpRequest.html" title="akka.http.javadsl.model.HttpRequest"><code>HttpRequest</code></a></span><span class="group-scala"><a href="https://doc.akka.io/api/akka-http/10.4/akka/http/scaladsl/model/HttpRequest.html" title="akka.http.scaladsl.model.HttpRequest"><code>HttpRequest</code></a></span> to a <span class="group-scala"><code>Future</code></span><span class="group-java"><code>CompletionStage</code></span> of <span class="group-java"><a href="https://doc.akka.io/japi/akka-http/10.4/?akka/http/javadsl/model/HttpResponse.html" title="akka.http.javadsl.model.HttpResponse"><code>HttpResponse</code></a></span><span class="group-scala"><a href="https://doc.akka.io/api/akka-http/10.4/akka/http/scaladsl/model/HttpResponse.html" title="akka.http.scaladsl.model.HttpResponse"><code>HttpResponse</code></a></span>).</li>
+</ol>
+<p>The method first uses an existing directive to log requests and results. Then it wraps the given error handler into an error handler that also logs the error. Finally, it calls the given functions to handle incoming requests.</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka-grpc/tree/v2.3.0-M1/plugin-tester-scala/src/main/scala/example/myapp/helloworld/LoggingErrorHandlingGreeterServer.scala#L47-L72" target="_blank" title="Go to snippet source">source</a><code class="language-scala">private type ErrorHandler = ActorSystem =&gt; PartialFunction[Throwable, Trailers]
+
+private def loggingErrorHandlingGrpcRoute[ServiceImpl](
+    buildImpl: RequestContext =&gt; ServiceImpl,
+    errorHandler: ErrorHandler,
+    buildHandler: (ServiceImpl, ErrorHandler) =&gt; HttpRequest =&gt; Future[HttpResponse]): Route =
+  DebuggingDirectives.logRequestResult((&quot;loggingErrorHandlingGrpcRoute&quot;, Logging.InfoLevel)) {
+    extractRequestContext { ctx =&gt;
+      val loggingErrorHandler: ErrorHandler = (sys: ActorSystem) =&gt; {
+        case NonFatal(t) =&gt;
+          val pf = errorHandler(sys)
+          if (pf.isDefinedAt(t)) {
+            val trailers: Trailers = pf(t)
+            ctx.log.error(t, s&quot;Grpc failure handled and mapped to $trailers&quot;)
+            trailers
+          } else {
+            val trailers = Trailers(Status.INTERNAL)
+            ctx.log.error(t, s&quot;Grpc failure UNHANDLED and mapped to $trailers&quot;)
+            trailers
+          }
+      }
+      val impl = buildImpl(ctx)
+      val handler = buildHandler(impl, loggingErrorHandler)
+      handle(handler)
+    }
+  }</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka-grpc/tree/v2.3.0-M1/plugin-tester-java/src/main/java/example/myapp/helloworld/LoggingErrorHandlingGreeterServer.java#L71-L97" target="_blank" title="Go to snippet source">source</a><code class="language-java">private static &lt;ServiceImpl&gt; Route loggingErrorHandlingGrpcRoute(
+  Function&lt;RequestContext, ServiceImpl&gt; buildImpl,
+  Function&lt;ActorSystem, Function&lt;Throwable, Trailers&gt;&gt; errorHandler,
+  BiFunction&lt;ServiceImpl, Function&lt;ActorSystem, Function&lt;Throwable, Trailers&gt;&gt;, akka.japi.function.Function&lt;HttpRequest, CompletionStage&lt;HttpResponse&gt;&gt;&gt; buildHandler
+) {
+  return logRequest(&quot;loggingErrorHandlingGrpcRoute&quot;, Logging.InfoLevel(), () -&gt; extractRequestContext(ctx -&gt; {
+    Function&lt;ActorSystem, Function&lt;Throwable, Trailers&gt;&gt; loggingErrorHandler = (actorSystem) -&gt; (throwable) -&gt; {
+      Function&lt;Throwable, Trailers&gt; function = errorHandler.apply(actorSystem);
+      Trailers trailers = function.apply(throwable);
+      if (trailers != null) {
+        ctx.getLog().error(throwable, &quot;Grpc failure handled and mapped to &quot; + trailers);
+        return trailers;
+      } else {
+        Trailers internal = new Trailers(Status.INTERNAL);
+        ctx.getLog().error(throwable, &quot;Grpc failure UNHANDLED and mapped to &quot; + internal);
+        return internal;
+      }
+    };
+    try {
+      ServiceImpl impl = buildImpl.apply(ctx);
+      akka.japi.function.Function&lt;HttpRequest, CompletionStage&lt;HttpResponse&gt;&gt; handler = buildHandler.apply(impl, loggingErrorHandler);
+      return handle(handler);
+    } catch (Exception e) {
+      return failWith(e);
+    }
+  }));
+}</code></pre></dd>
+</dl>
+<h3><a href="#custom-error-mapping" name="custom-error-mapping" class="anchor"><span class="anchor-link"></span></a>Custom error mapping</h3>
+<p>We define a partial function to handle the custom exception we defined above.</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka-grpc/tree/v2.3.0-M1/plugin-tester-scala/src/main/scala/example/myapp/helloworld/LoggingErrorHandlingGreeterServer.scala#L76-L78" target="_blank" title="Go to snippet source">source</a><code class="language-scala">private val customErrorMapping: PartialFunction[Throwable, Trailers] = {
+  case ex: IllegalArgumentException =&gt; Trailers(Status.INVALID_ARGUMENT.withDescription(ex.getMessage))
+}</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka-grpc/tree/v2.3.0-M1/plugin-tester-java/src/main/java/example/myapp/helloworld/LoggingErrorHandlingGreeterServer.java#L101-L107" target="_blank" title="Go to snippet source">source</a><code class="language-java">private final static Function&lt;Throwable, Trailers&gt; customErrorMapping = (throwable) -&gt; {
+  if (throwable instanceof IllegalArgumentException) {
+    return new Trailers(Status.INVALID_ARGUMENT);
+  } else {
+    return null;
+  }
+};</code></pre></dd>
+</dl>
+<h3><a href="#tying-it-all-together" name="tying-it-all-together" class="anchor"><span class="anchor-link"></span></a>Tying it all together</h3>
+<p>Finally, we invoke the new method and bind the resulting <span class="group-java"><a href="https://doc.akka.io/japi/akka-http/10.4/?akka/http/javadsl/server/Route.html" title="akka.http.javadsl.server.Route"><code>Route</code></a></span><span class="group-scala"><a href="https://doc.akka.io/api/akka-http/10.4/akka/http/scaladsl/server/Route$.html" title="akka.http.scaladsl.server.Route"><code>Route</code></a></span>.</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka-grpc/tree/v2.3.0-M1/plugin-tester-scala/src/main/scala/example/myapp/helloworld/LoggingErrorHandlingGreeterServer.scala#L86-L95" target="_blank" title="Go to snippet source">source</a><code class="language-scala">val route = loggingErrorHandlingGrpcRoute[GreeterService](
+  buildImpl = rc =&gt; new Impl(rc.materializer),
+  buildHandler = (impl, eHandler) =&gt;
+    ServiceHandler.concatOrNotFound(
+      GreeterServiceHandler.partial(impl, eHandler = eHandler),
+      ServerReflection.partial(List(GreeterService))),
+  errorHandler = _ =&gt; customErrorMapping)
+
+// Bind service handler servers to localhost:8082
+val binding = Http().newServerAt(&quot;127.0.0.1&quot;, 8082).bind(route)</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka-grpc/tree/v2.3.0-M1/plugin-tester-java/src/main/java/example/myapp/helloworld/LoggingErrorHandlingGreeterServer.java#L114-L121" target="_blank" title="Go to snippet source">source</a><code class="language-java">Route route = loggingErrorHandlingGrpcRoute(
+  (rc) -&gt; new Impl(rc.getMaterializer()),
+  (actorSystem) -&gt; customErrorMapping,
+  (impl, eHandler) -&gt; GreeterServiceHandlerFactory.partial(impl, GreeterService.name, mat, eHandler, sys)
+);
+return Http.get(sys)
+  .newServerAt(&quot;127.0.0.1&quot;, 8082)
+  .bind(route);</code></pre></dd>
+</dl>
+<h3><a href="#results" name="results" class="anchor"><span class="anchor-link"></span></a>Results</h3>
+<p>We make three calls: one with a valid name, one with a lowercase name, and one with an empty name.</p>
+<p>For the valid name, the RPC succeeds and the server prints only the response log:</p>
+<pre><code>[INFO] [05/15/2022 09:24:36.850] [Server-akka.actor.default-dispatcher-8] [akka.actor.ActorSystemImpl(Server)] loggingErrorHandlingGrpcRoute: Response for
+  Request : HttpRequest(HttpMethod(POST),http://127.0.0.1/helloworld.GreeterService/SayHello,Vector(TE: trailers, User-Agent: grpc-java-netty/1.45.1, grpc-accept-encoding: gzip),HttpEntity.Chunked(application/grpc),HttpProtocol(HTTP/2.0))
+  Response: Complete(HttpResponse(200 OK,List(grpc-encoding: gzip),HttpEntity.Strict(application/grpc+proto,42 bytes total),HttpProtocol(HTTP/1.1)))
+</code></pre>
+<p>For the lowercase name, the server prints the error log and the response log. Note that the server still returns a status code 200, even though the RPC failed. This is because gRPC encodes a failure as a successful HTTP response containing the error in the body.</p>
+<pre><code>[ERROR] [05/15/2022 09:24:36.902] [Server-akka.actor.default-dispatcher-5] [akka.actor.ActorSystemImpl(Server)] Grpc failure handled and mapped to akka.grpc.Trailers@4ab49ff7
+java.lang.IllegalArgumentException: Name must be capitalized
+	at example.myapp.helloworld.LoggingErrorHandlingGreeterServer$Impl$1.sayHello(LoggingErrorHandlingGreeterServer.scala:43)
+	at example.myapp.helloworld.grpc.GreeterServiceHandler$.$anonfun$partial$2(GreeterServiceHandler.scala:118)
+	at scala.concurrent.Future.$anonfun$flatMap$1(Future.scala:307)
+	at scala.concurrent.impl.Promise.$anonfun$transformWith$1(Promise.scala:41)
+	at scala.concurrent.impl.CallbackRunnable.run(Promise.scala:64)
+	at akka.dispatch.BatchingExecutor$AbstractBatch.processBatch(BatchingExecutor.scala:56)
+	at akka.dispatch.BatchingExecutor$BlockableBatch.$anonfun$run$1(BatchingExecutor.scala:93)
+	at scala.runtime.java8.JFunction0$mcV$sp.apply(JFunction0$mcV$sp.java:23)
+	at scala.concurrent.BlockContext$.withBlockContext(BlockContext.scala:85)
+	at akka.dispatch.BatchingExecutor$BlockableBatch.run(BatchingExecutor.scala:93)
+	at akka.dispatch.TaskInvocation.run(AbstractDispatcher.scala:48)
+	at akka.dispatch.ForkJoinExecutorConfigurator$AkkaForkJoinTask.exec(ForkJoinExecutorConfigurator.scala:48)
+	at java.base/java.util.concurrent.ForkJoinTask.doExec(ForkJoinTask.java:290)
+	at java.base/java.util.concurrent.ForkJoinPool$WorkQueue.topLevelExec(ForkJoinPool.java:1020)
+	at java.base/java.util.concurrent.ForkJoinPool.scan(ForkJoinPool.java:1656)
+	at java.base/java.util.concurrent.ForkJoinPool.runWorker(ForkJoinPool.java:1594)
+	at java.base/java.util.concurrent.ForkJoinWorkerThread.run(ForkJoinWorkerThread.java:183)
+
+[INFO] [05/15/2022 09:24:36.905] [Server-akka.actor.default-dispatcher-5] [akka.actor.ActorSystemImpl(Server)] loggingErrorHandlingGrpcRoute: Response for
+  Request : HttpRequest(HttpMethod(POST),http://127.0.0.1/helloworld.GreeterService/SayHello,Vector(TE: trailers, User-Agent: grpc-java-netty/1.45.1, grpc-accept-encoding: gzip),HttpEntity.Chunked(application/grpc),HttpProtocol(HTTP/2.0))
+  Response: Complete(HttpResponse(200 OK,List(grpc-encoding: gzip),HttpEntity.Chunked(application/grpc+proto),HttpProtocol(HTTP/1.1)))
+</code></pre>
+<p>For the empty name, the server prints a slightly different error log and the response log, </p>
+<pre><code>[ERROR] [05/15/2022 09:24:36.914] [Server-akka.actor.default-dispatcher-5] [akka.actor.ActorSystemImpl(Server)] Grpc failure UNHANDLED and mapped to akka.grpc.Trailers@5e1d9001
+java.util.NoSuchElementException: next on empty iterator
+	at scala.collection.Iterator$$anon$2.next(Iterator.scala:41)
+	at scala.collection.Iterator$$anon$2.next(Iterator.scala:39)
+	at scala.collection.IterableLike.head(IterableLike.scala:109)
+	at scala.collection.IterableLike.head$(IterableLike.scala:108)
+	at scala.collection.immutable.StringOps.scala$collection$IndexedSeqOptimized$$super$head(StringOps.scala:33)
+	at scala.collection.IndexedSeqOptimized.head(IndexedSeqOptimized.scala:129)
+	at scala.collection.IndexedSeqOptimized.head$(IndexedSeqOptimized.scala:129)
+	at scala.collection.immutable.StringOps.head(StringOps.scala:33)
+	at example.myapp.helloworld.LoggingErrorHandlingGreeterServer$Impl$1.sayHello(LoggingErrorHandlingGreeterServer.scala:42)
+	at example.myapp.helloworld.grpc.GreeterServiceHandler$.$anonfun$partial$2(GreeterServiceHandler.scala:118)
+	at scala.concurrent.Future.$anonfun$flatMap$1(Future.scala:307)
+	at scala.concurrent.impl.Promise.$anonfun$transformWith$1(Promise.scala:41)
+	at scala.concurrent.impl.CallbackRunnable.run(Promise.scala:64)
+	at akka.dispatch.BatchingExecutor$AbstractBatch.processBatch(BatchingExecutor.scala:56)
+	at akka.dispatch.BatchingExecutor$BlockableBatch.$anonfun$run$1(BatchingExecutor.scala:93)
+	at scala.runtime.java8.JFunction0$mcV$sp.apply(JFunction0$mcV$sp.java:23)
+	at scala.concurrent.BlockContext$.withBlockContext(BlockContext.scala:85)
+	at akka.dispatch.BatchingExecutor$BlockableBatch.run(BatchingExecutor.scala:93)
+	at akka.dispatch.TaskInvocation.run(AbstractDispatcher.scala:48)
+	at akka.dispatch.ForkJoinExecutorConfigurator$AkkaForkJoinTask.exec(ForkJoinExecutorConfigurator.scala:48)
+	at java.base/java.util.concurrent.ForkJoinTask.doExec(ForkJoinTask.java:290)
+	at java.base/java.util.concurrent.ForkJoinPool$WorkQueue.topLevelExec(ForkJoinPool.java:1020)
+	at java.base/java.util.concurrent.ForkJoinPool.scan(ForkJoinPool.java:1656)
+	at java.base/java.util.concurrent.ForkJoinPool.runWorker(ForkJoinPool.java:1594)
+	at java.base/java.util.concurrent.ForkJoinWorkerThread.run(ForkJoinWorkerThread.java:183)
+
+[INFO] [05/15/2022 09:24:36.914] [Server-akka.actor.default-dispatcher-5] [akka.actor.ActorSystemImpl(Server)] loggingErrorHandlingGrpcRoute: Response for
+  Request : HttpRequest(HttpMethod(POST),http://127.0.0.1/helloworld.GreeterService/SayHello,Vector(TE: trailers, User-Agent: grpc-java-netty/1.45.1, grpc-accept-encoding: gzip),HttpEntity.Chunked(application/grpc),HttpProtocol(HTTP/2.0))
+  Response: Complete(HttpResponse(200 OK,List(grpc-encoding: gzip),HttpEntity.Chunked(application/grpc+proto),HttpProtocol(HTTP/1.1)))
+</code></pre>
+<h2><a href="#future-work" name="future-work" class="anchor"><span class="anchor-link"></span></a>Future work</h2>
+<p>For in-depth akka-grpc/akka-http integration we currently need to pass information from the Akka HTTP route into the service implementation constructor, and construct a new Handler for each request. This pattern is shown in an example above.</p>
+<p>In the future we plan to provide a nicer API for this, for example we could pass the Akka HTTP attributes (introduced in 10.2.0) as Metadata when using the PowerApi.</p>
+</div>
+</article>
+<div class="row">
+<div class="small-12 column">
+<section class="nav-prev-next row">
+<div class="nav-prev small-6 column">
+<a href="../server/reflection.html"><i class="icon-prev"></i> <span class="link-prev">Server Reflection</span></a>
+</div>
+<div class="nav-next small-6 column clearfix">
+<a class="float-right" href="../server/details.html">Details <i class="icon-next"></i></a>
+</div>
+</section>
+</div>
+</div>
+<div class="source-github row">
+Found an error in this documentation? The source code for this page can be found <a href="https://github.com/akka/akka-grpc/tree/v2.3.0-M1/docs/src/main/paradox/server/akka-http.md">here</a>.
+Please feel free to edit and contribute a pull request.
+</div>
+
+<footer class="page-footer row clearfix">
+<img class="akka-icon float-left show-for-medium" src="../images/akka-icon.svg" />
+<section class="copyright">
+<div>Akka gRPC is available under the <a href="https://www.lightbend.com/akka/license" target="_blank">Business Source License 1.1</a>.</div>
+<p class="legal">
+&copy; 2011-2022 <a href="https://www.lightbend.com" target="_blank">Lightbend, Inc.</a> |
+<a href="https://www.lightbend.com/legal/licenses" target="_blank">Licenses</a> |
+<a href="https://www.lightbend.com/legal/terms" target="_blank">Terms</a> |
+<a href="https://www.lightbend.com/legal/privacy" target="_blank">Privacy Policy</a> |
+<a href="https://akka.io/cookie/" target="_blank">Cookie Listing</a> |
+<a class="optanon-toggle-display">Cookie Settings</a>
+</p>
+</section>
+
+</footer>
+</section>
+</main>
+</div>
+
+<script type="text/javascript" src="../js/scrollsneak.js"></script>
+<script type="text/javascript">jQuery(document).foundation();</script>
+<script type="text/javascript" src="../js/groups.js"></script>
+<script type="text/javascript" src="../js/page.js"></script>
+<script type="text/javascript" src="../js/snippets.js"></script>
+<script type="text/javascript" src="../js/magellan.js"></script>
+<script type="text/javascript" src="../js/metadata-toggle.js"></script>
+<script type="text/javascript" src="../js/lbHeader.js"></script>
+
+<style type="text/css">@import "../lib/prettify/prettify.css";</style>
+<script type="text/javascript" src="../lib/prettify/prettify.js"></script>
+<script type="text/javascript" src="../lib/prettify/lang-scala.js"></script>
+<script type="text/javascript">//<![CDATA[
+jQuery(function(){window.prettyPrint && prettyPrint()});
+//]]></script>
+<script type="text/javascript" src="../assets/js/warnOldVersion.js"></script>
+<script type="text/javascript">//<![CDATA[
+jQuery(function(jq){initOldVersionWarnings(jq, '2.3.0-M1', 'https://doc.akka.io/docs/akka-grpc/current/')});
+//]]></script>
+
+
+</body>
+</html>
