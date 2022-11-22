@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html class="no-js" lang="en">
+
+<head>
+<title>Kubernetes &bull; Akka gRPC</title>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta name="description" content="Akka gRPC - Support for building streaming gRPC servers and clients on top of Akka Streams."/>
+<link rel="canonical" href="https://doc.akka.io/docs/akka-grpc/current/server/kubernetes.html"/>
+<script type="text/javascript" src="../lib/jquery/jquery.min.js"></script>
+<script type="text/javascript" src="../lib/foundation/dist/js/foundation.min.js"></script>
+<link rel="stylesheet" type="text/css" href="../lib/normalize.css/normalize.css"/>
+<link rel="stylesheet" type="text/css" href="../lib/foundation/dist/css/foundation.min.css"/>
+<link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/docsearch.js/2/docsearch.min.css" />
+<link rel="stylesheet" type="text/css" href="../css/icons.css"/>
+<link rel="stylesheet" type="text/css" href="../css/page-8.css"/>
+<link rel="stylesheet" type="text/css" href="../css/banner-2.css"/>
+<link rel="shortcut icon" href="../images/favicon.ico" />
+<link rel="apple-touch-icon" sizes="180x180" href="../images/apple-touch-icon.png"/>
+<link rel="icon" type="image/png" sizes="32x32" href="../images/favicon-32x32.png"/>
+<link rel="icon" type="image/png" sizes="16x16" href="../images/favicon-16x16.png"/>
+<link rel="manifest" href="../images/manifest.json"/>
+<meta name="msapplication-TileImage" content="../images/mstile-150x150.png"/>
+<meta name="msapplication-TileColor" content="#15a9ce"/>
+<meta name="theme-color" content="#15a9ce"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<!-- OneTrust Cookies Consent Notice (Production Standard, akka.io, en-GB) start -->
+<script src="https://cdn.cookielaw.org/scripttemplates/otSDKStub.js"  type="text/javascript" charset="UTF-8" data-domain-script="28b912e7-09e9-43d5-91e4-3d1897044004" ></script>
+<script type="text/javascript">
+function OptanonWrapper() { }
+</script>
+<!-- OneTrust Cookies Consent Notice (Production Standard, akka.io, en-GB) end -->
+<!--Google Analytics-->
+<script type="text/plain" class="optanon-category-2">
+var _gaq = _gaq || [];
+_gaq.push(['_setAccount', '']);
+_gaq.push(['_setDomainName', '']);
+_gaq.push(['_trackPageview']);
+(function() {
+var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+})()
+</script>
+<!-- Google Tag Manager -->
+<script type="text/plain" class="optanon-category-2">
+(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+})(window,document,'script','dataLayer','GTM-KBJGH35');
+</script>
+<!--Marketo-->
+<script type="text/plain" class="optanon-category-3">
+(function() {
+var didInit = false;
+function initMunchkin() {
+if(didInit === false) {
+didInit = true;
+Munchkin.init('558-NCX-702', { 'asyncOnly': true, 'disableClickDelay': true });
+}
+}
+var s = document.createElement('script');
+s.type = 'text/javascript';
+s.async = true;
+s.src = '//munchkin.marketo.net/munchkin.js';
+s.onreadystatechange = function() {
+if (this.readyState == 'complete' || this.readyState == 'loaded') {
+initMunchkin();
+}
+};
+s.onload = initMunchkin;
+document.getElementsByTagName('head')[0].appendChild(s);
+})();
+</script>
+</head>
+
+<body id="underlay" data-toggler="nav-open">
+<div id="lightbend-banner" class="lightbend-banner akka full-width" data-category="OSS Lightbend Banner Impression" data-label="Akka Banner Impression">
+<div class="oss-wrapper">
+<div class="oss-brand">
+<a class="oss-track-link-label" data-category="OSS Lightbend Banner Clicks" data-label="Lightbend Logo - Akka Banner" href="https://www.lightbend.com">
+<img class="lightbend-logo" src="../images/banner-logos/lightbend-reverse.svg" alt="Lightbend" title="Lightbend">
+</a>
+</div>
+<div class="oss-ad no-drop-down">
+<nav id="lightbendRotator" class="lightbend-rotator">
+<a class="oss-track-link-label" data-category="OSS Lightbend Banner Clicks" data-label="Promo Rotator - Lightbend is Changing its Software Licensing Model for Akka Technology. [License FAQ] - Akka Banner" href="https://www.lightbend.com/akka/license-faq">
+<strong>Lightbend</strong> is Changing its Software Licensing Model for Akka Technology. <span class="akka-btn">License FAQ</span>
+</a>
+</nav>
+</div>
+</div>
+</div>
+
+<header class="site-header hide-for-large">
+<div class="sticky-header clearfix">
+<a href="https://akka.io"><img class="logo" src="../images/akka-logo-reverse.svg"/></a>
+
+<button class="menu-icon float-right" type="button" data-toggle="underlay overlay"></button>
+</div>
+<div id="overlay" class="overlay-nav" data-toggler="nav-open">
+<header class="nav-header">
+<div class="nav-header-title">
+<h1><a href="../index.html">Akka gRPC</a></h1>
+</div>
+<div class="nav-header-version">
+Version 2.2.1
+</div>
+<div class="nav-header-groups">
+<select class="supergroup" name="Language"><option class="group" value="group-java">Java</option><option class="group" value="group-scala">Scala</option></select>
+<select class="supergroup" name="Buildtool"><option class="group" value="group-sbt">sbt</option><option class="group" value="group-gradle">Gradle</option><option class="group" value="group-maven">Maven</option></select>
+</div>
+</header>
+<nav class="nav-toc">
+<ul>
+  <li><a href="../overview.html" class="page">Overview</a></li>
+  <li><a href="../whygrpc.html" class="page">Why gRPC?</a></li>
+  <li><a href="../getting-started.html" class="page">Getting started</a></li>
+  <li><a href="../proto.html" class="page">Protobuf Service Descriptors</a></li>
+  <li><a href="../server/index.html" class="page">Providing Services (Server)</a>
+  <ul>
+    <li><a href="../server/walkthrough.html" class="page">Walkthrough</a></li>
+    <li><a href="../server/grpc-web.html" class="page">gRPC-Web</a></li>
+    <li><a href="../server/reflection.html" class="page">Server Reflection</a></li>
+    <li><a href="../server/akka-http.html" class="page">Akka HTTP interop</a></li>
+    <li><a href="../server/details.html" class="page">Details</a></li>
+    <li><a href="../server/kubernetes.html#kubernetes" class="active page">Kubernetes</a>
+    <ul>
+      <li><a href="../server/kubernetes.html#loadbalancer-service" class="header">LoadBalancer Service</a></li>
+      <li><a href="../server/kubernetes.html#nginx-ingress" class="header">NGINX Ingress</a></li>
+      <li><a href="../server/kubernetes.html#gce-ingress" class="header">GCE Ingress</a></li>
+      <li><a href="../server/kubernetes.html#google-cloud-endpoints" class="header">Google Cloud Endpoints</a></li>
+    </ul></li>
+  </ul></li>
+  <li><a href="../client/index.html" class="page">Consuming Services (Client)</a></li>
+  <li><a href="../buildtools/index.html" class="page">Build Tool Support</a></li>
+  <li><a href="../binary-compatibility.html" class="page">Binary compatibility</a></li>
+  <li><a href="../apidesign.html" class="page">API Design</a></li>
+  <li><a href="../deploy.html" class="page">Deployment</a></li>
+  <li><a href="../troubleshooting.html" class="page">Troubleshooting</a></li>
+</ul>
+</nav>
+</div>
+</header>
+<div class="site-content-wrapper">
+<aside class="sticky-sidebar show-for-large">
+<header class="nav-header sticky-sidebar-header">
+<div class="nav-header-title">
+<h1><a href="../index.html">Akka gRPC</a></h1>
+</div>
+<div class="nav-header-version">
+Version 2.2.1
+</div>
+<div class="nav-header-groups">
+<select class="supergroup" name="Language"><option class="group" value="group-java">Java</option><option class="group" value="group-scala">Scala</option></select>
+<select class="supergroup" name="Buildtool"><option class="group" value="group-sbt">sbt</option><option class="group" value="group-gradle">Gradle</option><option class="group" value="group-maven">Maven</option></select>
+</div>
+</header>
+<nav class="site-nav sticky-sidebar-contents">
+<div class="nav-toc">
+<ul>
+  <li><a href="../overview.html" class="page">Overview</a></li>
+  <li><a href="../whygrpc.html" class="page">Why gRPC?</a></li>
+  <li><a href="../getting-started.html" class="page">Getting started</a></li>
+  <li><a href="../proto.html" class="page">Protobuf Service Descriptors</a></li>
+  <li><a href="../server/index.html" class="page">Providing Services (Server)</a>
+  <ul>
+    <li><a href="../server/walkthrough.html" class="page">Walkthrough</a></li>
+    <li><a href="../server/grpc-web.html" class="page">gRPC-Web</a></li>
+    <li><a href="../server/reflection.html" class="page">Server Reflection</a></li>
+    <li><a href="../server/akka-http.html" class="page">Akka HTTP interop</a></li>
+    <li><a href="../server/details.html" class="page">Details</a></li>
+    <li><a href="../server/kubernetes.html#kubernetes" class="active page">Kubernetes</a>
+    <ul>
+      <li><a href="../server/kubernetes.html#loadbalancer-service" class="header">LoadBalancer Service</a></li>
+      <li><a href="../server/kubernetes.html#nginx-ingress" class="header">NGINX Ingress</a></li>
+      <li><a href="../server/kubernetes.html#gce-ingress" class="header">GCE Ingress</a></li>
+      <li><a href="../server/kubernetes.html#google-cloud-endpoints" class="header">Google Cloud Endpoints</a></li>
+    </ul></li>
+  </ul></li>
+  <li><a href="../client/index.html" class="page">Consuming Services (Client)</a></li>
+  <li><a href="../buildtools/index.html" class="page">Build Tool Support</a></li>
+  <li><a href="../binary-compatibility.html" class="page">Binary compatibility</a></li>
+  <li><a href="../apidesign.html" class="page">API Design</a></li>
+  <li><a href="../deploy.html" class="page">Deployment</a></li>
+  <li><a href="../troubleshooting.html" class="page">Troubleshooting</a></li>
+</ul>
+</div>
+</nav>
+<footer class="nav-footer sticky-sidebar-footer">
+<a href="https://akka.io"><img class="logo" src="../images/akka-logo-reverse.svg"/></a>
+
+</footer>
+</aside>
+<main class="fixed-shift-for-large expanded row">
+<section class="site-content small-12 column">
+<article class="page-content row">
+<div class="small-12 column" id="docs">
+<h1><a href="#kubernetes" name="kubernetes" class="anchor"><span class="anchor-link"></span></a>Kubernetes</h1>
+<p>An Akka gRPC service can be deployed to a Kubernetes cluster just like any other HTTP-based application, but if you want to make sure HTTP/2 is used across the board there are some things to consider.</p>
+<p>There are 3 ways to use HTTP/2:</p>
+<ul>
+  <li>HTTP/2 over TLS, using ALPN to detect support for HTTP/2 in the TLS handshake.</li>
+  <li>HTTP/2 over plaintext TCP (&lsquo;h2c&rsquo;), starting with HTTP/1 and using the <code>Upgrade</code> mechanism to negotiate moving to HTTP/2.</li>
+  <li>HTTP/2 over plaintext TCP (&lsquo;h2c&rsquo;), without negotiation. This assumes the client has prior knowledge that the server supports HTTP/2.</li>
+</ul>
+<p>A straightforward way to expose a TCP endpoint outside the cluster is to create a Kubernetes <code>Service</code> of type <code>LoadBalancer</code>. Beyond that, Kubernetes supports many types of <a href="https://kubernetes.io/docs/concepts/services-networking/ingress-controllers/">Ingress Controllers</a>. <a href="https://github.com/kubernetes/ingress-gce/blob/master/README.md">GCE</a> and <a href="https://github.com/kubernetes/ingress-nginx/blob/master/README.md">NGINX</a> are the most widely known.</p>
+<h2><a href="#loadbalancer-service" name="loadbalancer-service" class="anchor"><span class="anchor-link"></span></a>LoadBalancer Service</h2>
+<p>By creating a service of type <code>LoadBalancer</code> you can expose your services using a direct TCP loadbalancer. This means all features supported by the underlying implementation are available.</p>
+<p>Using a <code>LoadBalancer</code> as the Ingress has some limitations, for example:</p>
+<ul>
+  <li>you are restricted to 1 service per IP</li>
+  <li>more advanced features such as TLS termination and path-based routing are not available</li>
+</ul>
+<h2><a href="#nginx-ingress" name="nginx-ingress" class="anchor"><span class="anchor-link"></span></a>NGINX Ingress</h2>
+<p>Of the three ways to use HTTP/2 presented at the beginning of this page, NGINX by default only supports <code>h2c</code> with negotiation via the <code>Upgrade</code> mechanism. Because the <code>Upgrade</code> mechanism is more complicated than the other 2 approaches (&ldquo;TLS&rdquo;, and h2c with &ldquo;prior knowledge&rdquo;), gRPC client support for h2c with the <code>Upgrade</code> mechanism is not ubiquitous. Also, the loadbalancer will use HTTP/1 rather than HTTP/2 for the connection from the loadbalancer to the service. While this may happen to work it is not optimal.</p>
+<h2><a href="#gce-ingress" name="gce-ingress" class="anchor"><span class="anchor-link"></span></a>GCE Ingress</h2>
+<p>GCE only supports HTTP/2 over TLS. This means you must configure GCE to use HTTPS both on the &lsquo;outside&rsquo; and on the &lsquo;inside&rsquo;, and you will have to make sure your service is exposed over HTTPS internally as well.</p>
+<p>To make sure the GCE loadbalancer uses HTTP/2 to connect to your service you must <a href="https://cloud.google.com/kubernetes-engine/docs/concepts/ingress-xlb#https_tls_between_load_balancer_and_your_application">use the <code>cloud.google.com/app-protocols</code> annotation</a> the service:</p>
+<pre><code>apiVersion: v1
+kind: Service
+metadata:
+  name: my-service-3
+  annotations:
+    cloud.google.com/app-protocols: &#39;{&quot;my-grpc-port&quot;:&quot;HTTP2&quot;}&#39;
+spec:
+  type: NodePort
+  selector:
+    app: metrics
+    department: sales
+  ports:
+  - name: my-grpc-port
+    port: 443
+    targetPort: 8443
+</code></pre>
+<p>By default the loadbalancer will accept any certificate, so your service can be configured with a self-signed certificate.</p>
+<p>The GCE load balancer only routes to pods that pass the health check. The default health check is a request to &lsquo;/&rsquo; that expects a <code>200 OK</code> return value, so it might be helpful to add this to your route.</p>
+<h2><a href="#google-cloud-endpoints" name="google-cloud-endpoints" class="anchor"><span class="anchor-link"></span></a>Google Cloud Endpoints</h2>
+<p>The Google cloud has a <a href="https://cloud.google.com/endpoints">Cloud Endpoints</a> feature that allows exposing a gRPC API in a more &lsquo;controlled&rsquo; way: you can configure API key management, authentication, monitoring quote/rate limiting, generate a &lsquo;developer portal&rsquo; for your API&rsquo;s users and much more. You need to provide your <code>.proto</code> definitions when creating the endpoint, and still need to configure your own loadbalancer to expose this proxy to the outside. </p>
+</div>
+</article>
+<div class="row">
+<div class="small-12 column">
+<section class="nav-prev-next row">
+<div class="nav-prev small-6 column">
+<a href="../server/details.html"><i class="icon-prev"></i> <span class="link-prev">Details</span></a>
+</div>
+<div class="nav-next small-6 column clearfix">
+<a class="float-right" href="../client/index.html">Consuming Services (Client) <i class="icon-next"></i></a>
+</div>
+</section>
+</div>
+</div>
+<div class="source-github row">
+Found an error in this documentation? The source code for this page can be found <a href="https://github.com/akka/akka-grpc/tree/v2.2.1/docs/src/main/paradox/server/kubernetes.md">here</a>.
+Please feel free to edit and contribute a pull request.
+</div>
+
+<footer class="page-footer row clearfix">
+<img class="akka-icon float-left show-for-medium" src="../images/akka-icon.svg" />
+<section class="copyright">
+<div>Akka gRPC is available under the <a href="https://www.lightbend.com/akka/license" target="_blank">Business Source License 1.1</a>.</div>
+<p class="legal">
+&copy; 2011-2022 <a href="https://www.lightbend.com" target="_blank">Lightbend, Inc.</a> |
+<a href="https://www.lightbend.com/legal/licenses" target="_blank">Licenses</a> |
+<a href="https://www.lightbend.com/legal/terms" target="_blank">Terms</a> |
+<a href="https://www.lightbend.com/legal/privacy" target="_blank">Privacy Policy</a> |
+<a href="https://akka.io/cookie/" target="_blank">Cookie Listing</a> |
+<a class="optanon-toggle-display">Cookie Settings</a>
+</p>
+</section>
+
+</footer>
+</section>
+</main>
+</div>
+
+<script type="text/javascript" src="../js/scrollsneak.js"></script>
+<script type="text/javascript">jQuery(document).foundation();</script>
+<script type="text/javascript" src="../js/groups.js"></script>
+<script type="text/javascript" src="../js/page.js"></script>
+<script type="text/javascript" src="../js/snippets.js"></script>
+<script type="text/javascript" src="../js/magellan.js"></script>
+<script type="text/javascript" src="../js/metadata-toggle.js"></script>
+<script type="text/javascript" src="../js/lbHeader.js"></script>
+
+<style type="text/css">@import "../lib/prettify/prettify.css";</style>
+<script type="text/javascript" src="../lib/prettify/prettify.js"></script>
+<script type="text/javascript" src="../lib/prettify/lang-scala.js"></script>
+<script type="text/javascript">//<![CDATA[
+jQuery(function(){window.prettyPrint && prettyPrint()});
+//]]></script>
+<script type="text/javascript" src="../assets/js/warnOldVersion.js"></script>
+<script type="text/javascript">//<![CDATA[
+jQuery(function(jq){initOldVersionWarnings(jq, '2.2.1', 'https://doc.akka.io/docs/akka-grpc/current/')});
+//]]></script>
+
+
+</body>
+</html>

@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html class="no-js" lang="en">
+
+<head>
+<title>Details &bull; Akka gRPC</title>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta name="description" content="Akka gRPC - Support for building streaming gRPC servers and clients on top of Akka Streams."/>
+<link rel="canonical" href="https://doc.akka.io/docs/akka-grpc/current/server/details.html"/>
+<script type="text/javascript" src="../lib/jquery/jquery.min.js"></script>
+<script type="text/javascript" src="../lib/foundation/dist/js/foundation.min.js"></script>
+<link rel="stylesheet" type="text/css" href="../lib/normalize.css/normalize.css"/>
+<link rel="stylesheet" type="text/css" href="../lib/foundation/dist/css/foundation.min.css"/>
+<link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/docsearch.js/2/docsearch.min.css" />
+<link rel="stylesheet" type="text/css" href="../css/icons.css"/>
+<link rel="stylesheet" type="text/css" href="../css/page-8.css"/>
+<link rel="stylesheet" type="text/css" href="../css/banner-2.css"/>
+<link rel="shortcut icon" href="../images/favicon.ico" />
+<link rel="apple-touch-icon" sizes="180x180" href="../images/apple-touch-icon.png"/>
+<link rel="icon" type="image/png" sizes="32x32" href="../images/favicon-32x32.png"/>
+<link rel="icon" type="image/png" sizes="16x16" href="../images/favicon-16x16.png"/>
+<link rel="manifest" href="../images/manifest.json"/>
+<meta name="msapplication-TileImage" content="../images/mstile-150x150.png"/>
+<meta name="msapplication-TileColor" content="#15a9ce"/>
+<meta name="theme-color" content="#15a9ce"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<!-- OneTrust Cookies Consent Notice (Production Standard, akka.io, en-GB) start -->
+<script src="https://cdn.cookielaw.org/scripttemplates/otSDKStub.js"  type="text/javascript" charset="UTF-8" data-domain-script="28b912e7-09e9-43d5-91e4-3d1897044004" ></script>
+<script type="text/javascript">
+function OptanonWrapper() { }
+</script>
+<!-- OneTrust Cookies Consent Notice (Production Standard, akka.io, en-GB) end -->
+<!--Google Analytics-->
+<script type="text/plain" class="optanon-category-2">
+var _gaq = _gaq || [];
+_gaq.push(['_setAccount', '']);
+_gaq.push(['_setDomainName', '']);
+_gaq.push(['_trackPageview']);
+(function() {
+var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+})()
+</script>
+<!-- Google Tag Manager -->
+<script type="text/plain" class="optanon-category-2">
+(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+})(window,document,'script','dataLayer','GTM-KBJGH35');
+</script>
+<!--Marketo-->
+<script type="text/plain" class="optanon-category-3">
+(function() {
+var didInit = false;
+function initMunchkin() {
+if(didInit === false) {
+didInit = true;
+Munchkin.init('558-NCX-702', { 'asyncOnly': true, 'disableClickDelay': true });
+}
+}
+var s = document.createElement('script');
+s.type = 'text/javascript';
+s.async = true;
+s.src = '//munchkin.marketo.net/munchkin.js';
+s.onreadystatechange = function() {
+if (this.readyState == 'complete' || this.readyState == 'loaded') {
+initMunchkin();
+}
+};
+s.onload = initMunchkin;
+document.getElementsByTagName('head')[0].appendChild(s);
+})();
+</script>
+</head>
+
+<body id="underlay" data-toggler="nav-open">
+<div id="lightbend-banner" class="lightbend-banner akka full-width" data-category="OSS Lightbend Banner Impression" data-label="Akka Banner Impression">
+<div class="oss-wrapper">
+<div class="oss-brand">
+<a class="oss-track-link-label" data-category="OSS Lightbend Banner Clicks" data-label="Lightbend Logo - Akka Banner" href="https://www.lightbend.com">
+<img class="lightbend-logo" src="../images/banner-logos/lightbend-reverse.svg" alt="Lightbend" title="Lightbend">
+</a>
+</div>
+<div class="oss-ad no-drop-down">
+<nav id="lightbendRotator" class="lightbend-rotator">
+<a class="oss-track-link-label" data-category="OSS Lightbend Banner Clicks" data-label="Promo Rotator - Lightbend is Changing its Software Licensing Model for Akka Technology. [License FAQ] - Akka Banner" href="https://www.lightbend.com/akka/license-faq">
+<strong>Lightbend</strong> is Changing its Software Licensing Model for Akka Technology. <span class="akka-btn">License FAQ</span>
+</a>
+</nav>
+</div>
+</div>
+</div>
+
+<header class="site-header hide-for-large">
+<div class="sticky-header clearfix">
+<a href="https://akka.io"><img class="logo" src="../images/akka-logo-reverse.svg"/></a>
+
+<button class="menu-icon float-right" type="button" data-toggle="underlay overlay"></button>
+</div>
+<div id="overlay" class="overlay-nav" data-toggler="nav-open">
+<header class="nav-header">
+<div class="nav-header-title">
+<h1><a href="../index.html">Akka gRPC</a></h1>
+</div>
+<div class="nav-header-version">
+Version 2.2.1
+</div>
+<div class="nav-header-groups">
+<select class="supergroup" name="Language"><option class="group" value="group-java">Java</option><option class="group" value="group-scala">Scala</option></select>
+<select class="supergroup" name="Buildtool"><option class="group" value="group-sbt">sbt</option><option class="group" value="group-gradle">Gradle</option><option class="group" value="group-maven">Maven</option></select>
+</div>
+</header>
+<nav class="nav-toc">
+<ul>
+  <li><a href="../overview.html" class="page">Overview</a></li>
+  <li><a href="../whygrpc.html" class="page">Why gRPC?</a></li>
+  <li><a href="../getting-started.html" class="page">Getting started</a></li>
+  <li><a href="../proto.html" class="page">Protobuf Service Descriptors</a></li>
+  <li><a href="../server/index.html" class="page">Providing Services (Server)</a>
+  <ul>
+    <li><a href="../server/walkthrough.html" class="page">Walkthrough</a></li>
+    <li><a href="../server/grpc-web.html" class="page">gRPC-Web</a></li>
+    <li><a href="../server/reflection.html" class="page">Server Reflection</a></li>
+    <li><a href="../server/akka-http.html" class="page">Akka HTTP interop</a></li>
+    <li><a href="../server/details.html#details" class="active page">Details</a>
+    <ul>
+      <li><a href="../server/details.html#accessing-request-metadata" class="header">Accessing request metadata</a></li>
+      <li><a href="../server/details.html#status-codes" class="header">Status codes</a></li>
+      <li><a href="../server/details.html#rich-error-model" class="header">Rich error model</a></li>
+    </ul></li>
+    <li><a href="../server/kubernetes.html" class="page">Kubernetes</a></li>
+  </ul></li>
+  <li><a href="../client/index.html" class="page">Consuming Services (Client)</a></li>
+  <li><a href="../buildtools/index.html" class="page">Build Tool Support</a></li>
+  <li><a href="../binary-compatibility.html" class="page">Binary compatibility</a></li>
+  <li><a href="../apidesign.html" class="page">API Design</a></li>
+  <li><a href="../deploy.html" class="page">Deployment</a></li>
+  <li><a href="../troubleshooting.html" class="page">Troubleshooting</a></li>
+</ul>
+</nav>
+</div>
+</header>
+<div class="site-content-wrapper">
+<aside class="sticky-sidebar show-for-large">
+<header class="nav-header sticky-sidebar-header">
+<div class="nav-header-title">
+<h1><a href="../index.html">Akka gRPC</a></h1>
+</div>
+<div class="nav-header-version">
+Version 2.2.1
+</div>
+<div class="nav-header-groups">
+<select class="supergroup" name="Language"><option class="group" value="group-java">Java</option><option class="group" value="group-scala">Scala</option></select>
+<select class="supergroup" name="Buildtool"><option class="group" value="group-sbt">sbt</option><option class="group" value="group-gradle">Gradle</option><option class="group" value="group-maven">Maven</option></select>
+</div>
+</header>
+<nav class="site-nav sticky-sidebar-contents">
+<div class="nav-toc">
+<ul>
+  <li><a href="../overview.html" class="page">Overview</a></li>
+  <li><a href="../whygrpc.html" class="page">Why gRPC?</a></li>
+  <li><a href="../getting-started.html" class="page">Getting started</a></li>
+  <li><a href="../proto.html" class="page">Protobuf Service Descriptors</a></li>
+  <li><a href="../server/index.html" class="page">Providing Services (Server)</a>
+  <ul>
+    <li><a href="../server/walkthrough.html" class="page">Walkthrough</a></li>
+    <li><a href="../server/grpc-web.html" class="page">gRPC-Web</a></li>
+    <li><a href="../server/reflection.html" class="page">Server Reflection</a></li>
+    <li><a href="../server/akka-http.html" class="page">Akka HTTP interop</a></li>
+    <li><a href="../server/details.html#details" class="active page">Details</a>
+    <ul>
+      <li><a href="../server/details.html#accessing-request-metadata" class="header">Accessing request metadata</a></li>
+      <li><a href="../server/details.html#status-codes" class="header">Status codes</a></li>
+      <li><a href="../server/details.html#rich-error-model" class="header">Rich error model</a></li>
+    </ul></li>
+    <li><a href="../server/kubernetes.html" class="page">Kubernetes</a></li>
+  </ul></li>
+  <li><a href="../client/index.html" class="page">Consuming Services (Client)</a></li>
+  <li><a href="../buildtools/index.html" class="page">Build Tool Support</a></li>
+  <li><a href="../binary-compatibility.html" class="page">Binary compatibility</a></li>
+  <li><a href="../apidesign.html" class="page">API Design</a></li>
+  <li><a href="../deploy.html" class="page">Deployment</a></li>
+  <li><a href="../troubleshooting.html" class="page">Troubleshooting</a></li>
+</ul>
+</div>
+</nav>
+<footer class="nav-footer sticky-sidebar-footer">
+<a href="https://akka.io"><img class="logo" src="../images/akka-logo-reverse.svg"/></a>
+
+</footer>
+</aside>
+<main class="fixed-shift-for-large expanded row">
+<section class="site-content small-12 column">
+<article class="page-content row">
+<div class="small-12 column" id="docs">
+<h1><a href="#details" name="details" class="anchor"><span class="anchor-link"></span></a>Details</h1>
+<h2><a href="#accessing-request-metadata" name="accessing-request-metadata" class="anchor"><span class="anchor-link"></span></a>Accessing request metadata</h2>
+<p>By default the generated service interfaces don&rsquo;t provide access to the request metadata, only to the request body (via the RPC method input parameter). If your methods require access to the request <span class="group-java"><a href="/api/akka-grpc/2.2.1/akka/grpc/javadsl/Metadata.html" title="akka.grpc.javadsl.Metadata"><code>Metadata</code></a></span><span class="group-scala"><a href="/api/akka-grpc/2.2.1/akka/grpc/scaladsl/Metadata.html" title="akka.grpc.scaladsl.Metadata"><code>Metadata</code></a></span>, you can configure Akka gRPC to generate server &ldquo;power APIs&rdquo; that extend the base service interfaces to provide an additional request metadata parameter to each service method. See the detailed chapters on <a href="../buildtools/sbt.html">sbt</a>, <a href="../buildtools/gradle.html">Gradle</a> and <a href="../buildtools/maven.html">Maven</a> for how to set this build option. Note that this option doesn&rsquo;t effect the generated client stubs.</p>
+<p><span class="group-java">Notice: you need to change <code>GreeterServiceHandlerFactory</code> to <code>GreeterServiceHandlerFactoryPowerApiHandlerFactory</code>.</span></p>
+<p><span class="group-scala">Notice: you need to change <code>GreeterServiceHandler</code> to <code>GreeterServicePowerApiHandler</code>.</span></p>
+<p>Here&rsquo;s an example implementation of these server power APIs:</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka-grpc/tree/v2.2.1/plugin-tester-scala/src/main/scala/example/myapp/helloworld/PowerGreeterServiceImpl.scala#L6-L50" target="_blank" title="Go to snippet source">source</a><code class="language-scala">package example.myapp.helloworld
+
+import akka.NotUsed
+import akka.actor.ActorSystem
+import akka.grpc.scaladsl.Metadata
+import akka.stream.scaladsl.{ Sink, Source }
+import example.myapp.helloworld.grpc._
+
+import scala.concurrent.Future
+
+class PowerGreeterServiceImpl(implicit system: ActorSystem) extends GreeterServicePowerApi {
+  import system.dispatcher
+
+  override def sayHello(in: HelloRequest, metadata: Metadata): Future[HelloReply] = {
+    val greetee = authTaggedName(in, metadata)
+    println(s&quot;sayHello to $greetee&quot;)
+    Future.successful(HelloReply(s&quot;Hello, $greetee&quot;))
+  }
+
+  override def itKeepsTalking(in: Source[HelloRequest, NotUsed], metadata: Metadata): Future[HelloReply] = {
+    println(s&quot;sayHello to in stream...&quot;)
+    in.runWith(Sink.seq)
+      .map(elements =&gt; HelloReply(s&quot;Hello, ${elements.map(authTaggedName(_, metadata)).mkString(&quot;, &quot;)}&quot;))
+  }
+
+  override def itKeepsReplying(in: HelloRequest, metadata: Metadata): Source[HelloReply, NotUsed] = {
+    val greetee = authTaggedName(in, metadata)
+    println(s&quot;sayHello to $greetee with stream of chars...&quot;)
+    Source(s&quot;Hello, $greetee&quot;.toList).map(character =&gt; HelloReply(character.toString))
+  }
+
+  override def streamHellos(in: Source[HelloRequest, NotUsed], metadata: Metadata): Source[HelloReply, NotUsed] = {
+    println(s&quot;sayHello to stream...&quot;)
+    in.map(request =&gt; HelloReply(s&quot;Hello, ${authTaggedName(request, metadata)}&quot;))
+  }
+
+  // Bare-bones just for GRPC metadata demonstration purposes
+  private def isAuthenticated(metadata: Metadata): Boolean =
+    metadata.getText(&quot;authorization&quot;).nonEmpty
+
+  private def authTaggedName(in: HelloRequest, metadata: Metadata): String = {
+    val authenticated = isAuthenticated(metadata)
+    s&quot;${in.name} (${if (!authenticated) &quot;not &quot; else &quot;&quot;}authenticated)&quot;
+  }
+}</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka-grpc/tree/v2.2.1/plugin-tester-java/src/main/java/example/myapp/helloworld/GreeterServicePowerApiImpl.java#L6-L75" target="_blank" title="Go to snippet source">source</a><code class="language-java">package example.myapp.helloworld;
+
+import akka.NotUsed;
+import akka.grpc.javadsl.Metadata;
+import akka.stream.Materializer;
+import akka.stream.javadsl.Sink;
+import akka.stream.javadsl.Source;
+import example.myapp.helloworld.grpc.GreeterServicePowerApi;
+import example.myapp.helloworld.grpc.HelloReply;
+import example.myapp.helloworld.grpc.HelloRequest;
+
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
+import java.util.stream.Collectors;
+
+public class GreeterServicePowerApiImpl implements GreeterServicePowerApi {
+  private final Materializer mat;
+
+  public GreeterServicePowerApiImpl(Materializer mat) {
+   this.mat = mat;
+  }
+
+  @Override
+  public CompletionStage&lt;HelloReply&gt; sayHello(HelloRequest in, Metadata metadata) {
+    String greetee = authTaggedName(in, metadata);
+    System.out.println(&quot;sayHello to &quot; + greetee);
+    HelloReply reply = HelloReply.newBuilder().setMessage(&quot;Hello, &quot; + greetee).build();
+    return CompletableFuture.completedFuture(reply);
+  }
+
+  @Override
+  public CompletionStage&lt;HelloReply&gt; itKeepsTalking(Source&lt;HelloRequest, NotUsed&gt; in, Metadata metadata) {
+    System.out.println(&quot;sayHello to in stream...&quot;);
+    return in.runWith(Sink.seq(), mat)
+      .thenApply(elements -&gt; {
+        String elementsStr = elements.stream().map(elem -&gt; authTaggedName(elem, metadata))
+            .collect(Collectors.toList()).toString();
+        return HelloReply.newBuilder().setMessage(&quot;Hello, &quot; + elementsStr).build();
+      });
+  }
+
+  @Override
+  public Source&lt;HelloReply, NotUsed&gt; itKeepsReplying(HelloRequest in, Metadata metadata) {
+    String greetee = authTaggedName(in, metadata);
+    System.out.println(&quot;sayHello to &quot; + greetee + &quot; with stream of chars&quot;);
+    List&lt;Character&gt; characters = (&quot;Hello, &quot; + greetee)
+        .chars().mapToObj(c -&gt; (char) c).collect(Collectors.toList());
+    return Source.from(characters)
+      .map(character -&gt; {
+        return HelloReply.newBuilder().setMessage(String.valueOf(character)).build();
+      });
+  }
+
+  @Override
+  public Source&lt;HelloReply, NotUsed&gt; streamHellos(Source&lt;HelloRequest, NotUsed&gt; in, Metadata metadata) {
+    System.out.println(&quot;sayHello to stream...&quot;);
+    return in.map(request -&gt; HelloReply.newBuilder().setMessage(&quot;Hello, &quot; + authTaggedName(request, metadata)).build());
+  }
+
+  // Bare-bones just for GRPC metadata demonstration purposes
+  private boolean isAuthenticated(Metadata metadata) {
+    return metadata.getText(&quot;authorization&quot;).isPresent();
+  }
+
+  private String authTaggedName(HelloRequest in, Metadata metadata) {
+    boolean authenticated = isAuthenticated(metadata);
+    return String.format(&quot;%s (%sauthenticated)&quot;, in.getName(), isAuthenticated(metadata) ? &quot;&quot; : &quot;not &quot;);
+  }
+}</code></pre></dd>
+</dl>
+<h2><a href="#status-codes" name="status-codes" class="anchor"><span class="anchor-link"></span></a>Status codes</h2>
+<p>To signal an error, you can fail the <span class="group-scala"><code>Future</code></span><span class="group-java"><code>CompletionStage</code></span> or <code>Source</code> you are returning with a <span class="group-scala"><a href="/api/akka-grpc/2.2.1/akka/grpc/GrpcServiceException.html" title="akka.grpc.GrpcServiceException"><code>GrpcServiceException</code></a></span><span class="group-java"><a href="/api/akka-grpc/2.2.1/akka/grpc/GrpcServiceException.html" title="akka.grpc.GrpcServiceException"><code>GrpcServiceException</code></a></span> containing the status code you want to return.</p>
+<p>For an overview of gRPC status codes and their meaning see <a href="https://github.com/grpc/grpc/blob/master/doc/statuscodes.md">statuscodes.md</a>.</p>
+<p>For unary responses:</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka-grpc/tree/v2.2.1/interop-tests/src/test/scala/akka/grpc/scaladsl/GrpcExceptionHandlerSpec.scala#L65-L85" target="_blank" title="Go to snippet source">source</a><code class="language-scala">import akka.grpc.GrpcServiceException
+import io.grpc.Status
+
+val exceptionMetadata = new MetadataBuilder()
+  .addText(&quot;test-text&quot;, &quot;test-text-data&quot;)
+  .addBinary(&quot;test-binary-bin&quot;, ByteString(&quot;test-binary-data&quot;))
+  .build()
+
+// ...
+
+def sayHello(in: HelloRequest): Future[HelloReply] = {
+  if (in.name.isEmpty)
+    Future.failed(
+      new GrpcServiceException(Status.INVALID_ARGUMENT.withDescription(&quot;No name found&quot;), exceptionMetadata))
+  else
+    Future.successful(HelloReply(s&quot;Hi ${in.name}!&quot;))
+}</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka-grpc/tree/v2.2.1/interop-tests/src/test/java/example/myapp/helloworld/grpc/ExceptionGreeterServiceImpl.java#L8-L39" target="_blank" title="Go to snippet source">source</a><code class="language-java">import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
+
+import io.grpc.Status;
+import akka.grpc.GrpcServiceException;
+
+// ...
+
+@Override
+public CompletionStage&lt;HelloReply&gt; sayHello(HelloRequest in) {
+    if (in.getName().isEmpty()) {
+        CompletableFuture&lt;HelloReply&gt; future = new CompletableFuture&lt;&gt;();
+        future.completeExceptionally(new GrpcServiceException(Status.INVALID_ARGUMENT.withDescription(&quot;No name found&quot;)));
+        return future;
+    } else {
+        return CompletableFuture.completedFuture(HelloReply.newBuilder().setMessage(&quot;Hi, &quot; + in.getName()).build());
+    }
+}</code></pre></dd>
+</dl>
+<p>For streaming responses:</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka-grpc/tree/v2.2.1/interop-tests/src/test/scala/akka/grpc/scaladsl/GrpcExceptionHandlerSpec.scala#L58-L97" target="_blank" title="Go to snippet source">source</a><code class="language-scala">import akka.NotUsed
+import akka.stream.scaladsl.Source
+
+import akka.grpc.GrpcServiceException
+import io.grpc.Status
+
+val exceptionMetadata = new MetadataBuilder()
+  .addText(&quot;test-text&quot;, &quot;test-text-data&quot;)
+  .addBinary(&quot;test-binary-bin&quot;, ByteString(&quot;test-binary-data&quot;))
+  .build()
+
+def itKeepsReplying(in: HelloRequest): Source[HelloReply, NotUsed] = {
+  if (in.name.isEmpty)
+    Source.failed(
+      new GrpcServiceException(Status.INVALID_ARGUMENT.withDescription(&quot;No name found&quot;), exceptionMetadata))
+  else
+    myResponseSource
+}</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka-grpc/tree/v2.2.1/interop-tests/src/test/java/example/myapp/helloworld/grpc/ExceptionGreeterServiceImpl.java#L13-L54" target="_blank" title="Go to snippet source">source</a><code class="language-java">import akka.NotUsed;
+import akka.stream.javadsl.Source;
+
+import io.grpc.Status;
+import akka.grpc.GrpcServiceException;
+
+// ...
+
+@Override
+public Source&lt;HelloReply, NotUsed&gt; itKeepsReplying(HelloRequest in) {
+  if (in.getName().isEmpty()) {
+        return Source.failed(new GrpcServiceException(Status.INVALID_ARGUMENT.withDescription(&quot;No name found&quot;)));
+    } else {
+        return myResponseSource;
+    }
+}</code></pre></dd>
+</dl>
+<h2><a href="#rich-error-model" name="rich-error-model" class="anchor"><span class="anchor-link"></span></a>Rich error model</h2>
+<p>Beyond status codes you can also use the <a href="https://www.grpc.io/docs/guides/error/#richer-error-model">Rich error model</a>. </p>
+<p>This example uses an error model taken from <a href="https://github.com/googleapis/googleapis/blob/master/google/rpc/error_details.proto">common protobuf</a> but every class that is based on <code>scalapb.GeneratedMessage</code> can be used. Build and return the error as an <code>AkkaGrpcException</code>:</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka-grpc/tree/v2.2.1/interop-tests/src/test/scala/akka/grpc/scaladsl/RichErrorModelSpec.scala#L238-L244" target="_blank" title="Go to snippet source">source</a><code class="language-scala">def sayHello(in: HelloRequest): Future[HelloReply] = {
+  Future.failed(
+    GrpcServiceException(
+      Code.INVALID_ARGUMENT,
+      &quot;What is wrong?&quot;,
+      Seq(new LocalizedMessage(&quot;EN&quot;, &quot;The password!&quot;))))
+}</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka-grpc/tree/v2.2.1/interop-tests/src/test/java/example/myapp/helloworld/grpc/RichErrorNativeImpl.java#L22-L37" target="_blank" title="Go to snippet source">source</a><code class="language-java">@Override
+public CompletionStage&lt;HelloReply&gt; sayHello(HelloRequest in) {
+
+    ArrayList&lt;scalapb.GeneratedMessage&gt; ar = new ArrayList&lt;&gt;();
+    ar.add(LocalizedMessage.of(&quot;EN&quot;, &quot;The password!&quot;));
+
+    GrpcServiceException exception = GrpcServiceException.apply(
+            Code.INVALID_ARGUMENT,
+            &quot;What is wrong?&quot;,
+            JavaConverters.asScalaBuffer(ar).toSeq()
+    );
+
+    CompletableFuture&lt;HelloReply&gt; future = new CompletableFuture&lt;&gt;();
+    future.completeExceptionally(exception);
+    return future;
+}</code></pre></dd>
+</dl>
+<p>Please look <a href="../client/details.html">here</a> how to handle this on the client.</p>
+</div>
+</article>
+<div class="row">
+<div class="small-12 column">
+<section class="nav-prev-next row">
+<div class="nav-prev small-6 column">
+<a href="../server/akka-http.html"><i class="icon-prev"></i> <span class="link-prev">Akka HTTP interop</span></a>
+</div>
+<div class="nav-next small-6 column clearfix">
+<a class="float-right" href="../server/kubernetes.html">Kubernetes <i class="icon-next"></i></a>
+</div>
+</section>
+</div>
+</div>
+<div class="source-github row">
+Found an error in this documentation? The source code for this page can be found <a href="https://github.com/akka/akka-grpc/tree/v2.2.1/docs/src/main/paradox/server/details.md">here</a>.
+Please feel free to edit and contribute a pull request.
+</div>
+
+<footer class="page-footer row clearfix">
+<img class="akka-icon float-left show-for-medium" src="../images/akka-icon.svg" />
+<section class="copyright">
+<div>Akka gRPC is available under the <a href="https://www.lightbend.com/akka/license" target="_blank">Business Source License 1.1</a>.</div>
+<p class="legal">
+&copy; 2011-2022 <a href="https://www.lightbend.com" target="_blank">Lightbend, Inc.</a> |
+<a href="https://www.lightbend.com/legal/licenses" target="_blank">Licenses</a> |
+<a href="https://www.lightbend.com/legal/terms" target="_blank">Terms</a> |
+<a href="https://www.lightbend.com/legal/privacy" target="_blank">Privacy Policy</a> |
+<a href="https://akka.io/cookie/" target="_blank">Cookie Listing</a> |
+<a class="optanon-toggle-display">Cookie Settings</a>
+</p>
+</section>
+
+</footer>
+</section>
+</main>
+</div>
+
+<script type="text/javascript" src="../js/scrollsneak.js"></script>
+<script type="text/javascript">jQuery(document).foundation();</script>
+<script type="text/javascript" src="../js/groups.js"></script>
+<script type="text/javascript" src="../js/page.js"></script>
+<script type="text/javascript" src="../js/snippets.js"></script>
+<script type="text/javascript" src="../js/magellan.js"></script>
+<script type="text/javascript" src="../js/metadata-toggle.js"></script>
+<script type="text/javascript" src="../js/lbHeader.js"></script>
+
+<style type="text/css">@import "../lib/prettify/prettify.css";</style>
+<script type="text/javascript" src="../lib/prettify/prettify.js"></script>
+<script type="text/javascript" src="../lib/prettify/lang-scala.js"></script>
+<script type="text/javascript">//<![CDATA[
+jQuery(function(){window.prettyPrint && prettyPrint()});
+//]]></script>
+<script type="text/javascript" src="../assets/js/warnOldVersion.js"></script>
+<script type="text/javascript">//<![CDATA[
+jQuery(function(jq){initOldVersionWarnings(jq, '2.2.1', 'https://doc.akka.io/docs/akka-grpc/current/')});
+//]]></script>
+
+
+</body>
+</html>
