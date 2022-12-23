@@ -1,0 +1,806 @@
+<!DOCTYPE html>
+<html class="no-js" lang="en">
+
+<head>
+<title>Dispatchers &bull; Akka Documentation</title>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta name="description" content="Akka dispatchers and how to choose the right ones."/>
+<link rel="canonical" href="https://doc.akka.io/docs/akka/current/typed/dispatchers.html"/>
+<script type="text/javascript" src="../lib/jquery/jquery.min.js"></script>
+<script type="text/javascript" src="../lib/foundation/dist/js/foundation.min.js"></script>
+<link rel="stylesheet" type="text/css" href="../lib/normalize.css/normalize.css"/>
+<link rel="stylesheet" type="text/css" href="../lib/foundation/dist/css/foundation.min.css"/>
+<link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/docsearch.js/2/docsearch.min.css" />
+<link rel="stylesheet" type="text/css" href="../css/icons.css"/>
+<link rel="stylesheet" type="text/css" href="../css/page-8.css"/>
+<link rel="stylesheet" type="text/css" href="../css/banner-2.css"/>
+<link rel="shortcut icon" href="../images/favicon.ico" />
+<link rel="apple-touch-icon" sizes="180x180" href="../images/apple-touch-icon.png"/>
+<link rel="icon" type="image/png" sizes="32x32" href="../images/favicon-32x32.png"/>
+<link rel="icon" type="image/png" sizes="16x16" href="../images/favicon-16x16.png"/>
+<link rel="manifest" href="../images/manifest.json"/>
+<meta name="msapplication-TileImage" content="../images/mstile-150x150.png"/>
+<meta name="msapplication-TileColor" content="#15a9ce"/>
+<meta name="theme-color" content="#15a9ce"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<!-- OneTrust Cookies Consent Notice (Production Standard, akka.io, en-GB) start -->
+<script src="https://cdn.cookielaw.org/scripttemplates/otSDKStub.js"  type="text/javascript" charset="UTF-8" data-domain-script="28b912e7-09e9-43d5-91e4-3d1897044004" ></script>
+<script type="text/javascript">
+function OptanonWrapper() { }
+</script>
+<!-- OneTrust Cookies Consent Notice (Production Standard, akka.io, en-GB) end -->
+<!--Google Analytics-->
+<script type="text/plain" class="optanon-category-2">
+var _gaq = _gaq || [];
+_gaq.push(['_setAccount', 'UA-21117439-1']);
+_gaq.push(['_setDomainName', 'akka.io']);
+_gaq.push(['_trackPageview']);
+(function() {
+var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+})()
+</script>
+<!-- Google Tag Manager -->
+<script type="text/plain" class="optanon-category-2">
+(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+})(window,document,'script','dataLayer','GTM-KBJGH35');
+</script>
+<!--Marketo-->
+<script type="text/plain" class="optanon-category-3">
+(function() {
+var didInit = false;
+function initMunchkin() {
+if(didInit === false) {
+didInit = true;
+Munchkin.init('558-NCX-702', { 'asyncOnly': true, 'disableClickDelay': true });
+}
+}
+var s = document.createElement('script');
+s.type = 'text/javascript';
+s.async = true;
+s.src = '//munchkin.marketo.net/munchkin.js';
+s.onreadystatechange = function() {
+if (this.readyState == 'complete' || this.readyState == 'loaded') {
+initMunchkin();
+}
+};
+s.onload = initMunchkin;
+document.getElementsByTagName('head')[0].appendChild(s);
+})();
+</script>
+</head>
+
+<body id="underlay" data-toggler="nav-open">
+<div id="lightbend-banner" class="lightbend-banner akka full-width" data-category="OSS Lightbend Banner Impression" data-label="Akka Banner Impression">
+<div class="oss-wrapper">
+<div class="oss-brand">
+<a class="oss-track-link-label" data-category="OSS Lightbend Banner Clicks" data-label="Lightbend Logo - Akka Banner" href="https://www.lightbend.com">
+<img class="lightbend-logo" src="../images/banner-logos/lightbend-reverse.svg" alt="Lightbend" title="Lightbend">
+</a>
+</div>
+<div class="oss-ad no-drop-down">
+<nav id="lightbendRotator" class="lightbend-rotator">
+<a class="oss-track-link-label" data-category="OSS Lightbend Banner Clicks" data-label="Promo Rotator - Lightbend is Changing its Software Licensing Model for Akka Technology. [License FAQ] - Akka Banner" href="https://www.lightbend.com/akka/license-faq">
+<strong>Lightbend</strong> is Changing its Software Licensing Model for Akka Technology. <span class="akka-btn">License FAQ</span>
+</a>
+</nav>
+</div>
+</div>
+</div>
+
+<header class="site-header hide-for-large">
+<div class="sticky-header clearfix">
+<a href="https://akka.io"><img class="logo" src="../images/akka-logo-reverse.svg"/></a>
+
+<button class="menu-icon float-right" type="button" data-toggle="underlay overlay"></button>
+</div>
+<div id="overlay" class="overlay-nav" data-toggler="nav-open">
+<header class="nav-header">
+<div class="nav-header-title">
+<h1><a href="../index.html">Akka Documentation</a></h1>
+</div>
+<div class="nav-header-version">
+Version 2.8.0-M3
+</div>
+<div class="nav-header-groups">
+<select class="supergroup" name="Language"><option class="group" value="group-scala">Scala</option><option class="group" value="group-java">Java</option></select>
+</div>
+<div id="overlay-search-container" class="nav-header-search">
+<input id="overlay-search" type="search" class="search" placeholder="Search" />
+</div>
+</header>
+<nav class="nav-toc">
+<ul>
+  <li><a href="../security/index.html" class="page">Security Announcements</a></li>
+  <li><a href="../typed/guide/index.html" class="page">Getting Started Guide</a></li>
+  <li><a href="../general/index.html" class="page">General Concepts</a></li>
+  <li><a href="../typed/index.html" class="page">Actors</a>
+  <ul>
+    <li><a href="../typed/actors.html" class="page">Introduction to Actors</a></li>
+    <li><a href="../typed/actor-lifecycle.html" class="page">Actor lifecycle</a></li>
+    <li><a href="../typed/interaction-patterns.html" class="page">Interaction Patterns</a></li>
+    <li><a href="../typed/fault-tolerance.html" class="page">Fault Tolerance</a></li>
+    <li><a href="../typed/actor-discovery.html" class="page">Actor discovery</a></li>
+    <li><a href="../typed/routers.html" class="page">Routers</a></li>
+    <li><a href="../typed/stash.html" class="page">Stash</a></li>
+    <li><a href="../typed/fsm.html" class="page">Behaviors as finite state machines</a></li>
+    <li><a href="../coordinated-shutdown.html" class="page">Coordinated Shutdown</a></li>
+    <li><a href="../typed/dispatchers.html#dispatchers" class="active page">Dispatchers</a>
+    <ul>
+      <li><a href="../typed/dispatchers.html#dependency" class="header">Dependency</a></li>
+      <li><a href="../typed/dispatchers.html#introduction" class="header">Introduction</a></li>
+      <li><a href="../typed/dispatchers.html#default-dispatcher" class="header">Default dispatcher</a></li>
+      <li><a href="../typed/dispatchers.html#internal-dispatcher" class="header">Internal dispatcher</a></li>
+      <li><a href="../typed/dispatchers.html#looking-up-a-dispatcher" class="header">Looking up a Dispatcher</a></li>
+      <li><a href="../typed/dispatchers.html#selecting-a-dispatcher" class="header">Selecting a dispatcher</a></li>
+      <li><a href="../typed/dispatchers.html#types-of-dispatchers" class="header">Types of dispatchers</a></li>
+      <li><a href="../typed/dispatchers.html#dispatcher-aliases" class="header">Dispatcher aliases</a></li>
+      <li><a href="../typed/dispatchers.html#blocking-needs-careful-management" class="header">Blocking Needs Careful Management</a></li>
+      <li><a href="../typed/dispatchers.html#more-dispatcher-configuration-examples" class="header">More dispatcher configuration examples</a></li>
+    </ul></li>
+    <li><a href="../typed/mailboxes.html" class="page">Mailboxes</a></li>
+    <li><a href="../typed/testing.html" class="page">Testing</a></li>
+    <li><a href="../typed/coexisting.html" class="page">Coexistence</a></li>
+    <li><a href="../typed/style-guide.html" class="page">Style guide</a></li>
+    <li><a href="../typed/from-classic.html" class="page">Learning Akka Typed from Classic</a></li>
+  </ul></li>
+  <li><a href="../typed/index-cluster.html" class="page">Cluster</a></li>
+  <li><a href="../typed/index-persistence.html" class="page">Persistence (Event Sourcing)</a></li>
+  <li><a href="../typed/index-persistence-durable-state.html" class="page">Persistence (Durable State)</a></li>
+  <li><a href="../stream/index.html" class="page">Streams</a></li>
+  <li><a href="../discovery/index.html" class="page">Discovery</a></li>
+  <li><a href="../index-utilities.html" class="page">Utilities</a></li>
+  <li><a href="../common/other-modules.html" class="page">Other Akka modules</a></li>
+  <li><a href="../additional/deploy.html" class="page">Package, Deploy and Run</a></li>
+  <li><a href="../project/index.html" class="page">Project Information</a></li>
+  <li><a href="../index-classic.html" class="page">Akka Classic</a></li>
+</ul>
+</nav>
+</div>
+</header>
+<div class="site-content-wrapper">
+<aside class="sticky-sidebar show-for-large">
+<header class="nav-header sticky-sidebar-header">
+<div class="nav-header-title">
+<h1><a href="../index.html">Akka Documentation</a></h1>
+</div>
+<div class="nav-header-version">
+Version 2.8.0-M3
+</div>
+<div class="nav-header-groups">
+<select class="supergroup" name="Language"><option class="group" value="group-scala">Scala</option><option class="group" value="group-java">Java</option></select>
+</div>
+<div class="nav-header-search">
+<input id="search" type="search" class="search" placeholder="Search" />
+</div>
+</header>
+<nav class="site-nav sticky-sidebar-contents">
+<div class="nav-toc">
+<ul>
+  <li><a href="../security/index.html" class="page">Security Announcements</a></li>
+  <li><a href="../typed/guide/index.html" class="page">Getting Started Guide</a></li>
+  <li><a href="../general/index.html" class="page">General Concepts</a></li>
+  <li><a href="../typed/index.html" class="page">Actors</a>
+  <ul>
+    <li><a href="../typed/actors.html" class="page">Introduction to Actors</a></li>
+    <li><a href="../typed/actor-lifecycle.html" class="page">Actor lifecycle</a></li>
+    <li><a href="../typed/interaction-patterns.html" class="page">Interaction Patterns</a></li>
+    <li><a href="../typed/fault-tolerance.html" class="page">Fault Tolerance</a></li>
+    <li><a href="../typed/actor-discovery.html" class="page">Actor discovery</a></li>
+    <li><a href="../typed/routers.html" class="page">Routers</a></li>
+    <li><a href="../typed/stash.html" class="page">Stash</a></li>
+    <li><a href="../typed/fsm.html" class="page">Behaviors as finite state machines</a></li>
+    <li><a href="../coordinated-shutdown.html" class="page">Coordinated Shutdown</a></li>
+    <li><a href="../typed/dispatchers.html#dispatchers" class="active page">Dispatchers</a>
+    <ul>
+      <li><a href="../typed/dispatchers.html#dependency" class="header">Dependency</a></li>
+      <li><a href="../typed/dispatchers.html#introduction" class="header">Introduction</a></li>
+      <li><a href="../typed/dispatchers.html#default-dispatcher" class="header">Default dispatcher</a></li>
+      <li><a href="../typed/dispatchers.html#internal-dispatcher" class="header">Internal dispatcher</a></li>
+      <li><a href="../typed/dispatchers.html#looking-up-a-dispatcher" class="header">Looking up a Dispatcher</a></li>
+      <li><a href="../typed/dispatchers.html#selecting-a-dispatcher" class="header">Selecting a dispatcher</a></li>
+      <li><a href="../typed/dispatchers.html#types-of-dispatchers" class="header">Types of dispatchers</a></li>
+      <li><a href="../typed/dispatchers.html#dispatcher-aliases" class="header">Dispatcher aliases</a></li>
+      <li><a href="../typed/dispatchers.html#blocking-needs-careful-management" class="header">Blocking Needs Careful Management</a></li>
+      <li><a href="../typed/dispatchers.html#more-dispatcher-configuration-examples" class="header">More dispatcher configuration examples</a></li>
+    </ul></li>
+    <li><a href="../typed/mailboxes.html" class="page">Mailboxes</a></li>
+    <li><a href="../typed/testing.html" class="page">Testing</a></li>
+    <li><a href="../typed/coexisting.html" class="page">Coexistence</a></li>
+    <li><a href="../typed/style-guide.html" class="page">Style guide</a></li>
+    <li><a href="../typed/from-classic.html" class="page">Learning Akka Typed from Classic</a></li>
+  </ul></li>
+  <li><a href="../typed/index-cluster.html" class="page">Cluster</a></li>
+  <li><a href="../typed/index-persistence.html" class="page">Persistence (Event Sourcing)</a></li>
+  <li><a href="../typed/index-persistence-durable-state.html" class="page">Persistence (Durable State)</a></li>
+  <li><a href="../stream/index.html" class="page">Streams</a></li>
+  <li><a href="../discovery/index.html" class="page">Discovery</a></li>
+  <li><a href="../index-utilities.html" class="page">Utilities</a></li>
+  <li><a href="../common/other-modules.html" class="page">Other Akka modules</a></li>
+  <li><a href="../additional/deploy.html" class="page">Package, Deploy and Run</a></li>
+  <li><a href="../project/index.html" class="page">Project Information</a></li>
+  <li><a href="../index-classic.html" class="page">Akka Classic</a></li>
+</ul>
+</div>
+</nav>
+<footer class="nav-footer sticky-sidebar-footer">
+<a href="https://akka.io"><img class="logo" src="../images/akka-logo-reverse.svg"/></a>
+
+</footer>
+</aside>
+<main class="fixed-shift-for-large expanded row">
+<section class="site-content small-12 column">
+<article class="page-content row">
+<div class="small-12 column" id="docs">
+<h1><a href="#dispatchers" name="dispatchers" class="anchor"><span class="anchor-link"></span></a>Dispatchers</h1>
+<p>You are viewing the documentation for the new actor APIs, to view the Akka Classic documentation, see <a href="../dispatchers.html">Classic Dispatchers</a>.</p>
+<h2><a href="#dependency" name="dependency" class="anchor"><span class="anchor-link"></span></a>Dependency</h2>
+<p>Dispatchers are part of core Akka, which means that they are part of the <code>akka-actor</code> dependency. This page describes how to use dispatchers with <code>akka-actor-typed</code>, which has dependency:</p><dl class="dependency"><dt>sbt</dt><dd><pre class="prettyprint"><code class="language-scala">val AkkaVersion = "2.8.0-M3"
+libraryDependencies += "com.typesafe.akka" %% "akka-actor-typed" % AkkaVersion</code></pre></dd><dt>Maven</dt><dd><pre class="prettyprint"><code class="language-xml">&lt;properties&gt;
+  &lt;scala.binary.version&gt;2.13&lt;/scala.binary.version&gt;
+&lt;/properties&gt;
+&lt;dependencyManagement&gt;
+  &lt;dependencies&gt;
+    &lt;dependency&gt;
+      &lt;groupId&gt;com.typesafe.akka&lt;/groupId&gt;
+      &lt;artifactId&gt;akka-bom_${scala.binary.version}&lt;/artifactId&gt;
+      &lt;version&gt;2.8.0-M3&lt;/version&gt;
+      &lt;type&gt;pom&lt;/type&gt;
+      &lt;scope&gt;import&lt;/scope&gt;
+    &lt;/dependency&gt
+  &lt;/dependencies&gt;
+&lt;/dependencyManagement&gt;
+&lt;dependencies&gt
+  &lt;dependency&gt;
+    &lt;groupId&gt;com.typesafe.akka&lt;/groupId&gt;
+    &lt;artifactId&gt;akka-actor-typed_${scala.binary.version}&lt;/artifactId&gt;
+  &lt;/dependency&gt
+&lt;/dependencies&gt;</code></pre></dd><dt>Gradle</dt><dd><pre class="prettyprint"><code class="language-gradle">def versions = [
+  ScalaBinary: "2.13"
+]
+dependencies {
+  implementation platform("com.typesafe.akka:akka-bom_${versions.ScalaBinary}:2.8.0-M3")
+
+  implementation "com.typesafe.akka:akka-actor-typed_${versions.ScalaBinary}"
+}</code></pre></dd></dl>
+<h2><a href="#introduction" name="introduction" class="anchor"><span class="anchor-link"></span></a>Introduction</h2>
+<p>An Akka <code>MessageDispatcher</code> is what makes Akka Actors &ldquo;tick&rdquo;, it is the engine of the machine so to speak. All <code>MessageDispatcher</code> implementations are also an <span class="group-scala"><code>ExecutionContext</code></span><span class="group-java"><code>Executor</code></span>, which means that they can be used to execute arbitrary code, for instance <span class="group-scala"><code>Future</code>s</span><span class="group-java"><code>CompletableFuture</code>s</span>.</p>
+<h2><a href="#default-dispatcher" name="default-dispatcher" class="anchor"><span class="anchor-link"></span></a>Default dispatcher</h2>
+<p>Every <code>ActorSystem</code> will have a default dispatcher that will be used in case nothing else is configured for an <code>Actor</code>. The default dispatcher can be configured, and is by default a <code>Dispatcher</code> with the configured <code>akka.actor.default-dispatcher.executor</code>. If no executor is selected a &ldquo;fork-join-executor&rdquo; is selected, which gives excellent performance in most cases.</p>
+<h2><a href="#internal-dispatcher" name="internal-dispatcher" class="anchor"><span class="anchor-link"></span></a>Internal dispatcher</h2>
+<p>To protect the internal Actors that are spawned by the various Akka modules, a separate internal dispatcher is used by default. The internal dispatcher can be tuned in a fine-grained way with the setting <code>akka.actor.internal-dispatcher</code>, it can also be replaced by another dispatcher by making <code>akka.actor.internal-dispatcher</code> an <a href="dispatchers.html#dispatcher-aliases">alias</a>.</p>
+<a id="dispatcher-lookup"></a>
+<h2><a href="#looking-up-a-dispatcher" name="looking-up-a-dispatcher" class="anchor"><span class="anchor-link"></span></a>Looking up a Dispatcher</h2>
+<p>Dispatchers implement the <span class="group-scala"><code>ExecutionContext</code></span><span class="group-java"><code>Executor</code></span> interface and can thus be used to run <span class="group-scala"><code>Future</code></span><span class="group-java"><code>CompletableFuture</code></span> invocations etc.</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.8.0-M3/akka-docs/src/test/scala/docs/actor/typed/DispatcherDocSpec.scala#L31-L33" target="_blank" title="Go to snippet source">source</a><code class="language-scala">// for use with Futures, Scheduler, etc.
+import akka.actor.typed.DispatcherSelector
+implicit val executionContext = context.system.dispatchers.lookup(DispatcherSelector.fromConfig(&quot;my-dispatcher&quot;))</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.8.0-M3/akka-docs/src/test/java/jdocs/actor/typed/DispatcherDocTest.java#L47-L51" target="_blank" title="Go to snippet source">source</a><code class="language-java">// this is scala.concurrent.ExecutionContextExecutor, which implements
+// both scala.concurrent.ExecutionContext (for use with Futures, Scheduler, etc.)
+// and java.util.concurrent.Executor (for use with CompletableFuture etc.)
+final ExecutionContextExecutor ex =
+    system.dispatchers().lookup(DispatcherSelector.fromConfig(&quot;my-dispatcher&quot;));</code></pre></dd>
+</dl>
+<h2><a href="#selecting-a-dispatcher" name="selecting-a-dispatcher" class="anchor"><span class="anchor-link"></span></a>Selecting a dispatcher</h2>
+<p>A default dispatcher is used for all actors that are spawned without specifying a custom dispatcher. This is suitable for all actors that don&rsquo;t block. Blocking in actors needs to be carefully managed, more details <a href="dispatchers.html#blocking-needs-careful-management">here</a>.</p>
+<p>To select a dispatcher use <code>DispatcherSelector</code> to create a <code>Props</code> instance for spawning your actor:</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.8.0-M3/akka-actor-typed-tests/src/test/scala/docs/akka/typed/DispatchersDocSpec.scala#L46-L52" target="_blank" title="Go to snippet source">source</a><code class="language-scala">import akka.actor.typed.DispatcherSelector
+
+context.spawn(yourBehavior, &quot;DefaultDispatcher&quot;)
+context.spawn(yourBehavior, &quot;ExplicitDefaultDispatcher&quot;, DispatcherSelector.default())
+context.spawn(yourBehavior, &quot;BlockingDispatcher&quot;, DispatcherSelector.blocking())
+context.spawn(yourBehavior, &quot;ParentDispatcher&quot;, DispatcherSelector.sameAsParent())
+context.spawn(yourBehavior, &quot;DispatcherFromConfig&quot;, DispatcherSelector.fromConfig(&quot;your-dispatcher&quot;))</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.8.0-M3/akka-actor-typed-tests/src/test/java/jdocs/akka/typed/DispatchersDocTest.java#L15-L20" target="_blank" title="Go to snippet source">source</a><code class="language-java">context.spawn(behavior, &quot;DefaultDispatcher&quot;);
+context.spawn(behavior, &quot;ExplicitDefaultDispatcher&quot;, DispatcherSelector.defaultDispatcher());
+context.spawn(behavior, &quot;BlockingDispatcher&quot;, DispatcherSelector.blocking());
+context.spawn(behavior, &quot;ParentDispatcher&quot;, DispatcherSelector.sameAsParent());
+context.spawn(
+    behavior, &quot;DispatcherFromConfig&quot;, DispatcherSelector.fromConfig(&quot;your-dispatcher&quot;));</code></pre></dd>
+</dl>
+<p><code>DispatcherSelector</code> has a few convenience methods:</p>
+<ul>
+  <li><span class="group-scala"><code>DispatcherSelector.default</code></span><span class="group-java"><code>DispatcherSelector.defaultDispatcher</code></span> to look up the default dispatcher</li>
+  <li><code>DispatcherSelector.blocking</code> can be used to execute actors that block e.g. a legacy database API that does not support <span class="group-scala"><code>Future</code></span><span class="group-java"><code>CompletionStage</code></span>s</li>
+  <li><code>DispatcherSelector.sameAsParent</code> to use the same dispatcher as the parent actor</li>
+</ul>
+<p>The final example shows how to load a custom dispatcher from configuration and relies on this being in your <code>application.conf</code>:</p>
+<!-- Same between Java and Scala -->
+<pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.8.0-M3/akka-actor-typed-tests/src/test/scala/docs/akka/typed/DispatchersDocSpec.scala#L24-L31" target="_blank" title="Go to snippet source">source</a><code class="language-scala">your-dispatcher {
+  type = Dispatcher
+  executor = &quot;thread-pool-executor&quot;
+  thread-pool-executor {
+    fixed-pool-size = 32
+  }
+  throughput = 1
+}</code></pre>
+<h2><a href="#types-of-dispatchers" name="types-of-dispatchers" class="anchor"><span class="anchor-link"></span></a>Types of dispatchers</h2>
+<p>There are 2 different types of message dispatchers:</p>
+<ul>
+  <li>
+    <p><strong>Dispatcher</strong></p>
+    <p>This is an event-based dispatcher that binds a set of Actors to a thread pool. The default dispatcher is used if no other is specified.</p>
+    <ul>
+      <li>Shareability: Unlimited</li>
+      <li>Mailboxes: Any, creates one per Actor</li>
+      <li>Use cases: Default dispatcher, Bulkheading</li>
+      <li>Driven by: <code>java.util.concurrent.ExecutorService</code>.  Specify using &ldquo;executor&rdquo; using &ldquo;fork-join-executor&rdquo;, &ldquo;thread-pool-executor&rdquo; or the fully-qualified  class name of an <code>akka.dispatcher.ExecutorServiceConfigurator</code> implementation.</li>
+    </ul>
+  </li>
+  <li>
+    <p><strong>PinnedDispatcher</strong></p>
+    <p>This dispatcher dedicates a unique thread for each actor using it; i.e. each actor will have its own thread pool with only one thread in the pool.</p>
+    <ul>
+      <li>Shareability: None</li>
+      <li>Mailboxes: Any, creates one per Actor</li>
+      <li>Use cases: Bulkheading</li>
+      <li>Driven by: Any <code>akka.dispatch.ThreadPoolExecutorConfigurator</code>.  By default a &ldquo;thread-pool-executor&rdquo;.</li>
+    </ul>
+  </li>
+</ul>
+<p>Here is an example configuration of a Fork Join Pool dispatcher:</p>
+<!--same config text for Scala & Java-->
+<pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.8.0-M3/akka-docs/src/test/scala/docs/dispatcher/DispatcherDocSpec.scala#L49-L67" target="_blank" title="Go to snippet source">source</a><code class="language-scala">my-dispatcher {
+  # Dispatcher is the name of the event-based dispatcher
+  type = Dispatcher
+  # What kind of ExecutionService to use
+  executor = &quot;fork-join-executor&quot;
+  # Configuration for the fork join pool
+  fork-join-executor {
+    # Min number of threads to cap factor-based parallelism number to
+    parallelism-min = 2
+    # Parallelism (threads) ... ceil(available processors * factor)
+    parallelism-factor = 2.0
+    # Max number of threads to cap factor-based parallelism number to
+    parallelism-max = 10
+  }
+  # Throughput defines the maximum number of messages to be
+  # processed per actor before the thread jumps to the next actor.
+  # Set to 1 for as fair as possible.
+  throughput = 100
+}</code></pre>
+<p>For more configuration options, see the <a href="dispatchers.html#more-dispatcher-configuration-examples">More dispatcher configuration examples</a> section and the <code>default-dispatcher</code> section of the <a href="../general/configuration.html">configuration</a>.</p><div class="callout note "><div class="callout-title">Note</div>
+<p>The <code>parallelism-max</code> for the <code>fork-join-executor</code> does not set the upper bound on the total number of threads allocated by the ForkJoinPool. It is a setting specifically talking about the number of <em>hot</em> threads the pool will keep running in order to reduce the latency of handling a new incoming task. You can read more about parallelism in the JDK&rsquo;s <a href="https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ForkJoinPool.html">ForkJoinPool documentation</a>.</p></div><div class="callout note "><div class="callout-title">Note</div>
+<p>The <code>thread-pool-executor</code> dispatcher is implemented using by a <code>java.util.concurrent.ThreadPoolExecutor</code>. You can read more about it in the JDK&rsquo;s <a href="https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ThreadPoolExecutor.html">ThreadPoolExecutor documentation</a>.</p></div>
+<h2><a href="#dispatcher-aliases" name="dispatcher-aliases" class="anchor"><span class="anchor-link"></span></a>Dispatcher aliases</h2>
+<p>When a dispatcher is looked up, and the given setting contains a string rather than a dispatcher config block, the lookup will treat it as an alias, and follow that string to an alternate location for a dispatcher config. If the dispatcher config is referenced both through an alias and through the absolute path only one dispatcher will be used and shared among the two ids.</p>
+<p>Example: configuring <code>internal-dispatcher</code> to be an alias for <code>default-dispatcher</code>:</p>
+<pre><code>akka.actor.internal-dispatcher = akka.actor.default-dispatcher
+</code></pre>
+<a id="blocking-management"></a>
+<h2><a href="#blocking-needs-careful-management" name="blocking-needs-careful-management" class="anchor"><span class="anchor-link"></span></a>Blocking Needs Careful Management</h2>
+<p>In some cases it is unavoidable to do blocking operations, i.e. to put a thread to sleep for an indeterminate time, waiting for an external event to occur. Examples are legacy RDBMS drivers or messaging APIs, and the underlying reason is typically that (network) I/O occurs under the covers.</p>
+<p>The <a href="https://akka.io/blog/news/2020/01/22/managing-blocking-video">Managing Blocking in Akka video</a> explains why it is bad to block inside an actor, and how you can use custom dispatchers to manage blocking when you cannot avoid it.</p>
+<h3><a href="#problem-blocking-on-default-dispatcher" name="problem-blocking-on-default-dispatcher" class="anchor"><span class="anchor-link"></span></a>Problem: Blocking on default dispatcher</h3>
+<p>Simply adding blocking calls to your actor message processing like this is problematic:</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.8.0-M3/akka-docs/src/test/scala/docs/actor/typed/BlockingActor.scala#L8-L22" target="_blank" title="Go to snippet source">source</a><code class="language-scala">import akka.actor.typed.Behavior
+import akka.actor.typed.scaladsl.Behaviors
+
+object BlockingActor {
+  def apply(): Behavior[Int] =
+    Behaviors.receiveMessage { i =&gt;
+      // DO NOT DO THIS HERE: this is an example of incorrect code,
+      // better alternatives are described further on.
+
+      //block for 5 seconds, representing blocking I/O, etc
+      Thread.sleep(5000)
+      println(s&quot;Blocking operation finished: $i&quot;)
+      Behaviors.same
+    }
+}</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.8.0-M3/akka-docs/src/test/java/jdocs/actor/typed/BlockingActor.java#L8-L36" target="_blank" title="Go to snippet source">source</a><code class="language-java">import akka.actor.typed.*;
+import akka.actor.typed.javadsl.*;
+
+public class BlockingActor extends AbstractBehavior&lt;Integer&gt; {
+  public static Behavior&lt;Integer&gt; create() {
+    return Behaviors.setup(BlockingActor::new);
+  }
+
+  private BlockingActor(ActorContext&lt;Integer&gt; context) {
+    super(context);
+  }
+
+  @Override
+  public Receive&lt;Integer&gt; createReceive() {
+    return newReceiveBuilder()
+        .onMessage(
+            Integer.class,
+            i -&gt; {
+              // DO NOT DO THIS HERE: this is an example of incorrect code,
+              // better alternatives are described further on.
+
+              // block for 5 seconds, representing blocking I/O, etc
+              Thread.sleep(5000);
+              System.out.println(&quot;Blocking operation finished: &quot; + i);
+              return Behaviors.same();
+            })
+        .build();
+  }
+}</code></pre></dd>
+</dl>
+<p>Without any further configuration the default dispatcher runs this actor along with all other actors. This is very efficient when all actor message processing is non-blocking. When all of the available threads are blocked, however, then all the actors on the same dispatcher will starve for threads and will not be able to process incoming messages.</p><div class="callout note "><div class="callout-title">Note</div>
+<p>Blocking APIs should also be avoided if possible. Try to find or build Reactive APIs, such that blocking is minimised, or moved over to dedicated dispatchers.</p>
+<p>Often when integrating with existing libraries or systems it is not possible to avoid blocking APIs. The following solution explains how to handle blocking operations properly.</p>
+<p>Note that the same hints apply to managing blocking operations anywhere in Akka, including Streams, HTTP and other reactive libraries built on top of it.</p></div>
+<p>To demonstrate this problem, let&rsquo;s set up an application with the above <code>BlockingActor</code> and the following <code>PrintActor</code>:</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.8.0-M3/akka-docs/src/test/scala/docs/actor/typed/PrintActor.scala#L11-L17" target="_blank" title="Go to snippet source">source</a><code class="language-scala">object PrintActor {
+  def apply(): Behavior[Integer] =
+    Behaviors.receiveMessage { i =&gt;
+      println(s&quot;PrintActor: $i&quot;)
+      Behaviors.same
+    }
+}</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.8.0-M3/akka-docs/src/test/java/jdocs/actor/typed/PrintActor.java#L11-L32" target="_blank" title="Go to snippet source">source</a><code class="language-java">class PrintActor extends AbstractBehavior&lt;Integer&gt; {
+
+  public static Behavior&lt;Integer&gt; create() {
+    return Behaviors.setup(PrintActor::new);
+  }
+
+  private PrintActor(ActorContext&lt;Integer&gt; context) {
+    super(context);
+  }
+
+  @Override
+  public Receive&lt;Integer&gt; createReceive() {
+    return newReceiveBuilder()
+        .onMessage(
+            Integer.class,
+            i -&gt; {
+              System.out.println(&quot;PrintActor: &quot; + i);
+              return Behaviors.same();
+            })
+        .build();
+  }
+}</code></pre></dd>
+</dl>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.8.0-M3/akka-docs/src/test/scala/docs/actor/typed/BlockingDispatcherSample.scala#L61-L68" target="_blank" title="Go to snippet source">source</a><code class="language-scala">val root = Behaviors.setup[Nothing] { context =&gt;
+  for (i &lt;- 1 to 100) {
+    context.spawn(BlockingFutureActor(), s&quot;futureActor-$i&quot;) ! i
+    context.spawn(PrintActor(), s&quot;printActor-$i&quot;) ! i
+  }
+  Behaviors.empty
+}
+val system = ActorSystem[Nothing](root, &quot;BlockingDispatcherSample&quot;)</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.8.0-M3/akka-docs/src/test/java/jdocs/actor/typed/BlockingDispatcherTest.java#L13-L21" target="_blank" title="Go to snippet source">source</a><code class="language-java">Behavior&lt;Void&gt; root =
+    Behaviors.setup(
+        context -&gt; {
+          for (int i = 0; i &lt; 100; i++) {
+            context.spawn(BlockingActor.create(), &quot;BlockingActor-&quot; + i).tell(i);
+            context.spawn(PrintActor.create(), &quot;PrintActor-&quot; + i).tell(i);
+          }
+          return Behaviors.ignore();
+        });</code></pre></dd>
+</dl>
+<p>Here the app is sending 100 messages to <code>BlockingActor</code>s and <code>PrintActor</code>s and large numbers of <code>akka.actor.default-dispatcher</code> threads are handling requests. When you run the above code, you will likely to see the entire application gets stuck somewhere like this:</p>
+<pre><code>&gt;　PrintActor: 44
+&gt;　PrintActor: 45
+</code></pre>
+<p><code>PrintActor</code> is considered non-blocking, however it is not able to proceed with handling the remaining messages, since all the threads are occupied and blocked by the other blocking actors - thus leading to thread starvation.</p>
+<p>In the thread state diagrams below the colours have the following meaning:</p>
+<ul>
+  <li>Turquoise - Sleeping state</li>
+  <li>Orange - Waiting state</li>
+  <li>Green - Runnable state</li>
+</ul>
+<p>The thread information was recorded using the YourKit profiler, however any good JVM profiler has this feature (including the free and bundled with the Oracle JDK <a href="https://visualvm.github.io/">VisualVM</a>, as well as <a href="https://openjdk.java.net/projects/jmc/">Java Mission Control</a>).</p>
+<p>The orange portion of the thread shows that it is idle. Idle threads are fine - they&rsquo;re ready to accept new work. However, a large number of turquoise (blocked, or sleeping as in our example) threads leads to thread starvation.</p><div class="callout note "><div class="callout-title">Note</div>
+<p>If you own a Lightbend subscription you can use the commercial <a href="https://doc.akka.io/docs/akka-enhancements/current/starvation-detector.html">Thread Starvation Detector</a> which will issue warning log statements if it detects any of your dispatchers suffering from starvation and other. It is a helpful first step to identify the problem is occurring in a production system, and then you can apply the proposed solutions as explained below.</p></div>
+<p><img src="../images/dispatcher-behaviour-on-bad-code.png" alt="dispatcher-behaviour-on-bad-code.png" /></p>
+<p>In the above example we put the code under load by sending hundreds of messages to blocking actors which causes threads of the default dispatcher to be blocked. The fork join pool based dispatcher in Akka then attempts to compensate for this blocking by adding more threads to the pool (<code>default-akka.actor.default-dispatcher 18,19,20,...</code>). This however is not able to help if those too will immediately get blocked, and eventually the blocking operations will dominate the entire dispatcher.</p>
+<p>In essence, the <code>Thread.sleep</code> operation has dominated all threads and caused anything executing on the default dispatcher to starve for resources (including any actor that you have not configured an explicit dispatcher for).</p><div class="group-scala">
+<h3><a href="#non-solution-wrapping-in-a-future" name="non-solution-wrapping-in-a-future" class="anchor"><span class="anchor-link"></span></a>Non-solution: Wrapping in a Future</h3>
+<!--
+  A CompletableFuture by default on ForkJoinPool.commonPool(), so
+  because that is already separate from the default dispatcher
+  the problem described in these sections do not apply:
+-->
+<p>When facing this, you may be tempted to wrap the blocking call inside a <code>Future</code> and work with that instead, but this strategy is too simplistic: you are quite likely to find bottlenecks or run out of memory or threads when the application runs under increased load.</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.8.0-M3/akka-docs/src/test/scala/docs/actor/typed/BlockingDispatcherSample.scala#L14-L32" target="_blank" title="Go to snippet source">source</a><code class="language-scala">object BlockingFutureActor {
+  def apply(): Behavior[Int] =
+    Behaviors.setup { context =&gt;
+      implicit val executionContext: ExecutionContext = context.executionContext
+
+      Behaviors.receiveMessage { i =&gt;
+        triggerFutureBlockingOperation(i)
+        Behaviors.same
+      }
+    }
+
+  def triggerFutureBlockingOperation(i: Int)(implicit ec: ExecutionContext): Future[Unit] = {
+    println(s&quot;Calling blocking Future: $i&quot;)
+    Future {
+      Thread.sleep(5000) //block for 5 seconds
+      println(s&quot;Blocking future finished $i&quot;)
+    }
+  }
+}</code></pre></dd>
+</dl>
+<p>The key problematic line here is this:</p>
+<pre class="prettyprint"><code class="language-scala">implicit val executionContext: ExecutionContext = context.executionContext
+</code></pre>
+<p>Using <span class="group-scala"><code>context.executionContext</code></span> as the dispatcher on which the blocking <code>Future</code> executes can still be a problem, since this dispatcher is by default used for all other actor processing unless you <a href="../dispatchers.html#setting-the-dispatcher-for-an-actor">set up a separate dispatcher for the actor</a>.</p></div>
+<h3><a href="#solution-dedicated-dispatcher-for-blocking-operations" name="solution-dedicated-dispatcher-for-blocking-operations" class="anchor"><span class="anchor-link"></span></a>Solution: Dedicated dispatcher for blocking operations</h3>
+<p>An efficient method of isolating the blocking behavior, such that it does not impact the rest of the system, is to prepare and use a dedicated dispatcher for all those blocking operations. This technique is often referred to as &ldquo;bulk-heading&rdquo; or simply &ldquo;isolating blocking&rdquo;.</p>
+<p>In <code>application.conf</code>, the dispatcher dedicated to blocking behavior should be configured as follows:</p>
+<!--same config text for Scala & Java-->
+<pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.8.0-M3/akka-docs/src/test/scala/docs/actor/typed/BlockingDispatcherSample.scala#L78-L85" target="_blank" title="Go to snippet source">source</a><code class="language-scala">my-blocking-dispatcher {
+  type = Dispatcher
+  executor = &quot;thread-pool-executor&quot;
+  thread-pool-executor {
+    fixed-pool-size = 16
+  }
+  throughput = 1
+}</code></pre>
+<p>A <code>thread-pool-executor</code> based dispatcher allows us to limit the number of threads it will host, and this way we gain tight control over the maximum number of blocked threads the system may use.</p>
+<p>The exact size should be fine tuned depending on the workload you&rsquo;re expecting to run on this dispatcher.</p>
+<p>Whenever blocking has to be done, use the above configured dispatcher instead of the default one:</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.8.0-M3/akka-docs/src/test/scala/docs/actor/typed/BlockingDispatcherSample.scala#L36-L55" target="_blank" title="Go to snippet source">source</a><code class="language-scala">object SeparateDispatcherFutureActor {
+  def apply(): Behavior[Int] =
+    Behaviors.setup { context =&gt;
+      implicit val executionContext: ExecutionContext =
+        context.system.dispatchers.lookup(DispatcherSelector.fromConfig(&quot;my-blocking-dispatcher&quot;))
+
+      Behaviors.receiveMessage { i =&gt;
+        triggerFutureBlockingOperation(i)
+        Behaviors.same
+      }
+    }
+
+  def triggerFutureBlockingOperation(i: Int)(implicit ec: ExecutionContext): Future[Unit] = {
+    println(s&quot;Calling blocking Future: $i&quot;)
+    Future {
+      Thread.sleep(5000) //block for 5 seconds
+      println(s&quot;Blocking future finished $i&quot;)
+    }
+  }
+}</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.8.0-M3/akka-docs/src/test/java/jdocs/actor/typed/SeparateDispatcherCompletionStageActor.java#L13-L56" target="_blank" title="Go to snippet source">source</a><code class="language-java">class SeparateDispatcherFutureActor extends AbstractBehavior&lt;Integer&gt; {
+  private final Executor ec;
+
+  public static Behavior&lt;Integer&gt; create() {
+    return Behaviors.setup(SeparateDispatcherFutureActor::new);
+  }
+
+  private SeparateDispatcherFutureActor(ActorContext&lt;Integer&gt; context) {
+    super(context);
+    ec =
+        context
+            .getSystem()
+            .dispatchers()
+            .lookup(DispatcherSelector.fromConfig(&quot;my-blocking-dispatcher&quot;));
+  }
+
+  @Override
+  public Receive&lt;Integer&gt; createReceive() {
+    return newReceiveBuilder()
+        .onMessage(
+            Integer.class,
+            i -&gt; {
+              triggerFutureBlockingOperation(i, ec);
+              return Behaviors.same();
+            })
+        .build();
+  }
+
+  private static void triggerFutureBlockingOperation(Integer i, Executor ec) {
+    System.out.println(&quot;Calling blocking Future on separate dispatcher: &quot; + i);
+    CompletableFuture&lt;Integer&gt; f =
+        CompletableFuture.supplyAsync(
+            () -&gt; {
+              try {
+                Thread.sleep(5000);
+                System.out.println(&quot;Blocking future finished: &quot; + i);
+                return i;
+              } catch (InterruptedException e) {
+                return -1;
+              }
+            },
+            ec);
+  }
+}</code></pre></dd>
+</dl>
+<p>The thread pool behavior is shown in the below diagram.</p>
+<p><img src="../images/dispatcher-behaviour-on-good-code.png" alt="dispatcher-behaviour-on-good-code.png" /></p>
+<p>Messages sent to <span class="group-scala"><code>SeparateDispatcherFutureActor</code></span><span class="group-java"><code>SeparateDispatcherCompletionStageActor</code></span> and <code>PrintActor</code> are handled by the default dispatcher - the green lines, which represent the actual execution.</p>
+<p>When blocking operations are run on the <code>my-blocking-dispatcher</code>, it uses the threads (up to the configured limit) to handle these operations. The sleeping in this case is nicely isolated to just this dispatcher, and the default one remains unaffected, allowing the rest of the application to proceed as if nothing bad was happening. After a certain period of idleness, threads started by this dispatcher will be shut down.</p>
+<p>In this case, the throughput of other actors was not impacted - they were still served on the default dispatcher.</p>
+<p>This is the recommended way of dealing with any kind of blocking in reactive applications.</p>
+<p>For a similar discussion specifically about Akka HTTP, refer to <a href="https://doc.akka.io/docs/akka-http/current/handling-blocking-operations-in-akka-http-routes.html">Handling blocking operations in Akka HTTP</a>.</p>
+<h3><a href="#available-solutions-to-blocking-operations" name="available-solutions-to-blocking-operations" class="anchor"><span class="anchor-link"></span></a>Available solutions to blocking operations</h3>
+<p>The non-exhaustive list of adequate solutions to the “blocking problem” includes the following suggestions:</p>
+<ul>
+  <li>Do the blocking call within a <span class="group-scala"><code>Future</code></span><span class="group-java"><code>CompletionStage</code></span>, ensuring an upper bound on the number of such calls at any point in time (submitting an unbounded number of tasks of this nature will exhaust your memory or thread limits).</li>
+  <li>Do the blocking call within a <code>Future</code>, providing a thread pool with an upper limit on the number of threads which is appropriate for the hardware on which the application runs, as explained in detail in this section.</li>
+  <li>Dedicate a single thread to manage a set of blocking resources (e.g. a NIO selector driving multiple channels) and dispatch events as they occur as actor messages.</li>
+  <li>Do the blocking call within an actor (or a set of actors) managed by a <a href="../routing.html">router</a>, making sure to configure a thread pool which is either dedicated for this purpose or sufficiently sized.</li>
+</ul>
+<p>The last possibility is especially well-suited for resources which are single-threaded in nature, like database handles which traditionally can only execute one outstanding query at a time and use internal synchronization to ensure this. A common pattern is to create a router for N actors, each of which wraps a single DB connection and handles queries as sent to the router. The number N must then be tuned for maximum throughput, which will vary depending on which DBMS is deployed on what hardware.</p><div class="callout note "><div class="callout-title">Note</div>
+<p>Configuring thread pools is a task best delegated to Akka, configure it in <code>application.conf</code> and instantiate through an <a href="dispatchers.html#dispatcher-lookup"><code>ActorSystem</code></a></p></div>
+<h2><a href="#more-dispatcher-configuration-examples" name="more-dispatcher-configuration-examples" class="anchor"><span class="anchor-link"></span></a>More dispatcher configuration examples</h2>
+<h3><a href="#fixed-pool-size" name="fixed-pool-size" class="anchor"><span class="anchor-link"></span></a>Fixed pool size</h3>
+<p>Configuring a dispatcher with fixed thread pool size, e.g. for actors that perform blocking IO:</p>
+<pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.8.0-M3/akka-docs/src/test/scala/docs/dispatcher/DispatcherDocSpec.scala#L131-L138" target="_blank" title="Go to snippet source">source</a><code class="language-scala">blocking-io-dispatcher {
+  type = Dispatcher
+  executor = &quot;thread-pool-executor&quot;
+  thread-pool-executor {
+    fixed-pool-size = 32
+  }
+  throughput = 1
+}</code></pre>
+<h3><a href="#cores" name="cores" class="anchor"><span class="anchor-link"></span></a>Cores</h3>
+<p>Another example that uses the thread pool based on the number of cores (e.g. for CPU bound tasks)</p>
+<!--same config text for Scala & Java-->
+<pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.8.0-M3/akka-docs/src/test/scala/docs/dispatcher/DispatcherDocSpec.scala#L71-L89" target="_blank" title="Go to snippet source">source</a><code class="language-scala">my-thread-pool-dispatcher {
+  # Dispatcher is the name of the event-based dispatcher
+  type = Dispatcher
+  # What kind of ExecutionService to use
+  executor = &quot;thread-pool-executor&quot;
+  # Configuration for the thread pool
+  thread-pool-executor {
+    # minimum number of threads to cap factor-based core number to
+    core-pool-size-min = 2
+    # No of core threads ... ceil(available processors * factor)
+    core-pool-size-factor = 2.0
+    # maximum number of threads to cap factor-based number to
+    core-pool-size-max = 10
+  }
+  # Throughput defines the maximum number of messages to be
+  # processed per actor before the thread jumps to the next actor.
+  # Set to 1 for as fair as possible.
+  throughput = 100
+}</code></pre>
+<h3><a href="#pinned" name="pinned" class="anchor"><span class="anchor-link"></span></a>Pinned</h3>
+<p>A separate thread is dedicated for each actor that is configured to use the pinned dispatcher. </p>
+<p>Configuring a <code>PinnedDispatcher</code>:</p>
+<!--same config text for Scala & Java-->
+<pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.8.0-M3/akka-docs/src/test/scala/docs/dispatcher/DispatcherDocSpec.scala#L142-L145" target="_blank" title="Go to snippet source">source</a><code class="language-scala">my-pinned-dispatcher {
+  executor = &quot;thread-pool-executor&quot;
+  type = PinnedDispatcher
+}</code></pre>
+<p>Note that <code>thread-pool-executor</code> configuration as per the above <code>my-thread-pool-dispatcher</code> example is NOT applicable. This is because every actor will have its own thread pool when using <code>PinnedDispatcher</code>, and that pool will have only one thread.</p>
+<p>Note that it&rsquo;s not guaranteed that the <em>same</em> thread is used over time, since the core pool timeout is used for <code>PinnedDispatcher</code> to keep resource usage down in case of idle actors. To use the same thread all the time you need to add <code>thread-pool-executor.allow-core-timeout=off</code> to the configuration of the <code>PinnedDispatcher</code>.</p>
+<h3><a href="#thread-shutdown-timeout" name="thread-shutdown-timeout" class="anchor"><span class="anchor-link"></span></a>Thread shutdown timeout</h3>
+<p>Both the <code>fork-join-executor</code> and <code>thread-pool-executor</code> may shutdown threads when they are not used. If it&rsquo;s desired to keep the threads alive longer there are some timeout settings that can be adjusted.</p>
+<!--same config text for Scala & Java-->
+<pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.8.0-M3/akka-docs/src/test/scala/docs/dispatcher/DispatcherDocSpec.scala#L93-L105" target="_blank" title="Go to snippet source">source</a><code class="language-scala">my-dispatcher-with-timeouts {
+  type = Dispatcher
+  executor = &quot;thread-pool-executor&quot;
+  thread-pool-executor {
+    fixed-pool-size = 16
+    # Keep alive time for threads
+    keep-alive-time = 60s
+    # Allow core threads to time out
+    allow-core-timeout = off
+  }
+  # How long time the dispatcher will wait for new actors until it shuts down
+  shutdown-timeout = 60s
+}</code></pre>
+<p>When using the dispatcher as an <code>ExecutionContext</code> without assigning actors to it the <code>shutdown-timeout</code> should typically be increased, since the default of 1 second may cause too frequent shutdown of the entire thread pool.</p>
+</div>
+</article>
+<div class="row">
+<div class="small-12 column">
+<section class="nav-prev-next row">
+<div class="nav-prev small-6 column">
+<a href="../coordinated-shutdown.html"><i class="icon-prev"></i> <span class="link-prev">Coordinated Shutdown</span></a>
+</div>
+<div class="nav-next small-6 column clearfix">
+<a class="float-right" href="../typed/mailboxes.html">Mailboxes <i class="icon-next"></i></a>
+</div>
+</section>
+</div>
+</div>
+<div class="source-github row">
+Found an error in this documentation? The source code for this page can be found <a href="https://github.com/akka/akka/tree/v2.8.0-M3/akka-docs/src/main/paradox/typed/dispatchers.md">here</a>.
+Please feel free to edit and contribute a pull request.
+</div>
+
+<footer class="page-footer row clearfix">
+<img class="akka-icon float-left show-for-medium" src="../images/akka-icon.svg" />
+<section class="copyright">
+<div>Akka is available under the <a href="https://www.lightbend.com/akka/license" target="_blank">Business Source License 1.1</a>.</div>
+<p class="legal">
+&copy; 2011-2022 <a href="https://www.lightbend.com" target="_blank">Lightbend, Inc.</a> |
+<a href="https://www.lightbend.com/legal/licenses" target="_blank">Licenses</a> |
+<a href="https://www.lightbend.com/legal/terms" target="_blank">Terms</a> |
+<a href="https://www.lightbend.com/legal/privacy" target="_blank">Privacy Policy</a> |
+<a href="https://akka.io/cookie/" target="_blank">Cookie Listing</a> |
+<a class="optanon-toggle-display">Cookie Settings</a>
+</p>
+</section>
+
+</footer>
+</section>
+</main>
+</div>
+
+<script type="text/javascript" src="../js/scrollsneak.js"></script>
+<script type="text/javascript">jQuery(document).foundation();</script>
+<script type="text/javascript" src="../js/groups.js"></script>
+<script type="text/javascript" src="../js/page.js"></script>
+<script type="text/javascript" src="../js/snippets.js"></script>
+<script type="text/javascript" src="../js/magellan.js"></script>
+<script type="text/javascript" src="../js/metadata-toggle.js"></script>
+<script type="text/javascript" src="../js/lbHeader.js"></script>
+
+<style type="text/css">@import "../lib/prettify/prettify.css";</style>
+<script type="text/javascript" src="../lib/prettify/prettify.js"></script>
+<script type="text/javascript" src="../lib/prettify/lang-scala.js"></script>
+<script type="text/javascript">//<![CDATA[
+jQuery(function(){window.prettyPrint && prettyPrint()});
+//]]></script>
+<!-- Algolia docs search -->
+<script type="text/javascript" src="https://cdn.jsdelivr.net/docsearch.js/2/docsearch.min.js"></script>
+<style>.algolia-autocomplete { display: block !important }</style>
+<script type="text/javascript">
+docsearch({
+apiKey: '543bad5ad786495d9ccd445ed34ed082',
+indexName: 'akka_io',
+inputSelector: '#search',
+algoliaOptions: {
+hitsPerPage: 5
+}
+});
+
+docsearch({
+apiKey: '543bad5ad786495d9ccd445ed34ed082',
+indexName: 'akka_io',
+inputSelector: '#overlay-search',
+algoliaOptions: {
+hitsPerPage: 5
+}
+});
+
+// set up "/" as global shortcut for focusing on search
+jQuery(document).keypress(function (event) {
+if (event.keyCode == 47) {
+jQuery("#search").focus();
+return false; // swallow key event, otherwise the / char would be input into the search box
+}
+});
+</script>
+
+<script type="text/javascript" src="../assets/js/warnOldDocs.js"></script>
+<script type="text/javascript" src="../assets/js/scalafiddle.js"></script>
+
+
+</body>
+</html>

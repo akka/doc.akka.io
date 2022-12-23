@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html class="no-js" lang="en">
+
+<head>
+<title>Coexistence &bull; Akka Documentation</title>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta name="description" content="Akka is a toolkit for building highly concurrent, distributed, and resilient message-driven applications for Java and Scala."/>
+<link rel="canonical" href="https://doc.akka.io/docs/akka/current/typed/coexisting.html"/>
+<script type="text/javascript" src="../lib/jquery/jquery.min.js"></script>
+<script type="text/javascript" src="../lib/foundation/dist/js/foundation.min.js"></script>
+<link rel="stylesheet" type="text/css" href="../lib/normalize.css/normalize.css"/>
+<link rel="stylesheet" type="text/css" href="../lib/foundation/dist/css/foundation.min.css"/>
+<link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/docsearch.js/2/docsearch.min.css" />
+<link rel="stylesheet" type="text/css" href="../css/icons.css"/>
+<link rel="stylesheet" type="text/css" href="../css/page-8.css"/>
+<link rel="stylesheet" type="text/css" href="../css/banner-2.css"/>
+<link rel="shortcut icon" href="../images/favicon.ico" />
+<link rel="apple-touch-icon" sizes="180x180" href="../images/apple-touch-icon.png"/>
+<link rel="icon" type="image/png" sizes="32x32" href="../images/favicon-32x32.png"/>
+<link rel="icon" type="image/png" sizes="16x16" href="../images/favicon-16x16.png"/>
+<link rel="manifest" href="../images/manifest.json"/>
+<meta name="msapplication-TileImage" content="../images/mstile-150x150.png"/>
+<meta name="msapplication-TileColor" content="#15a9ce"/>
+<meta name="theme-color" content="#15a9ce"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<!-- OneTrust Cookies Consent Notice (Production Standard, akka.io, en-GB) start -->
+<script src="https://cdn.cookielaw.org/scripttemplates/otSDKStub.js"  type="text/javascript" charset="UTF-8" data-domain-script="28b912e7-09e9-43d5-91e4-3d1897044004" ></script>
+<script type="text/javascript">
+function OptanonWrapper() { }
+</script>
+<!-- OneTrust Cookies Consent Notice (Production Standard, akka.io, en-GB) end -->
+<!--Google Analytics-->
+<script type="text/plain" class="optanon-category-2">
+var _gaq = _gaq || [];
+_gaq.push(['_setAccount', 'UA-21117439-1']);
+_gaq.push(['_setDomainName', 'akka.io']);
+_gaq.push(['_trackPageview']);
+(function() {
+var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+})()
+</script>
+<!-- Google Tag Manager -->
+<script type="text/plain" class="optanon-category-2">
+(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+})(window,document,'script','dataLayer','GTM-KBJGH35');
+</script>
+<!--Marketo-->
+<script type="text/plain" class="optanon-category-3">
+(function() {
+var didInit = false;
+function initMunchkin() {
+if(didInit === false) {
+didInit = true;
+Munchkin.init('558-NCX-702', { 'asyncOnly': true, 'disableClickDelay': true });
+}
+}
+var s = document.createElement('script');
+s.type = 'text/javascript';
+s.async = true;
+s.src = '//munchkin.marketo.net/munchkin.js';
+s.onreadystatechange = function() {
+if (this.readyState == 'complete' || this.readyState == 'loaded') {
+initMunchkin();
+}
+};
+s.onload = initMunchkin;
+document.getElementsByTagName('head')[0].appendChild(s);
+})();
+</script>
+</head>
+
+<body id="underlay" data-toggler="nav-open">
+<div id="lightbend-banner" class="lightbend-banner akka full-width" data-category="OSS Lightbend Banner Impression" data-label="Akka Banner Impression">
+<div class="oss-wrapper">
+<div class="oss-brand">
+<a class="oss-track-link-label" data-category="OSS Lightbend Banner Clicks" data-label="Lightbend Logo - Akka Banner" href="https://www.lightbend.com">
+<img class="lightbend-logo" src="../images/banner-logos/lightbend-reverse.svg" alt="Lightbend" title="Lightbend">
+</a>
+</div>
+<div class="oss-ad no-drop-down">
+<nav id="lightbendRotator" class="lightbend-rotator">
+<a class="oss-track-link-label" data-category="OSS Lightbend Banner Clicks" data-label="Promo Rotator - Lightbend is Changing its Software Licensing Model for Akka Technology. [License FAQ] - Akka Banner" href="https://www.lightbend.com/akka/license-faq">
+<strong>Lightbend</strong> is Changing its Software Licensing Model for Akka Technology. <span class="akka-btn">License FAQ</span>
+</a>
+</nav>
+</div>
+</div>
+</div>
+
+<header class="site-header hide-for-large">
+<div class="sticky-header clearfix">
+<a href="https://akka.io"><img class="logo" src="../images/akka-logo-reverse.svg"/></a>
+
+<button class="menu-icon float-right" type="button" data-toggle="underlay overlay"></button>
+</div>
+<div id="overlay" class="overlay-nav" data-toggler="nav-open">
+<header class="nav-header">
+<div class="nav-header-title">
+<h1><a href="../index.html">Akka Documentation</a></h1>
+</div>
+<div class="nav-header-version">
+Version 2.8.0-M3
+</div>
+<div class="nav-header-groups">
+<select class="supergroup" name="Language"><option class="group" value="group-scala">Scala</option><option class="group" value="group-java">Java</option></select>
+</div>
+<div id="overlay-search-container" class="nav-header-search">
+<input id="overlay-search" type="search" class="search" placeholder="Search" />
+</div>
+</header>
+<nav class="nav-toc">
+<ul>
+  <li><a href="../security/index.html" class="page">Security Announcements</a></li>
+  <li><a href="../typed/guide/index.html" class="page">Getting Started Guide</a></li>
+  <li><a href="../general/index.html" class="page">General Concepts</a></li>
+  <li><a href="../typed/index.html" class="page">Actors</a>
+  <ul>
+    <li><a href="../typed/actors.html" class="page">Introduction to Actors</a></li>
+    <li><a href="../typed/actor-lifecycle.html" class="page">Actor lifecycle</a></li>
+    <li><a href="../typed/interaction-patterns.html" class="page">Interaction Patterns</a></li>
+    <li><a href="../typed/fault-tolerance.html" class="page">Fault Tolerance</a></li>
+    <li><a href="../typed/actor-discovery.html" class="page">Actor discovery</a></li>
+    <li><a href="../typed/routers.html" class="page">Routers</a></li>
+    <li><a href="../typed/stash.html" class="page">Stash</a></li>
+    <li><a href="../typed/fsm.html" class="page">Behaviors as finite state machines</a></li>
+    <li><a href="../coordinated-shutdown.html" class="page">Coordinated Shutdown</a></li>
+    <li><a href="../typed/dispatchers.html" class="page">Dispatchers</a></li>
+    <li><a href="../typed/mailboxes.html" class="page">Mailboxes</a></li>
+    <li><a href="../typed/testing.html" class="page">Testing</a></li>
+    <li><a href="../typed/coexisting.html#coexistence" class="active page">Coexistence</a>
+    <ul>
+      <li><a href="../typed/coexisting.html#dependency" class="header">Dependency</a></li>
+      <li><a href="../typed/coexisting.html#introduction" class="header">Introduction</a></li>
+      <li><a href="../typed/coexisting.html#classic-to-typed" class="header">Classic to typed</a></li>
+      <li><a href="../typed/coexisting.html#typed-to-classic" class="header">Typed to classic</a></li>
+      <li><a href="../typed/coexisting.html#supervision" class="header">Supervision</a></li>
+    </ul></li>
+    <li><a href="../typed/style-guide.html" class="page">Style guide</a></li>
+    <li><a href="../typed/from-classic.html" class="page">Learning Akka Typed from Classic</a></li>
+  </ul></li>
+  <li><a href="../typed/index-cluster.html" class="page">Cluster</a></li>
+  <li><a href="../typed/index-persistence.html" class="page">Persistence (Event Sourcing)</a></li>
+  <li><a href="../typed/index-persistence-durable-state.html" class="page">Persistence (Durable State)</a></li>
+  <li><a href="../stream/index.html" class="page">Streams</a></li>
+  <li><a href="../discovery/index.html" class="page">Discovery</a></li>
+  <li><a href="../index-utilities.html" class="page">Utilities</a></li>
+  <li><a href="../common/other-modules.html" class="page">Other Akka modules</a></li>
+  <li><a href="../additional/deploy.html" class="page">Package, Deploy and Run</a></li>
+  <li><a href="../project/index.html" class="page">Project Information</a></li>
+  <li><a href="../index-classic.html" class="page">Akka Classic</a></li>
+</ul>
+</nav>
+</div>
+</header>
+<div class="site-content-wrapper">
+<aside class="sticky-sidebar show-for-large">
+<header class="nav-header sticky-sidebar-header">
+<div class="nav-header-title">
+<h1><a href="../index.html">Akka Documentation</a></h1>
+</div>
+<div class="nav-header-version">
+Version 2.8.0-M3
+</div>
+<div class="nav-header-groups">
+<select class="supergroup" name="Language"><option class="group" value="group-scala">Scala</option><option class="group" value="group-java">Java</option></select>
+</div>
+<div class="nav-header-search">
+<input id="search" type="search" class="search" placeholder="Search" />
+</div>
+</header>
+<nav class="site-nav sticky-sidebar-contents">
+<div class="nav-toc">
+<ul>
+  <li><a href="../security/index.html" class="page">Security Announcements</a></li>
+  <li><a href="../typed/guide/index.html" class="page">Getting Started Guide</a></li>
+  <li><a href="../general/index.html" class="page">General Concepts</a></li>
+  <li><a href="../typed/index.html" class="page">Actors</a>
+  <ul>
+    <li><a href="../typed/actors.html" class="page">Introduction to Actors</a></li>
+    <li><a href="../typed/actor-lifecycle.html" class="page">Actor lifecycle</a></li>
+    <li><a href="../typed/interaction-patterns.html" class="page">Interaction Patterns</a></li>
+    <li><a href="../typed/fault-tolerance.html" class="page">Fault Tolerance</a></li>
+    <li><a href="../typed/actor-discovery.html" class="page">Actor discovery</a></li>
+    <li><a href="../typed/routers.html" class="page">Routers</a></li>
+    <li><a href="../typed/stash.html" class="page">Stash</a></li>
+    <li><a href="../typed/fsm.html" class="page">Behaviors as finite state machines</a></li>
+    <li><a href="../coordinated-shutdown.html" class="page">Coordinated Shutdown</a></li>
+    <li><a href="../typed/dispatchers.html" class="page">Dispatchers</a></li>
+    <li><a href="../typed/mailboxes.html" class="page">Mailboxes</a></li>
+    <li><a href="../typed/testing.html" class="page">Testing</a></li>
+    <li><a href="../typed/coexisting.html#coexistence" class="active page">Coexistence</a>
+    <ul>
+      <li><a href="../typed/coexisting.html#dependency" class="header">Dependency</a></li>
+      <li><a href="../typed/coexisting.html#introduction" class="header">Introduction</a></li>
+      <li><a href="../typed/coexisting.html#classic-to-typed" class="header">Classic to typed</a></li>
+      <li><a href="../typed/coexisting.html#typed-to-classic" class="header">Typed to classic</a></li>
+      <li><a href="../typed/coexisting.html#supervision" class="header">Supervision</a></li>
+    </ul></li>
+    <li><a href="../typed/style-guide.html" class="page">Style guide</a></li>
+    <li><a href="../typed/from-classic.html" class="page">Learning Akka Typed from Classic</a></li>
+  </ul></li>
+  <li><a href="../typed/index-cluster.html" class="page">Cluster</a></li>
+  <li><a href="../typed/index-persistence.html" class="page">Persistence (Event Sourcing)</a></li>
+  <li><a href="../typed/index-persistence-durable-state.html" class="page">Persistence (Durable State)</a></li>
+  <li><a href="../stream/index.html" class="page">Streams</a></li>
+  <li><a href="../discovery/index.html" class="page">Discovery</a></li>
+  <li><a href="../index-utilities.html" class="page">Utilities</a></li>
+  <li><a href="../common/other-modules.html" class="page">Other Akka modules</a></li>
+  <li><a href="../additional/deploy.html" class="page">Package, Deploy and Run</a></li>
+  <li><a href="../project/index.html" class="page">Project Information</a></li>
+  <li><a href="../index-classic.html" class="page">Akka Classic</a></li>
+</ul>
+</div>
+</nav>
+<footer class="nav-footer sticky-sidebar-footer">
+<a href="https://akka.io"><img class="logo" src="../images/akka-logo-reverse.svg"/></a>
+
+</footer>
+</aside>
+<main class="fixed-shift-for-large expanded row">
+<section class="site-content small-12 column">
+<article class="page-content row">
+<div class="small-12 column" id="docs">
+<h1><a href="#coexistence" name="coexistence" class="anchor"><span class="anchor-link"></span></a>Coexistence</h1>
+<h2><a href="#dependency" name="dependency" class="anchor"><span class="anchor-link"></span></a>Dependency</h2>
+<p>To use Akka Actor Typed, you must add the following dependency in your project:</p><dl class="dependency"><dt>sbt</dt><dd><pre class="prettyprint"><code class="language-scala">val AkkaVersion = "2.8.0-M3"
+libraryDependencies += "com.typesafe.akka" %% "akka-actor-typed" % AkkaVersion</code></pre></dd><dt>Maven</dt><dd><pre class="prettyprint"><code class="language-xml">&lt;properties&gt;
+  &lt;scala.binary.version&gt;2.13&lt;/scala.binary.version&gt;
+&lt;/properties&gt;
+&lt;dependencyManagement&gt;
+  &lt;dependencies&gt;
+    &lt;dependency&gt;
+      &lt;groupId&gt;com.typesafe.akka&lt;/groupId&gt;
+      &lt;artifactId&gt;akka-bom_${scala.binary.version}&lt;/artifactId&gt;
+      &lt;version&gt;2.8.0-M3&lt;/version&gt;
+      &lt;type&gt;pom&lt;/type&gt;
+      &lt;scope&gt;import&lt;/scope&gt;
+    &lt;/dependency&gt
+  &lt;/dependencies&gt;
+&lt;/dependencyManagement&gt;
+&lt;dependencies&gt
+  &lt;dependency&gt;
+    &lt;groupId&gt;com.typesafe.akka&lt;/groupId&gt;
+    &lt;artifactId&gt;akka-actor-typed_${scala.binary.version}&lt;/artifactId&gt;
+  &lt;/dependency&gt
+&lt;/dependencies&gt;</code></pre></dd><dt>Gradle</dt><dd><pre class="prettyprint"><code class="language-gradle">def versions = [
+  ScalaBinary: "2.13"
+]
+dependencies {
+  implementation platform("com.typesafe.akka:akka-bom_${versions.ScalaBinary}:2.8.0-M3")
+
+  implementation "com.typesafe.akka:akka-actor-typed_${versions.ScalaBinary}"
+}</code></pre></dd></dl>
+<h2><a href="#introduction" name="introduction" class="anchor"><span class="anchor-link"></span></a>Introduction</h2>
+<p>We believe Akka Typed will be adopted in existing systems gradually and therefore it&rsquo;s important to be able to use typed and classic actors together, within the same <code>ActorSystem</code>. Also, we will not be able to integrate with all existing modules in one big bang release and that is another reason for why these two ways of writing actors must be able to coexist.</p>
+<p>There are two different <code>ActorSystem</code>s: <span class="group-scala"><a href="https://doc.akka.io/api/akka/2.8/akka/actor/ActorSystem.html" title="akka.actor.ActorSystem"><code>akka.actor.ActorSystem</code></a></span><span class="group-java"><a href="https://doc.akka.io/japi/akka/2.8/akka/actor/ActorSystem.html" title="akka.actor.ActorSystem"><code>akka.actor.ActorSystem</code></a></span> and <span class="group-scala"><a href="https://doc.akka.io/api/akka/2.8/akka/actor/typed/ActorSystem.html" title="akka.actor.typed.ActorSystem"><code>akka.actor.typed.ActorSystem</code></a></span><span class="group-java"><a href="https://doc.akka.io/japi/akka/2.8/akka/actor/typed/ActorSystem.html" title="akka.actor.typed.ActorSystem"><code>akka.actor.typed.ActorSystem</code></a></span>. </p>
+<p>Currently the typed actor system is implemented using the classic actor system under the hood. This may change in the future.</p>
+<p>Typed and classic can interact the following ways:</p>
+<ul>
+  <li>classic actor systems can create typed actors</li>
+  <li>typed actors can send messages to classic actors, and opposite</li>
+  <li>spawn and supervise typed child from classic parent, and opposite</li>
+  <li>watch typed from classic, and opposite</li>
+  <li>classic actor system can be converted to a typed actor system</li>
+</ul><div class="group-scala">
+<p>In the examples the <code>akka.actor</code> package is aliased to <code>classic</code>.</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.8.0-M3/akka-actor-typed-tests/src/test/scala/docs/akka/typed/coexistence/ClassicWatchingTypedSpec.scala#L18" target="_blank" title="Go to snippet source">source</a><code class="language-scala">import akka.{ actor =&gt; classic }</code></pre></dd>
+</dl></div>
+<p><span class="group-java">The examples use fully qualified class names for the classic classes to distinguish between typed and classic classes with the same name.</span></p>
+<h2><a href="#classic-to-typed" name="classic-to-typed" class="anchor"><span class="anchor-link"></span></a>Classic to typed</h2>
+<p>While coexisting your application will likely still have a classic ActorSystem. This can be converted to a typed ActorSystem so that new code and migrated parts don&rsquo;t rely on the classic system:</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.8.0-M3/akka-actor-typed-tests/src/test/scala/docs/akka/typed/coexistence/ClassicWatchingTypedSpec.scala#L13-L14" target="_blank" title="Go to snippet source">source</a><code class="language-scala">// adds support for actors to a classic actor system and context
+import akka.actor.typed.scaladsl.adapter._
+
+val system = akka.actor.ActorSystem(&quot;ClassicToTypedSystem&quot;)
+val typedSystem: ActorSystem[Nothing] = system.toTyped</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.8.0-M3/akka-actor-typed-tests/src/test/java/jdocs/akka/typed/coexistence/ClassicWatchingTypedTest.java#L13-L14" target="_blank" title="Go to snippet source">source</a><code class="language-java">// In java use the static methods on Adapter to convert from typed to classic
+import akka.actor.typed.javadsl.Adapter;
+akka.actor.ActorSystem classicActorSystem = akka.actor.ActorSystem.create();
+ActorSystem&lt;Void&gt; typedActorSystem = Adapter.toTyped(classicActorSystem);</code></pre></dd>
+</dl>
+<p>Then for new typed actors here&rsquo;s how you create, watch and send messages to it from a classic actor.</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.8.0-M3/akka-actor-typed-tests/src/test/scala/docs/akka/typed/coexistence/ClassicWatchingTypedSpec.scala#L57-L72" target="_blank" title="Go to snippet source">source</a><code class="language-scala">object Typed {
+  sealed trait Command
+  final case class Ping(replyTo: ActorRef[Pong.type]) extends Command
+  case object Pong
+
+  def apply(): Behavior[Command] =
+    Behaviors.receive { (context, message) =&gt;
+      message match {
+        case Ping(replyTo) =&gt;
+          context.log.info(s&quot;${context.self} got Ping from $replyTo&quot;)
+          // replyTo is a classic actor that has been converted for coexistence
+          replyTo ! Pong
+          Behaviors.same
+      }
+    }
+}</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.8.0-M3/akka-actor-typed-tests/src/test/java/jdocs/akka/typed/coexistence/ClassicWatchingTypedTest.java#L60-L83" target="_blank" title="Go to snippet source">source</a><code class="language-java">public abstract static class Typed {
+  interface Command {}
+
+  public static class Ping implements Command {
+    public final akka.actor.typed.ActorRef&lt;Pong&gt; replyTo;
+
+    public Ping(ActorRef&lt;Pong&gt; replyTo) {
+      this.replyTo = replyTo;
+    }
+  }
+
+  public static class Pong {}
+
+  public static Behavior&lt;Command&gt; behavior() {
+    return Behaviors.receive(Typed.Command.class)
+        .onMessage(
+            Typed.Ping.class,
+            message -&gt; {
+              message.replyTo.tell(new Pong());
+              return same();
+            })
+        .build();
+  }
+}</code></pre></dd>
+</dl>
+<p>The top level classic actor is created in the usual way:</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.8.0-M3/akka-actor-typed-tests/src/test/scala/docs/akka/typed/coexistence/ClassicWatchingTypedSpec.scala#L84" target="_blank" title="Go to snippet source">source</a><code class="language-scala">val classicActor = system.actorOf(Classic.props())</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.8.0-M3/akka-actor-typed-tests/src/test/java/jdocs/akka/typed/coexistence/ClassicWatchingTypedTest.java#L89-L90" target="_blank" title="Go to snippet source">source</a><code class="language-java">akka.actor.ActorSystem as = akka.actor.ActorSystem.create();
+akka.actor.ActorRef classic = as.actorOf(Classic.props());</code></pre></dd>
+</dl>
+<p>Then it can create a typed actor, watch it, and send a message to it:</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.8.0-M3/akka-actor-typed-tests/src/test/scala/docs/akka/typed/coexistence/ClassicWatchingTypedSpec.scala#L30-L53" target="_blank" title="Go to snippet source">source</a><code class="language-scala">class Classic extends classic.Actor with ActorLogging {
+  // context.spawn is an implicit extension method
+  val second: ActorRef[Typed.Command] =
+    context.spawn(Typed(), &quot;second&quot;)
+
+  // context.watch is an implicit extension method
+  context.watch(second)
+
+  // self can be used as the `replyTo` parameter here because
+  // there is an implicit conversion from akka.actor.ActorRef to
+  // akka.actor.typed.ActorRef
+  // An equal alternative would be `self.toTyped`
+  second ! Typed.Ping(self)
+
+  override def receive = {
+    case Typed.Pong =&gt;
+      log.info(s&quot;$self got Pong from ${sender()}&quot;)
+      // context.stop is an implicit extension method
+      context.stop(second)
+    case classic.Terminated(ref) =&gt;
+      log.info(s&quot;$self observed termination of $ref&quot;)
+      context.stop(self)
+  }
+}</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.8.0-M3/akka-actor-typed-tests/src/test/java/jdocs/akka/typed/coexistence/ClassicWatchingTypedTest.java#L27-L56" target="_blank" title="Go to snippet source">source</a><code class="language-java">public static class Classic extends AbstractActor {
+  public static akka.actor.Props props() {
+    return akka.actor.Props.create(Classic.class);
+  }
+
+  private final akka.actor.typed.ActorRef&lt;Typed.Command&gt; second =
+      Adapter.spawn(getContext(), Typed.behavior(), &quot;second&quot;);
+
+  @Override
+  public void preStart() {
+    Adapter.watch(getContext(), second);
+    second.tell(new Typed.Ping(Adapter.toTyped(getSelf())));
+  }
+
+  @Override
+  public Receive createReceive() {
+    return receiveBuilder()
+        .match(
+            Typed.Pong.class,
+            message -&gt; {
+              Adapter.stop(getContext(), second);
+            })
+        .match(
+            akka.actor.Terminated.class,
+            t -&gt; {
+              getContext().stop(getSelf());
+            })
+        .build();
+  }
+}</code></pre></dd>
+</dl>
+<p><span class="group-scala">There is one <code>import</code> that is needed to make that work.</span> <span class="group-java">We import the Adapter class and call static methods for conversion.</span></p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.8.0-M3/akka-actor-typed-tests/src/test/scala/docs/akka/typed/coexistence/ClassicWatchingTypedSpec.scala#L13-L14" target="_blank" title="Go to snippet source">source</a><code class="language-scala">// adds support for actors to a classic actor system and context
+import akka.actor.typed.scaladsl.adapter._</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.8.0-M3/akka-actor-typed-tests/src/test/java/jdocs/akka/typed/coexistence/ClassicWatchingTypedTest.java#L13-L14" target="_blank" title="Go to snippet source">source</a><code class="language-java">// In java use the static methods on Adapter to convert from typed to classic
+import akka.actor.typed.javadsl.Adapter;</code></pre></dd>
+</dl>
+<p><span class="group-scala">That adds some implicit extension methods that are added to classic and typed <code>ActorSystem</code>, <code>ActorContext</code> and <code>ActorRef</code> in both directions.</span> <span class="group-java">To convert between typed and classic <code>ActorSystem</code>, <code>ActorContext</code> and <code>ActorRef</code> in both directions there are adapter methods in <a href="https://doc.akka.io/japi/akka/2.8/akka/actor/typed/javadsl/Adapter.html" title="akka.actor.typed.javadsl.Adapter"><code>akka.actor.typed.javadsl.Adapter</code></a>.</span> Note the inline comments in the example above. </p>
+<p>This method of using a top level classic actor is the suggested path for this type of co-existence. However, if you prefer to start with a typed top level actor then you can use the <span class="group-scala">implicit <a href="https://doc.akka.io/api/akka/2.8/akka/actor/typed/scaladsl/adapter/package$$ClassicActorSystemOps.html#spawn[T](behavior:akka.actor.typed.Behavior[T],name:String,props:akka.actor.typed.Props):akka.actor.typed.ActorRef[T]" title="akka.actor.typed.scaladsl.adapter.package.ClassicActorSystemOps"><code>spawn</code></a> -method</span><span class="group-java"><a href="https://doc.akka.io/japi/akka/2.8/akka/actor/typed/javadsl/Adapter.html#spawn(akka.actor.ActorSystem,akka.actor.typed.Behavior,java.lang.String,akka.actor.typed.Props)" title="akka.actor.typed.javadsl.Adapter"><code>Adapter.spawn</code></a></span> directly from the typed system:</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.8.0-M3/akka-actor-typed-tests/src/test/scala/docs/akka/typed/coexistence/TypedWatchingClassicSpec.scala#L77-L78" target="_blank" title="Go to snippet source">source</a><code class="language-scala">val system = classic.ActorSystem(&quot;TypedWatchingClassic&quot;)
+val typed = system.spawn(Typed.behavior, &quot;Typed&quot;)</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.8.0-M3/akka-actor-typed-tests/src/test/java/jdocs/akka/typed/coexistence/TypedWatchingClassicTest.java#L98-L99" target="_blank" title="Go to snippet source">source</a><code class="language-java">ActorSystem as = ActorSystem.create();
+ActorRef&lt;Typed.Command&gt; typed = Adapter.spawn(as, Typed.create(), &quot;Typed&quot;);</code></pre></dd>
+</dl>
+<p>The above classic-typed difference is further elaborated in <a href="from-classic.html#actorsystem">the <code>ActorSystem</code> section</a> of &ldquo;Learning Akka Typed from Classic&rdquo;. </p>
+<h2><a href="#typed-to-classic" name="typed-to-classic" class="anchor"><span class="anchor-link"></span></a>Typed to classic</h2>
+<p>Let&rsquo;s turn the example upside down and first start the typed actor and then the classic as a child.</p>
+<p>The following will show how to create, watch and send messages back and forth from a typed actor to this classic actor:</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.8.0-M3/akka-actor-typed-tests/src/test/scala/docs/akka/typed/coexistence/TypedWatchingClassicSpec.scala#L58-L66" target="_blank" title="Go to snippet source">source</a><code class="language-scala">object Classic {
+  def props(): classic.Props = classic.Props(new Classic)
+}
+class Classic extends classic.Actor {
+  override def receive = {
+    case Typed.Ping(replyTo) =&gt;
+      replyTo ! Typed.Pong
+  }
+}</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.8.0-M3/akka-actor-typed-tests/src/test/java/jdocs/akka/typed/coexistence/TypedWatchingClassicTest.java#L79-L92" target="_blank" title="Go to snippet source">source</a><code class="language-java">public static class Classic extends AbstractActor {
+  public static akka.actor.Props props() {
+    return akka.actor.Props.create(Classic.class);
+  }
+
+  @Override
+  public Receive createReceive() {
+    return receiveBuilder().match(Typed.Ping.class, this::onPing).build();
+  }
+
+  private void onPing(Typed.Ping message) {
+    message.replyTo.tell(Typed.Pong.INSTANCE);
+  }
+}</code></pre></dd>
+</dl>
+<a id="top-level-typed-actor-classic-system"></a>
+<p>Creating the actor system and the typed actor:</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.8.0-M3/akka-actor-typed-tests/src/test/scala/docs/akka/typed/coexistence/TypedWatchingClassicSpec.scala#L77-L78" target="_blank" title="Go to snippet source">source</a><code class="language-scala">val system = classic.ActorSystem(&quot;TypedWatchingClassic&quot;)
+val typed = system.spawn(Typed.behavior, &quot;Typed&quot;)</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.8.0-M3/akka-actor-typed-tests/src/test/java/jdocs/akka/typed/coexistence/TypedWatchingClassicTest.java#L98-L99" target="_blank" title="Go to snippet source">source</a><code class="language-java">ActorSystem as = ActorSystem.create();
+ActorRef&lt;Typed.Command&gt; typed = Adapter.spawn(as, Typed.create(), &quot;Typed&quot;);</code></pre></dd>
+</dl>
+<p>Then the typed actor creates the classic actor, watches it and sends and receives a response:</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.8.0-M3/akka-actor-typed-tests/src/test/scala/docs/akka/typed/coexistence/TypedWatchingClassicSpec.scala#L25-L54" target="_blank" title="Go to snippet source">source</a><code class="language-scala">object Typed {
+  final case class Ping(replyTo: akka.actor.typed.ActorRef[Pong.type])
+  sealed trait Command
+  case object Pong extends Command
+
+  val behavior: Behavior[Command] =
+    Behaviors.setup { context =&gt;
+      // context.actorOf is an implicit extension method
+      val classic = context.actorOf(Classic.props(), &quot;second&quot;)
+
+      // context.watch is an implicit extension method
+      context.watch(classic)
+
+      // illustrating how to pass sender, toClassic is an implicit extension method
+      classic.tell(Typed.Ping(context.self), context.self.toClassic)
+
+      Behaviors
+        .receivePartial[Command] {
+          case (context, Pong) =&gt;
+            // it&#39;s not possible to get the sender, that must be sent in message
+            // context.stop is an implicit extension method
+            context.stop(classic)
+            Behaviors.same
+        }
+        .receiveSignal {
+          case (_, akka.actor.typed.Terminated(_)) =&gt;
+            Behaviors.stopped
+        }
+    }
+}</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.8.0-M3/akka-actor-typed-tests/src/test/java/jdocs/akka/typed/coexistence/TypedWatchingClassicTest.java#L26-L75" target="_blank" title="Go to snippet source">source</a><code class="language-java">public static class Typed extends AbstractBehavior&lt;Typed.Command&gt; {
+
+  public static class Ping {
+    public final akka.actor.typed.ActorRef&lt;Pong&gt; replyTo;
+
+    public Ping(ActorRef&lt;Pong&gt; replyTo) {
+      this.replyTo = replyTo;
+    }
+  }
+
+  interface Command {}
+
+  public enum Pong implements Command {
+    INSTANCE
+  }
+
+  private final akka.actor.ActorRef second;
+
+  private Typed(ActorContext&lt;Command&gt; context, akka.actor.ActorRef second) {
+    super(context);
+    this.second = second;
+  }
+
+  public static Behavior&lt;Command&gt; create() {
+    return akka.actor.typed.javadsl.Behaviors.setup(
+        context -&gt; {
+          akka.actor.ActorRef second = Adapter.actorOf(context, Classic.props(), &quot;second&quot;);
+
+          Adapter.watch(context, second);
+
+          second.tell(
+              new Typed.Ping(context.getSelf().narrow()), Adapter.toClassic(context.getSelf()));
+
+          return new Typed(context, second);
+        });
+  }
+
+  @Override
+  public Receive&lt;Command&gt; createReceive() {
+    return newReceiveBuilder()
+        .onMessage(Typed.Pong.class, message -&gt; onPong())
+        .onSignal(akka.actor.typed.Terminated.class, sig -&gt; Behaviors.stopped())
+        .build();
+  }
+
+  private Behavior&lt;Command&gt; onPong() {
+    Adapter.stop(getContext(), second);
+    return this;
+  }
+}</code></pre></dd>
+</dl><div class="group-scala">
+<p>Note that when sending from a typed actor to a classic <span class="group-scala"><a href="https://doc.akka.io/api/akka/2.8/akka/actor/ActorRef.html" title="akka.actor.ActorRef"><code>ActorRef</code></a></span><span class="group-java"><a href="https://doc.akka.io/japi/akka/2.8/akka/actor/ActorRef.html" title="akka.actor.ActorRef"><code>ActorRef</code></a></span> there is no sender in scope as in classic. The typed sender should use its own <a href="https://doc.akka.io/api/akka/2.8/akka/actor/typed/scaladsl/ActorContext.html#self:akka.actor.typed.ActorRef[T]" title="akka.actor.typed.scaladsl.ActorContext"><code>ActorContext[T].self</code></a> explicitly, as shown in the snippet.</p></div>
+<h2><a href="#supervision" name="supervision" class="anchor"><span class="anchor-link"></span></a>Supervision</h2>
+<p>The default supervision for classic actors is to restart whereas for typed it is to stop. When combining classic and typed actors the default supervision is based on the default behavior of the child, for example if a classic actor creates a typed child, its default supervision will be to stop. If a typed actor creates a classic child, its default supervision will be to restart.</p>
+</div>
+</article>
+<div class="row">
+<div class="small-12 column">
+<section class="nav-prev-next row">
+<div class="nav-prev small-6 column">
+<a href="../typed/testing-sync.html"><i class="icon-prev"></i> <span class="link-prev">Synchronous behavior testing</span></a>
+</div>
+<div class="nav-next small-6 column clearfix">
+<a class="float-right" href="../typed/style-guide.html">Style guide <i class="icon-next"></i></a>
+</div>
+</section>
+</div>
+</div>
+<div class="source-github row">
+Found an error in this documentation? The source code for this page can be found <a href="https://github.com/akka/akka/tree/v2.8.0-M3/akka-docs/src/main/paradox/typed/coexisting.md">here</a>.
+Please feel free to edit and contribute a pull request.
+</div>
+
+<footer class="page-footer row clearfix">
+<img class="akka-icon float-left show-for-medium" src="../images/akka-icon.svg" />
+<section class="copyright">
+<div>Akka is available under the <a href="https://www.lightbend.com/akka/license" target="_blank">Business Source License 1.1</a>.</div>
+<p class="legal">
+&copy; 2011-2022 <a href="https://www.lightbend.com" target="_blank">Lightbend, Inc.</a> |
+<a href="https://www.lightbend.com/legal/licenses" target="_blank">Licenses</a> |
+<a href="https://www.lightbend.com/legal/terms" target="_blank">Terms</a> |
+<a href="https://www.lightbend.com/legal/privacy" target="_blank">Privacy Policy</a> |
+<a href="https://akka.io/cookie/" target="_blank">Cookie Listing</a> |
+<a class="optanon-toggle-display">Cookie Settings</a>
+</p>
+</section>
+
+</footer>
+</section>
+</main>
+</div>
+
+<script type="text/javascript" src="../js/scrollsneak.js"></script>
+<script type="text/javascript">jQuery(document).foundation();</script>
+<script type="text/javascript" src="../js/groups.js"></script>
+<script type="text/javascript" src="../js/page.js"></script>
+<script type="text/javascript" src="../js/snippets.js"></script>
+<script type="text/javascript" src="../js/magellan.js"></script>
+<script type="text/javascript" src="../js/metadata-toggle.js"></script>
+<script type="text/javascript" src="../js/lbHeader.js"></script>
+
+<style type="text/css">@import "../lib/prettify/prettify.css";</style>
+<script type="text/javascript" src="../lib/prettify/prettify.js"></script>
+<script type="text/javascript" src="../lib/prettify/lang-scala.js"></script>
+<script type="text/javascript">//<![CDATA[
+jQuery(function(){window.prettyPrint && prettyPrint()});
+//]]></script>
+<!-- Algolia docs search -->
+<script type="text/javascript" src="https://cdn.jsdelivr.net/docsearch.js/2/docsearch.min.js"></script>
+<style>.algolia-autocomplete { display: block !important }</style>
+<script type="text/javascript">
+docsearch({
+apiKey: '543bad5ad786495d9ccd445ed34ed082',
+indexName: 'akka_io',
+inputSelector: '#search',
+algoliaOptions: {
+hitsPerPage: 5
+}
+});
+
+docsearch({
+apiKey: '543bad5ad786495d9ccd445ed34ed082',
+indexName: 'akka_io',
+inputSelector: '#overlay-search',
+algoliaOptions: {
+hitsPerPage: 5
+}
+});
+
+// set up "/" as global shortcut for focusing on search
+jQuery(document).keypress(function (event) {
+if (event.keyCode == 47) {
+jQuery("#search").focus();
+return false; // swallow key event, otherwise the / char would be input into the search box
+}
+});
+</script>
+
+<script type="text/javascript" src="../assets/js/warnOldDocs.js"></script>
+<script type="text/javascript" src="../assets/js/scalafiddle.js"></script>
+
+
+</body>
+</html>
