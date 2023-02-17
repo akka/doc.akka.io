@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html class="no-js" lang="en">
+
+<head>
+<title>Why modern systems need a new programming model &bull; Akka Documentation</title>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta name="description" content="Akka is a toolkit for building highly concurrent, distributed, and resilient message-driven applications for Java and Scala."/>
+<link rel="canonical" href="https://doc.akka.io/docs/akka/current/typed/guide/actors-motivation.html"/>
+<script type="text/javascript" src="../../lib/jquery/jquery.min.js"></script>
+<script type="text/javascript" src="../../lib/foundation/dist/js/foundation.min.js"></script>
+<link rel="stylesheet" type="text/css" href="../../lib/normalize.css/normalize.css"/>
+<link rel="stylesheet" type="text/css" href="../../lib/foundation/dist/css/foundation.min.css"/>
+<link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/docsearch.js/2/docsearch.min.css" />
+<link rel="stylesheet" type="text/css" href="../../css/icons.css"/>
+<link rel="stylesheet" type="text/css" href="../../css/page-8.css"/>
+<link rel="stylesheet" type="text/css" href="../../css/banner-2.css"/>
+<link rel="shortcut icon" href="../../images/favicon.ico" />
+<link rel="apple-touch-icon" sizes="180x180" href="../../images/apple-touch-icon.png"/>
+<link rel="icon" type="image/png" sizes="32x32" href="../../images/favicon-32x32.png"/>
+<link rel="icon" type="image/png" sizes="16x16" href="../../images/favicon-16x16.png"/>
+<link rel="manifest" href="../../images/manifest.json"/>
+<meta name="msapplication-TileImage" content="../../images/mstile-150x150.png"/>
+<meta name="msapplication-TileColor" content="#15a9ce"/>
+<meta name="theme-color" content="#15a9ce"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<!-- OneTrust Cookies Consent Notice (Production Standard, akka.io, en-GB) start -->
+<script src="https://cdn.cookielaw.org/scripttemplates/otSDKStub.js"  type="text/javascript" charset="UTF-8" data-domain-script="28b912e7-09e9-43d5-91e4-3d1897044004" ></script>
+<script type="text/javascript">
+function OptanonWrapper() { }
+</script>
+<!-- OneTrust Cookies Consent Notice (Production Standard, akka.io, en-GB) end -->
+<!--Google Analytics-->
+<script type="text/plain" class="optanon-category-2">
+var _gaq = _gaq || [];
+_gaq.push(['_setAccount', 'UA-21117439-1']);
+_gaq.push(['_setDomainName', 'akka.io']);
+_gaq.push(['_trackPageview']);
+(function() {
+var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+})()
+</script>
+<!-- Google Tag Manager -->
+<script type="text/plain" class="optanon-category-2">
+(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+})(window,document,'script','dataLayer','GTM-KBJGH35');
+</script>
+<!--Marketo-->
+<script type="text/plain" class="optanon-category-3">
+(function() {
+var didInit = false;
+function initMunchkin() {
+if(didInit === false) {
+didInit = true;
+Munchkin.init('558-NCX-702', { 'asyncOnly': true, 'disableClickDelay': true });
+}
+}
+var s = document.createElement('script');
+s.type = 'text/javascript';
+s.async = true;
+s.src = '//munchkin.marketo.net/munchkin.js';
+s.onreadystatechange = function() {
+if (this.readyState == 'complete' || this.readyState == 'loaded') {
+initMunchkin();
+}
+};
+s.onload = initMunchkin;
+document.getElementsByTagName('head')[0].appendChild(s);
+})();
+</script>
+</head>
+
+<body id="underlay" data-toggler="nav-open">
+<div id="lightbend-banner" class="lightbend-banner akka full-width" data-category="OSS Lightbend Banner Impression" data-label="Akka Banner Impression">
+<div class="oss-wrapper">
+<div class="oss-brand">
+<a class="oss-track-link-label" data-category="OSS Lightbend Banner Clicks" data-label="Lightbend Logo - Akka Banner" href="https://www.lightbend.com">
+<img class="lightbend-logo" src="../../images/banner-logos/lightbend-reverse.svg" alt="Lightbend" title="Lightbend">
+</a>
+</div>
+<div class="oss-ad no-drop-down">
+<nav id="lightbendRotator" class="lightbend-rotator">
+<a class="oss-track-link-label" data-category="OSS Lightbend Banner Clicks" data-label="Promo Rotator - Lightbend Changed its Software Licensing Model for Akka Technology. [License FAQ] - Akka Banner" href="https://www.lightbend.com/akka/license-faq">
+<strong>Lightbend</strong> Changed its Software Licensing Model for Akka Technology. <span class="akka-btn">License FAQ</span>
+</a>
+</nav>
+</div>
+</div>
+</div>
+
+<header class="site-header hide-for-large">
+<div class="sticky-header clearfix">
+<a href="https://akka.io"><img class="logo" src="../../images/akka-logo-reverse.svg"/></a>
+
+<button class="menu-icon float-right" type="button" data-toggle="underlay overlay"></button>
+</div>
+<div id="overlay" class="overlay-nav" data-toggler="nav-open">
+<header class="nav-header">
+<div class="nav-header-title">
+<h1><a href="../../index.html">Akka Documentation</a></h1>
+</div>
+<div class="nav-header-version">
+Version 2.8.0-M5
+</div>
+<div class="nav-header-groups">
+<select class="supergroup" name="Language"><option class="group" value="group-scala">Scala</option><option class="group" value="group-java">Java</option></select>
+</div>
+<div id="overlay-search-container" class="nav-header-search">
+<input id="overlay-search" type="search" class="search" placeholder="Search" />
+</div>
+</header>
+<nav class="nav-toc">
+<ul>
+  <li><a href="../../security/index.html" class="page">Security Announcements</a></li>
+  <li><a href="../../typed/guide/index.html" class="page">Getting Started Guide</a>
+  <ul>
+    <li><a href="../../typed/guide/introduction.html" class="page">Introduction to Akka</a></li>
+    <li><a href="../../typed/guide/actors-motivation.html#why-modern-systems-need-a-new-programming-model" class="active page">Why modern systems need a new programming model</a>
+    <ul>
+      <li><a href="../../typed/guide/actors-motivation.html#the-challenge-of-encapsulation" class="header">The challenge of encapsulation</a></li>
+      <li><a href="../../typed/guide/actors-motivation.html#the-illusion-of-shared-memory-on-modern-computer-architectures" class="header">The illusion of shared memory on modern computer architectures</a></li>
+      <li><a href="../../typed/guide/actors-motivation.html#the-illusion-of-a-call-stack" class="header">The illusion of a call stack</a></li>
+    </ul></li>
+    <li><a href="../../typed/guide/actors-intro.html" class="page">How the Actor Model Meets the Needs of Modern, Distributed Systems</a></li>
+    <li><a href="../../typed/guide/modules.html" class="page">Overview of Akka libraries and modules</a></li>
+    <li><a href="../../typed/guide/tutorial.html" class="page">Introduction to the Example</a></li>
+    <li><a href="../../typed/guide/tutorial_1.html" class="page">Part 1: Actor Architecture</a></li>
+    <li><a href="../../typed/guide/tutorial_2.html" class="page">Part 2: Creating the First Actor</a></li>
+    <li><a href="../../typed/guide/tutorial_3.html" class="page">Part 3: Working with Device Actors</a></li>
+    <li><a href="../../typed/guide/tutorial_4.html" class="page">Part 4: Working with Device Groups</a></li>
+    <li><a href="../../typed/guide/tutorial_5.html" class="page">Part 5: Querying Device Groups</a></li>
+  </ul></li>
+  <li><a href="../../general/index.html" class="page">General Concepts</a></li>
+  <li><a href="../../typed/index.html" class="page">Actors</a></li>
+  <li><a href="../../typed/index-cluster.html" class="page">Cluster</a></li>
+  <li><a href="../../typed/index-persistence.html" class="page">Persistence (Event Sourcing)</a></li>
+  <li><a href="../../typed/index-persistence-durable-state.html" class="page">Persistence (Durable State)</a></li>
+  <li><a href="../../stream/index.html" class="page">Streams</a></li>
+  <li><a href="../../discovery/index.html" class="page">Discovery</a></li>
+  <li><a href="../../index-utilities.html" class="page">Utilities</a></li>
+  <li><a href="../../common/other-modules.html" class="page">Other Akka modules</a></li>
+  <li><a href="../../additional/deploy.html" class="page">Package, Deploy and Run</a></li>
+  <li><a href="../../project/index.html" class="page">Project Information</a></li>
+  <li><a href="../../index-classic.html" class="page">Akka Classic</a></li>
+</ul>
+</nav>
+</div>
+</header>
+<div class="site-content-wrapper">
+<aside class="sticky-sidebar show-for-large">
+<header class="nav-header sticky-sidebar-header">
+<div class="nav-header-title">
+<h1><a href="../../index.html">Akka Documentation</a></h1>
+</div>
+<div class="nav-header-version">
+Version 2.8.0-M5
+</div>
+<div class="nav-header-groups">
+<select class="supergroup" name="Language"><option class="group" value="group-scala">Scala</option><option class="group" value="group-java">Java</option></select>
+</div>
+<div class="nav-header-search">
+<input id="search" type="search" class="search" placeholder="Search" />
+</div>
+</header>
+<nav class="site-nav sticky-sidebar-contents">
+<div class="nav-toc">
+<ul>
+  <li><a href="../../security/index.html" class="page">Security Announcements</a></li>
+  <li><a href="../../typed/guide/index.html" class="page">Getting Started Guide</a>
+  <ul>
+    <li><a href="../../typed/guide/introduction.html" class="page">Introduction to Akka</a></li>
+    <li><a href="../../typed/guide/actors-motivation.html#why-modern-systems-need-a-new-programming-model" class="active page">Why modern systems need a new programming model</a>
+    <ul>
+      <li><a href="../../typed/guide/actors-motivation.html#the-challenge-of-encapsulation" class="header">The challenge of encapsulation</a></li>
+      <li><a href="../../typed/guide/actors-motivation.html#the-illusion-of-shared-memory-on-modern-computer-architectures" class="header">The illusion of shared memory on modern computer architectures</a></li>
+      <li><a href="../../typed/guide/actors-motivation.html#the-illusion-of-a-call-stack" class="header">The illusion of a call stack</a></li>
+    </ul></li>
+    <li><a href="../../typed/guide/actors-intro.html" class="page">How the Actor Model Meets the Needs of Modern, Distributed Systems</a></li>
+    <li><a href="../../typed/guide/modules.html" class="page">Overview of Akka libraries and modules</a></li>
+    <li><a href="../../typed/guide/tutorial.html" class="page">Introduction to the Example</a></li>
+    <li><a href="../../typed/guide/tutorial_1.html" class="page">Part 1: Actor Architecture</a></li>
+    <li><a href="../../typed/guide/tutorial_2.html" class="page">Part 2: Creating the First Actor</a></li>
+    <li><a href="../../typed/guide/tutorial_3.html" class="page">Part 3: Working with Device Actors</a></li>
+    <li><a href="../../typed/guide/tutorial_4.html" class="page">Part 4: Working with Device Groups</a></li>
+    <li><a href="../../typed/guide/tutorial_5.html" class="page">Part 5: Querying Device Groups</a></li>
+  </ul></li>
+  <li><a href="../../general/index.html" class="page">General Concepts</a></li>
+  <li><a href="../../typed/index.html" class="page">Actors</a></li>
+  <li><a href="../../typed/index-cluster.html" class="page">Cluster</a></li>
+  <li><a href="../../typed/index-persistence.html" class="page">Persistence (Event Sourcing)</a></li>
+  <li><a href="../../typed/index-persistence-durable-state.html" class="page">Persistence (Durable State)</a></li>
+  <li><a href="../../stream/index.html" class="page">Streams</a></li>
+  <li><a href="../../discovery/index.html" class="page">Discovery</a></li>
+  <li><a href="../../index-utilities.html" class="page">Utilities</a></li>
+  <li><a href="../../common/other-modules.html" class="page">Other Akka modules</a></li>
+  <li><a href="../../additional/deploy.html" class="page">Package, Deploy and Run</a></li>
+  <li><a href="../../project/index.html" class="page">Project Information</a></li>
+  <li><a href="../../index-classic.html" class="page">Akka Classic</a></li>
+</ul>
+</div>
+</nav>
+<footer class="nav-footer sticky-sidebar-footer">
+<a href="https://akka.io"><img class="logo" src="../../images/akka-logo-reverse.svg"/></a>
+
+</footer>
+</aside>
+<main class="fixed-shift-for-large expanded row">
+<section class="site-content small-12 column">
+<article class="page-content row">
+<div class="small-12 column" id="docs">
+<h1><a href="#why-modern-systems-need-a-new-programming-model" name="why-modern-systems-need-a-new-programming-model" class="anchor"><span class="anchor-link"></span></a>Why modern systems need a new programming model</h1>
+<p>The actor model was proposed decades ago by <a href="https://en.wikipedia.org/wiki/Carl_Hewitt#Actor_model">Carl Hewitt</a> as a way to handle parallel processing in a high performance network &#8212; an environment that was not available at the time. Today, hardware and infrastructure capabilities have caught up with and exceeded Hewitt&rsquo;s vision. Consequently, organizations building distributed systems with demanding requirements encounter challenges that cannot fully be solved with a traditional object-oriented programming (OOP) model, but that can benefit from the actor model.</p>
+<p>Today, the actor model is not only recognized as a highly effective solution &#8212; it has been proven in production for some of the world&rsquo;s most demanding applications. To highlight issues that the actor model addresses, this topic discusses the following mismatches between traditional programming assumptions and the reality of modern multi-threaded, multi-CPU architectures:</p>
+<ul>
+  <li><a href="actors-motivation.html#the-challenge-of-encapsulation">The challenge of encapsulation</a></li>
+  <li><a href="actors-motivation.html#the-illusion-of-shared-memory-on-modern-computer-architectures">The illusion of shared memory on modern computer architectures</a></li>
+  <li><a href="actors-motivation.html#the-illusion-of-a-call-stack">The illusion of a call stack</a></li>
+</ul>
+<h2><a href="#the-challenge-of-encapsulation" name="the-challenge-of-encapsulation" class="anchor"><span class="anchor-link"></span></a>The challenge of encapsulation</h2>
+<p>A core pillar of OOP is <em>encapsulation</em>. Encapsulation dictates that the internal data of an object is not accessible directly from the outside; it can only be modified by invoking a set of curated methods. The object is responsible for exposing safe operations that protect the invariant nature of its encapsulated data.</p>
+<p>For example, operations on an ordered binary tree implementation must not allow violation of the tree ordering invariant. Callers expect the ordering to be intact and when querying the tree for a certain piece of data, they need to be able to rely on this constraint.</p>
+<p>When we analyze OOP runtime behavior, we sometimes draw a message sequence chart showing the interactions of method calls. For example:</p>
+<p><img src="diagrams/seq_chart.png" alt="sequence chart" /></p>
+<p>Unfortunately, the above diagram does not accurately represent the <em>lifelines</em> of the instances during execution. In reality, a <em>thread</em> executes all these calls, and the enforcement of invariants occurs on the same thread from which the method was called. Updating the diagram with the thread of execution, it looks like this:</p>
+<p><img src="diagrams/seq_chart_thread.png" alt="sequence chart with thread" /></p>
+<p>The significance of this clarification becomes clear when you try to model what happens with <em>multiple threads</em>. Suddenly, our neatly drawn diagram becomes inadequate. We can try to illustrate multiple threads accessing the same instance:</p>
+<p><img src="diagrams/seq_chart_multi_thread.png" alt="sequence chart with threads interacting" /></p>
+<p>There is a section of execution where two threads enter the same method. Unfortunately, the encapsulation model of objects does not guarantee anything about what happens in that section. Instructions of the two invocations can be interleaved in arbitrary ways which eliminate any hope for keeping the invariants intact without some type of coordination between two threads. Now, imagine this issue compounded by the existence of many threads.</p>
+<p>The common approach to solving this problem is to add a lock around these methods. While this ensures that at most one thread will enter the method at any given time, this is a very costly strategy:</p>
+<ul>
+  <li>Locks <em>seriously limit</em> concurrency, they are very costly on modern CPU architectures,  requiring heavy-lifting from the operating system to suspend the thread and restore it later.</li>
+  <li>The caller thread is now blocked, so it cannot do any other meaningful work. Even in desktop applications this is  unacceptable, we want to keep user-facing parts of applications (its UI) to be responsive even when a  long background job is running. In the backend, blocking is outright wasteful.  One might think that this can be compensated by launching new threads, but threads are also a costly abstraction.</li>
+  <li>Locks introduce a new menace: deadlocks.</li>
+</ul>
+<p>These realities result in a no-win situation:</p>
+<ul>
+  <li>Without sufficient locks, the state gets corrupted.</li>
+  <li>With many locks in place, performance suffers and very easily leads to deadlocks.</li>
+</ul>
+<p>Additionally, locks only really work well locally. When it comes to coordinating across multiple machines, the only alternative is distributed locks. Unfortunately, distributed locks are several magnitudes less efficient than local locks and usually impose a hard limit on scaling out. Distributed lock protocols require several communication round-trips over the network across multiple machines, so latency goes through the roof.</p>
+<p>In Object Oriented languages we rarely think about threads or linear execution paths in general. We often envision a system as a network of object instances that react to method calls, modify their internal state, then communicate with each other via method calls driving the whole application state forward:</p>
+<p><img src="diagrams/object_graph.png" alt="network of interacting objects" /></p>
+<p>However, in a multi-threaded distributed environment, what actually happens is that threads &ldquo;traverse&rdquo; this network of object instances by following method calls. As a result, threads are what really drive execution:</p>
+<p><img src="diagrams/object_graph_snakes.png" alt="network of interactive objects traversed by threads" /></p>
+<p><strong>In summary</strong>:</p>
+<ul>
+  <li><strong>Objects can only guarantee encapsulation (protection of invariants) in the face of single-threaded access,  multi-thread execution almost always leads to corrupted internal state. Every invariant can be violated by  having two contending threads in the same code segment.</strong></li>
+  <li><strong>While locks seem to be the natural remedy to uphold encapsulation with multiple threads, in practice they  are inefficient and easily lead to deadlocks in any application of real-world scale.</strong></li>
+  <li><strong>Locks work locally, attempts to make them distributed exist, but offer limited potential for scaling out.</strong></li>
+</ul>
+<h2><a href="#the-illusion-of-shared-memory-on-modern-computer-architectures" name="the-illusion-of-shared-memory-on-modern-computer-architectures" class="anchor"><span class="anchor-link"></span></a>The illusion of shared memory on modern computer architectures</h2>
+<p>Programming models of the 80&rsquo;-90&rsquo;s conceptualize that writing to a variable means writing to a memory location directly (which somewhat muddies the water that local variables might exist only in registers). On modern architectures - if we simplify things a bit - CPUs are writing to <a href="https://en.wikipedia.org/wiki/CPU_cache">cache lines</a> instead of writing to memory directly. Most of these caches are local to the CPU core, that is, writes by one core are not visible by another. In order to make local changes visible to another core, and hence to another thread, the cache line needs to be shipped to the other core&rsquo;s cache.</p>
+<p>On the JVM, we have to explicitly denote memory locations to be shared across threads by using <em>volatile</em> markers or <code>Atomic</code> wrappers. Otherwise, we can access them only in a locked section. Why don&rsquo;t we just mark all variables as volatile? Because shipping cache lines across cores is a very costly operation! Doing so would implicitly stall the cores involved from doing additional work, and result in bottlenecks on the cache coherence protocol (the protocol CPUs use to transfer cache lines between main memory and other CPUs). The result is magnitudes of slowdown.</p>
+<p>Even for developers aware of this situation, figuring out which memory locations should be marked as volatile, or which atomic structures to use is a dark art.</p>
+<p><strong>In summary</strong>:</p>
+<ul>
+  <li><strong>There is no real shared memory anymore, CPU cores pass chunks of data (cache lines) explicitly to each other  just as computers on a network do. Inter-CPU communication and network communication have more in common than many realize. Passing messages is the norm now be it across CPUs or networked computers.</strong></li>
+  <li><strong>Instead of hiding the message passing aspect through variables marked as shared or using atomic data structures,  a more disciplined and principled approach is to keep state local to a concurrent entity and propagate data or events  between concurrent entities explicitly via messages.</strong></li>
+</ul>
+<h2><a href="#the-illusion-of-a-call-stack" name="the-illusion-of-a-call-stack" class="anchor"><span class="anchor-link"></span></a>The illusion of a call stack</h2>
+<p>Today, we often take call stacks for granted. But, they were invented in an era where concurrent programming was not as important because multi-CPU systems were not common. Call stacks do not cross threads and hence, do not model asynchronous call chains.</p>
+<p>The problem arises when a thread intends to delegate a task to the &ldquo;background&rdquo;. In practice, this really means delegating to another thread. This cannot be a simple method/function call because calls are strictly local to the thread. What usually happens, is that the &ldquo;caller&rdquo; puts an object into a memory location shared by a worker thread (&ldquo;callee&rdquo;), which in turn, picks it up in some event loop. This allows the &ldquo;caller&rdquo; thread to move on and do other tasks.</p>
+<p>The first issue is, how can the &ldquo;caller&rdquo; be notified of the completion of the task? But a more serious issue arises when a task fails with an exception. Where does the exception propagate to? It will propagate to the exception handler of the worker thread completely ignoring who the actual &ldquo;caller&rdquo; was:</p>
+<p><img src="diagrams/exception_prop.png" alt="exceptions cannot propagate between different threads" /></p>
+<p>This is a serious problem. How does the worker thread deal with the situation? It likely cannot fix the issue as it is usually oblivious of the purpose of the failed task. The &ldquo;caller&rdquo; thread needs to be notified somehow, but there is no call stack to unwind with an exception. Failure notification can only be done via a side-channel, for example putting an error code where the &ldquo;caller&rdquo; thread otherwise expects the result once ready. If this notification is not in place, the &ldquo;caller&rdquo; never gets notified of a failure and the task is lost! <strong>This is surprisingly similar to how networked systems work where messages/requests can get lost/fail without any notification.</strong></p>
+<p>This bad situation gets worse when things go really wrong and a worker backed by a thread encounters a bug and ends up in an unrecoverable situation. For example, an internal exception caused by a bug bubbles up to the root of the thread and makes the thread shut down. This immediately raises the question, who should restart the normal operation of the service hosted by the thread, and how should it be restored to a known-good state? At first glance, this might seem manageable, but we are suddenly faced by a new, unexpected phenomena: the actual task, that the thread was currently working on, is no longer in the shared memory location where tasks are taken from (usually a queue). In fact, due to the exception reaching to the top, unwinding all of the call stack, the task state is fully lost! <strong>We have lost a message even though this is local communication with no networking involved (where message losses are to be expected).</strong></p>
+<p><strong>In summary:</strong></p>
+<ul>
+  <li><strong>To achieve any meaningful concurrency and performance on current systems, threads must delegate tasks among each  other in an efficient way without blocking. With this style of task-delegating concurrency  (and even more so with networked/distributed computing) call stack-based error handling breaks down and new,  explicit error signaling mechanisms need to be introduced. Failures become part of the domain model.</strong></li>
+  <li><strong>Concurrent systems with work delegation need to handle service faults and have principled means to recover from them.  Clients of such services need to be aware that tasks/messages might get lost during restarts.  Even if loss does not happen, a response might be delayed arbitrarily due to previously enqueued tasks  (a long queue), delays caused by garbage collection, etc. In face of these, concurrent systems should handle response  deadlines in the form of timeouts, just like networked/distributed systems.</strong></li>
+</ul>
+<p>Next, let&rsquo;s see how use of the actor model can overcome these challenges.</p>
+</div>
+</article>
+<div class="row">
+<div class="small-12 column">
+<section class="nav-prev-next row">
+<div class="nav-prev small-6 column">
+<a href="../../typed/guide/introduction.html"><i class="icon-prev"></i> <span class="link-prev">Introduction to Akka</span></a>
+</div>
+<div class="nav-next small-6 column clearfix">
+<a class="float-right" href="../../typed/guide/actors-intro.html">How the Actor Model Meets the Needs of Modern, Distributed Systems <i class="icon-next"></i></a>
+</div>
+</section>
+</div>
+</div>
+<div class="source-github row">
+Found an error in this documentation? The source code for this page can be found <a href="https://github.com/akka/akka/tree/v2.8.0-M5/akka-docs/src/main/paradox/typed/guide/actors-motivation.md">here</a>.
+Please feel free to edit and contribute a pull request.
+</div>
+
+<footer class="page-footer row clearfix">
+<img class="akka-icon float-left show-for-medium" src="../../images/akka-icon.svg" />
+<section class="copyright">
+<div>Akka is available under the <a href="https://www.lightbend.com/akka/license" target="_blank">Business Source License 1.1</a>.</div>
+<p class="legal">
+&copy; 2011-2023 <a href="https://www.lightbend.com" target="_blank">Lightbend, Inc.</a> |
+<a href="https://www.lightbend.com/legal/licenses" target="_blank">Licenses</a> |
+<a href="https://www.lightbend.com/legal/terms" target="_blank">Terms</a> |
+<a href="https://www.lightbend.com/legal/privacy" target="_blank">Privacy Policy</a> |
+<a href="https://akka.io/cookie/" target="_blank">Cookie Listing</a> |
+<a class="optanon-toggle-display">Cookie Settings</a>
+</p>
+</section>
+
+</footer>
+</section>
+</main>
+</div>
+
+<script type="text/javascript" src="../../js/scrollsneak.js"></script>
+<script type="text/javascript">jQuery(document).foundation();</script>
+<script type="text/javascript" src="../../js/groups.js"></script>
+<script type="text/javascript" src="../../js/page.js"></script>
+<script type="text/javascript" src="../../js/snippets.js"></script>
+<script type="text/javascript" src="../../js/magellan.js"></script>
+<script type="text/javascript" src="../../js/metadata-toggle.js"></script>
+<script type="text/javascript" src="../../js/lbHeader.js"></script>
+
+<style type="text/css">@import "../../lib/prettify/prettify.css";</style>
+<script type="text/javascript" src="../../lib/prettify/prettify.js"></script>
+<script type="text/javascript" src="../../lib/prettify/lang-scala.js"></script>
+<script type="text/javascript">//<![CDATA[
+jQuery(function(){window.prettyPrint && prettyPrint()});
+//]]></script>
+<!-- Algolia docs search -->
+<script type="text/javascript" src="https://cdn.jsdelivr.net/docsearch.js/2/docsearch.min.js"></script>
+<style>.algolia-autocomplete { display: block !important }</style>
+<script type="text/javascript">
+docsearch({
+apiKey: '543bad5ad786495d9ccd445ed34ed082',
+indexName: 'akka_io',
+inputSelector: '#search',
+algoliaOptions: {
+hitsPerPage: 5
+}
+});
+
+docsearch({
+apiKey: '543bad5ad786495d9ccd445ed34ed082',
+indexName: 'akka_io',
+inputSelector: '#overlay-search',
+algoliaOptions: {
+hitsPerPage: 5
+}
+});
+
+// set up "/" as global shortcut for focusing on search
+jQuery(document).keypress(function (event) {
+if (event.keyCode == 47) {
+jQuery("#search").focus();
+return false; // swallow key event, otherwise the / char would be input into the search box
+}
+});
+</script>
+
+<script type="text/javascript" src="../../assets/js/warnOldDocs.js"></script>
+<script type="text/javascript" src="../../assets/js/scalafiddle.js"></script>
+
+
+</body>
+</html>
