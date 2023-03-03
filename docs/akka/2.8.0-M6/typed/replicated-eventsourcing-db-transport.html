@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html class="no-js" lang="en">
+
+<head>
+<title>Replicated Event Sourcing replication via direct access to replica databases &bull; Akka Documentation</title>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta name="description" content="Akka is a toolkit for building highly concurrent, distributed, and resilient message-driven applications for Java and Scala."/>
+<link rel="canonical" href="https://doc.akka.io/docs/akka/current/typed/replicated-eventsourcing-db-transport.html"/>
+<script type="text/javascript" src="../lib/jquery/jquery.min.js"></script>
+<script type="text/javascript" src="../lib/foundation/dist/js/foundation.min.js"></script>
+<link rel="stylesheet" type="text/css" href="../lib/normalize.css/normalize.css"/>
+<link rel="stylesheet" type="text/css" href="../lib/foundation/dist/css/foundation.min.css"/>
+<link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/docsearch.js/2/docsearch.min.css" />
+<link rel="stylesheet" type="text/css" href="../css/icons.css"/>
+<link rel="stylesheet" type="text/css" href="../css/page-8.css"/>
+<link rel="stylesheet" type="text/css" href="../css/banner-2.css"/>
+<link rel="shortcut icon" href="../images/favicon.ico" />
+<link rel="apple-touch-icon" sizes="180x180" href="../images/apple-touch-icon.png"/>
+<link rel="icon" type="image/png" sizes="32x32" href="../images/favicon-32x32.png"/>
+<link rel="icon" type="image/png" sizes="16x16" href="../images/favicon-16x16.png"/>
+<link rel="manifest" href="../images/manifest.json"/>
+<meta name="msapplication-TileImage" content="../images/mstile-150x150.png"/>
+<meta name="msapplication-TileColor" content="#15a9ce"/>
+<meta name="theme-color" content="#15a9ce"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<!-- OneTrust Cookies Consent Notice (Production Standard, akka.io, en-GB) start -->
+<script src="https://cdn.cookielaw.org/scripttemplates/otSDKStub.js"  type="text/javascript" charset="UTF-8" data-domain-script="28b912e7-09e9-43d5-91e4-3d1897044004" ></script>
+<script type="text/javascript">
+function OptanonWrapper() { }
+</script>
+<!-- OneTrust Cookies Consent Notice (Production Standard, akka.io, en-GB) end -->
+<!--Google Analytics-->
+<script type="text/plain" class="optanon-category-2">
+var _gaq = _gaq || [];
+_gaq.push(['_setAccount', 'UA-21117439-1']);
+_gaq.push(['_setDomainName', 'akka.io']);
+_gaq.push(['_trackPageview']);
+(function() {
+var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+})()
+</script>
+<!-- Google Tag Manager -->
+<script type="text/plain" class="optanon-category-2">
+(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+})(window,document,'script','dataLayer','GTM-KBJGH35');
+</script>
+<!--Marketo-->
+<script type="text/plain" class="optanon-category-3">
+(function() {
+var didInit = false;
+function initMunchkin() {
+if(didInit === false) {
+didInit = true;
+Munchkin.init('558-NCX-702', { 'asyncOnly': true, 'disableClickDelay': true });
+}
+}
+var s = document.createElement('script');
+s.type = 'text/javascript';
+s.async = true;
+s.src = '//munchkin.marketo.net/munchkin.js';
+s.onreadystatechange = function() {
+if (this.readyState == 'complete' || this.readyState == 'loaded') {
+initMunchkin();
+}
+};
+s.onload = initMunchkin;
+document.getElementsByTagName('head')[0].appendChild(s);
+})();
+</script>
+</head>
+
+<body id="underlay" data-toggler="nav-open">
+<div id="lightbend-banner" class="lightbend-banner akka full-width" data-category="OSS Lightbend Banner Impression" data-label="Akka Banner Impression">
+<div class="oss-wrapper">
+<div class="oss-brand">
+<a class="oss-track-link-label" data-category="OSS Lightbend Banner Clicks" data-label="Lightbend Logo - Akka Banner" href="https://www.lightbend.com">
+<img class="lightbend-logo" src="../images/banner-logos/lightbend-reverse.svg" alt="Lightbend" title="Lightbend">
+</a>
+</div>
+<div class="oss-ad no-drop-down">
+<nav id="lightbendRotator" class="lightbend-rotator">
+<a class="oss-track-link-label" data-category="OSS Lightbend Banner Clicks" data-label="Promo Rotator - Lightbend Changed its Software Licensing Model for Akka Technology. [License FAQ] - Akka Banner" href="https://www.lightbend.com/akka/license-faq">
+<strong>Lightbend</strong> Changed its Software Licensing Model for Akka Technology. <span class="akka-btn">License FAQ</span>
+</a>
+</nav>
+</div>
+</div>
+</div>
+
+<header class="site-header hide-for-large">
+<div class="sticky-header clearfix">
+<a href="https://akka.io"><img class="logo" src="../images/akka-logo-reverse.svg"/></a>
+
+<button class="menu-icon float-right" type="button" data-toggle="underlay overlay"></button>
+</div>
+<div id="overlay" class="overlay-nav" data-toggler="nav-open">
+<header class="nav-header">
+<div class="nav-header-title">
+<h1><a href="../index.html">Akka Documentation</a></h1>
+</div>
+<div class="nav-header-version">
+Version 2.8.0-M6
+</div>
+<div class="nav-header-groups">
+<select class="supergroup" name="Language"><option class="group" value="group-scala">Scala</option><option class="group" value="group-java">Java</option></select>
+</div>
+<div id="overlay-search-container" class="nav-header-search">
+<input id="overlay-search" type="search" class="search" placeholder="Search" />
+</div>
+</header>
+<nav class="nav-toc">
+<ul>
+  <li><a href="../security/index.html" class="page">Security Announcements</a></li>
+  <li><a href="../typed/guide/index.html" class="page">Getting Started Guide</a></li>
+  <li><a href="../general/index.html" class="page">General Concepts</a></li>
+  <li><a href="../typed/index.html" class="page">Actors</a></li>
+  <li><a href="../typed/index-cluster.html" class="page">Cluster</a></li>
+  <li><a href="../typed/index-persistence.html" class="page">Persistence (Event Sourcing)</a>
+  <ul>
+    <li><a href="../typed/persistence.html" class="page">Event Sourcing</a></li>
+    <li><a href="../typed/replicated-eventsourcing.html" class="page">Replicated Event Sourcing</a></li>
+    <li><a href="../typed/cqrs.html" class="page">CQRS</a></li>
+    <li><a href="../typed/persistence-style.html" class="page">Style Guide</a></li>
+    <li><a href="../typed/persistence-snapshot.html" class="page">Snapshotting</a></li>
+    <li><a href="../typed/persistence-testing.html" class="page">Testing</a></li>
+    <li><a href="../typed/persistence-fsm.html" class="page">EventSourced behaviors as finite state machines</a></li>
+    <li><a href="../persistence-schema-evolution.html" class="page">Schema Evolution for Event Sourced Actors</a></li>
+    <li><a href="../persistence-query.html" class="page">Persistence Query</a></li>
+    <li><a href="../persistence-query-leveldb.html" class="page">Persistence Query for LevelDB</a></li>
+    <li><a href="../persistence-plugins.html" class="page">Persistence Plugins</a></li>
+    <li><a href="../persistence-journals.html" class="page">Persistence - Building a storage backend</a></li>
+    <li><a href="../typed/replicated-eventsourcing-db-transport.html#replicated-event-sourcing-replication-via-direct-access-to-replica-databases" class="active page">Replicated Event Sourcing replication via direct access to replica databases</a>
+    <ul>
+      <li><a href="../typed/replicated-eventsourcing-db-transport.html#sharded-replicated-event-sourced-entities" class="header">Sharded Replicated Event Sourced entities</a></li>
+      <li><a href="../typed/replicated-eventsourcing-db-transport.html#tagging-events-and-running-projections" class="header">Tagging events and running projections</a></li>
+      <li><a href="../typed/replicated-eventsourcing-db-transport.html#direct-replication-of-events" class="header">Direct Replication of Events</a></li>
+      <li><a href="../typed/replicated-eventsourcing-db-transport.html#examples" class="header">Examples</a></li>
+      <li><a href="../typed/replicated-eventsourcing-db-transport.html#journal-support" class="header">Journal Support</a></li>
+    </ul></li>
+    <li><a href="../typed/replicated-eventsourcing-examples.html" class="page">Replicated Event Sourcing Examples</a></li>
+  </ul></li>
+  <li><a href="../typed/index-persistence-durable-state.html" class="page">Persistence (Durable State)</a></li>
+  <li><a href="../stream/index.html" class="page">Streams</a></li>
+  <li><a href="../discovery/index.html" class="page">Discovery</a></li>
+  <li><a href="../index-utilities.html" class="page">Utilities</a></li>
+  <li><a href="../common/other-modules.html" class="page">Other Akka modules</a></li>
+  <li><a href="../additional/deploy.html" class="page">Package, Deploy and Run</a></li>
+  <li><a href="../project/index.html" class="page">Project Information</a></li>
+  <li><a href="../index-classic.html" class="page">Akka Classic</a></li>
+</ul>
+</nav>
+</div>
+</header>
+<div class="site-content-wrapper">
+<aside class="sticky-sidebar show-for-large">
+<header class="nav-header sticky-sidebar-header">
+<div class="nav-header-title">
+<h1><a href="../index.html">Akka Documentation</a></h1>
+</div>
+<div class="nav-header-version">
+Version 2.8.0-M6
+</div>
+<div class="nav-header-groups">
+<select class="supergroup" name="Language"><option class="group" value="group-scala">Scala</option><option class="group" value="group-java">Java</option></select>
+</div>
+<div class="nav-header-search">
+<input id="search" type="search" class="search" placeholder="Search" />
+</div>
+</header>
+<nav class="site-nav sticky-sidebar-contents">
+<div class="nav-toc">
+<ul>
+  <li><a href="../security/index.html" class="page">Security Announcements</a></li>
+  <li><a href="../typed/guide/index.html" class="page">Getting Started Guide</a></li>
+  <li><a href="../general/index.html" class="page">General Concepts</a></li>
+  <li><a href="../typed/index.html" class="page">Actors</a></li>
+  <li><a href="../typed/index-cluster.html" class="page">Cluster</a></li>
+  <li><a href="../typed/index-persistence.html" class="page">Persistence (Event Sourcing)</a>
+  <ul>
+    <li><a href="../typed/persistence.html" class="page">Event Sourcing</a></li>
+    <li><a href="../typed/replicated-eventsourcing.html" class="page">Replicated Event Sourcing</a></li>
+    <li><a href="../typed/cqrs.html" class="page">CQRS</a></li>
+    <li><a href="../typed/persistence-style.html" class="page">Style Guide</a></li>
+    <li><a href="../typed/persistence-snapshot.html" class="page">Snapshotting</a></li>
+    <li><a href="../typed/persistence-testing.html" class="page">Testing</a></li>
+    <li><a href="../typed/persistence-fsm.html" class="page">EventSourced behaviors as finite state machines</a></li>
+    <li><a href="../persistence-schema-evolution.html" class="page">Schema Evolution for Event Sourced Actors</a></li>
+    <li><a href="../persistence-query.html" class="page">Persistence Query</a></li>
+    <li><a href="../persistence-query-leveldb.html" class="page">Persistence Query for LevelDB</a></li>
+    <li><a href="../persistence-plugins.html" class="page">Persistence Plugins</a></li>
+    <li><a href="../persistence-journals.html" class="page">Persistence - Building a storage backend</a></li>
+    <li><a href="../typed/replicated-eventsourcing-db-transport.html#replicated-event-sourcing-replication-via-direct-access-to-replica-databases" class="active page">Replicated Event Sourcing replication via direct access to replica databases</a>
+    <ul>
+      <li><a href="../typed/replicated-eventsourcing-db-transport.html#sharded-replicated-event-sourced-entities" class="header">Sharded Replicated Event Sourced entities</a></li>
+      <li><a href="../typed/replicated-eventsourcing-db-transport.html#tagging-events-and-running-projections" class="header">Tagging events and running projections</a></li>
+      <li><a href="../typed/replicated-eventsourcing-db-transport.html#direct-replication-of-events" class="header">Direct Replication of Events</a></li>
+      <li><a href="../typed/replicated-eventsourcing-db-transport.html#examples" class="header">Examples</a></li>
+      <li><a href="../typed/replicated-eventsourcing-db-transport.html#journal-support" class="header">Journal Support</a></li>
+    </ul></li>
+    <li><a href="../typed/replicated-eventsourcing-examples.html" class="page">Replicated Event Sourcing Examples</a></li>
+  </ul></li>
+  <li><a href="../typed/index-persistence-durable-state.html" class="page">Persistence (Durable State)</a></li>
+  <li><a href="../stream/index.html" class="page">Streams</a></li>
+  <li><a href="../discovery/index.html" class="page">Discovery</a></li>
+  <li><a href="../index-utilities.html" class="page">Utilities</a></li>
+  <li><a href="../common/other-modules.html" class="page">Other Akka modules</a></li>
+  <li><a href="../additional/deploy.html" class="page">Package, Deploy and Run</a></li>
+  <li><a href="../project/index.html" class="page">Project Information</a></li>
+  <li><a href="../index-classic.html" class="page">Akka Classic</a></li>
+</ul>
+</div>
+</nav>
+<footer class="nav-footer sticky-sidebar-footer">
+<a href="https://akka.io"><img class="logo" src="../images/akka-logo-reverse.svg"/></a>
+
+</footer>
+</aside>
+<main class="fixed-shift-for-large expanded row">
+<section class="site-content small-12 column">
+<article class="page-content row">
+<div class="small-12 column" id="docs">
+<h1><a href="#replicated-event-sourcing-replication-via-direct-access-to-replica-databases" name="replicated-event-sourcing-replication-via-direct-access-to-replica-databases" class="anchor"><span class="anchor-link"></span></a>Replicated Event Sourcing replication via direct access to replica databases</h1><div class="callout note "><div class="callout-title">Note</div>
+<p>Since Akka 2.8.0 a gRPC based transport is the recommended way to set up the replication of events between the replicas.</p></div>
+<p>It is possible to consume events with a direct connection to the database backing each replica. Such a setup is generally harder to set up and secure, and is less feasible unless the replication is over a private network.</p>
+<p>To enable an entity for Replicated Event Sourcing <span class="group-java">let it extend <code>ReplicatedEventSourcedBehavior</code> instead of <code>EventSourcedBehavior</code> and</span> use the factory methods on <span class="group-scala"><code>akka.persistence.typed.scaladsl.ReplicatedEventSourcing</code></span><span class="group-java"><code>akka.persistence.typed.javadsl.ReplicatedEventSourcing</code></span>. </p>
+<p>All replicas need to be known up front:</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.8.0-M6/akka-persistence-typed-tests/src/test/scala/docs/akka/persistence/typed/ReplicatedEventSourcingCompileOnlySpec.scala#L19-L21" target="_blank" title="Go to snippet source">source</a><code class="language-scala">val DCA = ReplicaId(&quot;DC-A&quot;)
+val DCB = ReplicaId(&quot;DC-B&quot;)
+val AllReplicas = Set(DCA, DCB)</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.8.0-M6/akka-persistence-typed-tests/src/test/java/jdocs/akka/persistence/typed/MyReplicatedBehavior.java#L25-L29" target="_blank" title="Go to snippet source">source</a><code class="language-java">public static final ReplicaId DCA = new ReplicaId(&quot;DCA&quot;);
+public static final ReplicaId DCB = new ReplicaId(&quot;DCB&quot;);
+
+public static final Set&lt;ReplicaId&gt; ALL_REPLICAS =
+    Collections.unmodifiableSet(new HashSet&lt;&gt;(Arrays.asList(DCA, DCB)));</code></pre></dd>
+</dl>
+<p>Then to enable replication create the event sourced behavior with the factory method:</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.8.0-M6/akka-persistence-typed-tests/src/test/scala/docs/akka/persistence/typed/ReplicatedEventSourcingCompileOnlySpec.scala#L48-L58" target="_blank" title="Go to snippet source">source</a><code class="language-scala">def apply(
+    system: ActorSystem[_],
+    entityId: String,
+    replicaId: ReplicaId): EventSourcedBehavior[Command, State, Event] = {
+  ReplicatedEventSourcing.perReplicaJournalConfig(
+    ReplicationId(&quot;MyReplicatedEntity&quot;, entityId, replicaId),
+    Map(DCA -&gt; &quot;journalForDCA&quot;, DCB -&gt; &quot;journalForDCB&quot;)) { replicationContext =&gt;
+    EventSourcedBehavior[Command, State, Event](???, ???, ???, ???)
+  }
+}
+</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.8.0-M6/akka-persistence-typed-tests/src/test/java/jdocs/akka/persistence/typed/MyReplicatedBehavior.java#L14-L57" target="_blank" title="Go to snippet source">source</a><code class="language-java">public class MyReplicatedBehavior
+    extends ReplicatedEventSourcedBehavior&lt;
+        MyReplicatedBehavior.Command, MyReplicatedBehavior.Event, MyReplicatedBehavior.State&gt; {
+  public static Behavior&lt;Command&gt; create(String entityId, ReplicaId replicaId) {
+    Map&lt;ReplicaId, String&gt; allReplicasAndQueryPlugins = new HashMap&lt;&gt;();
+    allReplicasAndQueryPlugins.put(DCA, &quot;journalForDCA&quot;);
+    allReplicasAndQueryPlugins.put(DCB, &quot;journalForDCB&quot;);
+
+    return ReplicatedEventSourcing.perReplicaJournalConfig(
+        new ReplicationId(&quot;MyReplicatedEntity&quot;, entityId, replicaId),
+        allReplicasAndQueryPlugins,
+        MyReplicatedBehavior::new);
+  }
+
+  private MyReplicatedBehavior(ReplicationContext replicationContext) {
+    super(replicationContext);
+  }</code></pre></dd>
+</dl>
+<p>The factory takes in:</p>
+<ul>
+  <li><code>entityId</code>: this will be used as part of the underlying persistenceId</li>
+  <li><code>replicaId</code>: Which replica this instance is</li>
+  <li><code>allReplicasAndQueryPlugins</code>: All Replicas and the query plugin used to read their events</li>
+  <li>A factory function to create an instance of the <span class="group-scala"><code>EventSourcedBehavior</code></span><span class="group-java"><code>ReplicatedEventSourcedBehavior</code></span></li>
+</ul>
+<p>In this scenario each replica reads from each other&rsquo;s database effectively providing cross region replication for any database that has an Akka Persistence plugin. Alternatively if all the replicas use the same journal, e.g. for testing or if it is a distributed database such as Cassandra, the <code>withSharedJournal</code> factory can be used. </p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.8.0-M6/akka-persistence-typed-tests/src/test/scala/docs/akka/persistence/typed/ReplicatedEventSourcingCompileOnlySpec.scala#L32-L42" target="_blank" title="Go to snippet source">source</a><code class="language-scala">def apply(
+    system: ActorSystem[_],
+    entityId: String,
+    replicaId: ReplicaId): EventSourcedBehavior[Command, State, Event] = {
+  ReplicatedEventSourcing.commonJournalConfig(
+    ReplicationId(&quot;MyReplicatedEntity&quot;, entityId, replicaId),
+    AllReplicas,
+    queryPluginId) { replicationContext =&gt;
+    EventSourcedBehavior[Command, State, Event](???, ???, ???, ???)
+  }
+}</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.8.0-M6/akka-persistence-typed-tests/src/test/java/jdocs/akka/persistence/typed/MyReplicatedBehavior.java#L33-L40" target="_blank" title="Go to snippet source">source</a><code class="language-java">public static Behavior&lt;Command&gt; create(
+    String entityId, ReplicaId replicaId, String queryPluginId) {
+  return ReplicatedEventSourcing.commonJournalConfig(
+      new ReplicationId(&quot;MyReplicatedEntity&quot;, entityId, replicaId),
+      ALL_REPLICAS,
+      queryPluginId,
+      MyReplicatedBehavior::new);
+}</code></pre></dd>
+</dl><div class="group-scala">
+<p>The function passed to both factory methods return an <code>EventSourcedBehavior</code> and provide access to the <span class="group-java"><a href="https://doc.akka.io/japi/akka/2.8/akka/persistence/typed/javadsl/ReplicationContext.html" title="akka.persistence.typed.javadsl.ReplicationContext"><code>ReplicationContext</code></a></span><span class="group-scala"><a href="https://doc.akka.io/api/akka/2.8/akka/persistence/typed/scaladsl/ReplicationContext.html" title="akka.persistence.typed.scaladsl.ReplicationContext"><code>ReplicationContext</code></a></span> that has the following methods:</p>
+<ul>
+  <li><code>entityId</code></li>
+  <li><code>replicaId</code></li>
+  <li><code>allReplicas</code></li>
+  <li><code>persistenceId</code> - to provide to the <code>EventSourcedBehavior</code> factory. This <strong>must be used</strong>.</li>
+</ul>
+<p>As well as methods that <strong>can only be</strong> used in the event handler. The values these methods return relate to the event that is being processed.</p></div><div class="group-java">
+<p>The function passed to both factory methods is invoked with a special <span class="group-java"><a href="https://doc.akka.io/japi/akka/2.8/akka/persistence/typed/javadsl/ReplicationContext.html" title="akka.persistence.typed.javadsl.ReplicationContext"><code>ReplicationContext</code></a></span><span class="group-scala"><a href="https://doc.akka.io/api/akka/2.8/akka/persistence/typed/scaladsl/ReplicationContext.html" title="akka.persistence.typed.scaladsl.ReplicationContext"><code>ReplicationContext</code></a></span> that needs to be passed to the concrete <code>ReplicatedEventSourcedBehavior</code> and on to the super constructor.</p>
+<p>The context gives access to: </p>
+<ul>
+  <li><code>entityId</code></li>
+  <li><code>replicaId</code></li>
+  <li><code>allReplicas</code></li>
+  <li><code>persistenceId</code></li>
+</ul>
+<p>As well as methods that <strong>can only be</strong> used in the event handler, accessed through <code>getReplicationContext</code>. The values these methods return relate to the event that is being processed.</p></div>
+<ul>
+  <li><code>origin</code>: The ReplicaId that originally created the event</li>
+  <li><code>concurrent</code>: Whether the event was concurrent with another event as in the second diagram above</li>
+  <li><code>recoveryRunning</code>: Whether a recovery is running. Can be used to send commands back to self for side effects that should only happen once.</li>
+  <li><code>currentTimeMillis</code>: similar to <code>System.currentTimeMillis</code> but guaranteed never to go backwards</li>
+</ul>
+<p>The factory returns a <code>Behavior</code> that can be spawned like any other behavior.</p>
+<h2><a href="#sharded-replicated-event-sourced-entities" name="sharded-replicated-event-sourced-entities" class="anchor"><span class="anchor-link"></span></a>Sharded Replicated Event Sourced entities</h2>
+<p>There are three ways to integrate replicated event sourced entities with sharding:</p>
+<ul>
+  <li>Ensure that each replica has a unique entity id by using the replica id as part of the entity id</li>
+  <li>Use <a href="cluster-dc.html">multi datacenter</a> to run a full copy of sharding per replica</li>
+  <li>Use roles to run a full copy of sharding per replica</li>
+</ul>
+<p>To simplify all three cases the <span class="group-scala"><a href="https://doc.akka.io/api/akka/2.8/akka/cluster/sharding/typed/ReplicatedShardingExtension.html" title="akka.cluster.sharding.typed.ReplicatedShardingExtension"><code>ReplicatedShardingExtension</code></a></span><span class="group-java"><a href="https://doc.akka.io/japi/akka/2.8/akka/cluster/sharding/typed/ReplicatedShardingExtension.html" title="akka.cluster.sharding.typed.ReplicatedShardingExtension"><code>ReplicatedShardingExtension</code></a></span> is available from the <code>akka-cluster-sharding-typed</code> module.</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.8.0-M6/akka-cluster-sharding-typed/src/test/scala/docs/akka/cluster/sharding/typed/ReplicatedShardingCompileOnlySpec.scala#L31-L39" target="_blank" title="Go to snippet source">source</a><code class="language-scala">ReplicatedEntityProvider[Command](&quot;MyEntityType&quot;, Set(ReplicaId(&quot;DC-A&quot;), ReplicaId(&quot;DC-B&quot;))) {
+  (entityTypeKey, replicaId) =&gt;
+    ReplicatedEntity(replicaId, Entity(entityTypeKey) { entityContext =&gt;
+      // the sharding entity id contains the business entityId, entityType, and replica id
+      // which you&#39;ll need to create a ReplicatedEventSourcedBehavior
+      val replicationId = ReplicationId.fromString(entityContext.entityId)
+      MyEventSourcedBehavior(replicationId)
+    })
+}</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.8.0-M6/akka-cluster-sharding-typed/src/test/java/jdocs/akka/cluster/sharding/typed/ReplicatedShardingCompileOnlySpec.java#L33-L45" target="_blank" title="Go to snippet source">source</a><code class="language-java">return ReplicatedEntityProvider.create(
+    Command.class,
+    &quot;MyReplicatedType&quot;,
+    ALL_REPLICAS,
+    (entityTypeKey, replicaId) -&gt;
+        ReplicatedEntity.create(
+            replicaId,
+            Entity.of(
+                entityTypeKey,
+                entityContext -&gt;
+                    myEventSourcedBehavior(
+                        ReplicationId.fromString(entityContext.getEntityId())))));
+</code></pre></dd>
+</dl>
+<p>This will run an instance of sharding and per replica and each entity id contains the replica id and the type name. Replicas could be on the same node if they end up in the same shard or if the shards get allocated to the same node.</p>
+<p>To prevent this roles can be used. You could for instance add a cluster role per availability zone / rack and have a replica per rack.</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.8.0-M6/akka-cluster-sharding-typed/src/test/scala/docs/akka/cluster/sharding/typed/ReplicatedShardingCompileOnlySpec.scala#L49-L52" target="_blank" title="Go to snippet source">source</a><code class="language-scala">val provider = ReplicatedEntityProvider.perRole(&quot;MyEntityType&quot;, Set(ReplicaId(&quot;DC-A&quot;), ReplicaId(&quot;DC-B&quot;))) {
+  replicationId =&gt;
+    MyEventSourcedBehavior(replicationId)
+}</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.8.0-M6/akka-cluster-sharding-typed/src/test/java/jdocs/akka/cluster/sharding/typed/ReplicatedShardingCompileOnlySpec.java#L70-L83" target="_blank" title="Go to snippet source">source</a><code class="language-java">return ReplicatedEntityProvider.create(
+    Command.class,
+    &quot;MyReplicatedType&quot;,
+    ALL_REPLICAS,
+    (entityTypeKey, replicaId) -&gt;
+        ReplicatedEntity.create(
+            replicaId,
+            Entity.of(
+                    entityTypeKey,
+                    entityContext -&gt;
+                        myEventSourcedBehavior(
+                            ReplicationId.fromString(entityContext.getEntityId())))
+                .withRole(replicaId.id())));
+</code></pre></dd>
+</dl>
+<p>Lastly if your Akka Cluster is setup across DCs you can run a replica per DC.</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.8.0-M6/akka-cluster-sharding-typed/src/test/scala/docs/akka/cluster/sharding/typed/ReplicatedShardingCompileOnlySpec.scala#L43-L45" target="_blank" title="Go to snippet source">source</a><code class="language-scala">ReplicatedEntityProvider.perDataCenter(&quot;MyEntityType&quot;, Set(ReplicaId(&quot;DC-A&quot;), ReplicaId(&quot;DC-B&quot;))) { replicationId =&gt;
+  MyEventSourcedBehavior(replicationId)
+}</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.8.0-M6/akka-cluster-sharding-typed/src/test/java/jdocs/akka/cluster/sharding/typed/ReplicatedShardingCompileOnlySpec.java#L51-L64" target="_blank" title="Go to snippet source">source</a><code class="language-java">ReplicatedEntityProvider.create(
+    Command.class,
+    &quot;MyReplicatedType&quot;,
+    ALL_REPLICAS,
+    (entityTypeKey, replicaId) -&gt;
+        ReplicatedEntity.create(
+            replicaId,
+            Entity.of(
+                    entityTypeKey,
+                    entityContext -&gt;
+                        myEventSourcedBehavior(
+                            ReplicationId.fromString(entityContext.getEntityId())))
+                .withDataCenter(replicaId.id())));
+</code></pre></dd>
+</dl>
+<p>Regardless of which replication strategy you use sending messages to the replicated entities is the same.</p>
+<p><code>init</code> returns an <span class="group-scala"><a href="https://doc.akka.io/api/akka/2.8/akka/cluster/sharding/typed/ReplicatedSharding.html" title="akka.cluster.sharding.typed.ReplicatedSharding"><code>ReplicatedSharding</code></a></span><span class="group-java"><a href="https://doc.akka.io/japi/akka/2.8/akka/cluster/sharding/typed/ReplicatedSharding.html" title="akka.cluster.sharding.typed.ReplicatedSharding"><code>ReplicatedSharding</code></a></span> instance which gives access to <span class="group-java"><a href="https://doc.akka.io/japi/akka/2.8/akka/cluster/sharding/typed/javadsl/EntityRef.html" title="akka.cluster.sharding.typed.javadsl.EntityRef"><code>EntityRef</code></a></span><span class="group-scala"><a href="https://doc.akka.io/api/akka/2.8/akka/cluster/sharding/typed/scaladsl/EntityRef.html" title="akka.cluster.sharding.typed.scaladsl.EntityRef"><code>EntityRef</code></a></span>s for each of the replicas for arbitrary routing logic:</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.8.0-M6/akka-cluster-sharding-typed/src/test/scala/docs/akka/cluster/sharding/typed/ReplicatedShardingCompileOnlySpec.scala#L56-L59" target="_blank" title="Go to snippet source">source</a><code class="language-scala">val myReplicatedSharding: ReplicatedSharding[Command] =
+  ReplicatedShardingExtension(system).init(provider)
+
+val entityRefs: Map[ReplicaId, EntityRef[Command]] = myReplicatedSharding.entityRefsFor(&quot;myEntityId&quot;)</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.8.0-M6/akka-cluster-sharding-typed/src/test/java/jdocs/akka/cluster/sharding/typed/ReplicatedShardingCompileOnlySpec.java#L89-L94" target="_blank" title="Go to snippet source">source</a><code class="language-java">ReplicatedShardingExtension extension = ReplicatedShardingExtension.get(system);
+
+ReplicatedSharding&lt;Command&gt; replicatedSharding = extension.init(provider());
+
+Map&lt;ReplicaId, EntityRef&lt;Command&gt;&gt; myEntityId =
+    replicatedSharding.getEntityRefsFor(&quot;myEntityId&quot;);</code></pre></dd>
+</dl>
+<p>More advanced routing among the replicas is currently left as an exercise for the reader (or may be covered in a future release <a href="https://github.com/akka/akka/issues/29281">#29281</a>, <a href="https://github.com/akka/akka/issues/29319">#29319</a>).</p>
+<h2><a href="#tagging-events-and-running-projections" name="tagging-events-and-running-projections" class="anchor"><span class="anchor-link"></span></a>Tagging events and running projections</h2>
+<p>Just like for regular <code>EventSourcedBehavior</code>s it is possible to tag events along with persisting them. This is useful for later retrival of events for a given tag. The same <a href="persistence.html#tagging">API for tagging provided for EventSourcedBehavior</a> can be used for replicated event sourced behaviors as well. Tagging is useful in practice to build queries that lead to other data representations or aggregations of these event streams that can more directly serve user queries – known as building the “read side” in <a href="cqrs.html">CQRS</a> based applications.</p>
+<p>Creating read side projections is possible through <a href="https://doc.akka.io/docs/akka-projection/current/">Akka Projections</a> or through direct usage of the <a href="../persistence-query.html#eventsbytag-and-currenteventsbytag">events by tag queries</a>. </p>
+<p>The tagging is invoked in each replicas, which requires some special care in using tags, or else the same event will be tagged one time for each replica and show up in the event by tag stream one time for each replica. In addition to this the tags will be written in the respective journal of the replicas, which means that unless they all share a single journal the tag streams will be local to the replica even if the same tag is used on multiple replicas.</p>
+<p>One strategy for dealing with this is to include the replica id in the tag name, this means there will be a tagged stream of events per replica that contains all replicated events, but since the events can arrive in different order, they can also come in different order per replica tag.</p>
+<p>Another strategy would be to tag only the events that are local to the replica and not events that are replicated. Either using a tag that will be the same for all replicas, leading to a single stream of tagged events where the events from each replica is present only once, or with a tag including the replica id meaning that there will be a stream of tagged events with the events accepted locally for each replica.</p>
+<p>Determining the replica id of the replicated actor itself and the origin replica id of an event is possible through the <span class="group-java"><a href="https://doc.akka.io/japi/akka/2.8/akka/persistence/typed/javadsl/ReplicationContext.html" title="akka.persistence.typed.javadsl.ReplicationContext"><code>ReplicationContext</code></a></span><span class="group-scala"><a href="https://doc.akka.io/api/akka/2.8/akka/persistence/typed/scaladsl/ReplicationContext.html" title="akka.persistence.typed.scaladsl.ReplicationContext"><code>ReplicationContext</code></a></span> when the tagger callback is invoked like this:</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.8.0-M6/akka-persistence-typed-tests/src/test/scala/akka/persistence/typed/ReplicatedEventSourcingTaggingSpec.scala#L45-L70" target="_blank" title="Go to snippet source">source</a><code class="language-scala">ReplicatedEventSourcing.commonJournalConfig(
+  ReplicationId(&quot;TaggingSpec&quot;, entityId, replica),
+  allReplicas,
+  queryPluginId)(
+  replicationContext =&gt;
+    EventSourcedBehavior[Command, String, State](
+      replicationContext.persistenceId,
+      State(Set.empty),
+      (state, command) =&gt;
+        command match {
+          case Add(string, ack) =&gt;
+            if (state.strings.contains(string)) Effect.none.thenRun(_ =&gt; ack ! Done)
+            else Effect.persist(string).thenRun(_ =&gt; ack ! Done)
+          case GetStrings(replyTo) =&gt;
+            replyTo ! state.strings
+            Effect.none
+        },
+      (state, event) =&gt; state.copy(strings = state.strings + event))
+    // use withTagger to define tagging logic
+      .withTagger(
+        event =&gt;
+          // don&#39;t apply tags if event was replicated here, it already will appear in queries by tag
+          // as the origin replica would have tagged it already
+          if (replicationContext.origin != replicationContext.replicaId) Set.empty
+          else if (event.length &gt; 10) Set(&quot;long-strings&quot;, &quot;strings&quot;)
+          else Set(&quot;strings&quot;)))</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.8.0-M6/akka-persistence-typed-tests/src/test/java/jdocs/akka/persistence/typed/ReplicatedStringSet.java#L71-L83" target="_blank" title="Go to snippet source">source</a><code class="language-java">@Override
+public Set&lt;String&gt; tagsFor(String event) {
+  // don&#39;t apply tags if event was replicated here, it already will appear in queries by tag
+  // as the origin replica would have tagged it already
+  if (getReplicationContext().replicaId() != getReplicationContext().origin()) {
+    return new HashSet&lt;&gt;();
+  } else {
+    Set&lt;String&gt; tags = new HashSet&lt;&gt;();
+    tags.add(&quot;strings&quot;);
+    if (event.length() &gt; 10) tags.add(&quot;long-strings&quot;);
+    return tags;
+  }
+}</code></pre></dd>
+</dl>
+<p>In this sample we are using a shared journal, and single tag but only tagging local events to it and therefore ending up with a single stream of tagged events from all replicas without duplicates. </p>
+<h2><a href="#direct-replication-of-events" name="direct-replication-of-events" class="anchor"><span class="anchor-link"></span></a>Direct Replication of Events</h2>
+<p>Each replica will read the events from all the other copies from the database. When used with Cluster Sharding, and to make the sharing of events with other replicas more efficient, each replica publishes the events across the Akka cluster directly to other replicas. The delivery of events across the cluster is not guaranteed so the query to the journal is still needed but can be configured to poll the database less often since most events will arrive at the replicas through the cluster.</p>
+<p>The direct replication of events feature is enabled by default when using Cluster Sharding. To disable this feature you first need to:</p>
+<ol>
+  <li>disable event publishing <span class="group-scala">on the <code>EventSourcedBehavior</code> with <code>withEventPublishing(false)</code></span><span class="group-java">overriding <code>withEventPublishing</code> from <code>ReplicatedEventSourcedBehavior</code> to return <code>false</code></span> , and then</li>
+  <li>disable direct replication through <code>withDirectReplication(false)</code> on <span class="group-scala"><a href="https://doc.akka.io/api/akka/2.8/akka/cluster/sharding/typed/ReplicatedEntityProvider.html" title="akka.cluster.sharding.typed.ReplicatedEntityProvider"><code>ReplicatedEntityProvider</code></a></span><span class="group-java"><a href="https://doc.akka.io/japi/akka/2.8/akka/cluster/sharding/typed/ReplicatedEntityProvider.html" title="akka.cluster.sharding.typed.ReplicatedEntityProvider"><code>ReplicatedEntityProvider</code></a></span></li>
+</ol>
+<p>The &ldquo;event publishing&rdquo; feature publishes each event to the local system event bus as a side effect after it has been written.</p>
+<h2><a href="#examples" name="examples" class="anchor"><span class="anchor-link"></span></a>Examples</h2>
+<p>More examples can be found in <a href="replicated-eventsourcing-examples.html">Replicated Event Sourcing Examples</a></p>
+<h2><a href="#journal-support" name="journal-support" class="anchor"><span class="anchor-link"></span></a>Journal Support</h2>
+<p>For a journal plugin to support replication it needs to store and read metadata for each event if it is defined in the   <code>metadata</code> field. To attach the metadata after writing it, <code>PersistentRepr.withMetadata</code> is used. The <span class="group-scala"><a href="https://doc.akka.io/api/akka/2.8/akka/persistence/journal/JournalSpec.html" title="akka.persistence.journal.JournalSpec"><code>JournalSpec</code></a></span><span class="group-java"><a href="https://doc.akka.io/japi/akka/2.8/akka/persistence/journal/JournalSpec.html" title="akka.persistence.journal.JournalSpec"><code>JournalSpec</code></a></span> in the Persistence TCK provides  a capability flag <code>supportsMetadata</code> to toggle verification that metadata is handled correctly.</p>
+<p>For a snapshot plugin to support replication it needs to store and read metadata for the snapshot if it is defined in the  <code>metadata</code> field. To attach the metadata when reading the snapshot the <code>akka.persistence.SnapshotMetadata.apply</code> factory overload taking a <code>metadata</code> parameter is used. The <span class="group-scala"><a href="https://doc.akka.io/api/akka/2.8/akka/persistence/snapshot/SnapshotStoreSpec.html" title="akka.persistence.snapshot.SnapshotStoreSpec"><code>SnapshotStoreSpec</code></a></span><span class="group-java"><a href="https://doc.akka.io/japi/akka/2.8/akka/persistence/snapshot/SnapshotStoreSpec.html" title="akka.persistence.snapshot.SnapshotStoreSpec"><code>SnapshotStoreSpec</code></a></span> in the Persistence TCK provides a capability flag <code>supportsMetadata</code> to toggle verification that metadata is handled correctly.</p>
+<p>The following plugins support Replicated Event Sourcing:</p>
+<ul>
+  <li><a href="https://doc.akka.io/docs/akka-persistence-cassandra/current/index.html">Akka Persistence Cassandra</a> versions 1.0.3+</li>
+  <li><a href="https://doc.akka.io/docs/akka-persistence-r2dbc/current/">Akka Persistence R2DBC</a> versions 1.0.0+</li>
+  <li><a href="https://doc.akka.io/docs/akka-persistence-jdbc/current">Akka Persistence JDBC</a> versions 5.0.0+</li>
+</ul>
+</div>
+</article>
+<div class="row">
+<div class="small-12 column">
+<section class="nav-prev-next row">
+<div class="nav-prev small-6 column">
+<a href="../persistence-journals.html"><i class="icon-prev"></i> <span class="link-prev">Persistence - Building a storage backend</span></a>
+</div>
+<div class="nav-next small-6 column clearfix">
+<a class="float-right" href="../typed/replicated-eventsourcing-examples.html">Replicated Event Sourcing Examples <i class="icon-next"></i></a>
+</div>
+</section>
+</div>
+</div>
+<div class="source-github row">
+Found an error in this documentation? The source code for this page can be found <a href="https://github.com/akka/akka/tree/v2.8.0-M6/akka-docs/src/main/paradox/typed/replicated-eventsourcing-db-transport.md">here</a>.
+Please feel free to edit and contribute a pull request.
+</div>
+
+<footer class="page-footer row clearfix">
+<img class="akka-icon float-left show-for-medium" src="../images/akka-icon.svg" />
+<section class="copyright">
+<div>Akka is available under the <a href="https://www.lightbend.com/akka/license" target="_blank">Business Source License 1.1</a>.</div>
+<p class="legal">
+&copy; 2011-2023 <a href="https://www.lightbend.com" target="_blank">Lightbend, Inc.</a> |
+<a href="https://www.lightbend.com/legal/licenses" target="_blank">Licenses</a> |
+<a href="https://www.lightbend.com/legal/terms" target="_blank">Terms</a> |
+<a href="https://www.lightbend.com/legal/privacy" target="_blank">Privacy Policy</a> |
+<a href="https://akka.io/cookie/" target="_blank">Cookie Listing</a> |
+<a class="optanon-toggle-display">Cookie Settings</a>
+</p>
+</section>
+
+</footer>
+</section>
+</main>
+</div>
+
+<script type="text/javascript" src="../js/scrollsneak.js"></script>
+<script type="text/javascript">jQuery(document).foundation();</script>
+<script type="text/javascript" src="../js/groups.js"></script>
+<script type="text/javascript" src="../js/page.js"></script>
+<script type="text/javascript" src="../js/snippets.js"></script>
+<script type="text/javascript" src="../js/magellan.js"></script>
+<script type="text/javascript" src="../js/metadata-toggle.js"></script>
+<script type="text/javascript" src="../js/lbHeader.js"></script>
+
+<style type="text/css">@import "../lib/prettify/prettify.css";</style>
+<script type="text/javascript" src="../lib/prettify/prettify.js"></script>
+<script type="text/javascript" src="../lib/prettify/lang-scala.js"></script>
+<script type="text/javascript">//<![CDATA[
+jQuery(function(){window.prettyPrint && prettyPrint()});
+//]]></script>
+<!-- Algolia docs search -->
+<script type="text/javascript" src="https://cdn.jsdelivr.net/docsearch.js/2/docsearch.min.js"></script>
+<style>.algolia-autocomplete { display: block !important }</style>
+<script type="text/javascript">
+docsearch({
+apiKey: '543bad5ad786495d9ccd445ed34ed082',
+indexName: 'akka_io',
+inputSelector: '#search',
+algoliaOptions: {
+hitsPerPage: 5
+}
+});
+
+docsearch({
+apiKey: '543bad5ad786495d9ccd445ed34ed082',
+indexName: 'akka_io',
+inputSelector: '#overlay-search',
+algoliaOptions: {
+hitsPerPage: 5
+}
+});
+
+// set up "/" as global shortcut for focusing on search
+jQuery(document).keypress(function (event) {
+if (event.keyCode == 47) {
+jQuery("#search").focus();
+return false; // swallow key event, otherwise the / char would be input into the search box
+}
+});
+</script>
+
+<script type="text/javascript" src="../assets/js/warnOldDocs.js"></script>
+<script type="text/javascript" src="../assets/js/scalafiddle.js"></script>
+
+
+</body>
+</html>
