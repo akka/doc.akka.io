@@ -1,0 +1,908 @@
+<!DOCTYPE html>
+<html class="no-js" lang="en">
+
+<head>
+<title>Classic Fault Tolerance &bull; Akka Documentation</title>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta name="description" content="Akka is a toolkit for building highly concurrent, distributed, and resilient message-driven applications for Java and Scala."/>
+<link rel="canonical" href="https://doc.akka.io/docs/akka/current/fault-tolerance.html"/>
+<script type="text/javascript" src="lib/jquery/jquery.min.js"></script>
+<script type="text/javascript" src="lib/foundation/dist/js/foundation.min.js"></script>
+<link rel="stylesheet" type="text/css" href="lib/normalize.css/normalize.css"/>
+<link rel="stylesheet" type="text/css" href="lib/foundation/dist/css/foundation.min.css"/>
+<link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/docsearch.js/2/docsearch.min.css" />
+<link rel="stylesheet" type="text/css" href="css/icons.css"/>
+<link rel="stylesheet" type="text/css" href="css/page-8.css"/>
+<link rel="stylesheet" type="text/css" href="css/banner-2.css"/>
+<link rel="shortcut icon" href="images/favicon.ico" />
+<link rel="apple-touch-icon" sizes="180x180" href="images/apple-touch-icon.png"/>
+<link rel="icon" type="image/png" sizes="32x32" href="images/favicon-32x32.png"/>
+<link rel="icon" type="image/png" sizes="16x16" href="images/favicon-16x16.png"/>
+<link rel="manifest" href="images/manifest.json"/>
+<meta name="msapplication-TileImage" content="images/mstile-150x150.png"/>
+<meta name="msapplication-TileColor" content="#15a9ce"/>
+<meta name="theme-color" content="#15a9ce"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<!-- OneTrust Cookies Consent Notice (Production Standard, akka.io, en-GB) start -->
+<script src="https://cdn.cookielaw.org/scripttemplates/otSDKStub.js"  type="text/javascript" charset="UTF-8" data-domain-script="28b912e7-09e9-43d5-91e4-3d1897044004" ></script>
+<script type="text/javascript">
+function OptanonWrapper() { }
+</script>
+<!-- OneTrust Cookies Consent Notice (Production Standard, akka.io, en-GB) end -->
+<!--Google Analytics-->
+<script type="text/plain" class="optanon-category-2">
+var _gaq = _gaq || [];
+_gaq.push(['_setAccount', 'UA-21117439-1']);
+_gaq.push(['_setDomainName', 'akka.io']);
+_gaq.push(['_trackPageview']);
+(function() {
+var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+})()
+</script>
+<!-- Google Tag Manager -->
+<script type="text/plain" class="optanon-category-2">
+(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+})(window,document,'script','dataLayer','GTM-KBJGH35');
+</script>
+<!--Marketo-->
+<script type="text/plain" class="optanon-category-3">
+(function() {
+var didInit = false;
+function initMunchkin() {
+if(didInit === false) {
+didInit = true;
+Munchkin.init('558-NCX-702', { 'asyncOnly': true, 'disableClickDelay': true });
+}
+}
+var s = document.createElement('script');
+s.type = 'text/javascript';
+s.async = true;
+s.src = '//munchkin.marketo.net/munchkin.js';
+s.onreadystatechange = function() {
+if (this.readyState == 'complete' || this.readyState == 'loaded') {
+initMunchkin();
+}
+};
+s.onload = initMunchkin;
+document.getElementsByTagName('head')[0].appendChild(s);
+})();
+</script>
+</head>
+
+<body id="underlay" data-toggler="nav-open">
+<div id="lightbend-banner" class="lightbend-banner akka full-width" data-category="OSS Lightbend Banner Impression" data-label="Akka Banner Impression">
+<div class="oss-wrapper">
+<div class="oss-brand">
+<a class="oss-track-link-label" data-category="OSS Lightbend Banner Clicks" data-label="Lightbend Logo - Akka Banner" href="https://www.lightbend.com">
+<img class="lightbend-logo" src="images/banner-logos/lightbend-reverse.svg" alt="Lightbend" title="Lightbend">
+</a>
+</div>
+<div class="oss-ad no-drop-down">
+<nav id="lightbendRotator" class="lightbend-rotator">
+<a class="oss-track-link-label" data-category="OSS Lightbend Banner Clicks" data-label="Promo Rotator - Lightbend Changed its Software Licensing Model for Akka Technology. [License FAQ] - Akka Banner" href="https://www.lightbend.com/akka/license-faq">
+<strong>Lightbend</strong> Changed its Software Licensing Model for Akka Technology. <span class="akka-btn">License FAQ</span>
+</a>
+</nav>
+</div>
+</div>
+</div>
+
+<header class="site-header hide-for-large">
+<div class="sticky-header clearfix">
+<a href="https://akka.io"><img class="logo" src="images/akka-logo-reverse.svg"/></a>
+
+<button class="menu-icon float-right" type="button" data-toggle="underlay overlay"></button>
+</div>
+<div id="overlay" class="overlay-nav" data-toggler="nav-open">
+<header class="nav-header">
+<div class="nav-header-title">
+<h1><a href="index.html">Akka Documentation</a></h1>
+</div>
+<div class="nav-header-version">
+Version 2.8.1-M1
+</div>
+<div class="nav-header-groups">
+<select class="supergroup" name="Language"><option class="group" value="group-scala">Scala</option><option class="group" value="group-java">Java</option></select>
+</div>
+<div id="overlay-search-container" class="nav-header-search">
+<input id="overlay-search" type="search" class="search" placeholder="Search" />
+</div>
+</header>
+<nav class="nav-toc">
+<ul>
+  <li><a href="security/index.html" class="page">Security Announcements</a></li>
+  <li><a href="typed/guide/index.html" class="page">Getting Started Guide</a></li>
+  <li><a href="general/index.html" class="page">General Concepts</a></li>
+  <li><a href="typed/index.html" class="page">Actors</a></li>
+  <li><a href="typed/index-cluster.html" class="page">Cluster</a></li>
+  <li><a href="typed/index-persistence.html" class="page">Persistence (Event Sourcing)</a></li>
+  <li><a href="typed/index-persistence-durable-state.html" class="page">Persistence (Durable State)</a></li>
+  <li><a href="stream/index.html" class="page">Streams</a></li>
+  <li><a href="discovery/index.html" class="page">Discovery</a></li>
+  <li><a href="index-utilities.html" class="page">Utilities</a></li>
+  <li><a href="common/other-modules.html" class="page">Other Akka modules</a></li>
+  <li><a href="additional/deploy.html" class="page">Package, Deploy and Run</a></li>
+  <li><a href="project/index.html" class="page">Project Information</a></li>
+  <li><a href="index-classic.html" class="page">Akka Classic</a>
+  <ul>
+    <li><a href="index-actors.html" class="page">Classic Actors</a>
+    <ul>
+      <li><a href="index-actors.html#dependency" class="header">Dependency</a></li>
+      <li><a href="actors.html" class="page">Classic Actors</a></li>
+      <li><a href="supervision-classic.html" class="page">Classic Supervision</a></li>
+      <li><a href="fault-tolerance.html#classic-fault-tolerance" class="active page">Classic Fault Tolerance</a>
+      <ul>
+        <li><a href="fault-tolerance.html#dependency" class="header">Dependency</a></li>
+        <li><a href="fault-tolerance.html#introduction" class="header">Introduction</a></li>
+        <li><a href="fault-tolerance.html#fault-handling-in-practice" class="header">Fault Handling in Practice</a></li>
+        <li><a href="fault-tolerance.html#creating-a-supervisor-strategy" class="header">Creating a Supervisor Strategy</a></li>
+        <li><a href="fault-tolerance.html#supervision-of-top-level-actors" class="header">Supervision of Top-Level Actors</a></li>
+        <li><a href="fault-tolerance.html#test-application" class="header">Test Application</a></li>
+        <li><a href="fault-tolerance.html#delayed-restarts-for-classic-actors" class="header">Delayed restarts for classic actors</a></li>
+      </ul></li>
+      <li><a href="dispatchers.html" class="page">Classic Dispatchers</a></li>
+      <li><a href="mailboxes.html" class="page">Classic Mailboxes</a></li>
+      <li><a href="routing.html" class="page">Classic Routing</a></li>
+      <li><a href="fsm.html" class="page">Classic FSM</a></li>
+      <li><a href="persistence.html" class="page">Classic Persistence</a></li>
+      <li><a href="persistence-fsm.html" class="page">Classic Persistent FSM</a></li>
+      <li><a href="testing.html" class="page">Testing Classic Actors</a></li>
+    </ul></li>
+    <li><a href="index-cluster.html" class="page">Classic Clustering</a></li>
+    <li><a href="index-network.html" class="page">Classic Networking</a></li>
+    <li><a href="index-utilities-classic.html" class="page">Classic Utilities</a></li>
+  </ul></li>
+</ul>
+</nav>
+</div>
+</header>
+<div class="site-content-wrapper">
+<aside class="sticky-sidebar show-for-large">
+<header class="nav-header sticky-sidebar-header">
+<div class="nav-header-title">
+<h1><a href="index.html">Akka Documentation</a></h1>
+</div>
+<div class="nav-header-version">
+Version 2.8.1-M1
+</div>
+<div class="nav-header-groups">
+<select class="supergroup" name="Language"><option class="group" value="group-scala">Scala</option><option class="group" value="group-java">Java</option></select>
+</div>
+<div class="nav-header-search">
+<input id="search" type="search" class="search" placeholder="Search" />
+</div>
+</header>
+<nav class="site-nav sticky-sidebar-contents">
+<div class="nav-toc">
+<ul>
+  <li><a href="security/index.html" class="page">Security Announcements</a></li>
+  <li><a href="typed/guide/index.html" class="page">Getting Started Guide</a></li>
+  <li><a href="general/index.html" class="page">General Concepts</a></li>
+  <li><a href="typed/index.html" class="page">Actors</a></li>
+  <li><a href="typed/index-cluster.html" class="page">Cluster</a></li>
+  <li><a href="typed/index-persistence.html" class="page">Persistence (Event Sourcing)</a></li>
+  <li><a href="typed/index-persistence-durable-state.html" class="page">Persistence (Durable State)</a></li>
+  <li><a href="stream/index.html" class="page">Streams</a></li>
+  <li><a href="discovery/index.html" class="page">Discovery</a></li>
+  <li><a href="index-utilities.html" class="page">Utilities</a></li>
+  <li><a href="common/other-modules.html" class="page">Other Akka modules</a></li>
+  <li><a href="additional/deploy.html" class="page">Package, Deploy and Run</a></li>
+  <li><a href="project/index.html" class="page">Project Information</a></li>
+  <li><a href="index-classic.html" class="page">Akka Classic</a>
+  <ul>
+    <li><a href="index-actors.html" class="page">Classic Actors</a>
+    <ul>
+      <li><a href="index-actors.html#dependency" class="header">Dependency</a></li>
+      <li><a href="actors.html" class="page">Classic Actors</a></li>
+      <li><a href="supervision-classic.html" class="page">Classic Supervision</a></li>
+      <li><a href="fault-tolerance.html#classic-fault-tolerance" class="active page">Classic Fault Tolerance</a>
+      <ul>
+        <li><a href="fault-tolerance.html#dependency" class="header">Dependency</a></li>
+        <li><a href="fault-tolerance.html#introduction" class="header">Introduction</a></li>
+        <li><a href="fault-tolerance.html#fault-handling-in-practice" class="header">Fault Handling in Practice</a></li>
+        <li><a href="fault-tolerance.html#creating-a-supervisor-strategy" class="header">Creating a Supervisor Strategy</a></li>
+        <li><a href="fault-tolerance.html#supervision-of-top-level-actors" class="header">Supervision of Top-Level Actors</a></li>
+        <li><a href="fault-tolerance.html#test-application" class="header">Test Application</a></li>
+        <li><a href="fault-tolerance.html#delayed-restarts-for-classic-actors" class="header">Delayed restarts for classic actors</a></li>
+      </ul></li>
+      <li><a href="dispatchers.html" class="page">Classic Dispatchers</a></li>
+      <li><a href="mailboxes.html" class="page">Classic Mailboxes</a></li>
+      <li><a href="routing.html" class="page">Classic Routing</a></li>
+      <li><a href="fsm.html" class="page">Classic FSM</a></li>
+      <li><a href="persistence.html" class="page">Classic Persistence</a></li>
+      <li><a href="persistence-fsm.html" class="page">Classic Persistent FSM</a></li>
+      <li><a href="testing.html" class="page">Testing Classic Actors</a></li>
+    </ul></li>
+    <li><a href="index-cluster.html" class="page">Classic Clustering</a></li>
+    <li><a href="index-network.html" class="page">Classic Networking</a></li>
+    <li><a href="index-utilities-classic.html" class="page">Classic Utilities</a></li>
+  </ul></li>
+</ul>
+</div>
+</nav>
+<footer class="nav-footer sticky-sidebar-footer">
+<a href="https://akka.io"><img class="logo" src="images/akka-logo-reverse.svg"/></a>
+
+</footer>
+</aside>
+<main class="fixed-shift-for-large expanded row">
+<section class="site-content small-12 column">
+<article class="page-content row">
+<div class="small-12 column" id="docs">
+<h1><a href="#classic-fault-tolerance" name="classic-fault-tolerance" class="anchor"><span class="anchor-link"></span></a>Classic Fault Tolerance</h1><div class="callout note "><div class="callout-title">Note</div>
+<p>Akka Classic pertains to the original Actor APIs, which have been improved by more type safe and guided Actor APIs. Akka Classic is still fully supported and existing applications can continue to use the classic APIs. It is also possible to use the new Actor APIs together with classic actors in the same ActorSystem, see <a href="typed/coexisting.html">coexistence</a>. For new projects we recommend using <a href="typed/actors.html">the new Actor API</a>.</p></div>
+<p>For the full documentation of this feature and for new projects see <a href="typed/fault-tolerance.html">fault tolerance</a>.</p>
+<h2><a href="#dependency" name="dependency" class="anchor"><span class="anchor-link"></span></a>Dependency</h2>
+<p>The concept of fault tolerance relates to actors, so in order to use these make sure to depend on actors:</p><dl class="dependency"><dt>sbt</dt><dd><pre class="prettyprint"><code class="language-scala">val AkkaVersion = "2.8.1-M1"
+libraryDependencies += "com.typesafe.akka" %% "akka-actor" % AkkaVersion</code></pre></dd><dt>Maven</dt><dd><pre class="prettyprint"><code class="language-xml">&lt;properties&gt;
+  &lt;scala.binary.version&gt;2.13&lt;/scala.binary.version&gt;
+&lt;/properties&gt;
+&lt;dependencyManagement&gt;
+  &lt;dependencies&gt;
+    &lt;dependency&gt;
+      &lt;groupId&gt;com.typesafe.akka&lt;/groupId&gt;
+      &lt;artifactId&gt;akka-bom_${scala.binary.version}&lt;/artifactId&gt;
+      &lt;version&gt;2.8.1-M1&lt;/version&gt;
+      &lt;type&gt;pom&lt;/type&gt;
+      &lt;scope&gt;import&lt;/scope&gt;
+    &lt;/dependency&gt
+  &lt;/dependencies&gt;
+&lt;/dependencyManagement&gt;
+&lt;dependencies&gt
+  &lt;dependency&gt;
+    &lt;groupId&gt;com.typesafe.akka&lt;/groupId&gt;
+    &lt;artifactId&gt;akka-actor_${scala.binary.version}&lt;/artifactId&gt;
+  &lt;/dependency&gt
+&lt;/dependencies&gt;</code></pre></dd><dt>Gradle</dt><dd><pre class="prettyprint"><code class="language-gradle">def versions = [
+  ScalaBinary: "2.13"
+]
+dependencies {
+  implementation platform("com.typesafe.akka:akka-bom_${versions.ScalaBinary}:2.8.1-M1")
+
+  implementation "com.typesafe.akka:akka-actor_${versions.ScalaBinary}"
+}</code></pre></dd></dl>
+<h2><a href="#introduction" name="introduction" class="anchor"><span class="anchor-link"></span></a>Introduction</h2>
+<p>As explained in <a href="general/actor-systems.html">Actor Systems</a> each actor is the supervisor of its children, and as such each actor defines fault handling supervisor strategy. This strategy cannot be changed afterwards as it is an integral part of the actor system’s structure.</p>
+<h2><a href="#fault-handling-in-practice" name="fault-handling-in-practice" class="anchor"><span class="anchor-link"></span></a>Fault Handling in Practice</h2>
+<p>First, let us look at a sample that illustrates one way to handle data store errors, which is a typical source of failure in real world applications. Of course it depends on the actual application what is possible to do when the data store is unavailable, but in this sample we use a best effort re-connect approach.</p>
+<p>Read the following source code. The inlined comments explain the different pieces of the fault handling and why they are added. It is also highly recommended to run this sample as it is easy to follow the log output to understand what is happening at runtime.</p>
+<h2><a href="#creating-a-supervisor-strategy" name="creating-a-supervisor-strategy" class="anchor"><span class="anchor-link"></span></a>Creating a Supervisor Strategy</h2>
+<p>The following sections explain the fault handling mechanism and alternatives in more depth.</p>
+<p>For the sake of demonstration let us consider the following strategy:</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.8.1-M1/akka-docs/src/test/scala/docs/actor/FaultHandlingDocSpec.scala#L27-L37" target="_blank" title="Go to snippet source">source</a><code class="language-scala">import akka.actor.OneForOneStrategy
+import akka.actor.SupervisorStrategy._
+import scala.concurrent.duration._
+
+override val supervisorStrategy =
+  OneForOneStrategy(maxNrOfRetries = 10, withinTimeRange = 1 minute) {
+    case _: ArithmeticException      =&gt; Resume
+    case _: NullPointerException     =&gt; Restart
+    case _: IllegalArgumentException =&gt; Stop
+    case _: Exception                =&gt; Escalate
+  }</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.8.1-M1/akka-docs/src/test/java/jdocs/actor/FaultHandlingTest.java#L58-L72" target="_blank" title="Go to snippet source">source</a><code class="language-java">private static SupervisorStrategy strategy =
+    new OneForOneStrategy(
+        10,
+        Duration.ofMinutes(1),
+        DeciderBuilder.match(ArithmeticException.class, e -&gt; SupervisorStrategy.resume())
+            .match(NullPointerException.class, e -&gt; SupervisorStrategy.restart())
+            .match(IllegalArgumentException.class, e -&gt; SupervisorStrategy.stop())
+            .matchAny(o -&gt; SupervisorStrategy.escalate())
+            .build());
+
+@Override
+public SupervisorStrategy supervisorStrategy() {
+  return strategy;
+}
+</code></pre></dd>
+</dl>
+<p>We have chosen a few well-known exception types in order to demonstrate the application of the fault handling directives described in <a href="general/supervision.html">supervision</a>. First off, it is a one-for-one strategy, meaning that each child is treated separately (an all-for-one strategy works very similarly, the only difference is that any decision is applied to all children of the supervisor, not only the failing one). In the above example, <code>10</code> and <span class="group-scala"><code>1 minute</code></span><span class="group-java"><code>Duration.create(1, TimeUnit.MINUTES)</code></span> are passed to the <code>maxNrOfRetries</code> and <code>withinTimeRange</code> parameters respectively, which means that the strategy restarts a child up to 10 restarts per minute. The child actor is stopped if the restart count exceeds <code>maxNrOfRetries</code> during the <code>withinTimeRange</code> duration.</p>
+<p>Also, there are special values for these parameters. If you specify:</p>
+<ul>
+  <li><code>-1</code> to <code>maxNrOfRetries</code>, and <span class="group-scala"><code>Duration.Inf</code></span><span class="group-java"><code>Duration.Inf()</code></span> to <code>withinTimeRange</code>
+    <ul>
+      <li>then the child is always restarted without any limit</li>
+    </ul>
+  </li>
+  <li><code>-1</code> to <code>maxNrOfRetries</code>, and a non-infinite <code>Duration</code> to <code>withinTimeRange</code>
+    <ul>
+      <li><code>maxNrOfRetries</code> is treated as <code>1</code></li>
+    </ul>
+  </li>
+  <li>a non-negative number to <code>maxNrOfRetries</code> and <span class="group-scala"><code>Duration.Inf</code></span><span class="group-java"><code>Duration.Inf()</code></span> to <code>withinTimeRange</code>
+    <ul>
+      <li><code>withinTimeRange</code> is treated as infinite duration (i.e.) no matter how long it takes, once the restart count exceeds <code>maxNrOfRetries</code>, the child actor is stopped</li>
+    </ul>
+  </li>
+</ul>
+<p>The match statement which forms the bulk of the body<br/><span class="group-scala">is of type <code>Decider</code> which is a <code>PartialFunction[Throwable, Directive]</code>.</span> <span class="group-java">consists of <code>PFBuilder</code> returned by <code>DeciderBuilder</code>&rsquo;s <code>match</code> method, where the builder is finished by the <code>build</code> method.</span> This is the piece which maps child failure types to their corresponding directives.</p><div class="callout note "><div class="callout-title">Note</div>
+<p>If the strategy is declared inside the supervising actor (as opposed to <span class="group-scala">within a companion object</span><span class="group-java">a separate class</span>) its decider has access to all internal state of the actor in a thread-safe fashion, including obtaining a reference to the currently failed child (available as the <span class="group-scala"><code>sender</code></span><span class="group-java"><code>getSender()</code></span> of the failure message).</p></div>
+<h3><a href="#default-supervisor-strategy" name="default-supervisor-strategy" class="anchor"><span class="anchor-link"></span></a>Default Supervisor Strategy</h3>
+<p><code>Escalate</code> is used if the defined strategy doesn&rsquo;t cover the exception that was thrown.</p>
+<p>When the supervisor strategy is not defined for an actor the following exceptions are handled by default:</p>
+<ul>
+  <li><code>ActorInitializationException</code> will stop the failing child actor</li>
+  <li><code>ActorKilledException</code> will stop the failing child actor</li>
+  <li><code>DeathPactException</code> will stop the failing child actor</li>
+  <li><code>Exception</code> will restart the failing child actor</li>
+  <li>Other types of <code>Throwable</code> will be escalated to parent actor</li>
+</ul>
+<p>If the exception escalate all the way up to the root guardian it will handle it in the same way as the default strategy defined above.</p><div class="group-scala">
+<p>You can combine your own strategy with the default strategy:</p>
+<pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.8.1-M1/akka-docs/src/test/scala/docs/actor/FaultHandlingDocSpec.scala#L72-L81" target="_blank" title="Go to snippet source">source</a><code class="language-scala">import akka.actor.OneForOneStrategy
+import akka.actor.SupervisorStrategy._
+import scala.concurrent.duration._
+
+override val supervisorStrategy =
+  OneForOneStrategy(maxNrOfRetries = 10, withinTimeRange = 1 minute) {
+    case _: ArithmeticException =&gt; Resume
+    case t =&gt;
+      super.supervisorStrategy.decider.applyOrElse(t, (_: Any) =&gt; Escalate)
+  }</code></pre></div>
+<h3><a href="#stopping-supervisor-strategy" name="stopping-supervisor-strategy" class="anchor"><span class="anchor-link"></span></a>Stopping Supervisor Strategy</h3>
+<p>Closer to the Erlang way is the strategy to stop children when they fail and then take corrective action in the supervisor when DeathWatch signals the loss of the child. This strategy is also provided pre-packaged as <code>SupervisorStrategy.stoppingStrategy</code> with an accompanying <code>StoppingSupervisorStrategy</code> configurator to be used when you want the <code>&quot;/user&quot;</code> guardian to apply it.</p>
+<h3><a href="#logging-of-actor-failures" name="logging-of-actor-failures" class="anchor"><span class="anchor-link"></span></a>Logging of Actor Failures</h3>
+<p>By default the <code>SupervisorStrategy</code> logs failures unless they are escalated. Escalated failures are supposed to be handled, and potentially logged, at a level higher in the hierarchy.</p>
+<p>Log levels can be controlled by providing a <code>Decider</code> and using the appropriate decision methods accepting a <code>LogLevel</code> on <code>SupervisorStrategy</code>.</p>
+<p>You can mute the default logging of a <code>SupervisorStrategy</code> by setting <code>loggingEnabled</code> to <code>false</code> when instantiating it. Customized logging can be done inside the <code>Decider</code>. Note that the reference to the currently failed child is available as the <code>sender</code> when the <code>SupervisorStrategy</code> is declared inside the supervising actor.</p>
+<p>You may also customize the logging in your own <code>SupervisorStrategy</code> implementation by overriding the <code>logFailure</code> method.</p>
+<h2><a href="#supervision-of-top-level-actors" name="supervision-of-top-level-actors" class="anchor"><span class="anchor-link"></span></a>Supervision of Top-Level Actors</h2>
+<p>Toplevel actors means those which are created using <code>system.actorOf()</code>, and they are children of the <a href="supervision-classic.html#user-guardian">User Guardian</a>. There are no special rules applied in this case, the guardian applies the configured strategy.</p>
+<h2><a href="#test-application" name="test-application" class="anchor"><span class="anchor-link"></span></a>Test Application</h2>
+<p>The following section shows the effects of the different directives in practice, where a test setup is needed. First off, we need a suitable supervisor:</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.8.1-M1/akka-docs/src/test/scala/docs/actor/FaultHandlingDocSpec.scala#L22-L43" target="_blank" title="Go to snippet source">source</a><code class="language-scala">import akka.actor.Actor
+
+class Supervisor extends Actor {
+  import akka.actor.OneForOneStrategy
+  import akka.actor.SupervisorStrategy._
+  import scala.concurrent.duration._
+
+  override val supervisorStrategy =
+    OneForOneStrategy(maxNrOfRetries = 10, withinTimeRange = 1 minute) {
+      case _: ArithmeticException      =&gt; Resume
+      case _: NullPointerException     =&gt; Restart
+      case _: IllegalArgumentException =&gt; Stop
+      case _: Exception                =&gt; Escalate
+    }
+
+  def receive = {
+    case p: Props =&gt; sender() ! context.actorOf(p)
+  }
+}</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.8.1-M1/akka-docs/src/test/java/jdocs/actor/FaultHandlingTest.java#L32-L86" target="_blank" title="Go to snippet source">source</a><code class="language-java">import akka.japi.pf.DeciderBuilder;
+import akka.actor.SupervisorStrategy;
+
+static class Supervisor extends AbstractActor {
+
+  private static SupervisorStrategy strategy =
+      new OneForOneStrategy(
+          10,
+          Duration.ofMinutes(1),
+          DeciderBuilder.match(ArithmeticException.class, e -&gt; SupervisorStrategy.resume())
+              .match(NullPointerException.class, e -&gt; SupervisorStrategy.restart())
+              .match(IllegalArgumentException.class, e -&gt; SupervisorStrategy.stop())
+              .matchAny(o -&gt; SupervisorStrategy.escalate())
+              .build());
+
+  @Override
+  public SupervisorStrategy supervisorStrategy() {
+    return strategy;
+  }
+
+
+  @Override
+  public Receive createReceive() {
+    return receiveBuilder()
+        .match(
+            Props.class,
+            props -&gt; {
+              getSender().tell(getContext().actorOf(props), getSelf());
+            })
+        .build();
+  }
+}
+</code></pre></dd>
+</dl>
+<p>This supervisor will be used to create a child, with which we can experiment:</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.8.1-M1/akka-docs/src/test/scala/docs/actor/FaultHandlingDocSpec.scala#L22-L95" target="_blank" title="Go to snippet source">source</a><code class="language-scala">import akka.actor.Actor
+
+class Child extends Actor {
+  var state = 0
+  def receive = {
+    case ex: Exception =&gt; throw ex
+    case x: Int        =&gt; state = x
+    case &quot;get&quot;         =&gt; sender() ! state
+  }
+}</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.8.1-M1/akka-docs/src/test/java/jdocs/actor/FaultHandlingTest.java#L132-L148" target="_blank" title="Go to snippet source">source</a><code class="language-java">static class Child extends AbstractActor {
+  int state = 0;
+
+  @Override
+  public Receive createReceive() {
+    return receiveBuilder()
+        .match(
+            Exception.class,
+            exception -&gt; {
+              throw exception;
+            })
+        .match(Integer.class, i -&gt; state = i)
+        .matchEquals(&quot;get&quot;, s -&gt; getSender().tell(state, getSelf()))
+        .build();
+  }
+}
+</code></pre></dd>
+</dl>
+<p>The test is easier by using the utilities described in <span class="group-scala"><a href="testing.html">Testing Actor Systems</a></span><span class="group-java"><a href="testing.html">TestKit</a></span>, where <code>TestProbe</code> provides an actor ref useful for receiving and inspecting replies.</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.8.1-M1/akka-docs/src/test/scala/docs/actor/FaultHandlingDocSpec.scala#L12-L194" target="_blank" title="Go to snippet source">source</a><code class="language-scala">import com.typesafe.config.{ Config, ConfigFactory }
+import org.scalatest.BeforeAndAfterAll
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpecLike
+import akka.testkit.{ EventFilter, ImplicitSender, TestKit }
+
+class FaultHandlingDocSpec(_system: ActorSystem)
+    extends TestKit(_system)
+    with ImplicitSender
+    with AnyWordSpecLike
+    with Matchers
+    with BeforeAndAfterAll {
+
+  def this() =
+    this(
+      ActorSystem(
+        &quot;FaultHandlingDocSpec&quot;,
+        ConfigFactory.parseString(&quot;&quot;&quot;
+      akka {
+        loggers = [&quot;akka.testkit.TestEventListener&quot;]
+        loglevel = &quot;WARNING&quot;
+      }
+      &quot;&quot;&quot;)))
+
+  override def afterAll(): Unit = {
+    TestKit.shutdownActorSystem(system)
+  }
+
+  &quot;A supervisor&quot; must {
+    &quot;apply the chosen strategy for its child&quot; in {
+      // code here
+    }
+  }
+}</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.8.1-M1/akka-docs/src/test/java/jdocs/actor/FaultHandlingTest.java#L19-L223" target="_blank" title="Go to snippet source">source</a><code class="language-java">import akka.testkit.TestProbe;
+import akka.testkit.ErrorFilter;
+import akka.testkit.EventFilter;
+import akka.testkit.TestEvent;
+import static java.util.concurrent.TimeUnit.SECONDS;
+import static akka.japi.Util.immutableSeq;
+import static org.junit.Assert.assertEquals;
+
+import scala.concurrent.Await;
+
+public class FaultHandlingTest extends AbstractJavaTest {
+  static ActorSystem system;
+  scala.concurrent.duration.Duration timeout =
+      scala.concurrent.duration.Duration.create(5, SECONDS);
+
+  @BeforeClass
+  public static void start() {
+    system = ActorSystem.create(&quot;FaultHandlingTest&quot;, config);
+  }
+
+  @AfterClass
+  public static void cleanup() {
+    TestKit.shutdownActorSystem(system);
+    system = null;
+  }
+
+  @Test
+  public void mustEmploySupervisorStrategy() throws Exception {
+    // code here
+  }
+}</code></pre></dd>
+</dl>
+<p>Let us create actors:</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.8.1-M1/akka-docs/src/test/scala/docs/actor/FaultHandlingDocSpec.scala#L132-L135" target="_blank" title="Go to snippet source">source</a><code class="language-scala">val supervisor = system.actorOf(Props[Supervisor](), &quot;supervisor&quot;)
+
+supervisor ! Props[Child]()
+val child = expectMsgType[ActorRef] // retrieve answer from TestKit’s testActor</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.8.1-M1/akka-docs/src/test/java/jdocs/actor/FaultHandlingTest.java#L179-L182" target="_blank" title="Go to snippet source">source</a><code class="language-java">Props superprops = Props.create(Supervisor.class);
+ActorRef supervisor = system.actorOf(superprops, &quot;supervisor&quot;);
+ActorRef child =
+    (ActorRef) Await.result(ask(supervisor, Props.create(Child.class), 5000), timeout);</code></pre></dd>
+</dl>
+<p>The first test shall demonstrate the <code>Resume</code> directive, so we try it out by setting some non-initial state in the actor and have it fail:</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.8.1-M1/akka-docs/src/test/scala/docs/actor/FaultHandlingDocSpec.scala#L139-L145" target="_blank" title="Go to snippet source">source</a><code class="language-scala">child ! 42 // set state to 42
+child ! &quot;get&quot;
+expectMsg(42)
+
+child ! new ArithmeticException // crash it
+child ! &quot;get&quot;
+expectMsg(42)</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.8.1-M1/akka-docs/src/test/java/jdocs/actor/FaultHandlingTest.java#L186-L189" target="_blank" title="Go to snippet source">source</a><code class="language-java">child.tell(42, ActorRef.noSender());
+assertEquals(42, Await.result(ask(child, &quot;get&quot;, 5000), timeout));
+child.tell(new ArithmeticException(), ActorRef.noSender());
+assertEquals(42, Await.result(ask(child, &quot;get&quot;, 5000), timeout));</code></pre></dd>
+</dl>
+<p>As you can see the value 42 survives the fault handling directive. Now, if we change the failure to a more serious <code>NullPointerException</code>, that will no longer be the case:</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.8.1-M1/akka-docs/src/test/scala/docs/actor/FaultHandlingDocSpec.scala#L150-L152" target="_blank" title="Go to snippet source">source</a><code class="language-scala">child ! new NullPointerException // crash it harder
+child ! &quot;get&quot;
+expectMsg(0)</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.8.1-M1/akka-docs/src/test/java/jdocs/actor/FaultHandlingTest.java#L193-L194" target="_blank" title="Go to snippet source">source</a><code class="language-java">child.tell(new NullPointerException(), ActorRef.noSender());
+assertEquals(0, Await.result(ask(child, &quot;get&quot;, 5000), timeout));</code></pre></dd>
+</dl>
+<p>And finally in case of the fatal <code>IllegalArgumentException</code> the child will be terminated by the supervisor:</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.8.1-M1/akka-docs/src/test/scala/docs/actor/FaultHandlingDocSpec.scala#L157-L159" target="_blank" title="Go to snippet source">source</a><code class="language-scala">watch(child) // have testActor watch “child”
+child ! new IllegalArgumentException // break it
+expectMsgPF() { case Terminated(`child`) =&gt; () }</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.8.1-M1/akka-docs/src/test/java/jdocs/actor/FaultHandlingTest.java#L198-L201" target="_blank" title="Go to snippet source">source</a><code class="language-java">final TestProbe probe = new TestProbe(system);
+probe.watch(child);
+child.tell(new IllegalArgumentException(), ActorRef.noSender());
+probe.expectMsgClass(Terminated.class);</code></pre></dd>
+</dl>
+<p>Up to now the supervisor was completely unaffected by the child’s failure, because the directives set did handle it. In case of an <code>Exception</code>, this is not true anymore and the supervisor escalates the failure.</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.8.1-M1/akka-docs/src/test/scala/docs/actor/FaultHandlingDocSpec.scala#L164-L173" target="_blank" title="Go to snippet source">source</a><code class="language-scala">supervisor ! Props[Child]() // create new child
+val child2 = expectMsgType[ActorRef]
+watch(child2)
+child2 ! &quot;get&quot; // verify it is alive
+expectMsg(0)
+
+child2 ! new Exception(&quot;CRASH&quot;) // escalate failure
+expectMsgPF() {
+  case t @ Terminated(`child2`) if t.existenceConfirmed =&gt; ()
+}</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.8.1-M1/akka-docs/src/test/java/jdocs/actor/FaultHandlingTest.java#L205-L209" target="_blank" title="Go to snippet source">source</a><code class="language-java">child = (ActorRef) Await.result(ask(supervisor, Props.create(Child.class), 5000), timeout);
+probe.watch(child);
+assertEquals(0, Await.result(ask(child, &quot;get&quot;, 5000), timeout));
+child.tell(new Exception(), ActorRef.noSender());
+probe.expectMsgClass(Terminated.class);</code></pre></dd>
+</dl>
+<p>The supervisor itself is supervised by the top-level actor provided by the <code>ActorSystem</code>, which has the default policy to restart in case of all <code>Exception</code> cases (with the notable exceptions of <code>ActorInitializationException</code> and <code>ActorKilledException</code>). Since the default directive in case of a restart is to kill all children, we expected our poor child not to survive this failure.</p>
+<p>In case this is not desired (which depends on the use case), we need to use a different supervisor which overrides this behavior.</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.8.1-M1/akka-docs/src/test/scala/docs/actor/FaultHandlingDocSpec.scala#L47-L67" target="_blank" title="Go to snippet source">source</a><code class="language-scala">class Supervisor2 extends Actor {
+  import akka.actor.OneForOneStrategy
+  import akka.actor.SupervisorStrategy._
+  import scala.concurrent.duration._
+
+  override val supervisorStrategy =
+    OneForOneStrategy(maxNrOfRetries = 10, withinTimeRange = 1 minute) {
+      case _: ArithmeticException      =&gt; Resume
+      case _: NullPointerException     =&gt; Restart
+      case _: IllegalArgumentException =&gt; Stop
+      case _: Exception                =&gt; Escalate
+    }
+
+  def receive = {
+    case p: Props =&gt; sender() ! context.actorOf(p)
+  }
+  // override default to kill all children during restart
+  override def preRestart(cause: Throwable, msg: Option[Any]): Unit = {}
+}</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.8.1-M1/akka-docs/src/test/java/jdocs/actor/FaultHandlingTest.java#L91-L127" target="_blank" title="Go to snippet source">source</a><code class="language-java">static class Supervisor2 extends AbstractActor {
+
+  private static SupervisorStrategy strategy =
+      new OneForOneStrategy(
+          10,
+          Duration.ofMinutes(1),
+          DeciderBuilder.match(ArithmeticException.class, e -&gt; SupervisorStrategy.resume())
+              .match(NullPointerException.class, e -&gt; SupervisorStrategy.restart())
+              .match(IllegalArgumentException.class, e -&gt; SupervisorStrategy.stop())
+              .matchAny(o -&gt; SupervisorStrategy.escalate())
+              .build());
+
+  @Override
+  public SupervisorStrategy supervisorStrategy() {
+    return strategy;
+  }
+
+
+  @Override
+  public Receive createReceive() {
+    return receiveBuilder()
+        .match(
+            Props.class,
+            props -&gt; {
+              getSender().tell(getContext().actorOf(props), getSelf());
+            })
+        .build();
+  }
+
+  @Override
+  public void preRestart(Throwable cause, Optional&lt;Object&gt; msg) {
+    // do not kill all children, which is the default here
+  }
+}
+</code></pre></dd>
+</dl>
+<p>With this parent, the child survives the escalated restart, as demonstrated in the last test:</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.8.1-M1/akka-docs/src/test/scala/docs/actor/FaultHandlingDocSpec.scala#L176-L187" target="_blank" title="Go to snippet source">source</a><code class="language-scala">val supervisor2 = system.actorOf(Props[Supervisor2](), &quot;supervisor2&quot;)
+
+supervisor2 ! Props[Child]()
+val child3 = expectMsgType[ActorRef]
+
+child3 ! 23
+child3 ! &quot;get&quot;
+expectMsg(23)
+
+child3 ! new Exception(&quot;CRASH&quot;)
+child3 ! &quot;get&quot;
+expectMsg(0)</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.8.1-M1/akka-docs/src/test/java/jdocs/actor/FaultHandlingTest.java#L213-L219" target="_blank" title="Go to snippet source">source</a><code class="language-java">superprops = Props.create(Supervisor2.class);
+supervisor = system.actorOf(superprops);
+child = (ActorRef) Await.result(ask(supervisor, Props.create(Child.class), 5000), timeout);
+child.tell(23, ActorRef.noSender());
+assertEquals(23, Await.result(ask(child, &quot;get&quot;, 5000), timeout));
+child.tell(new Exception(), ActorRef.noSender());
+assertEquals(0, Await.result(ask(child, &quot;get&quot;, 5000), timeout));</code></pre></dd>
+</dl>
+<h2><a href="#delayed-restarts-for-classic-actors" name="delayed-restarts-for-classic-actors" class="anchor"><span class="anchor-link"></span></a>Delayed restarts for classic actors</h2>
+<p>The supervision strategy to restart a classic actor only provides immediate restart. In some cases that will only trigger the same failure right away and giving things a bit of time before restarting is required to actually resolve the failure.</p>
+<p>The <code>akka.pattern.BackoffSupervisor</code> implements the so-called <em>exponential backoff supervision strategy</em>, starting a child actor again when it fails, each time with a growing time delay between restarts.</p>
+<p>This pattern is useful when the started actor fails <a id="^1" href="#1">[1]</a> because some external resource is not available, and we need to give it some time to start-up again. One of the prime examples when this is useful is when a <a href="persistence.html">PersistentActor</a> fails (by stopping) with a persistence failure - which indicates that the database may be down or overloaded, in such situations it makes most sense to give it a little bit of time to recover before the persistent actor is started.</p>
+<blockquote>
+  <p><a id="1" href="#^1">[1]</a> A failure can be indicated in two different ways; by an actor stopping or crashing.</p>
+</blockquote>
+<h3><a href="#supervision-strategies" name="supervision-strategies" class="anchor"><span class="anchor-link"></span></a>Supervision strategies</h3>
+<p>There are two basic supervision strategies available for backoff:</p>
+<ul>
+  <li>&lsquo;On failure&rsquo;: The supervisor will terminate and then start the supervised actor if it crashes. If the supervised actor stops normally (e.g. through <code>context.stop</code>), the supervisor will be terminated and no further attempt to start the supervised actor will be done.</li>
+  <li>&lsquo;On stop&rsquo;: The supervisor will terminate and then start the supervised actor if it terminates in any way (consider this for <code>PersistentActor</code> since they stop on persistence failures instead of crashing)</li>
+</ul>
+<p>To note that this supervision strategy does not restart the actor but rather stops and starts it. Be aware of it if you use <span class="group-scala"><code>Stash</code> trait’s</span> <span class="group-java"><code>AbstractActorWithStash</code></span> in combination with the backoff supervision strategy. The <code>preRestart</code> hook will not be executed if the supervised actor fails or stops and you will miss the opportunity to unstash the messages.</p>
+<h3><a href="#sharding" name="sharding" class="anchor"><span class="anchor-link"></span></a>Sharding</h3>
+<p>If the &lsquo;on stop&rsquo; strategy is used for sharded actors a final termination message should be configured and used to terminate the actor on passivation. Otherwise the supervisor will just stop and start the actor again.</p>
+<p>The termination message is configured with:</p>
+<pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.8.1-M1/akka-docs/src/test/scala/docs/pattern/BackoffSupervisorDocSpec.scala#L116-L119" target="_blank" title="Go to snippet source">source</a><code class="language-scala">val supervisor = BackoffSupervisor.props(
+  BackoffOpts
+    .onStop(childProps, childName = &quot;myEcho&quot;, minBackoff = 3.seconds, maxBackoff = 30.seconds, randomFactor = 0.2)
+    .withFinalStopMessage(_ == StopMessage))</code></pre>
+<p>And must be used for passivation:</p>
+<pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.8.1-M1/akka-docs/src/test/scala/docs/pattern/BackoffSupervisorDocSpec.scala#L123" target="_blank" title="Go to snippet source">source</a><code class="language-scala">context.parent ! Passivate(StopMessage)</code></pre>
+<h3><a href="#simple-backoff" name="simple-backoff" class="anchor"><span class="anchor-link"></span></a>Simple backoff</h3>
+<p>The following snippet shows how to create a backoff supervisor which will start the given echo actor after it has stopped because of a failure, in increasing intervals of 3, 6, 12, 24 and finally 30 seconds:</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.8.1-M1/akka-docs/src/test/scala/docs/pattern/BackoffSupervisorDocSpec.scala#L19-L30" target="_blank" title="Go to snippet source">source</a><code class="language-scala">val childProps = Props(classOf[EchoActor])
+
+val supervisor = BackoffSupervisor.props(
+  BackoffOpts.onStop(
+    childProps,
+    childName = &quot;myEcho&quot;,
+    minBackoff = 3.seconds,
+    maxBackoff = 30.seconds,
+    randomFactor = 0.2 // adds 20% &quot;noise&quot; to vary the intervals slightly
+  ))
+
+system.actorOf(supervisor, name = &quot;echoSupervisor&quot;)</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.8.1-M1/akka-docs/src/test/java/jdocs/pattern/BackoffSupervisorDocTest.java#L19-L30" target="_blank" title="Go to snippet source">source</a><code class="language-java">final Props childProps = Props.create(EchoActor.class);
+
+final Props supervisorProps =
+    BackoffSupervisor.props(
+        BackoffOpts.onStop(
+            childProps,
+            &quot;myEcho&quot;,
+            Duration.ofSeconds(3),
+            Duration.ofSeconds(30),
+            0.2)); // adds 20% &quot;noise&quot; to vary the intervals slightly
+
+system.actorOf(supervisorProps, &quot;echoSupervisor&quot;);</code></pre></dd>
+</dl>
+<p>Using a <code>randomFactor</code> to add a little bit of additional variance to the backoff intervals is highly recommended, in order to avoid multiple actors re-start at the exact same point in time, for example because they were stopped due to a shared resource such as a database going down and re-starting after the same configured interval. By adding additional randomness to the re-start intervals the actors will start in slightly different points in time, thus avoiding large spikes of traffic hitting the recovering shared database or other resource that they all need to contact.</p>
+<p>The <code>akka.pattern.BackoffSupervisor</code> actor can also be configured to stop and start the actor after a delay when the actor crashes and the supervision strategy decides that it should restart.</p>
+<p>The following snippet shows how to create a backoff supervisor which will start the given echo actor after it has crashed because of some exception, in increasing intervals of 3, 6, 12, 24 and finally 30 seconds:</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.8.1-M1/akka-docs/src/test/scala/docs/pattern/BackoffSupervisorDocSpec.scala#L39-L50" target="_blank" title="Go to snippet source">source</a><code class="language-scala">val childProps = Props(classOf[EchoActor])
+
+val supervisor = BackoffSupervisor.props(
+  BackoffOpts.onFailure(
+    childProps,
+    childName = &quot;myEcho&quot;,
+    minBackoff = 3.seconds,
+    maxBackoff = 30.seconds,
+    randomFactor = 0.2 // adds 20% &quot;noise&quot; to vary the intervals slightly
+  ))
+
+system.actorOf(supervisor, name = &quot;echoSupervisor&quot;)</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.8.1-M1/akka-docs/src/test/java/jdocs/pattern/BackoffSupervisorDocTest.java#L36-L47" target="_blank" title="Go to snippet source">source</a><code class="language-java">final Props childProps = Props.create(EchoActor.class);
+
+final Props supervisorProps =
+    BackoffSupervisor.props(
+        BackoffOpts.onFailure(
+            childProps,
+            &quot;myEcho&quot;,
+            Duration.ofSeconds(3),
+            Duration.ofSeconds(30),
+            0.2)); // adds 20% &quot;noise&quot; to vary the intervals slightly
+
+system.actorOf(supervisorProps, &quot;echoSupervisor&quot;);</code></pre></dd>
+</dl>
+<h3><a href="#customization" name="customization" class="anchor"><span class="anchor-link"></span></a>Customization</h3>
+<p>The <code>akka.pattern.BackoffOnFailureOptions</code> and <code>akka.pattern.BackoffOnRestartOptions</code> can be used to customize the behavior of the back-off supervisor actor. Options are: * <code>withAutoReset</code>: The backoff is reset if no failure/stop occurs within the duration. This is the default behaviour with <code>minBackoff</code> as default value * <code>withManualReset</code>: The child must send <code>BackoffSupervisor.Reset</code> to its backoff supervisor (parent) * <code>withSupervisionStrategy</code>: Sets a custom <code>OneForOneStrategy</code> (as each backoff supervisor only has one child). The default strategy uses the <code>akka.actor.SupervisorStrategy.defaultDecider</code> which stops and starts the child on exceptions. * <code>withMaxNrOfRetries</code>: Sets the maximum number of retries until the supervisor will give up (<code>-1</code> is default which means no limit of retries). Note: This is set on the supervision strategy, so setting a different strategy resets the <code>maxNrOfRetries</code>. * <code>withReplyWhileStopped</code>: By default all messages received while the child is stopped are forwarded to dead letters. With this set, the supervisor will reply to the sender instead.</p>
+<p>Only available on <code>BackoffOnStopOptions</code>: * <code>withDefaultStoppingStrategy</code>: Sets a <code>OneForOneStrategy</code> with the stopping decider that stops the child on all exceptions. * <code>withFinalStopMessage</code>: Allows to define a predicate to decide on finally stopping the child (and supervisor). Used for passivate sharded actors - see above.</p>
+<p>Some examples:</p>
+<pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.8.1-M1/akka-docs/src/test/scala/docs/pattern/BackoffSupervisorDocSpec.scala#L61-L72" target="_blank" title="Go to snippet source">source</a><code class="language-scala">val supervisor = BackoffSupervisor.props(
+  BackoffOpts
+    .onStop(
+      childProps,
+      childName = &quot;myEcho&quot;,
+      minBackoff = 3.seconds,
+      maxBackoff = 30.seconds,
+      randomFactor = 0.2 // adds 20% &quot;noise&quot; to vary the intervals slightly
+    )
+    .withManualReset // the child must send BackoffSupervisor.Reset to its parent
+    .withDefaultStoppingStrategy // Stop at any Exception thrown
+)</code></pre>
+<p>The above code sets up a back-off supervisor that requires the child actor to send a <code>akka.pattern.BackoffSupervisor.Reset</code> message to its parent when a message is successfully processed, resetting the back-off. It also uses a default stopping strategy, any exception will cause the child to stop.</p>
+<pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.8.1-M1/akka-docs/src/test/scala/docs/pattern/BackoffSupervisorDocSpec.scala#L85-L98" target="_blank" title="Go to snippet source">source</a><code class="language-scala">val supervisor = BackoffSupervisor.props(
+  BackoffOpts
+    .onFailure(
+      childProps,
+      childName = &quot;myEcho&quot;,
+      minBackoff = 3.seconds,
+      maxBackoff = 30.seconds,
+      randomFactor = 0.2 // adds 20% &quot;noise&quot; to vary the intervals slightly
+    )
+    .withAutoReset(10.seconds) // reset if the child does not throw any errors within 10 seconds
+    .withSupervisorStrategy(OneForOneStrategy() {
+      case _: MyException =&gt; SupervisorStrategy.Restart
+      case _              =&gt; SupervisorStrategy.Escalate
+    }))</code></pre>
+<p>The above code sets up a back-off supervisor that stops and starts the child after back-off if MyException is thrown, any other exception will be escalated. The back-off is automatically reset if the child does not throw any errors within 10 seconds.</p>
+</div>
+</article>
+<div class="row">
+<div class="small-12 column">
+<section class="nav-prev-next row">
+<div class="nav-prev small-6 column">
+<a href="supervision-classic.html"><i class="icon-prev"></i> <span class="link-prev">Classic Supervision</span></a>
+</div>
+<div class="nav-next small-6 column clearfix">
+<a class="float-right" href="dispatchers.html">Classic Dispatchers <i class="icon-next"></i></a>
+</div>
+</section>
+</div>
+</div>
+<div class="source-github row">
+Found an error in this documentation? The source code for this page can be found <a href="https://github.com/akka/akka/tree/v2.8.1-M1/akka-docs/src/main/paradox/fault-tolerance.md">here</a>.
+Please feel free to edit and contribute a pull request.
+</div>
+
+<footer class="page-footer row clearfix">
+<img class="akka-icon float-left show-for-medium" src="images/akka-icon.svg" />
+<section class="copyright">
+<div>Akka is available under the <a href="https://www.lightbend.com/akka/license" target="_blank">Business Source License 1.1</a>.</div>
+<p class="legal">
+&copy; 2011-2023 <a href="https://www.lightbend.com" target="_blank">Lightbend, Inc.</a> |
+<a href="https://www.lightbend.com/legal/licenses" target="_blank">Licenses</a> |
+<a href="https://www.lightbend.com/legal/terms" target="_blank">Terms</a> |
+<a href="https://www.lightbend.com/legal/privacy" target="_blank">Privacy Policy</a> |
+<a href="https://akka.io/cookie/" target="_blank">Cookie Listing</a> |
+<a class="optanon-toggle-display">Cookie Settings</a>
+</p>
+</section>
+
+</footer>
+</section>
+</main>
+</div>
+
+<script type="text/javascript" src="js/scrollsneak.js"></script>
+<script type="text/javascript">jQuery(document).foundation();</script>
+<script type="text/javascript" src="js/groups.js"></script>
+<script type="text/javascript" src="js/page.js"></script>
+<script type="text/javascript" src="js/snippets.js"></script>
+<script type="text/javascript" src="js/magellan.js"></script>
+<script type="text/javascript" src="js/metadata-toggle.js"></script>
+<script type="text/javascript" src="js/lbHeader.js"></script>
+
+<style type="text/css">@import "lib/prettify/prettify.css";</style>
+<script type="text/javascript" src="lib/prettify/prettify.js"></script>
+<script type="text/javascript" src="lib/prettify/lang-scala.js"></script>
+<script type="text/javascript">//<![CDATA[
+jQuery(function(){window.prettyPrint && prettyPrint()});
+//]]></script>
+<!-- Algolia docs search -->
+<script type="text/javascript" src="https://cdn.jsdelivr.net/docsearch.js/2/docsearch.min.js"></script>
+<style>.algolia-autocomplete { display: block !important }</style>
+<script type="text/javascript">
+docsearch({
+appId: 'XUXZ6LW9B1',
+apiKey: '5b6260148e92f7c5e38338fcf7eaa3e0',
+indexName: 'akka_docs',
+inputSelector: '#search',
+algoliaOptions: {
+hitsPerPage: 5
+}
+});
+
+docsearch({
+appId: 'XUXZ6LW9B1',
+apiKey: '5b6260148e92f7c5e38338fcf7eaa3e0',
+indexName: 'akka_docs',
+inputSelector: '#overlay-search',
+algoliaOptions: {
+hitsPerPage: 5
+}
+});
+
+// set up "/" as global shortcut for focusing on search
+jQuery(document).keypress(function (event) {
+if (event.keyCode == 47) {
+jQuery("#search").focus();
+return false; // swallow key event, otherwise the / char would be input into the search box
+}
+});
+</script>
+
+<script type="text/javascript" src="assets/js/warnOldDocs.js"></script>
+<script type="text/javascript" src="assets/js/scalafiddle.js"></script>
+
+
+</body>
+</html>
