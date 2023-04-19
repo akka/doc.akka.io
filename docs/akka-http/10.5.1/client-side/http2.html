@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html class="no-js" lang="en">
+
+<head>
+<title>Client-Side HTTP/2 (Preview) &bull; Akka HTTP</title>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta name="description" content="Akka Http: Modern, fast, asynchronous, streaming-first HTTP server and client."/>
+<link rel="canonical" href="https://doc.akka.io/docs/akka-http/current/client-side/http2.html"/>
+<script type="text/javascript" src="../lib/jquery/jquery.min.js"></script>
+<script type="text/javascript" src="../lib/foundation/dist/js/foundation.min.js"></script>
+<link rel="stylesheet" type="text/css" href="../lib/normalize.css/normalize.css"/>
+<link rel="stylesheet" type="text/css" href="../lib/foundation/dist/css/foundation.min.css"/>
+<link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/docsearch.js/2/docsearch.min.css" />
+<link rel="stylesheet" type="text/css" href="../css/icons.css"/>
+<link rel="stylesheet" type="text/css" href="../css/page-8.css"/>
+<link rel="stylesheet" type="text/css" href="../css/banner-2.css"/>
+<link rel="shortcut icon" href="../images/favicon.ico" />
+<link rel="apple-touch-icon" sizes="180x180" href="../images/apple-touch-icon.png"/>
+<link rel="icon" type="image/png" sizes="32x32" href="../images/favicon-32x32.png"/>
+<link rel="icon" type="image/png" sizes="16x16" href="../images/favicon-16x16.png"/>
+<link rel="manifest" href="../images/manifest.json"/>
+<meta name="msapplication-TileImage" content="../images/mstile-150x150.png"/>
+<meta name="msapplication-TileColor" content="#15a9ce"/>
+<meta name="theme-color" content="#15a9ce"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<!-- OneTrust Cookies Consent Notice (Production Standard, akka.io, en-GB) start -->
+<script src="https://cdn.cookielaw.org/scripttemplates/otSDKStub.js"  type="text/javascript" charset="UTF-8" data-domain-script="28b912e7-09e9-43d5-91e4-3d1897044004" ></script>
+<script type="text/javascript">
+function OptanonWrapper() { }
+</script>
+<!-- OneTrust Cookies Consent Notice (Production Standard, akka.io, en-GB) end -->
+<!--Google Analytics-->
+<script type="text/plain" class="optanon-category-2">
+var _gaq = _gaq || [];
+_gaq.push(['_setAccount', 'UA-21117439-1']);
+_gaq.push(['_setDomainName', 'akka.io']);
+_gaq.push(['_trackPageview']);
+(function() {
+var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+})()
+</script>
+<!-- Google Tag Manager -->
+<script type="text/plain" class="optanon-category-2">
+(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+})(window,document,'script','dataLayer','GTM-KBJGH35');
+</script>
+<!--Marketo-->
+<script type="text/plain" class="optanon-category-3">
+(function() {
+var didInit = false;
+function initMunchkin() {
+if(didInit === false) {
+didInit = true;
+Munchkin.init('558-NCX-702', { 'asyncOnly': true, 'disableClickDelay': true });
+}
+}
+var s = document.createElement('script');
+s.type = 'text/javascript';
+s.async = true;
+s.src = '//munchkin.marketo.net/munchkin.js';
+s.onreadystatechange = function() {
+if (this.readyState == 'complete' || this.readyState == 'loaded') {
+initMunchkin();
+}
+};
+s.onload = initMunchkin;
+document.getElementsByTagName('head')[0].appendChild(s);
+})();
+</script>
+</head>
+
+<body id="underlay" data-toggler="nav-open">
+<div id="lightbend-banner" class="lightbend-banner akka full-width" data-category="OSS Lightbend Banner Impression" data-label="Akka Banner Impression">
+<div class="oss-wrapper">
+<div class="oss-brand">
+<a class="oss-track-link-label" data-category="OSS Lightbend Banner Clicks" data-label="Lightbend Logo - Akka Banner" href="https://www.lightbend.com">
+<img class="lightbend-logo" src="../images/banner-logos/lightbend-reverse.svg" alt="Lightbend" title="Lightbend">
+</a>
+</div>
+<div class="oss-ad no-drop-down">
+<nav id="lightbendRotator" class="lightbend-rotator">
+<a class="oss-track-link-label" data-category="OSS Lightbend Banner Clicks" data-label="Promo Rotator - Lightbend Changed its Software Licensing Model for Akka Technology. [License FAQ] - Akka Banner" href="https://www.lightbend.com/akka/license-faq">
+<strong>Lightbend</strong> Changed its Software Licensing Model for Akka Technology. <span class="akka-btn">License FAQ</span>
+</a>
+</nav>
+</div>
+</div>
+</div>
+
+<header class="site-header hide-for-large">
+<div class="sticky-header clearfix">
+<a href="https://akka.io"><img class="logo" src="../images/akka-logo-reverse.svg"/></a>
+
+<button class="menu-icon float-right" type="button" data-toggle="underlay overlay"></button>
+</div>
+<div id="overlay" class="overlay-nav" data-toggler="nav-open">
+<header class="nav-header">
+<div class="nav-header-title">
+<h1><a href="../index.html">Akka HTTP</a></h1>
+</div>
+<div class="nav-header-version">
+Version 10.5.1
+</div>
+<div class="nav-header-groups">
+<select class="supergroup" name="Language"><option class="group" value="group-scala">Scala</option><option class="group" value="group-java">Java</option></select>
+</div>
+<div id="overlay-search-container" class="nav-header-search">
+<input id="overlay-search" type="search" class="search" placeholder="Search" />
+</div>
+</header>
+<nav class="nav-toc">
+<ul>
+  <li><a href="../security.html" class="page">Security Announcements</a></li>
+  <li><a href="../introduction.html" class="page">1. Introduction</a></li>
+  <li><a href="../usage.html" class="page">2. Usage</a></li>
+  <li><a href="../common/index.html" class="page">3. Data Types &amp; Abstractions</a></li>
+  <li><a href="../server-side/index.html" class="page">4. Server API</a></li>
+  <li><a href="../client-side/index.html" class="page">5. Client API</a>
+  <ul>
+    <li><a href="../client-side/configuration.html" class="page">Configuration</a></li>
+    <li><a href="../client-side/request-and-response.html" class="page">HttpRequest and HttpResponse</a></li>
+    <li><a href="../client-side/request-level.html" class="page">Request-Level Client-Side API</a></li>
+    <li><a href="../client-side/host-level.html" class="page">Host-Level Client-Side API</a></li>
+    <li><a href="../client-side/connection-level.html" class="page">Connection-Level Client-Side API</a></li>
+    <li><a href="../client-side/pool-overflow.html" class="page">Pool overflow and the max-open-requests setting</a></li>
+    <li><a href="../client-side/client-https-support.html" class="page">Client-Side HTTPS Support</a></li>
+    <li><a href="../client-side/client-transport.html" class="page">Pluggable Client Transports / HTTP(S) proxy Support</a></li>
+    <li><a href="../client-side/websocket-support.html" class="page">Client-Side WebSocket Support</a></li>
+    <li><a href="../client-side/http2.html#client-side-http-2-preview-" class="active page">Client-Side HTTP/2 (Preview)</a>
+    <ul>
+      <li><a href="../client-side/http2.html#create-the-client" class="header">Create the client</a></li>
+      <li><a href="../client-side/http2.html#request-response-ordering" class="header">Request-response ordering</a></li>
+    </ul></li>
+  </ul></li>
+  <li><a href="../extensions.html" class="page">6. Extensions</a></li>
+  <li><a href="../technologies.html" class="page">7. Supported Technologies</a></li>
+  <li><a href="../tipsandtricks.html" class="page">8. Tips And Tricks</a></li>
+  <li><a href="../contributing.html" class="page">9. Contributing</a></li>
+  <li><a href="../reference.html" class="page">10. Reference</a></li>
+  <li><a href="../release-notes/index.html" class="page">11. Release Notes</a></li>
+</ul>
+</nav>
+</div>
+</header>
+<div class="site-content-wrapper">
+<aside class="sticky-sidebar show-for-large">
+<header class="nav-header sticky-sidebar-header">
+<div class="nav-header-title">
+<h1><a href="../index.html">Akka HTTP</a></h1>
+</div>
+<div class="nav-header-version">
+Version 10.5.1
+</div>
+<div class="nav-header-groups">
+<select class="supergroup" name="Language"><option class="group" value="group-scala">Scala</option><option class="group" value="group-java">Java</option></select>
+</div>
+<div class="nav-header-search">
+<input id="search" type="search" class="search" placeholder="Search" />
+</div>
+</header>
+<nav class="site-nav sticky-sidebar-contents">
+<div class="nav-toc">
+<ul>
+  <li><a href="../security.html" class="page">Security Announcements</a></li>
+  <li><a href="../introduction.html" class="page">1. Introduction</a></li>
+  <li><a href="../usage.html" class="page">2. Usage</a></li>
+  <li><a href="../common/index.html" class="page">3. Data Types &amp; Abstractions</a></li>
+  <li><a href="../server-side/index.html" class="page">4. Server API</a></li>
+  <li><a href="../client-side/index.html" class="page">5. Client API</a>
+  <ul>
+    <li><a href="../client-side/configuration.html" class="page">Configuration</a></li>
+    <li><a href="../client-side/request-and-response.html" class="page">HttpRequest and HttpResponse</a></li>
+    <li><a href="../client-side/request-level.html" class="page">Request-Level Client-Side API</a></li>
+    <li><a href="../client-side/host-level.html" class="page">Host-Level Client-Side API</a></li>
+    <li><a href="../client-side/connection-level.html" class="page">Connection-Level Client-Side API</a></li>
+    <li><a href="../client-side/pool-overflow.html" class="page">Pool overflow and the max-open-requests setting</a></li>
+    <li><a href="../client-side/client-https-support.html" class="page">Client-Side HTTPS Support</a></li>
+    <li><a href="../client-side/client-transport.html" class="page">Pluggable Client Transports / HTTP(S) proxy Support</a></li>
+    <li><a href="../client-side/websocket-support.html" class="page">Client-Side WebSocket Support</a></li>
+    <li><a href="../client-side/http2.html#client-side-http-2-preview-" class="active page">Client-Side HTTP/2 (Preview)</a>
+    <ul>
+      <li><a href="../client-side/http2.html#create-the-client" class="header">Create the client</a></li>
+      <li><a href="../client-side/http2.html#request-response-ordering" class="header">Request-response ordering</a></li>
+    </ul></li>
+  </ul></li>
+  <li><a href="../extensions.html" class="page">6. Extensions</a></li>
+  <li><a href="../technologies.html" class="page">7. Supported Technologies</a></li>
+  <li><a href="../tipsandtricks.html" class="page">8. Tips And Tricks</a></li>
+  <li><a href="../contributing.html" class="page">9. Contributing</a></li>
+  <li><a href="../reference.html" class="page">10. Reference</a></li>
+  <li><a href="../release-notes/index.html" class="page">11. Release Notes</a></li>
+</ul>
+</div>
+</nav>
+<footer class="nav-footer sticky-sidebar-footer">
+<a href="https://akka.io"><img class="logo" src="../images/akka-logo-reverse.svg"/></a>
+
+</footer>
+</aside>
+<main class="fixed-shift-for-large expanded row">
+<section class="site-content small-12 column">
+<article class="page-content row">
+<div class="small-12 column" id="docs">
+<h1><a href="#client-side-http-2-preview-" name="client-side-http-2-preview-" class="anchor"><span class="anchor-link"></span></a>Client-Side HTTP/2 (Preview)</h1><div class="callout warning "><div class="callout-title">Warning</div>
+<p>Client-Side HTTP/2 support in akka-http is currently available as a preview. This means it is ready to be evaluated, but the APIs and behavior are likely to change.</p></div><div class="callout note "><div class="callout-title">Note</div>
+<p>It is recommended to first read the <a href="../implications-of-streaming-http-entity.html">Implications of the streaming nature of Request/Response Entities</a> and <a href="host-level.html">Host-Level Client-Side API</a> sections, as they explain the underlying full-stack streaming concepts, tuning the client settings and HTTPS context and how to handle the Request-Response Cycle, which may be unexpected when coming from a background with non-&ldquo;streaming first&rdquo; HTTP Clients.</p></div>
+<h2><a href="#create-the-client" name="create-the-client" class="anchor"><span class="anchor-link"></span></a>Create the client</h2>
+<p>There are three mechanisms for a client to establish an HTTP/2 connection. Akka HTTP supports:</p>
+<ul>
+  <li>HTTP/2 over TLS</li>
+  <li>HTTP/2 over a plain TCP connection (&ldquo;h2c with prior knowledge&rdquo;)</li>
+</ul>
+<p>Akka HTTP doesn&rsquo;t support:</p>
+<ul>
+  <li>HTTP <code>Upgrade</code> mechanism</li>
+</ul>
+<h3><a href="#http-2-over-tls" name="http-2-over-tls" class="anchor"><span class="anchor-link"></span></a>HTTP/2 over TLS</h3>
+<p>To create a client, use the <code>Http()</code> fluent API to connect and use the <code>http2()</code> creator:</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka-http/tree/v10.5.1/docs/src/test/scala/docs/http/scaladsl/Http2Spec.scala#L20-L58" target="_blank" title="Go to snippet source">source</a><code class="language-scala">import akka.http.scaladsl.Http
+Http().connectionTo(&quot;localhost&quot;).toPort(8443).http2()</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka-http/tree/v10.5.1/docs/src/test/java/docs/http/javadsl/Http2Test.java#L27-L57" target="_blank" title="Go to snippet source">source</a><code class="language-java">import akka.http.javadsl.Http;
+
+Http.get(system)
+        .connectionTo(&quot;127.0.0.1&quot;)
+        .toPort(8443)
+        .http2();</code></pre></dd>
+</dl>
+<p>HTTP/2 over TLS needs <a href="https://en.wikipedia.org/wiki/Application-Layer_Protocol_Negotiation">Application-Layer Protocol Negotiation (ALPN)</a> to negotiate whether both client and server support HTTP/2. The JVM provides ALPN support starting from JDK 8u252. Make sure to use at least that version.</p>
+<p>Akka HTTP does not currently support protocol negotiation to fall back to HTTP/1.1 for this API. When the server does not support HTTP/2, the stream will fail.</p>
+<h3><a href="#h2c-with-prior-knowledge" name="h2c-with-prior-knowledge" class="anchor"><span class="anchor-link"></span></a>h2c with prior knowledge</h3>
+<p>The other option is to connect and start communicating in HTTP/2 immediately. You must know beforehand the target server supports HTTP/2 over a plain TCP connection. For this reason this approach is known as h2c with <a href="https://httpwg.org/specs/rfc7540.html#known-http">Prior Knowledge</a> of HTTP/2 support.</p>
+<p>To create a client, use the <code>Http()</code> fluent API to connect and use the <code>http2WithPriorKnowledge()</code> creator:</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka-http/tree/v10.5.1/docs/src/test/scala/docs/http/scaladsl/Http2Spec.scala#L20-L61" target="_blank" title="Go to snippet source">source</a><code class="language-scala">import akka.http.scaladsl.Http
+Http().connectionTo(&quot;localhost&quot;).toPort(8080).http2WithPriorKnowledge()</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka-http/tree/v10.5.1/docs/src/test/java/docs/http/javadsl/Http2Test.java#L27-L64" target="_blank" title="Go to snippet source">source</a><code class="language-java">import akka.http.javadsl.Http;
+
+Http.get(system)
+        .connectionTo(&quot;127.0.0.1&quot;)
+        .toPort(8080)
+        .http2WithPriorKnowledge();</code></pre></dd>
+</dl>
+<h3><a href="#http-upgrade-mechanism" name="http-upgrade-mechanism" class="anchor"><span class="anchor-link"></span></a>HTTP Upgrade mechanism</h3>
+<p>The Akka HTTP client doesn&rsquo;t support HTTP/1 to HTTP/2 negotiation over plaintext using the <code>Upgrade</code> mechanism.</p>
+<h2><a href="#request-response-ordering" name="request-response-ordering" class="anchor"><span class="anchor-link"></span></a>Request-response ordering</h2>
+<p>For HTTP/2 connections the responses are not guaranteed to arrive in the same order that the requests were emitted to the server, for example a request with a quickly available response may outrun a previous request that the server is slower to respond to. For HTTP/2 it is therefore important to have a way to correlate the response with the request it was made for. This can be achieved through a <span class="group-java"><a href="https://doc.akka.io/japi/akka-http/10.5.1/akka/http/javadsl/model/RequestResponseAssociation.html" title="akka.http.javadsl.model.RequestResponseAssociation"><code>RequestResponseAssociation</code></a></span><span class="group-scala"><a href="https://doc.akka.io/api/akka-http/10.5.1/akka/http/scaladsl/model/RequestResponseAssociation.html" title="akka.http.scaladsl.model.RequestResponseAssociation"><code>RequestResponseAssociation</code></a></span> set on the request, Akka HTTP will pass such association objects on to the response.</p>
+<p>In this sample the built-in <span class="group-scala"><code>akka.http.scaladsl.model.ResponsePromise</code></span><span class="group-java"><code>akka.http.javadsl.model.ResponseFuture</code></span> <code>RequestResponseAssociation</code> is used to return a <span class="group-scala"><code>Future</code></span><span class="group-java"><code>CompletionStage</code></span> for the response:</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka-http/tree/v10.5.1/docs/src/test/scala/docs/http/scaladsl/Http2ClientApp.scala#L41-L93" target="_blank" title="Go to snippet source">source</a><code class="language-scala">val dispatch = singleRequest(Http().connectionTo(&quot;doc.akka.io&quot;).http2())
+
+dispatch(
+  HttpRequest(
+    uri = &quot;https://doc.akka.io/api/akka/current/akka/actor/typed/scaladsl/index.html&quot;,
+    headers = headers.`Accept-Encoding`(HttpEncodings.gzip) :: Nil)
+).onComplete { res =&gt;
+    println(s&quot;[1] Got index.html: $res&quot;)
+    res.get.entity.dataBytes.runWith(Sink.ignore).onComplete(res =&gt; println(s&quot;Finished reading [1] $res&quot;))
+  }
+
+def singleRequest(connection: Flow[HttpRequest, HttpResponse, Any], bufferSize: Int = 100): HttpRequest =&gt; Future[HttpResponse] = {
+  val queue =
+    Source.queue(bufferSize, OverflowStrategy.dropNew)
+      .via(connection)
+      .to(Sink.foreach { response =&gt;
+        // complete the response promise with the response when it arrives
+        val responseAssociation = response.attribute(ResponsePromise.Key).get
+        responseAssociation.promise.trySuccess(response)
+      })
+      .run()
+
+  req =&gt; {
+    // create a promise of the response for each request and set it as an attribute on the request
+    val p = Promise[HttpResponse]()
+    queue.offer(req.addAttribute(ResponsePromise.Key, ResponsePromise(p)))
+      // return the future response
+      .flatMap(_ =&gt; p.future)
+  }
+}</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka-http/tree/v10.5.1/docs/src/test/java/docs/http/javadsl/Http2ClientApp.java#L49-L102" target="_blank" title="Go to snippet source">source</a><code class="language-java">  Function&lt;HttpRequest, CompletionStage&lt;HttpResponse&gt;&gt; dispatch =
+      singleRequest(system, Http.get(system).connectionTo(&quot;doc.akka.io&quot;).http2());
+
+  dispatch.apply(
+      HttpRequest.create(
+          &quot;https://doc.akka.io/api/akka/current/akka/actor/typed/scaladsl/index.html&quot;).withHeaders(
+          Arrays.asList(AcceptEncoding.create(HttpEncodings.GZIP))
+      )
+  ).thenAccept(res -&gt; {
+    System.out.println(&quot;[1] Got index.html: &quot; + res);
+    res.entity().getDataBytes().runWith(Sink.ignore(), mat)
+        .thenAccept(consumedRes -&gt; System.out.println(&quot;Finished reading [1] &quot; + consumedRes));
+  });
+
+private static Function&lt;HttpRequest, CompletionStage&lt;HttpResponse&gt;&gt; singleRequest(ActorSystem system, Flow&lt;HttpRequest, HttpResponse, ?&gt; connection) {
+  SourceQueueWithComplete&lt;HttpRequest&gt; queue =
+      Source.&lt;HttpRequest&gt;queue(100, OverflowStrategy.dropNew())
+          .via(connection)
+          .to(Sink.foreach(res -&gt; {
+            try {
+              // complete the future with the response when it arrives
+              ResponseFuture responseFuture = res.getAttribute(ResponseFuture.KEY()).get();
+              responseFuture.future().complete(res);
+            } catch (Exception ex) {
+              ex.printStackTrace();
+            }
+          }))
+      .run(SystemMaterializer.get(system).materializer());
+
+  return (HttpRequest req) -&gt; {
+    // create a future of the response for each request and set it as an attribute on the request
+    CompletableFuture&lt;HttpResponse&gt; future = new CompletableFuture&lt;&gt;();
+    ResponseFuture attribute = new ResponseFuture(future);
+    return queue.offer(req.addAttribute(ResponseFuture.KEY(), attribute))
+        // return the future response
+        .thenCompose(__ -&gt; attribute.future());
+  };
+}</code></pre></dd>
+</dl>
+</div>
+</article>
+<div class="row">
+<div class="small-12 column">
+<section class="nav-prev-next row">
+<div class="nav-prev small-6 column">
+<a href="../client-side/websocket-support.html"><i class="icon-prev"></i> <span class="link-prev">Client-Side WebSocket Support</span></a>
+</div>
+<div class="nav-next small-6 column clearfix">
+<a class="float-right" href="../extensions.html">6. Extensions <i class="icon-next"></i></a>
+</div>
+</section>
+</div>
+</div>
+<div class="source-github row">
+Found an error in this documentation? The source code for this page can be found <a href="https://github.com/akka/akka-http/tree/v10.5.1/docs/src/main/paradox/client-side/http2.md">here</a>.
+Please feel free to edit and contribute a pull request.
+</div>
+
+<footer class="page-footer row clearfix">
+<img class="akka-icon float-left show-for-medium" src="../images/akka-icon.svg" />
+<section class="copyright">
+<div>Akka HTTP is available under the <a href="https://www.lightbend.com/akka/license" target="_blank">Business Source License 1.1</a>.</div>
+<p class="legal">
+&copy; 2011-2023 <a href="https://www.lightbend.com" target="_blank">Lightbend, Inc.</a> |
+<a href="https://www.lightbend.com/legal/licenses" target="_blank">Licenses</a> |
+<a href="https://www.lightbend.com/legal/terms" target="_blank">Terms</a> |
+<a href="https://www.lightbend.com/legal/privacy" target="_blank">Privacy Policy</a> |
+<a href="https://akka.io/cookie/" target="_blank">Cookie Listing</a> |
+<a class="optanon-toggle-display">Cookie Settings</a>
+</p>
+</section>
+
+</footer>
+</section>
+</main>
+</div>
+
+<script type="text/javascript" src="../js/scrollsneak.js"></script>
+<script type="text/javascript">jQuery(document).foundation();</script>
+<script type="text/javascript" src="../js/groups.js"></script>
+<script type="text/javascript" src="../js/page.js"></script>
+<script type="text/javascript" src="../js/snippets.js"></script>
+<script type="text/javascript" src="../js/magellan.js"></script>
+<script type="text/javascript" src="../js/metadata-toggle.js"></script>
+<script type="text/javascript" src="../js/lbHeader.js"></script>
+
+<style type="text/css">@import "../lib/prettify/prettify.css";</style>
+<script type="text/javascript" src="../lib/prettify/prettify.js"></script>
+<script type="text/javascript" src="../lib/prettify/lang-scala.js"></script>
+<script type="text/javascript">//<![CDATA[
+jQuery(function(){window.prettyPrint && prettyPrint()});
+//]]></script>
+<!-- Algolia docs search -->
+<script type="text/javascript" src="https://cdn.jsdelivr.net/docsearch.js/2/docsearch.min.js"></script>
+<style>.algolia-autocomplete { display: block !important }</style>
+<script type="text/javascript">
+docsearch({
+appId: 'XUXZ6LW9B1',
+apiKey: '5b6260148e92f7c5e38338fcf7eaa3e0',
+indexName: 'akka_http_docs',
+inputSelector: '#search',
+algoliaOptions: {
+hitsPerPage: 5
+}
+});
+
+docsearch({
+appId: 'XUXZ6LW9B1',
+apiKey: '5b6260148e92f7c5e38338fcf7eaa3e0',
+indexName: 'akka_http_docs',
+inputSelector: '#overlay-search',
+algoliaOptions: {
+hitsPerPage: 5
+}
+});
+
+// set up "/" as global shortcut for focusing on search
+jQuery(document).keypress(function (event) {
+if (event.keyCode == 47) {
+jQuery("#search").focus();
+return false; // swallow key event, otherwise the / char would be input into the search box
+}
+});
+</script>
+
+<script type="text/javascript" src="../assets/js/warnOldDocs.js"></script>
+<script type="text/javascript" src="../assets/js/scrollToFragment.js"></script>
+
+
+</body>
+</html>
