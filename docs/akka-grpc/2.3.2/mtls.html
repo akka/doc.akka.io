@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html class="no-js" lang="en">
+
+<head>
+<title>Mutual authentication with TLS &bull; Akka gRPC</title>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta name="description" content="Akka gRPC - Support for building streaming gRPC servers and clients on top of Akka Streams."/>
+<link rel="canonical" href="https://doc.akka.io/docs/akka-grpc/current/mtls.html"/>
+<script type="text/javascript" src="lib/jquery/jquery.min.js"></script>
+<script type="text/javascript" src="lib/foundation/dist/js/foundation.min.js"></script>
+<link rel="stylesheet" type="text/css" href="lib/normalize.css/normalize.css"/>
+<link rel="stylesheet" type="text/css" href="lib/foundation/dist/css/foundation.min.css"/>
+<link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/docsearch.js/2/docsearch.min.css" />
+<link rel="stylesheet" type="text/css" href="css/icons.css"/>
+<link rel="stylesheet" type="text/css" href="css/page-8.css"/>
+<link rel="stylesheet" type="text/css" href="css/banner-2.css"/>
+<link rel="shortcut icon" href="images/favicon.ico" />
+<link rel="apple-touch-icon" sizes="180x180" href="images/apple-touch-icon.png"/>
+<link rel="icon" type="image/png" sizes="32x32" href="images/favicon-32x32.png"/>
+<link rel="icon" type="image/png" sizes="16x16" href="images/favicon-16x16.png"/>
+<link rel="manifest" href="images/manifest.json"/>
+<meta name="msapplication-TileImage" content="images/mstile-150x150.png"/>
+<meta name="msapplication-TileColor" content="#15a9ce"/>
+<meta name="theme-color" content="#15a9ce"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<!-- OneTrust Cookies Consent Notice (Production Standard, akka.io, en-GB) start -->
+<script src="https://cdn.cookielaw.org/scripttemplates/otSDKStub.js"  type="text/javascript" charset="UTF-8" data-domain-script="28b912e7-09e9-43d5-91e4-3d1897044004" ></script>
+<script type="text/javascript">
+function OptanonWrapper() { }
+</script>
+<!-- OneTrust Cookies Consent Notice (Production Standard, akka.io, en-GB) end -->
+<!--Google Analytics-->
+<script type="text/plain" class="optanon-category-2">
+var _gaq = _gaq || [];
+_gaq.push(['_setAccount', '']);
+_gaq.push(['_setDomainName', '']);
+_gaq.push(['_trackPageview']);
+(function() {
+var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+})()
+</script>
+<!-- Google Tag Manager -->
+<script type="text/plain" class="optanon-category-2">
+(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+})(window,document,'script','dataLayer','GTM-KBJGH35');
+</script>
+<!--Marketo-->
+<script type="text/plain" class="optanon-category-3">
+(function() {
+var didInit = false;
+function initMunchkin() {
+if(didInit === false) {
+didInit = true;
+Munchkin.init('558-NCX-702', { 'asyncOnly': true, 'disableClickDelay': true });
+}
+}
+var s = document.createElement('script');
+s.type = 'text/javascript';
+s.async = true;
+s.src = '//munchkin.marketo.net/munchkin.js';
+s.onreadystatechange = function() {
+if (this.readyState == 'complete' || this.readyState == 'loaded') {
+initMunchkin();
+}
+};
+s.onload = initMunchkin;
+document.getElementsByTagName('head')[0].appendChild(s);
+})();
+</script>
+</head>
+
+<body id="underlay" data-toggler="nav-open">
+<div id="lightbend-banner" class="lightbend-banner akka full-width" data-category="OSS Lightbend Banner Impression" data-label="Akka Banner Impression">
+<div class="oss-wrapper">
+<div class="oss-brand">
+<a class="oss-track-link-label" data-category="OSS Lightbend Banner Clicks" data-label="Lightbend Logo - Akka Banner" href="https://www.lightbend.com">
+<img class="lightbend-logo" src="images/banner-logos/lightbend-reverse.svg" alt="Lightbend" title="Lightbend">
+</a>
+</div>
+<div class="oss-ad no-drop-down">
+<nav id="lightbendRotator" class="lightbend-rotator">
+<a class="oss-track-link-label" data-category="OSS Lightbend Banner Clicks" data-label="Promo Rotator - Lightbend Changed its Software Licensing Model for Akka Technology. [License FAQ] - Akka Banner" href="https://www.lightbend.com/akka/license-faq">
+<strong>Lightbend</strong> Changed its Software Licensing Model for Akka Technology. <span class="akka-btn">License FAQ</span>
+</a>
+</nav>
+</div>
+</div>
+</div>
+
+<header class="site-header hide-for-large">
+<div class="sticky-header clearfix">
+<a href="https://akka.io"><img class="logo" src="images/akka-logo-reverse.svg"/></a>
+
+<button class="menu-icon float-right" type="button" data-toggle="underlay overlay"></button>
+</div>
+<div id="overlay" class="overlay-nav" data-toggler="nav-open">
+<header class="nav-header">
+<div class="nav-header-title">
+<h1><a href="index.html">Akka gRPC</a></h1>
+</div>
+<div class="nav-header-version">
+Version 2.3.2
+</div>
+<div class="nav-header-groups">
+<select class="supergroup" name="Language"><option class="group" value="group-java">Java</option><option class="group" value="group-scala">Scala</option></select>
+<select class="supergroup" name="Buildtool"><option class="group" value="group-sbt">sbt</option><option class="group" value="group-gradle">Gradle</option><option class="group" value="group-maven">Maven</option></select>
+</div>
+</header>
+<nav class="nav-toc">
+<ul>
+  <li><a href="overview.html" class="page">Overview</a></li>
+  <li><a href="whygrpc.html" class="page">Why gRPC?</a></li>
+  <li><a href="getting-started.html" class="page">Getting started</a></li>
+  <li><a href="proto.html" class="page">Protobuf Service Descriptors</a></li>
+  <li><a href="server/index.html" class="page">Providing Services (Server)</a></li>
+  <li><a href="client/index.html" class="page">Consuming Services (Client)</a></li>
+  <li><a href="buildtools/index.html" class="page">Build Tool Support</a></li>
+  <li><a href="binary-compatibility.html" class="page">Binary compatibility</a></li>
+  <li><a href="apidesign.html" class="page">API Design</a></li>
+  <li><a href="deploy.html" class="page">Deployment</a></li>
+  <li><a href="mtls.html#mutual-authentication-with-tls" class="active page">Mutual authentication with TLS</a>
+  <ul>
+    <li><a href="mtls.html#setting-the-server-up" class="header">Setting the server up</a></li>
+    <li><a href="mtls.html#setting-the-client-up" class="header">Setting the client up</a></li>
+  </ul></li>
+  <li><a href="troubleshooting.html" class="page">Troubleshooting</a></li>
+</ul>
+</nav>
+</div>
+</header>
+<div class="site-content-wrapper">
+<aside class="sticky-sidebar show-for-large">
+<header class="nav-header sticky-sidebar-header">
+<div class="nav-header-title">
+<h1><a href="index.html">Akka gRPC</a></h1>
+</div>
+<div class="nav-header-version">
+Version 2.3.2
+</div>
+<div class="nav-header-groups">
+<select class="supergroup" name="Language"><option class="group" value="group-java">Java</option><option class="group" value="group-scala">Scala</option></select>
+<select class="supergroup" name="Buildtool"><option class="group" value="group-sbt">sbt</option><option class="group" value="group-gradle">Gradle</option><option class="group" value="group-maven">Maven</option></select>
+</div>
+</header>
+<nav class="site-nav sticky-sidebar-contents">
+<div class="nav-toc">
+<ul>
+  <li><a href="overview.html" class="page">Overview</a></li>
+  <li><a href="whygrpc.html" class="page">Why gRPC?</a></li>
+  <li><a href="getting-started.html" class="page">Getting started</a></li>
+  <li><a href="proto.html" class="page">Protobuf Service Descriptors</a></li>
+  <li><a href="server/index.html" class="page">Providing Services (Server)</a></li>
+  <li><a href="client/index.html" class="page">Consuming Services (Client)</a></li>
+  <li><a href="buildtools/index.html" class="page">Build Tool Support</a></li>
+  <li><a href="binary-compatibility.html" class="page">Binary compatibility</a></li>
+  <li><a href="apidesign.html" class="page">API Design</a></li>
+  <li><a href="deploy.html" class="page">Deployment</a></li>
+  <li><a href="mtls.html#mutual-authentication-with-tls" class="active page">Mutual authentication with TLS</a>
+  <ul>
+    <li><a href="mtls.html#setting-the-server-up" class="header">Setting the server up</a></li>
+    <li><a href="mtls.html#setting-the-client-up" class="header">Setting the client up</a></li>
+  </ul></li>
+  <li><a href="troubleshooting.html" class="page">Troubleshooting</a></li>
+</ul>
+</div>
+</nav>
+<footer class="nav-footer sticky-sidebar-footer">
+<a href="https://akka.io"><img class="logo" src="images/akka-logo-reverse.svg"/></a>
+
+</footer>
+</aside>
+<main class="fixed-shift-for-large expanded row">
+<section class="site-content small-12 column">
+<article class="page-content row">
+<div class="small-12 column" id="docs">
+<h1><a href="#mutual-authentication-with-tls" name="mutual-authentication-with-tls" class="anchor"><span class="anchor-link"></span></a>Mutual authentication with TLS</h1>
+<p>Mutual or mTLS means that just like how a client will only connect to servers with valid certificates, the server will also verify the client certificate and only allow connections if the client key pair is accepted by the server. This is useful for example in microservices where only other known services are allowed to interact with a service, and public access should be denied.</p>
+<p>For mTLS to work the server must be set up with a keystore containing the CA (certificate authority) public key used to sign the individual certs for clients that are allowed to access the server, just like how in a regular TLS/HTTPS scenario the client must be able to verify the server certificate. </p>
+<p>Since the CA is what controls what clients can access a service, it is likely an organisation or service specific CA rather than a normal public one like what you use for a public web server.</p>
+<h2><a href="#setting-the-server-up" name="setting-the-server-up" class="anchor"><span class="anchor-link"></span></a>Setting the server up</h2>
+<p>A JSK store can be prepared with the right contents, or created on the fly from cert files in some location the server can access for reading, in this sample we use cert files available on the classpath. The server is set up with its own private key and cert as well as a trust store with a CA to trust client certificates from:</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka-grpc/tree/v2.3.2/plugin-tester-scala/src/main/scala/example/myapp/helloworld/MtlsGreeterServer.scala#L6-L117" target="_blank" title="Go to snippet source">source</a><code class="language-scala">package example.myapp.helloworld
+
+import akka.actor.ActorSystem
+import akka.http.scaladsl.ConnectionContext
+import akka.http.scaladsl.Http
+import akka.http.scaladsl.HttpsConnectionContext
+import akka.http.scaladsl.model.HttpRequest
+import akka.http.scaladsl.model.HttpResponse
+import akka.pki.pem.DERPrivateKeyLoader
+import akka.pki.pem.PEMDecoder
+import example.myapp.helloworld.grpc._
+import org.slf4j.LoggerFactory
+
+import java.security.KeyStore
+import java.security.SecureRandom
+import java.security.cert.Certificate
+import java.security.cert.CertificateFactory
+import javax.net.ssl.KeyManagerFactory
+import javax.net.ssl.SSLContext
+import javax.net.ssl.TrustManagerFactory
+import scala.concurrent.ExecutionContext
+import scala.concurrent.Future
+import scala.io.Source
+
+object MtlsGreeterServer {
+  def main(args: Array[String]): Unit = {
+    val system = ActorSystem(&quot;MtlsHelloWorldServer&quot;)
+    new MtlsGreeterServer(system).run()
+    // ActorSystem threads will keep the app alive until `system.terminate()` is called
+  }
+
+}
+
+class MtlsGreeterServer(system: ActorSystem) {
+
+  private val log = LoggerFactory.getLogger(classOf[MtlsGreeterServer])
+  def run(): Future[Http.ServerBinding] = {
+    // Akka boot up code
+    implicit val sys: ActorSystem = system
+    implicit val ec: ExecutionContext = sys.dispatcher
+
+    // Create service handlers
+    val service: HttpRequest =&gt; Future[HttpResponse] =
+      GreeterServiceHandler(new GreeterServiceImpl())
+
+    // Bind service handler servers to localhost:8443
+    val binding =
+      Http().newServerAt(&quot;127.0.0.1&quot;, 8443).enableHttps(serverHttpContext).bind(service)
+
+    // report successful binding
+    binding.foreach { binding =&gt; log.info(s&quot;gRPC server bound to: {}&quot;, binding.localAddress) }
+
+    binding
+  }
+
+  private def serverHttpContext: HttpsConnectionContext = {
+    val certFactory = CertificateFactory.getInstance(&quot;X.509&quot;)
+
+    // keyStore/keymanagers are for the server cert and private key
+    val keyStore = KeyStore.getInstance(&quot;PKCS12&quot;)
+    keyStore.load(null)
+    val serverCert = certFactory.generateCertificate(getClass.getResourceAsStream(&quot;/certs/localhost-server.crt&quot;))
+    val serverPrivateKey =
+      DERPrivateKeyLoader.load(PEMDecoder.decode(classPathFileAsString(&quot;certs/localhost-server.key&quot;)))
+    keyStore.setKeyEntry(
+      &quot;private&quot;,
+      serverPrivateKey,
+      // No password for our private key
+      new Array[Char](0),
+      Array[Certificate](serverCert))
+    val keyManagerFactory = KeyManagerFactory.getInstance(&quot;SunX509&quot;)
+    keyManagerFactory.init(keyStore, null)
+    val keyManagers = keyManagerFactory.getKeyManagers
+
+    // trustStore/trustManagers are for what client certs the server trust
+    val trustStore = KeyStore.getInstance(&quot;PKCS12&quot;)
+    trustStore.load(null)
+    // any client cert signed by this CA is allowed to connect
+    trustStore.setEntry(
+      &quot;rootCA&quot;,
+      new KeyStore.TrustedCertificateEntry(
+        certFactory.generateCertificate(getClass.getResourceAsStream(&quot;/certs/rootCA.crt&quot;))),
+      null)
+    /*
+    // or specific client cert (probably less useful)
+    trustStore.setEntry(
+      &quot;client&quot;,
+      new KeyStore.TrustedCertificateEntry(
+        certFactory.generateCertificate(getClass.getResourceAsStream(&quot;/certs/client1.crt&quot;))),
+      null)
+     */
+    val tmf = TrustManagerFactory.getInstance(&quot;SunX509&quot;)
+    tmf.init(trustStore)
+    val trustManagers = tmf.getTrustManagers
+
+    ConnectionContext.httpsServer { () =&gt;
+      val context = SSLContext.getInstance(&quot;TLS&quot;)
+      context.init(keyManagers, trustManagers, new SecureRandom)
+
+      val engine = context.createSSLEngine()
+      engine.setUseClientMode(false)
+
+      // require client certs
+      engine.setNeedClientAuth(true)
+
+      engine
+    }
+  }
+
+  private def classPathFileAsString(path: String): String =
+    Source.fromResource(path).mkString
+}</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka-grpc/tree/v2.3.2/plugin-tester-java/src/main/java/example/myapp/helloworld/MtlsGreeterServer.java#L6-L142" target="_blank" title="Go to snippet source">source</a><code class="language-java">package example.myapp.helloworld;
+
+import akka.actor.ActorSystem;
+import akka.http.javadsl.ConnectionContext;
+import akka.http.javadsl.Http;
+import akka.http.javadsl.HttpsConnectionContext;
+import akka.http.javadsl.ServerBinding;
+import akka.http.javadsl.model.AttributeKeys;
+import akka.http.javadsl.model.HttpRequest;
+import akka.http.javadsl.model.HttpResponse;
+import akka.http.javadsl.model.SslSessionInfo;
+import akka.japi.function.Function;
+import akka.pki.pem.DERPrivateKeyLoader;
+import akka.pki.pem.PEMDecoder;
+import akka.stream.Materializer;
+import akka.stream.SystemMaterializer;
+import example.myapp.helloworld.grpc.GreeterService;
+import example.myapp.helloworld.grpc.GreeterServiceHandlerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import javax.net.ssl.*;
+import java.io.*;
+import java.nio.charset.StandardCharsets;
+import java.security.KeyStore;
+import java.security.PrivateKey;
+import java.security.SecureRandom;
+import java.security.cert.Certificate;
+import java.security.cert.CertificateFactory;
+import java.util.Arrays;
+import java.util.concurrent.CompletionStage;
+import java.util.stream.Collectors;
+
+class MtlsGreeterServer {
+
+  private static final Logger log = LoggerFactory.getLogger(MtlsGreeterServer.class);
+
+  public static void main(String[] args) throws Exception {
+    ActorSystem sys = ActorSystem.create(&quot;MtlsHelloWorldServer&quot;);
+
+    run(sys).thenAccept(binding -&gt; {
+      log.info(&quot;gRPC server bound to {}&quot;, binding.localAddress());
+    });
+
+    // ActorSystem threads will keep the app alive until `system.terminate()` is called
+  }
+
+  public static CompletionStage&lt;ServerBinding&gt; run(ActorSystem sys) throws Exception {
+    Materializer mat = SystemMaterializer.get(sys).materializer();
+
+    // Instantiate implementation
+    GreeterService impl = new GreeterServiceImpl(mat);
+
+    Function&lt;HttpRequest, CompletionStage&lt;HttpResponse&gt;&gt; service =
+      GreeterServiceHandlerFactory.create(impl, sys);
+
+    return Http
+      .get(sys)
+      .newServerAt(&quot;127.0.0.1&quot;, 8443)
+      .enableHttps(serverHttpContext())
+      .bind(service);
+  }
+
+  private static HttpsConnectionContext serverHttpContext() {
+    try {
+      CertificateFactory certFactory = CertificateFactory.getInstance(&quot;X.509&quot;);
+
+      // keyStore is for the server cert and private key
+      KeyStore keyStore = KeyStore.getInstance(&quot;PKCS12&quot;);
+      keyStore.load(null);
+      PrivateKey serverPrivateKey =
+        DERPrivateKeyLoader.load(PEMDecoder.decode(classPathFileAsString(&quot;/certs/localhost-server.key&quot;)));
+      Certificate serverCert = certFactory.generateCertificate(
+        MtlsGreeterServer.class.getResourceAsStream(&quot;/certs/localhost-server.crt&quot;));
+      keyStore.setKeyEntry(
+        &quot;private&quot;,
+        serverPrivateKey,
+        // No password for our private key
+        new char[0],
+        new Certificate[]{ serverCert });
+      KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance(&quot;SunX509&quot;);
+      keyManagerFactory.init(keyStore, null);
+      final KeyManager[] keyManagers = keyManagerFactory.getKeyManagers();
+
+      // trustStore is for what client certs the server trust
+      KeyStore trustStore = KeyStore.getInstance(&quot;PKCS12&quot;);
+      trustStore.load(null);
+      // any client cert signed by this CA is allowed to connect
+      trustStore.setEntry(
+        &quot;rootCA&quot;,
+        new KeyStore.TrustedCertificateEntry(
+          certFactory.generateCertificate(MtlsGreeterServer.class.getResourceAsStream(&quot;/certs/rootCA.crt&quot;))),
+        null);
+      /*
+      // or specific client certs (less likely to be useful)
+      trustStore.setEntry(
+        &quot;client1&quot;,
+        new KeyStore.TrustedCertificateEntry(
+          certFactory.generateCertificate(getClass().getResourceAsStream(&quot;/certs/localhost-client.crt&quot;))),
+        null)
+       */
+      TrustManagerFactory tmf = TrustManagerFactory.getInstance(&quot;SunX509&quot;);
+      tmf.init(trustStore);
+      final TrustManager[] trustManagers = tmf.getTrustManagers();
+
+      HttpsConnectionContext httpsContext = ConnectionContext.httpsServer(() -&gt; {
+        SSLContext context = SSLContext.getInstance(&quot;TLS&quot;);
+        context.init(keyManagers, trustManagers, new SecureRandom());
+
+        SSLEngine engine = context.createSSLEngine();
+        engine.setUseClientMode(false);
+
+        // require client certs
+        engine.setNeedClientAuth(true);
+
+        return engine;
+      });
+      return httpsContext;
+
+    } catch (Exception ex) {
+      throw new RuntimeException(&quot;Failed setting up the server HTTPS context&quot;, ex);
+    }
+  }
+
+  private static String classPathFileAsString(String path) {
+    try (InputStream inputStream = MtlsGreeterServer.class.getResourceAsStream(path)) {
+      if (inputStream == null) throw new IllegalArgumentException(&quot;&#39;&quot; + path + &quot;&#39; is not present on the classpath&quot;);
+      return new BufferedReader(
+        new InputStreamReader(inputStream, StandardCharsets.UTF_8))
+        .lines()
+        .collect(Collectors.joining(&quot;\n&quot;));
+    } catch (Exception ex) {
+      throw new RuntimeException(&quot;Failed reading server key from classpath&quot;, ex);
+    }
+  }
+
+}</code></pre></dd>
+</dl>
+<p>When run the server will only accept client connections that use a keypair that it considers valid, other connections will be denied and fail with a TLS protocol error.</p>
+<h2><a href="#setting-the-client-up" name="setting-the-client-up" class="anchor"><span class="anchor-link"></span></a>Setting the client up</h2>
+<p>In the client, the trust store must be set up to trust the server cert, in our sample it is signed with the same CA as the server. The key store contains the public and private key for the client:</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka-grpc/tree/v2.3.2/plugin-tester-scala/src/main/scala/example/myapp/helloworld/MtlsGreeterClient.scala#L6-L85" target="_blank" title="Go to snippet source">source</a><code class="language-scala">package example.myapp.helloworld
+
+import akka.actor.ActorSystem
+import akka.grpc.GrpcClientSettings
+import akka.pki.pem.{ DERPrivateKeyLoader, PEMDecoder }
+import example.myapp.helloworld.grpc.GreeterServiceClient
+import example.myapp.helloworld.grpc.HelloRequest
+
+import java.security.{ KeyStore, SecureRandom }
+import java.security.cert.{ Certificate, CertificateFactory }
+import javax.net.ssl.{ KeyManagerFactory, SSLContext, TrustManagerFactory }
+import scala.concurrent.ExecutionContext
+import scala.io.Source
+import scala.util.Success
+import scala.util.Failure
+
+object MtlsGreeterClient {
+
+  def main(args: Array[String]): Unit = {
+    implicit val sys: ActorSystem = ActorSystem.create(&quot;MtlsHelloWorldClient&quot;)
+    implicit val ec: ExecutionContext = sys.dispatcher
+
+    val clientSettings = GrpcClientSettings.connectToServiceAt(&quot;localhost&quot;, 8443).withSslContext(sslContext())
+
+    val client = GreeterServiceClient(clientSettings)
+
+    val reply = client.sayHello(HelloRequest(&quot;Jonas&quot;))
+
+    reply.onComplete { tryResponse =&gt;
+      tryResponse match {
+        case Success(reply) =&gt;
+          println(s&quot;Successful reply: $reply&quot;)
+        case Failure(exception) =&gt;
+          println(&quot;Request failed&quot;)
+          exception.printStackTrace()
+      }
+      sys.terminate()
+    }
+  }
+
+  def sslContext(): SSLContext = {
+    val clientPrivateKey =
+      DERPrivateKeyLoader.load(PEMDecoder.decode(classPathFileAsString(&quot;certs/client1.key&quot;)))
+    val certFactory = CertificateFactory.getInstance(&quot;X.509&quot;)
+
+    // keyStore is for the client cert and private key
+    val keyStore = KeyStore.getInstance(&quot;PKCS12&quot;)
+    keyStore.load(null)
+    keyStore.setKeyEntry(
+      &quot;private&quot;,
+      clientPrivateKey,
+      // No password for our private client key
+      new Array[Char](0),
+      Array[Certificate](certFactory.generateCertificate(getClass.getResourceAsStream(&quot;/certs/client1.crt&quot;))))
+    val keyManagerFactory = KeyManagerFactory.getInstance(&quot;SunX509&quot;)
+    keyManagerFactory.init(keyStore, null)
+    val keyManagers = keyManagerFactory.getKeyManagers
+
+    // trustStore is for what server certs the client trust
+    val trustStore = KeyStore.getInstance(&quot;PKCS12&quot;)
+    trustStore.load(null)
+    // accept any server cert signed by this CA
+    trustStore.setEntry(
+      &quot;rootCA&quot;,
+      new KeyStore.TrustedCertificateEntry(
+        certFactory.generateCertificate(getClass.getResourceAsStream(&quot;/certs/rootCA.crt&quot;))),
+      null)
+    val tmf = TrustManagerFactory.getInstance(&quot;SunX509&quot;)
+    tmf.init(trustStore)
+    val trustManagers = tmf.getTrustManagers
+
+    val context = SSLContext.getInstance(&quot;TLS&quot;)
+    context.init(keyManagers, trustManagers, new SecureRandom())
+    context
+  }
+
+  private def classPathFileAsString(path: String): String =
+    Source.fromResource(path).mkString
+
+}</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka-grpc/tree/v2.3.2/plugin-tester-java/src/main/java/example/myapp/helloworld/MtlsGreeterClient.java#L6-L103" target="_blank" title="Go to snippet source">source</a><code class="language-java">package example.myapp.helloworld;
+
+import akka.actor.ActorSystem;
+import akka.grpc.GrpcClientSettings;
+import akka.pki.pem.DERPrivateKeyLoader;
+import akka.pki.pem.PEMDecoder;
+import example.myapp.helloworld.grpc.GreeterServiceClient;
+import example.myapp.helloworld.grpc.HelloReply;
+import example.myapp.helloworld.grpc.HelloRequest;
+
+import javax.net.ssl.*;
+import java.io.*;
+import java.nio.charset.StandardCharsets;
+import java.security.KeyStore;
+import java.security.PrivateKey;
+import java.security.SecureRandom;
+import java.security.cert.Certificate;
+import java.security.cert.CertificateFactory;
+import java.util.concurrent.CompletionStage;
+import java.util.stream.Collectors;
+
+public class MtlsGreeterClient {
+
+  public static void main(String[] args) {
+    ActorSystem system = ActorSystem.create(&quot;MtlsHelloWorldClient&quot;);
+
+    GrpcClientSettings clientSettings =
+      GrpcClientSettings.connectToServiceAt(&quot;localhost&quot;, 8443, system)
+        .withSslContext(sslContext());
+
+    GreeterServiceClient client = GreeterServiceClient.create(clientSettings, system);
+
+    CompletionStage&lt;HelloReply&gt; reply = client.sayHello(HelloRequest.newBuilder().setName(&quot;Jonas&quot;).build());
+
+    reply.whenComplete((response, error) -&gt; {
+      if (error == null) {
+        System.out.println(&quot;Successful reply: &quot; + reply);
+      } else {
+        System.out.println(&quot;Request failed&quot;);
+        error.printStackTrace();
+      }
+      system.terminate();
+    });
+  }
+
+  private static SSLContext sslContext() {
+    try {
+      PrivateKey clientPrivateKey =
+        DERPrivateKeyLoader.load(PEMDecoder.decode(classPathFileAsString(&quot;/certs/client1.key&quot;)));
+      CertificateFactory certFactory = CertificateFactory.getInstance(&quot;X.509&quot;);
+
+      // keyStore is for the client cert and private key
+      KeyStore keyStore = KeyStore.getInstance(&quot;PKCS12&quot;);
+      keyStore.load(null);
+      Certificate clientCertificate = certFactory.generateCertificate(MtlsGreeterClient.class.getResourceAsStream(&quot;/certs/client1.crt&quot;));
+      keyStore.setKeyEntry(
+        &quot;private&quot;,
+        clientPrivateKey,
+        // No password for our private client key
+        new char[0],
+        new Certificate[]{clientCertificate});
+      KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance(&quot;SunX509&quot;);
+      keyManagerFactory.init(keyStore, null);
+      KeyManager[] keyManagers = keyManagerFactory.getKeyManagers();
+
+      // trustStore is for what server certs the client trust
+      KeyStore trustStore = KeyStore.getInstance(&quot;PKCS12&quot;);
+      trustStore.load(null);
+      // accept any server cert signed by this CA
+      trustStore.setEntry(
+        &quot;rootCA&quot;,
+        new KeyStore.TrustedCertificateEntry(
+          certFactory.generateCertificate(MtlsGreeterClient.class.getResourceAsStream(&quot;/certs/rootCA.crt&quot;))),
+        null);
+      TrustManagerFactory tmf = TrustManagerFactory.getInstance(&quot;SunX509&quot;);
+      tmf.init(trustStore);
+      TrustManager[] trustManagers = tmf.getTrustManagers();
+
+      SSLContext context = SSLContext.getInstance(&quot;TLS&quot;);
+      context.init(keyManagers, trustManagers, new SecureRandom());
+      return context;
+    } catch (Exception ex) {
+      throw new RuntimeException(&quot;Failed to set up SSL context for the client&quot;, ex);
+    }
+  }
+
+  private static String classPathFileAsString(String path) {
+    try (InputStream inputStream = MtlsGreeterServer.class.getResourceAsStream(path)) {
+      if (inputStream == null) throw new IllegalArgumentException(&quot;&#39;&quot; + path + &quot;&#39; is not present on the classpath&quot;);
+      return new BufferedReader(
+        new InputStreamReader(inputStream, StandardCharsets.UTF_8))
+        .lines()
+        .collect(Collectors.joining(&quot;\n&quot;));
+    } catch (Exception ex) {
+      throw new RuntimeException(&quot;Failed reading server key from classpath&quot;, ex);
+    }
+  }
+}</code></pre></dd>
+</dl>
+<p>A client presenting a keypair will be able to connect to both servers requiring regular HTTPS gRPC services and mTLS servers that accept the client certificate.</p>
+</div>
+</article>
+<div class="row">
+<div class="small-12 column">
+<section class="nav-prev-next row">
+<div class="nav-prev small-6 column">
+<a href="deploy.html"><i class="icon-prev"></i> <span class="link-prev">Deployment</span></a>
+</div>
+<div class="nav-next small-6 column clearfix">
+<a class="float-right" href="troubleshooting.html">Troubleshooting <i class="icon-next"></i></a>
+</div>
+</section>
+</div>
+</div>
+<div class="source-github row">
+Found an error in this documentation? The source code for this page can be found <a href="https://github.com/akka/akka-grpc/tree/v2.3.2/docs/src/main/paradox/mtls.md">here</a>.
+Please feel free to edit and contribute a pull request.
+</div>
+
+<footer class="page-footer row clearfix">
+<img class="akka-icon float-left show-for-medium" src="images/akka-icon.svg" />
+<section class="copyright">
+<div>Akka gRPC is available under the <a href="https://www.lightbend.com/akka/license" target="_blank">Business Source License 1.1</a>.</div>
+<p class="legal">
+&copy; 2011-2023 <a href="https://www.lightbend.com" target="_blank">Lightbend, Inc.</a> |
+<a href="https://www.lightbend.com/legal/licenses" target="_blank">Licenses</a> |
+<a href="https://www.lightbend.com/legal/terms" target="_blank">Terms</a> |
+<a href="https://www.lightbend.com/legal/privacy" target="_blank">Privacy Policy</a> |
+<a href="https://akka.io/cookie/" target="_blank">Cookie Listing</a> |
+<a class="optanon-toggle-display">Cookie Settings</a>
+</p>
+</section>
+
+</footer>
+</section>
+</main>
+</div>
+
+<script type="text/javascript" src="js/scrollsneak.js"></script>
+<script type="text/javascript">jQuery(document).foundation();</script>
+<script type="text/javascript" src="js/groups.js"></script>
+<script type="text/javascript" src="js/page.js"></script>
+<script type="text/javascript" src="js/snippets.js"></script>
+<script type="text/javascript" src="js/magellan.js"></script>
+<script type="text/javascript" src="js/metadata-toggle.js"></script>
+<script type="text/javascript" src="js/lbHeader.js"></script>
+
+<style type="text/css">@import "lib/prettify/prettify.css";</style>
+<script type="text/javascript" src="lib/prettify/prettify.js"></script>
+<script type="text/javascript" src="lib/prettify/lang-scala.js"></script>
+<script type="text/javascript">//<![CDATA[
+jQuery(function(){window.prettyPrint && prettyPrint()});
+//]]></script>
+<script type="text/javascript" src="assets/js/warnOldVersion.js"></script>
+<script type="text/javascript">//<![CDATA[
+jQuery(function(jq){initOldVersionWarnings(jq, '2.3.2', 'https://doc.akka.io/docs/akka-grpc/current/')});
+//]]></script>
+
+
+</body>
+</html>
