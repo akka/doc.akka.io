@@ -30,7 +30,7 @@
 function OptanonWrapper() { }
 </script>
 <!-- OneTrust Cookies Consent Notice (Production Standard, akka.io, en-GB) end -->
-<!--Google Analytics-->
+<!--Google Analytics NOTE this will stop processing data July 1st 2023. At which point this embed code can be removed-->
 <script type="text/plain" class="optanon-category-2">
 var _gaq = _gaq || [];
 _gaq.push(['_setAccount', '']);
@@ -42,37 +42,16 @@ ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www')
 var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
 })()
 </script>
-<!-- Google Tag Manager -->
-<script type="text/plain" class="optanon-category-2">
+
+<!-- Google Tag Manager: Updated May 17th 2023 - Cookie Compliance checks have been moved into Google Tag Manager -->
+<script type="text/javascript">
 (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
 new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
 j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
 })(window,document,'script','dataLayer','GTM-KBJGH35');
 </script>
-<!--Marketo-->
-<script type="text/plain" class="optanon-category-3">
-(function() {
-var didInit = false;
-function initMunchkin() {
-if(didInit === false) {
-didInit = true;
-Munchkin.init('558-NCX-702', { 'asyncOnly': true, 'disableClickDelay': true });
-}
-}
-var s = document.createElement('script');
-s.type = 'text/javascript';
-s.async = true;
-s.src = '//munchkin.marketo.net/munchkin.js';
-s.onreadystatechange = function() {
-if (this.readyState == 'complete' || this.readyState == 'loaded') {
-initMunchkin();
-}
-};
-s.onload = initMunchkin;
-document.getElementsByTagName('head')[0].appendChild(s);
-})();
-</script>
+
 </head>
 
 <body id="underlay" data-toggler="nav-open">
@@ -256,6 +235,7 @@ Consumer
 <p>Using <code>groupBy</code> followed at some point by a <code>mergeSubstreams</code> can reorder messages, so in general it is not safe with respect to the at-least-once guarantee.</p>
 <p>However it can only lead to reordering between messages sent to different substreams, so it is possible to use <code>groupBy</code> and preserve at-least-once semantics as long as all messages from the same partition are sent to the same substream.</p>
 <p>If a particular substream expects to see all messages regarding some entity, it then requires that writers to the source topic become responsible for placing messages about various entities in the appropriate partitions. If your application already has a requirement to preserve the order of messages about a particular entity within a Kafka topic, you will already need to ensure those messages go to the same partition since Kafka only preserves order information within a partition.</p>
+<p>Consider instead using <code>mapAsyncPartitioned</code> in place of a <code>groupBy</code> followed by <code>mergeSubstreams</code>. Both allow for demultiplexing an input stream, but <code>mapAsyncPartitioned</code> will not reorder output messages and also allows its partitions to be finer-grained than a Kafka partition. Note that partitioning in <code>mapAsyncPartitioned</code> only happens within that stage: complex processing of a partition may require techniques outside of streams, such as using the ask pattern to an actor.</p>
 <h2><a href="#conditional-message-processing" name="conditional-message-processing" class="anchor"><span class="anchor-link"></span></a>Conditional Message Processing</h2>
 <p>Most flows will require some messages to be handled differently from others. Unfortunately this is difficult to do while preserving the at-least-once guarantee because the order of messages must be maintained.</p>
 <p>We cannot safely send off the messages to be handled differently to a distinct flow: this other flow cannot commit on its own, and even if we merge it back, downstream, with the main flow, ordering will not be preserved. The reason this separate flow cannot commit on its own is that it will only be seeing a subset of the committable messages. If it commits an offset, it cannot know that all prior offsets have been processed in the main flow.</p>
