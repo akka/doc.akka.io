@@ -1,0 +1,640 @@
+<!DOCTYPE html>
+<html class="no-js" lang="en">
+
+<head>
+<title>Durable state store plugin &bull; Akka Persistence R2DBC Documentation</title>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta name="description" content="An Akka Persistence backed by SQL database with R2DBC"/>
+<link rel="canonical" href="https://doc.akka.io/docs/akka-persistence-r2dbc/current/durable-state-store.html"/>
+<script type="text/javascript" src="lib/jquery/jquery.min.js"></script>
+<script type="text/javascript" src="lib/foundation/dist/js/foundation.min.js"></script>
+<link rel="stylesheet" type="text/css" href="lib/normalize.css/normalize.css"/>
+<link rel="stylesheet" type="text/css" href="lib/foundation/dist/css/foundation.min.css"/>
+<link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/docsearch.js/2/docsearch.min.css" />
+<link rel="stylesheet" type="text/css" href="css/icons.css"/>
+<link rel="stylesheet" type="text/css" href="css/page-8.css"/>
+<link rel="stylesheet" type="text/css" href="css/banner-2.css"/>
+<link rel="shortcut icon" href="images/favicon.ico" />
+<link rel="apple-touch-icon" sizes="180x180" href="images/apple-touch-icon.png"/>
+<link rel="icon" type="image/png" sizes="32x32" href="images/favicon-32x32.png"/>
+<link rel="icon" type="image/png" sizes="16x16" href="images/favicon-16x16.png"/>
+<link rel="manifest" href="images/manifest.json"/>
+<meta name="msapplication-TileImage" content="images/mstile-150x150.png"/>
+<meta name="msapplication-TileColor" content="#15a9ce"/>
+<meta name="theme-color" content="#15a9ce"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<!-- OneTrust Cookies Consent Notice (Production Standard, akka.io, en-GB) start -->
+<script src="https://cdn.cookielaw.org/scripttemplates/otSDKStub.js"  type="text/javascript" charset="UTF-8" data-domain-script="28b912e7-09e9-43d5-91e4-3d1897044004" ></script>
+<script type="text/javascript">
+function OptanonWrapper() { }
+</script>
+<!-- OneTrust Cookies Consent Notice (Production Standard, akka.io, en-GB) end -->
+<!--Google Analytics NOTE this will stop processing data July 1st 2023. At which point this embed code can be removed-->
+<script type="text/plain" class="optanon-category-2">
+var _gaq = _gaq || [];
+_gaq.push(['_setAccount', '']);
+_gaq.push(['_setDomainName', '']);
+_gaq.push(['_trackPageview']);
+(function() {
+var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+})()
+</script>
+
+<!-- Google Tag Manager: Updated May 17th 2023 - Cookie Compliance checks have been moved into Google Tag Manager -->
+<script type="text/javascript">
+(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+})(window,document,'script','dataLayer','GTM-KBJGH35');
+</script>
+
+</head>
+
+<body id="underlay" data-toggler="nav-open">
+<div id="lightbend-banner" class="lightbend-banner akka full-width" data-category="OSS Lightbend Banner Impression" data-label="Akka Banner Impression">
+<div class="oss-wrapper">
+<div class="oss-brand">
+<a class="oss-track-link-label" data-category="OSS Lightbend Banner Clicks" data-label="Lightbend Logo - Akka Banner" href="https://www.lightbend.com">
+<img class="lightbend-logo" src="images/banner-logos/lightbend-reverse.svg" alt="Lightbend" title="Lightbend">
+</a>
+</div>
+<div class="oss-ad no-drop-down">
+<nav id="lightbendRotator" class="lightbend-rotator">
+<a class="oss-track-link-label" data-category="OSS Lightbend Banner Clicks" data-label="Promo Rotator - Lightbend Changed its Software Licensing Model for Akka Technology. [License FAQ] - Akka Banner" href="https://www.lightbend.com/akka/license-faq">
+<strong>Lightbend</strong> Changed its Software Licensing Model for Akka Technology. <span class="akka-btn">License FAQ</span>
+</a>
+</nav>
+</div>
+</div>
+</div>
+
+<header class="site-header hide-for-large">
+<div class="sticky-header clearfix">
+<a href="https://akka.io"><img class="logo" src="images/akka-logo-reverse.svg"/></a>
+
+<button class="menu-icon float-right" type="button" data-toggle="underlay overlay"></button>
+</div>
+<div id="overlay" class="overlay-nav" data-toggler="nav-open">
+<header class="nav-header">
+<div class="nav-header-title">
+<h1><a href="index.html">Akka Persistence R2DBC Documentation</a></h1>
+</div>
+<div class="nav-header-version">
+Version 1.1.2
+</div>
+<div class="nav-header-groups">
+<select class="supergroup" name="Language"><option class="group" value="group-java">Java</option><option class="group" value="group-scala">Scala</option></select>
+</div>
+</header>
+<nav class="nav-toc">
+<ul>
+  <li><a href="overview.html" class="page">Overview</a></li>
+  <li><a href="getting-started.html" class="page">Getting Started</a></li>
+  <li><a href="journal.html" class="page">Journal plugin</a></li>
+  <li><a href="snapshots.html" class="page">Snapshot store plugin</a></li>
+  <li><a href="durable-state-store.html#durable-state-store-plugin" class="active page">Durable state store plugin</a>
+  <ul>
+    <li><a href="durable-state-store.html#schema" class="header">Schema</a></li>
+    <li><a href="durable-state-store.html#configuration" class="header">Configuration</a></li>
+    <li><a href="durable-state-store.html#state-serialization" class="header">State serialization</a></li>
+    <li><a href="durable-state-store.html#deletes" class="header">Deletes</a></li>
+    <li><a href="durable-state-store.html#storing-query-representation" class="header">Storing query representation</a></li>
+  </ul></li>
+  <li><a href="query.html" class="page">Query Plugin</a></li>
+  <li><a href="postgres_json.html" class="page">PostgreSQL JSON</a></li>
+  <li><a href="projection.html" class="page">Projection</a></li>
+  <li><a href="config.html" class="page">Configuration</a></li>
+  <li><a href="cleanup.html" class="page">Database Cleanup</a></li>
+  <li><a href="migration.html" class="page">Migration tool</a></li>
+  <li><a href="contributing.html" class="page">Contributing</a></li>
+</ul>
+</nav>
+</div>
+</header>
+<div class="site-content-wrapper">
+<aside class="sticky-sidebar show-for-large">
+<header class="nav-header sticky-sidebar-header">
+<div class="nav-header-title">
+<h1><a href="index.html">Akka Persistence R2DBC Documentation</a></h1>
+</div>
+<div class="nav-header-version">
+Version 1.1.2
+</div>
+<div class="nav-header-groups">
+<select class="supergroup" name="Language"><option class="group" value="group-java">Java</option><option class="group" value="group-scala">Scala</option></select>
+</div>
+</header>
+<nav class="site-nav sticky-sidebar-contents">
+<div class="nav-toc">
+<ul>
+  <li><a href="overview.html" class="page">Overview</a></li>
+  <li><a href="getting-started.html" class="page">Getting Started</a></li>
+  <li><a href="journal.html" class="page">Journal plugin</a></li>
+  <li><a href="snapshots.html" class="page">Snapshot store plugin</a></li>
+  <li><a href="durable-state-store.html#durable-state-store-plugin" class="active page">Durable state store plugin</a>
+  <ul>
+    <li><a href="durable-state-store.html#schema" class="header">Schema</a></li>
+    <li><a href="durable-state-store.html#configuration" class="header">Configuration</a></li>
+    <li><a href="durable-state-store.html#state-serialization" class="header">State serialization</a></li>
+    <li><a href="durable-state-store.html#deletes" class="header">Deletes</a></li>
+    <li><a href="durable-state-store.html#storing-query-representation" class="header">Storing query representation</a></li>
+  </ul></li>
+  <li><a href="query.html" class="page">Query Plugin</a></li>
+  <li><a href="postgres_json.html" class="page">PostgreSQL JSON</a></li>
+  <li><a href="projection.html" class="page">Projection</a></li>
+  <li><a href="config.html" class="page">Configuration</a></li>
+  <li><a href="cleanup.html" class="page">Database Cleanup</a></li>
+  <li><a href="migration.html" class="page">Migration tool</a></li>
+  <li><a href="contributing.html" class="page">Contributing</a></li>
+</ul>
+</div>
+</nav>
+<footer class="nav-footer sticky-sidebar-footer">
+<a href="https://akka.io"><img class="logo" src="images/akka-logo-reverse.svg"/></a>
+
+</footer>
+</aside>
+<main class="fixed-shift-for-large expanded row">
+<section class="site-content small-12 column">
+<article class="page-content row">
+<div class="small-12 column" id="docs">
+<h1><a href="#durable-state-store-plugin" name="durable-state-store-plugin" class="anchor"><span class="anchor-link"></span></a>Durable state store plugin</h1>
+<p>The durable state plugin enables storing and loading key-value entries for <a href="https://doc.akka.io/docs/akka/2.8/typed/durable-state/persistence.html">durable state actors</a>.</p>
+<h2><a href="#schema" name="schema" class="anchor"><span class="anchor-link"></span></a>Schema</h2>
+<p>The <code>durable_state</code> table and <code>durable_state_slice_idx</code> index need to be created in the configured database, see schema definition in <a href="getting-started.html#schema">Creating the schema</a>.</p>
+<p>The <code>durable_state_slice_idx</code> index is only needed if the slice based <a href="query.html">queries</a> are used.</p>
+<h2><a href="#configuration" name="configuration" class="anchor"><span class="anchor-link"></span></a>Configuration</h2>
+<p>To enable the durable state store plugin to be used by default, add the following line to your Akka <code>application.conf</code>:</p>
+<pre><code>akka.persistence.state.plugin = &quot;akka.persistence.r2dbc.state&quot;
+</code></pre>
+<p>It can also be enabled with the <code>durableStateStorePluginId</code> for a specific <code>DurableStateBehavior</code> and multiple plugin configurations are supported.</p>
+<p>See also <a href="config.html#connection-configuration">Connection configuration</a>.</p>
+<h3><a href="#reference-configuration" name="reference-configuration" class="anchor"><span class="anchor-link"></span></a>Reference configuration</h3>
+<p>The following can be overridden in your <code>application.conf</code> for the durable state store specific settings:</p>
+<pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka-persistence-r2dbc/tree/v1.1.2/core/src/main/resources/reference.conf#L77-L117" target="_blank" title="Go to snippet source">source</a><code class="language-conf">akka.persistence.r2dbc {
+  # Durable state store
+  state {
+    class = &quot;akka.persistence.r2dbc.state.R2dbcDurableStateStoreProvider&quot;
+
+    table = &quot;durable_state&quot;
+
+    # the column type to use for durable state payloads (bytea or jsonb)
+    payload-column-type = &quot;BYTEA&quot;
+
+    # When this is enabled the updates verifies that the revision is +1 of
+    # previous revision. There might be a small performance gain if
+    # this is disabled.
+    assert-single-writer = on
+
+    # Extract a field from the state and store in an additional database column.
+    # Primary use case is for secondary indexes that can be queried.
+    # Each entity type can have several additional columns.
+    # The AdditionalColumn implementation may optionally define an ActorSystem
+    # constructor parameter.
+    additional-columns {
+      #&quot;&lt;entity-type-name&gt;&quot; = [&quot;&lt;fqcn of AdditionalColumn implementation&gt;&quot;]
+    }
+
+    # Use another table for the given entity types. Typically used together with
+    # additional-columns but can also be used without addition-columns.
+    custom-table {
+      #&quot;&lt;entity-type-name&gt;&quot; =  &lt;other_durable_state_table&gt;
+    }
+
+    # Additional processing in the same transaction as the Durable State upsert
+    # or delete. Primary use case is for storing a query or aggregate representation
+    # in a separate table.
+    # The ChangeHandler implementation may optionally define an ActorSystem
+    # constructor parameter.
+    change-handler {
+      #&lt;entity-type-name&gt;&quot; = &quot;&lt;fqcn of ChangeHandler implementation&gt;&quot;
+    }
+
+  }
+}</code></pre>
+<h2><a href="#state-serialization" name="state-serialization" class="anchor"><span class="anchor-link"></span></a>State serialization</h2>
+<p>The state is serialized with <a href="https://doc.akka.io/docs/akka/2.8/serialization.html">Akka Serialization</a> and the binary representation is stored in the <code>state_payload</code> column together with information about what serializer that was used in the <code>state_ser_id</code> and <code>state_ser_manifest</code> columns.</p>
+<p>For PostgreSQL the payload is stored as <code>BYTEA</code> type. Alternatively, you can use <code>JSONB</code> column type as described in <a href="postgres_json.html">PostgreSQL JSON</a>.</p>
+<h2><a href="#deletes" name="deletes" class="anchor"><span class="anchor-link"></span></a>Deletes</h2>
+<p>The store supports deletes through hard deletes, which means the durable state store entries are actually deleted from the database. There is no materialized view with a copy of the state so make sure to not delete durable states too early if they are used from projections or queries.</p>
+<p>For each persistent id one tombstone record is kept in the store when the state of the persistence id has been deleted. The reason for the tombstone record is to keep track of the latest revision number so that subsequent state changes don&rsquo;t reuse the same revision numbers that have been deleted.</p>
+<p>See the <a href="cleanup.html#durable-state-cleanup-tool">DurableStateCleanup tool</a> for more information about how to delete state tombstone records.</p>
+<h2><a href="#storing-query-representation" name="storing-query-representation" class="anchor"><span class="anchor-link"></span></a>Storing query representation</h2>
+<p><a href="https://doc.akka.io/docs/akka/2.8/typed/durable-state/persistence.html">Durable state actors</a> can only be looked up by their entity id. Additional indexed data can be stored as a query representation. You can either store the query representation from an asynchronous <a href="projection.html">Projection</a> or you can store it in the same transaction as the Durable State upsert or delete.</p>
+<p>Advantages of storing the query representation in the same transaction as the Durable State change:</p>
+<ul>
+  <li>exactly-once processing and atomic update with the Durable State change</li>
+  <li>no eventual consistency delay from asynchronous Projection processing</li>
+  <li>no need for Projection offset storage</li>
+</ul>
+<p>That said, for write heavy Durable State, a Projection can have the advantage of not impacting write latency of the Durable State updates. Note that updating the secondary index also has an impact on the write latency.</p>
+<h3><a href="#additional-columns" name="additional-columns" class="anchor"><span class="anchor-link"></span></a>Additional columns</h3>
+<p>In many cases you just want a secondary index on one or a few fields other than the entity id. For that purpose you can configure one or more <span class="group-java"><a href="/api/akka-persistence-r2dbc/1.1.2/akka/persistence/r2dbc/state/javadsl/AdditionalColumn.html" title="akka.persistence.r2dbc.state.javadsl.AdditionalColumn"><code>AdditionalColumn</code></a></span><span class="group-scala"><a href="/api/akka-persistence-r2dbc/1.1.2/akka/persistence/r2dbc/state/scaladsl/AdditionalColumn.html" title="akka.persistence.r2dbc.state.scaladsl.AdditionalColumn"><code>AdditionalColumn</code></a></span> classes for an entity type. The <code>AdditionalColumn</code> will extract the field from the Durable State value and define how to bind it to a database column.</p>
+<p>The configuration:</p>
+<pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka-persistence-r2dbc/tree/v1.1.2/docs/src/test/scala/docs/home/state/BlogPostTitleColumn.scala#L14-L21" target="_blank" title="Go to snippet source">source</a><code class="language-scala">akka.persistence.r2dbc.state {
+  additional-columns {
+    &quot;BlogPost&quot; = [&quot;docs.BlogPostTitleColumn&quot;]
+  }
+  custom-table {
+    &quot;BlogPost&quot; =  durable_state_blog_post
+  }
+}</code></pre>
+<p>For each entity type you can define a list of fully qualified class names of <code>AdditionalColumn</code> implementations. The <code>AdditionalColumn</code> implementation may optionally define an ActorSystem constructor parameter.</p>
+<p><code>AdditionalColumn</code> for a secondary index on the title of <a href="https://doc.akka.io/docs/akka/2.8/typed/durable-state/persistence.html#changing-behavior">blog posts (example in the Akka documentation)</a>:</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka-persistence-r2dbc/tree/v1.1.2/docs/src/test/scala/docs/home/state/BlogPostTitleColumn.scala#L8-L39" target="_blank" title="Go to snippet source">source</a><code class="language-scala">import akka.persistence.r2dbc.state.scaladsl.AdditionalColumn
+
+class BlogPostTitleColumn extends AdditionalColumn[BlogPost.State, String] {
+
+  override val columnName: String = &quot;title&quot;
+
+  override def bind(upsert: AdditionalColumn.Upsert[BlogPost.State]): AdditionalColumn.Binding[String] =
+    upsert.value match {
+      case BlogPost.BlankState =&gt;
+        AdditionalColumn.BindNull
+      case s: BlogPost.DraftState =&gt;
+        AdditionalColumn.BindValue(s.content.title)
+      case _: BlogPost.PublishedState =&gt;
+        AdditionalColumn.Skip
+    }
+}</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka-persistence-r2dbc/tree/v1.1.2/docs/src/test/java/jdocs/home/state/BlogPostTitleColumn.java#L7-L32" target="_blank" title="Go to snippet source">source</a><code class="language-java">import akka.persistence.r2dbc.state.javadsl.AdditionalColumn;
+
+public class BlogPostTitleColumn extends AdditionalColumn&lt;BlogPost.State, String&gt; {
+  @Override
+  public Class&lt;String&gt; fieldClass() {
+    return String.class;
+  }
+
+  @Override
+  public String columnName() {
+    return &quot;title&quot;;
+  }
+
+  @Override
+  public Binding&lt;String&gt; bind(Upsert&lt;BlogPost.State&gt; upsert) {
+    BlogPost.State state = upsert.value();
+    if (state.equals(BlogPost.BlankState.INSTANCE)) {
+      return AdditionalColumn.bindNull();
+    } else if (state instanceof BlogPost.DraftState) {
+      BlogPost.DraftState draft = (BlogPost.DraftState) state;
+      return AdditionalColumn.bindValue(draft.content.title);
+    } else {
+      return AdditionalColumn.skip();
+    }
+  }
+}</code></pre></dd>
+</dl>
+<p>From the <code>bind</code> method you can return one of:</p>
+<ul>
+  <li><span class="group-scala"><code>AdditionalColumn.BindValue</code></span><span class="group-java"><code>AdditionalColumn.bindValue</code></span> - bind a value such as a <code>String</code> or <code>Long</code> to the database column</li>
+  <li><span class="group-scala"><code>AdditionalColumn.BindNull</code></span><span class="group-java"><code>AdditionalColumn.bindNull</code></span> - store <code>null</code> in the database column</li>
+  <li><span class="group-scala"><code>AdditionalColumn.Skip</code></span><span class="group-java"><code>AdditionalColumn.skip</code></span> - don&rsquo;t update the database column for this change, keep existing value</li>
+</ul>
+<p>You would have to add the additional columns to the <code>durable_state</code> table definition, and create secondary database index. Unless you only have one entity type it&rsquo;s best to define a separate table with the <code>custom-table</code> configuration, see example above. The full serialized state and the additional columns are stored in the custom table instead of the default <code>durable_state</code> table. The custom table should have the same table definition as the default <code>durable_state</code> table but with the extra columns added.</p>
+<p>The state can be found by the additional column and deserialized like this:</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka-persistence-r2dbc/tree/v1.1.2/docs/src/test/scala/docs/home/state/BlogPostQuery.scala#L7-L35" target="_blank" title="Go to snippet source">source</a><code class="language-scala">import scala.concurrent.Future
+
+import akka.actor.typed.ActorSystem
+import akka.persistence.r2dbc.session.scaladsl.R2dbcSession
+import akka.serialization.SerializationExtension
+
+class BlogPostQuery(system: ActorSystem[_]) {
+
+  private val findByTitleSql =
+    &quot;SELECT state_ser_id, state_ser_manifest, state_payload &quot; +
+    &quot;FROM durable_state_blog_post &quot; +
+    &quot;WHERE title = $1&quot;
+
+  def findByTitle(title: String): Future[IndexedSeq[BlogPost.State]] = {
+    R2dbcSession.withSession(system) { session =&gt;
+      session.select(session.createStatement(findByTitleSql).bind(0, title)) { row =&gt;
+        val serializerId = row.get(&quot;state_ser_id&quot;, classOf[java.lang.Integer])
+        val serializerManifest = row.get(&quot;state_ser_manifest&quot;, classOf[String])
+        val payload = row.get(&quot;state_payload&quot;, classOf[Array[Byte]])
+        val state = SerializationExtension(system)
+          .deserialize(payload, serializerId, serializerManifest)
+          .get
+          .asInstanceOf[BlogPost.State]
+        state
+      }
+    }
+  }
+
+}</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka-persistence-r2dbc/tree/v1.1.2/docs/src/test/java/jdocs/home/state/BlogPostQuery.java#L7-L41" target="_blank" title="Go to snippet source">source</a><code class="language-java">import akka.actor.typed.ActorSystem;
+import akka.persistence.r2dbc.session.javadsl.R2dbcSession;
+import akka.serialization.SerializationExtension;
+import io.r2dbc.spi.Statement;
+
+import java.util.List;
+import java.util.concurrent.CompletionStage;
+
+public class BlogPostQuery {
+  private final ActorSystem&lt;?&gt; system;
+
+  public BlogPostQuery(ActorSystem&lt;?&gt; system) {
+    this.system = system;
+  }
+
+  private final String findByTitleSql =
+      &quot;SELECT state_ser_id, state_ser_manifest, state_payload &quot; +
+      &quot;FROM durable_state_blog_post &quot; +
+      &quot;WHERE title = $1&quot;;
+
+  public CompletionStage&lt;List&lt;BlogPost.State&gt;&gt; findByTitle(String title) {
+    return R2dbcSession.withSession(system, session -&gt; {
+      Statement stmt = session.createStatement(findByTitleSql).bind(0, title);
+      return session.select(stmt, row -&gt; {
+        int serializerId = row.get(&quot;state_ser_id&quot;, Integer.class);
+        String serializerManifest = row.get(&quot;state_ser_manifest&quot;, String.class);
+        byte[] payload = row.get(&quot;state_payload&quot;, byte[].class);
+        BlogPost.State state = (BlogPost.State) SerializationExtension.get(system)
+            .deserialize(payload, serializerId, serializerManifest).get();
+        return state;
+      });
+    });
+  }
+
+}</code></pre></dd>
+</dl>
+<h4><a href="#additional-column-as-postgresql-json" name="additional-column-as-postgresql-json" class="anchor"><span class="anchor-link"></span></a>Additional column as PostgreSQL JSON</h4>
+<p>With PostgreSQL the additional column type can be <code>JSONB</code> to take advantage of PostgreSQL support for <a href="https://www.postgresql.org/docs/current/datatype-json.html">JSON Types</a>.</p>
+<p>Then you would wrap the string or byte array representation of the JSON in <code>io.r2dbc.postgresql.codec.Json</code> when binding the value.</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka-persistence-r2dbc/tree/v1.1.2/docs/src/test/scala/docs/home/state/BlogPostJsonColumn.scala#L9-L30" target="_blank" title="Go to snippet source">source</a><code class="language-scala">import io.r2dbc.postgresql.codec.Json
+
+class BlogPostJsonColumn extends AdditionalColumn[BlogPost.State, Json] {
+
+  override val columnName: String = &quot;query_json&quot;
+
+  override def bind(upsert: AdditionalColumn.Upsert[BlogPost.State]): AdditionalColumn.Binding[Json] =
+    upsert.value match {
+      case s: BlogPost.DraftState =&gt;
+        // a json library would be used here
+        val jsonString = s&quot;&quot;&quot;{&quot;title&quot;: &quot;${s.content.title}&quot;, &quot;published&quot;: false}&quot;&quot;&quot;
+        val json = Json.of(jsonString)
+        AdditionalColumn.BindValue(json)
+      case s: BlogPost.PublishedState =&gt;
+        // a json library would be used here
+        val jsonString = s&quot;&quot;&quot;{&quot;title&quot;: &quot;${s.content.title}&quot;, &quot;published&quot;: true}&quot;&quot;&quot;
+        val json = Json.of(jsonString)
+        AdditionalColumn.BindValue(json)
+      case _ =&gt;
+        AdditionalColumn.Skip
+    }
+}</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka-persistence-r2dbc/tree/v1.1.2/docs/src/test/java/jdocs/home/state/BlogPostJsonColumn.java#L8-L40" target="_blank" title="Go to snippet source">source</a><code class="language-java">import io.r2dbc.postgresql.codec.Json;
+
+public class BlogPostJsonColumn extends AdditionalColumn&lt;BlogPost.State, Json&gt; {
+  @Override
+  public Class&lt;Json&gt; fieldClass() {
+    return Json.class;
+  }
+
+  @Override
+  public String columnName() {
+    return &quot;query_json&quot;;
+  }
+
+  @Override
+  public Binding&lt;Json&gt; bind(Upsert&lt;BlogPost.State&gt; upsert) {
+    BlogPost.State state = upsert.value();
+    if (state instanceof BlogPost.DraftState) {
+      BlogPost.DraftState s = (BlogPost.DraftState) state;
+      // a json library would be used here
+      String jsonString = &quot;{\&quot;title\&quot;: \&quot;&quot; + s.content.title + &quot;\&quot;, \&quot;published\&quot;: false}&quot;;
+      Json json = Json.of(jsonString);
+      return AdditionalColumn.bindValue(json);
+    } else if (state instanceof BlogPost.PublishedState) {
+        BlogPost.PublishedState s = (BlogPost.PublishedState) state;
+        // a json library would be used here
+        String jsonString = &quot;{\&quot;title\&quot;: \&quot;&quot; + s.content.title + &quot;\&quot;, \&quot;published\&quot;: true}&quot;;
+        Json json = Json.of(jsonString);
+        return AdditionalColumn.bindValue(json);
+    } else {
+      return AdditionalColumn.skip();
+    }
+  }
+}</code></pre></dd>
+</dl>
+<h3><a href="#change-handler" name="change-handler" class="anchor"><span class="anchor-link"></span></a>Change handler</h3>
+<p>For more advanced cases where the query representation would not fit in <a href="durable-state-store.html#additional-columns">additional columns</a> you can configure a <span class="group-java"><a href="/api/akka-persistence-r2dbc/1.1.2/akka/persistence/r2dbc/state/javadsl/ChangeHandler.html" title="akka.persistence.r2dbc.state.javadsl.ChangeHandler"><code>ChangeHandler</code></a></span><span class="group-scala"><a href="/api/akka-persistence-r2dbc/1.1.2/akka/persistence/r2dbc/state/scaladsl/ChangeHandler.html" title="akka.persistence.r2dbc.state.scaladsl.ChangeHandler"><code>ChangeHandler</code></a></span> for an entity type. The <code>ChangeHandler</code> will be invoked for each Durable State change. From the <code>ChangeHandler</code> you can run database operations in the same transaction as the Durable State upsert or delete.</p>
+<p>The configuration:</p>
+<pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka-persistence-r2dbc/tree/v1.1.2/docs/src/test/scala/docs/home/state/BlogPostCounts.scala#L24-L28" target="_blank" title="Go to snippet source">source</a><code class="language-scala">akka.persistence.r2dbc.state {
+  change-handler {
+    &quot;BlogPost&quot; = &quot;docs.BlogPostCounts&quot;
+  }
+}</code></pre>
+<p>For each entity type you can define the fully qualified class name of a <code>ChangeHandler</code> implementation. The <code>ChangeHandler</code> implementation may optionally define an ActorSystem constructor parameter.</p>
+<p><code>ChangeHandler</code> for a keeping track of number of published <a href="https://doc.akka.io/docs/akka/2.8/typed/durable-state/persistence.html#changing-behavior">blog posts (example in the Akka documentation)</a>:</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka-persistence-r2dbc/tree/v1.1.2/docs/src/test/scala/docs/home/state/BlogPostCounts.scala#L8-L73" target="_blank" title="Go to snippet source">source</a><code class="language-scala">import scala.concurrent.ExecutionContext
+import scala.concurrent.Future
+
+import akka.Done
+import akka.actor.typed.ActorSystem
+import akka.persistence.Persistence
+import akka.persistence.query.DeletedDurableState
+import akka.persistence.query.DurableStateChange
+import akka.persistence.query.UpdatedDurableState
+import akka.persistence.r2dbc.session.scaladsl.R2dbcSession
+import akka.persistence.r2dbc.state.scaladsl.ChangeHandler
+
+/**
+ * Keep track of number of published blog posts. Count per slice.
+ *
+ * {{{
+ * CREATE TABLE post_count (slice INT NOT NULL, cnt BIGINT NOT NULL, PRIMARY KEY(slice));
+ * }}}
+ */
+class BlogPostCounts(system: ActorSystem[_]) extends ChangeHandler[BlogPost.State] {
+
+  private val incrementSql =
+    &quot;INSERT INTO post_count (slice, cnt) VALUES ($1, 1) &quot; +
+    &quot;ON CONFLICT (slice) DO UPDATE SET cnt = excluded.cnt + 1&quot;
+
+  private val decrementSql =
+    &quot;UPDATE post_count SET cnt = cnt - 1 WHERE slice = $1&quot;
+
+  private implicit val ec: ExecutionContext = system.executionContext
+
+  override def process(session: R2dbcSession, change: DurableStateChange[BlogPost.State]): Future[Done] = {
+    change match {
+      case upd: UpdatedDurableState[BlogPost.State] =&gt;
+        upd.value match {
+          case _: BlogPost.PublishedState =&gt;
+            val slice = Persistence(system).sliceForPersistenceId(upd.persistenceId)
+            val stmt = session
+              .createStatement(incrementSql)
+              .bind(0, slice)
+            session.updateOne(stmt).map(_ =&gt; Done)
+          case _ =&gt;
+            Future.successful(Done)
+        }
+
+      case del: DeletedDurableState[BlogPost.State] =&gt;
+        val slice = Persistence(system).sliceForPersistenceId(del.persistenceId)
+        val stmt = session
+          .createStatement(decrementSql)
+          .bind(0, slice)
+        session.updateOne(stmt).map(_ =&gt; Done)
+    }
+  }
+}</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka-persistence-r2dbc/tree/v1.1.2/docs/src/test/java/jdocs/home/state/BlogPostCounts.java#L7-L73" target="_blank" title="Go to snippet source">source</a><code class="language-java">import akka.Done;
+import akka.actor.typed.ActorSystem;
+import akka.persistence.Persistence;
+import akka.persistence.query.DeletedDurableState;
+import akka.persistence.query.DurableStateChange;
+import akka.persistence.query.UpdatedDurableState;
+import akka.persistence.r2dbc.session.javadsl.R2dbcSession;
+import akka.persistence.r2dbc.state.javadsl.ChangeHandler;
+import io.r2dbc.spi.Statement;
+
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
+
+/**
+ * Keep track of number of published blog posts. Count per slice.
+ *
+ * &lt;pre&gt;
+ * CREATE TABLE post_count (slice INT NOT NULL, cnt BIGINT NOT NULL, PRIMARY KEY(slice));
+ * &lt;/pre&gt;
+ */
+public class BlogPostCounts implements ChangeHandler&lt;BlogPost.State&gt; {
+
+  private final ActorSystem&lt;?&gt; system;
+
+  private final String incrementSql =
+      &quot;INSERT INTO post_count (slice, cnt) VALUES ($1, 1) &quot; +
+          &quot;ON CONFLICT (slice) DO UPDATE SET cnt = excluded.cnt + 1&quot;;
+
+  private final String decrementSql =
+      &quot;UPDATE post_count SET cnt = cnt - 1 WHERE slice = $1&quot;;
+
+  public BlogPostCounts(ActorSystem&lt;?&gt; system) {
+    this.system = system;
+  }
+
+  @Override
+  public CompletionStage&lt;Done&gt; process(R2dbcSession session, DurableStateChange&lt;BlogPost.State&gt; change) {
+    if (change instanceof UpdatedDurableState) {
+      return processUpdate(session, (UpdatedDurableState&lt;BlogPost.State&gt;) change);
+    } else if (change instanceof DeletedDurableState) {
+      return processDelete(session, (DeletedDurableState&lt;BlogPost.State&gt;) change);
+    } else {
+      throw new IllegalArgumentException(&quot;Unexpected change &quot; + change.getClass().getName());
+    }
+  }
+
+  private CompletionStage&lt;Done&gt; processUpdate(R2dbcSession session, UpdatedDurableState&lt;BlogPost.State&gt; upd) {
+    if (upd.value() instanceof BlogPost.PublishedState) {
+      int slice = Persistence.get(system).sliceForPersistenceId(upd.persistenceId());
+      Statement stmt = session
+          .createStatement(incrementSql)
+          .bind(0, slice);
+      return session.updateOne(stmt).thenApply(count -&gt; Done.getInstance());
+    } else {
+      return CompletableFuture.completedFuture(Done.getInstance());
+    }
+  }
+
+  private CompletionStage&lt;Done&gt; processDelete(R2dbcSession session, DeletedDurableState&lt;BlogPost.State&gt; del) {
+    int slice = Persistence.get(system).sliceForPersistenceId(del.persistenceId());
+    Statement stmt = session
+        .createStatement(decrementSql)
+        .bind(0, slice);
+    return session.updateOne(stmt).thenApply(count -&gt; Done.getInstance());
+  }
+
+}</code></pre></dd>
+</dl>
+<p>The <span class="group-scala"><a href="https://doc.akka.io/api/akka/2.8/akka/persistence/query/DurableStateChange.html" title="akka.persistence.query.DurableStateChange"><code>DurableStateChange</code></a></span><span class="group-java"><a href="https://doc.akka.io/japi/akka/2.8/?akka/persistence/query/DurableStateChange.html" title="akka.persistence.query.DurableStateChange"><code>DurableStateChange</code></a></span> parameter is an <span class="group-scala"><a href="https://doc.akka.io/api/akka/2.8/akka/persistence/query/UpdatedDurableState.html" title="akka.persistence.query.UpdatedDurableState"><code>UpdatedDurableState</code></a></span><span class="group-java"><a href="https://doc.akka.io/japi/akka/2.8/?akka/persistence/query/UpdatedDurableState.html" title="akka.persistence.query.UpdatedDurableState"><code>UpdatedDurableState</code></a></span> when the Durable State is created or updated. It is a <span class="group-scala"><a href="https://doc.akka.io/api/akka/2.8/akka/persistence/query/DeletedDurableState.html" title="akka.persistence.query.DeletedDurableState"><code>DeletedDurableState</code></a></span><span class="group-java"><a href="https://doc.akka.io/japi/akka/2.8/?akka/persistence/query/DeletedDurableState.html" title="akka.persistence.query.DeletedDurableState"><code>DeletedDurableState</code></a></span> when the Durable State is deleted.</p>
+<p>The <span class="group-java"><a href="/api/akka-persistence-r2dbc/1.1.2/akka/persistence/r2dbc/session/javadsl/R2dbcSession.html" title="akka.persistence.r2dbc.session.javadsl.R2dbcSession"><code>R2dbcSession</code></a></span><span class="group-scala"><a href="/api/akka-persistence-r2dbc/1.1.2/akka/persistence/r2dbc/session/scaladsl/R2dbcSession.html" title="akka.persistence.r2dbc.session.scaladsl.R2dbcSession"><code>R2dbcSession</code></a></span> provides the means to access an open R2DBC connection that can be used to process the change. The target database operations run in the same transaction as the storage of the Durable State change.</p>
+<p>One change is processed at a time. It will not be invoked with the next change until after the <code>process</code> method returns and the returned <span class="group-scala"><code>Future</code></span><span class="group-java"><code>CompletionStage</code></span> is completed.</p><div class="callout note "><div class="callout-title">Concurrency semantics</div>
+<p>The <code>ChangeHandler</code> should be implemented as a stateless function without mutable state because the same <code>ChangeHandler</code> instance may be invoked concurrently for different entities. For a specific entity (persistenceId) one change is processed at a time and the <code>process</code> method will not be invoked with the next change for that entity until after the returned <span class="group-scala"><code>Future</code></span><span class="group-java"><code>CompletionStage</code></span> is completed.</p></div>
+<h3><a href="#postgresql-json-payload" name="postgresql-json-payload" class="anchor"><span class="anchor-link"></span></a>PostgreSQL JSON payload</h3>
+<p>For PostgreSQL, an alternative to defining additional columns or change handlers can be to store the state as JSON as described in <a href="postgres_json.html">PostgreSQL JSON</a>. Then you can add <a href="https://www.postgresql.org/docs/current/datatype-json.html#JSON-INDEXING">secondary jsonb indexes</a> on the payload content for queries.</p>
+</div>
+</article>
+<div class="row">
+<div class="small-12 column">
+<section class="nav-prev-next row">
+<div class="nav-prev small-6 column">
+<a href="snapshots.html"><i class="icon-prev"></i> <span class="link-prev">Snapshot store plugin</span></a>
+</div>
+<div class="nav-next small-6 column clearfix">
+<a class="float-right" href="query.html">Query Plugin <i class="icon-next"></i></a>
+</div>
+</section>
+</div>
+</div>
+<div class="source-github row">
+Found an error in this documentation? The source code for this page can be found <a href="https://github.com/akka/akka-persistence-r2dbc/tree/v1.1.2/docs/src/main/paradox/durable-state-store.md">here</a>.
+Please feel free to edit and contribute a pull request.
+</div>
+
+<footer class="page-footer row clearfix">
+<img class="akka-icon float-left show-for-medium" src="images/akka-icon.svg" />
+<section class="copyright">
+<div>Akka Persistence R2DBC is available under the <a href="https://www.lightbend.com/akka/license" target="_blank">Business Source License 1.1</a>.</div>
+<p class="legal">
+&copy; 2011-2023 <a href="https://www.lightbend.com" target="_blank">Lightbend, Inc.</a> |
+<a href="https://www.lightbend.com/legal/licenses" target="_blank">Licenses</a> |
+<a href="https://www.lightbend.com/legal/terms" target="_blank">Terms</a> |
+<a href="https://www.lightbend.com/legal/privacy" target="_blank">Privacy Policy</a> |
+<a href="https://akka.io/cookie/" target="_blank">Cookie Listing</a> |
+<a class="optanon-toggle-display">Cookie Settings</a>
+</p>
+</section>
+
+</footer>
+</section>
+</main>
+</div>
+
+<script type="text/javascript" src="js/scrollsneak.js"></script>
+<script type="text/javascript">jQuery(document).foundation();</script>
+<script type="text/javascript" src="js/groups.js"></script>
+<script type="text/javascript" src="js/page.js"></script>
+<script type="text/javascript" src="js/snippets.js"></script>
+<script type="text/javascript" src="js/magellan.js"></script>
+<script type="text/javascript" src="js/metadata-toggle.js"></script>
+<script type="text/javascript" src="js/lbHeader.js"></script>
+
+<style type="text/css">@import "lib/prettify/prettify.css";</style>
+<script type="text/javascript" src="lib/prettify/prettify.js"></script>
+<script type="text/javascript" src="lib/prettify/lang-scala.js"></script>
+<script type="text/javascript">//<![CDATA[
+jQuery(function(){window.prettyPrint && prettyPrint()});
+//]]></script>
+<script type="text/javascript" src="assets/js/warnOldVersion.js"></script>
+<script type="text/javascript">//<![CDATA[
+jQuery(function(jq){initOldVersionWarnings(jq, '1.1.2', 'https://doc.akka.io/docs/akka-persistence-r2dbc/current/')});
+//]]></script>
+
+
+</body>
+</html>
