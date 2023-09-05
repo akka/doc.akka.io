@@ -1,0 +1,1278 @@
+<!DOCTYPE html>
+<html class="no-js" lang="en">
+
+<head>
+<title>Durable State &bull; Akka Documentation</title>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta name="description" content="Durable State with Akka Persistence enables actors to persist its state for recovery on failure or when migrated within a cluster."/>
+<link rel="canonical" href="https://doc.akka.io/docs/akka/current/typed/durable-state/persistence.html"/>
+<script type="text/javascript" src="../../lib/jquery/jquery.min.js"></script>
+<script type="text/javascript" src="../../lib/foundation/dist/js/foundation.min.js"></script>
+<link rel="stylesheet" type="text/css" href="../../lib/normalize.css/normalize.css"/>
+<link rel="stylesheet" type="text/css" href="../../lib/foundation/dist/css/foundation.min.css"/>
+<link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/docsearch.js/2/docsearch.min.css" />
+<link rel="stylesheet" type="text/css" href="../../css/icons.css"/>
+<link rel="stylesheet" type="text/css" href="../../css/page-8.css"/>
+<link rel="stylesheet" type="text/css" href="../../css/banner-2.css"/>
+<link rel="shortcut icon" href="../../images/favicon.ico" />
+<link rel="apple-touch-icon" sizes="180x180" href="../../images/apple-touch-icon.png"/>
+<link rel="icon" type="image/png" sizes="32x32" href="../../images/favicon-32x32.png"/>
+<link rel="icon" type="image/png" sizes="16x16" href="../../images/favicon-16x16.png"/>
+<link rel="manifest" href="../../images/manifest.json"/>
+<meta name="msapplication-TileImage" content="../../images/mstile-150x150.png"/>
+<meta name="msapplication-TileColor" content="#15a9ce"/>
+<meta name="theme-color" content="#15a9ce"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<!-- OneTrust Cookies Consent Notice (Production Standard, akka.io, en-GB) start -->
+<script src="https://cdn.cookielaw.org/scripttemplates/otSDKStub.js"  type="text/javascript" charset="UTF-8" data-domain-script="28b912e7-09e9-43d5-91e4-3d1897044004" ></script>
+<script type="text/javascript">
+function OptanonWrapper() { }
+</script>
+<!-- OneTrust Cookies Consent Notice (Production Standard, akka.io, en-GB) end -->
+<!--Google Analytics NOTE this will stop processing data July 1st 2023. At which point this embed code can be removed-->
+<script type="text/plain" class="optanon-category-2">
+var _gaq = _gaq || [];
+_gaq.push(['_setAccount', 'UA-21117439-1']);
+_gaq.push(['_setDomainName', 'akka.io']);
+_gaq.push(['_trackPageview']);
+(function() {
+var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+})()
+</script>
+
+<!-- Google Tag Manager: Updated May 17th 2023 - Cookie Compliance checks have been moved into Google Tag Manager -->
+<script type="text/javascript">
+(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+})(window,document,'script','dataLayer','GTM-KBJGH35');
+</script>
+
+</head>
+
+<body id="underlay" data-toggler="nav-open">
+<div id="lightbend-banner" class="lightbend-banner akka full-width" data-category="OSS Lightbend Banner Impression" data-label="Akka Banner Impression">
+<div class="oss-wrapper">
+<div class="oss-brand">
+<a class="oss-track-link-label" data-category="OSS Lightbend Banner Clicks" data-label="Lightbend Logo - Akka Banner" href="https://www.lightbend.com">
+<img class="lightbend-logo" src="../../images/banner-logos/lightbend-reverse.svg" alt="Lightbend" title="Lightbend">
+</a>
+</div>
+<div class="oss-ad no-drop-down">
+<nav id="lightbendRotator" class="lightbend-rotator">
+<a class="oss-track-link-label" data-category="OSS Lightbend Banner Clicks" data-label="Promo Rotator - Lightbend Changed its Software Licensing Model for Akka Technology. [License FAQ] - Akka Banner" href="https://www.lightbend.com/akka/license-faq">
+<strong>Lightbend</strong> Changed its Software Licensing Model for Akka Technology. <span class="akka-btn">License FAQ</span>
+</a>
+</nav>
+</div>
+</div>
+</div>
+
+<header class="site-header hide-for-large">
+<div class="sticky-header clearfix">
+<a href="https://akka.io"><img class="logo" src="../../images/akka-logo-reverse.svg"/></a>
+
+<button class="menu-icon float-right" type="button" data-toggle="underlay overlay"></button>
+</div>
+<div id="overlay" class="overlay-nav" data-toggler="nav-open">
+<header class="nav-header">
+<div class="nav-header-title">
+<h1><a href="../../index.html">Akka Documentation</a></h1>
+</div>
+<div class="nav-header-version">
+Version 2.9.0-M1
+</div>
+<div class="nav-header-groups">
+<select class="supergroup" name="Language"><option class="group" value="group-scala">Scala</option><option class="group" value="group-java">Java</option></select>
+</div>
+<div id="overlay-search-container" class="nav-header-search">
+<input id="overlay-search" type="search" class="search" placeholder="Search" />
+</div>
+</header>
+<nav class="nav-toc">
+<ul>
+  <li><a href="../../security/index.html" class="page">Security Announcements</a></li>
+  <li><a href="../../typed/guide/index.html" class="page">Getting Started Guide</a></li>
+  <li><a href="../../general/index.html" class="page">General Concepts</a></li>
+  <li><a href="../../typed/index.html" class="page">Actors</a></li>
+  <li><a href="../../typed/index-cluster.html" class="page">Cluster</a></li>
+  <li><a href="../../typed/index-persistence.html" class="page">Persistence (Event Sourcing)</a></li>
+  <li><a href="../../typed/index-persistence-durable-state.html" class="page">Persistence (Durable State)</a>
+  <ul>
+    <li><a href="../../typed/durable-state/persistence.html#durable-state" class="active page">Durable State</a>
+    <ul>
+      <li><a href="../../typed/durable-state/persistence.html#module-info" class="header">Module info</a></li>
+      <li><a href="../../typed/durable-state/persistence.html#introduction" class="header">Introduction</a></li>
+      <li><a href="../../typed/durable-state/persistence.html#example-and-core-api" class="header">Example and core API</a></li>
+      <li><a href="../../typed/durable-state/persistence.html#effects-and-side-effects" class="header">Effects and Side Effects</a></li>
+      <li><a href="../../typed/durable-state/persistence.html#cluster-sharding-and-durablestatebehavior" class="header">Cluster Sharding and DurableStateBehavior</a></li>
+      <li><a href="../../typed/durable-state/persistence.html#accessing-the-actorcontext" class="header">Accessing the ActorContext</a></li>
+      <li><a href="../../typed/durable-state/persistence.html#changing-behavior" class="header">Changing Behavior</a></li>
+      <li><a href="../../typed/durable-state/persistence.html#replies" class="header">Replies</a></li>
+      <li><a href="../../typed/durable-state/persistence.html#serialization" class="header">Serialization</a></li>
+      <li><a href="../../typed/durable-state/persistence.html#tagging" class="header">Tagging</a></li>
+      <li><a href="../../typed/durable-state/persistence.html#wrapping-durablestatebehavior" class="header">Wrapping DurableStateBehavior</a></li>
+    </ul></li>
+    <li><a href="../../typed/durable-state/persistence-style.html" class="page">Style Guide</a></li>
+    <li><a href="../../typed/durable-state/cqrs.html" class="page">CQRS</a></li>
+    <li><a href="../../durable-state/persistence-query.html" class="page">Persistence Query</a></li>
+    <li><a href="../../durable-state/state-store-plugin.html" class="page">Building a storage backend for Durable State</a></li>
+  </ul></li>
+  <li><a href="../../stream/index.html" class="page">Streams</a></li>
+  <li><a href="../../discovery/index.html" class="page">Discovery</a></li>
+  <li><a href="../../index-utilities.html" class="page">Utilities</a></li>
+  <li><a href="../../common/other-modules.html" class="page">Other Akka modules</a></li>
+  <li><a href="../../additional/deploy.html" class="page">Package, Deploy and Run</a></li>
+  <li><a href="../../project/index.html" class="page">Project Information</a></li>
+  <li><a href="../../index-classic.html" class="page">Akka Classic</a></li>
+</ul>
+</nav>
+</div>
+</header>
+<div class="site-content-wrapper">
+<aside class="sticky-sidebar show-for-large">
+<header class="nav-header sticky-sidebar-header">
+<div class="nav-header-title">
+<h1><a href="../../index.html">Akka Documentation</a></h1>
+</div>
+<div class="nav-header-version">
+Version 2.9.0-M1
+</div>
+<div class="nav-header-groups">
+<select class="supergroup" name="Language"><option class="group" value="group-scala">Scala</option><option class="group" value="group-java">Java</option></select>
+</div>
+<div class="nav-header-search">
+<input id="search" type="search" class="search" placeholder="Search" />
+</div>
+</header>
+<nav class="site-nav sticky-sidebar-contents">
+<div class="nav-toc">
+<ul>
+  <li><a href="../../security/index.html" class="page">Security Announcements</a></li>
+  <li><a href="../../typed/guide/index.html" class="page">Getting Started Guide</a></li>
+  <li><a href="../../general/index.html" class="page">General Concepts</a></li>
+  <li><a href="../../typed/index.html" class="page">Actors</a></li>
+  <li><a href="../../typed/index-cluster.html" class="page">Cluster</a></li>
+  <li><a href="../../typed/index-persistence.html" class="page">Persistence (Event Sourcing)</a></li>
+  <li><a href="../../typed/index-persistence-durable-state.html" class="page">Persistence (Durable State)</a>
+  <ul>
+    <li><a href="../../typed/durable-state/persistence.html#durable-state" class="active page">Durable State</a>
+    <ul>
+      <li><a href="../../typed/durable-state/persistence.html#module-info" class="header">Module info</a></li>
+      <li><a href="../../typed/durable-state/persistence.html#introduction" class="header">Introduction</a></li>
+      <li><a href="../../typed/durable-state/persistence.html#example-and-core-api" class="header">Example and core API</a></li>
+      <li><a href="../../typed/durable-state/persistence.html#effects-and-side-effects" class="header">Effects and Side Effects</a></li>
+      <li><a href="../../typed/durable-state/persistence.html#cluster-sharding-and-durablestatebehavior" class="header">Cluster Sharding and DurableStateBehavior</a></li>
+      <li><a href="../../typed/durable-state/persistence.html#accessing-the-actorcontext" class="header">Accessing the ActorContext</a></li>
+      <li><a href="../../typed/durable-state/persistence.html#changing-behavior" class="header">Changing Behavior</a></li>
+      <li><a href="../../typed/durable-state/persistence.html#replies" class="header">Replies</a></li>
+      <li><a href="../../typed/durable-state/persistence.html#serialization" class="header">Serialization</a></li>
+      <li><a href="../../typed/durable-state/persistence.html#tagging" class="header">Tagging</a></li>
+      <li><a href="../../typed/durable-state/persistence.html#wrapping-durablestatebehavior" class="header">Wrapping DurableStateBehavior</a></li>
+    </ul></li>
+    <li><a href="../../typed/durable-state/persistence-style.html" class="page">Style Guide</a></li>
+    <li><a href="../../typed/durable-state/cqrs.html" class="page">CQRS</a></li>
+    <li><a href="../../durable-state/persistence-query.html" class="page">Persistence Query</a></li>
+    <li><a href="../../durable-state/state-store-plugin.html" class="page">Building a storage backend for Durable State</a></li>
+  </ul></li>
+  <li><a href="../../stream/index.html" class="page">Streams</a></li>
+  <li><a href="../../discovery/index.html" class="page">Discovery</a></li>
+  <li><a href="../../index-utilities.html" class="page">Utilities</a></li>
+  <li><a href="../../common/other-modules.html" class="page">Other Akka modules</a></li>
+  <li><a href="../../additional/deploy.html" class="page">Package, Deploy and Run</a></li>
+  <li><a href="../../project/index.html" class="page">Project Information</a></li>
+  <li><a href="../../index-classic.html" class="page">Akka Classic</a></li>
+</ul>
+</div>
+</nav>
+<footer class="nav-footer sticky-sidebar-footer">
+<a href="https://akka.io"><img class="logo" src="../../images/akka-logo-reverse.svg"/></a>
+
+</footer>
+</aside>
+<main class="fixed-shift-for-large expanded row">
+<section class="site-content small-12 column">
+<article class="page-content row">
+<div class="small-12 column" id="docs">
+<h1><a href="#durable-state" name="durable-state" class="anchor"><span class="anchor-link"></span></a>Durable State</h1>
+<h2><a href="#module-info" name="module-info" class="anchor"><span class="anchor-link"></span></a>Module info</h2>
+<p>The Akka dependencies are available from Akka&rsquo;s library repository. To access them there, you need to configure the URL for this repository.</p><dl class="repository"><dt>sbt</dt><dd><pre class="prettyprint"><code class="language-scala">resolvers += "Akka library repository".at("https://repo.akka.io/maven")
+</code></pre></dd><dt>Maven</dt><dd><pre class="prettyprint"><code class="language-xml">&lt;project&gt
+  ...
+  &lt;repositories&gt;
+    &lt;repository&gt;
+      &lt;id&gt;akka-repository&lt;/id&gt;
+      &lt;name>Akka library repository&lt;/name&gt;
+      &lt;url>https://repo.akka.io/maven&lt;/url&gt;
+    &lt;/repository&gt;
+  &lt;/repositories&gt
+&lt;/project&gt;
+</code></pre></dd><dt>Gradle</dt><dd><pre class="prettyprint"><code class="language-gradle">repositories {
+    mavenCentral()
+    maven {
+        url "https://repo.akka.io/maven"
+    }
+}
+</code></pre></dd></dl>
+<p>To use Akka Persistence, add the module to your project:</p><dl class="dependency"><dt>sbt</dt><dd><pre class="prettyprint"><code class="language-scala">val AkkaVersion = "2.9.0-M1"
+libraryDependencies ++= Seq(
+  "com.typesafe.akka" %% "akka-persistence-typed" % AkkaVersion,
+  "com.typesafe.akka" %% "akka-persistence-testkit" % AkkaVersion % Test
+)</code></pre></dd><dt>Maven</dt><dd><pre class="prettyprint"><code class="language-xml">&lt;properties&gt;
+  &lt;scala.binary.version&gt;2.13&lt;/scala.binary.version&gt;
+&lt;/properties&gt;
+&lt;dependencyManagement&gt;
+  &lt;dependencies&gt;
+    &lt;dependency&gt;
+      &lt;groupId&gt;com.typesafe.akka&lt;/groupId&gt;
+      &lt;artifactId&gt;akka-bom_${scala.binary.version}&lt;/artifactId&gt;
+      &lt;version&gt;2.9.0-M1&lt;/version&gt;
+      &lt;type&gt;pom&lt;/type&gt;
+      &lt;scope&gt;import&lt;/scope&gt;
+    &lt;/dependency&gt
+  &lt;/dependencies&gt;
+&lt;/dependencyManagement&gt;
+&lt;dependencies&gt
+  &lt;dependency&gt;
+    &lt;groupId&gt;com.typesafe.akka&lt;/groupId&gt;
+    &lt;artifactId&gt;akka-persistence-typed_${scala.binary.version}&lt;/artifactId&gt;
+  &lt;/dependency&gt
+  &lt;dependency&gt;
+    &lt;groupId&gt;com.typesafe.akka&lt;/groupId&gt;
+    &lt;artifactId&gt;akka-persistence-testkit_${scala.binary.version}&lt;/artifactId&gt;
+    &lt;scope&gt;test&lt;/scope&gt;
+  &lt;/dependency&gt
+&lt;/dependencies&gt;</code></pre></dd><dt>Gradle</dt><dd><pre class="prettyprint"><code class="language-gradle">def versions = [
+  ScalaBinary: "2.13"
+]
+dependencies {
+  implementation platform("com.typesafe.akka:akka-bom_${versions.ScalaBinary}:2.9.0-M1")
+
+  implementation "com.typesafe.akka:akka-persistence-typed_${versions.ScalaBinary}"
+  testImplementation "com.typesafe.akka:akka-persistence-testkit_${versions.ScalaBinary}"
+}</code></pre></dd></dl>
+<p>You also have to select durable state store plugin, see <a href="../../persistence-plugins.html">Persistence Plugins</a>.</p>
+<table class="project-info">
+<tr><th colspan="2">Project Info: Akka Event Sourcing (typed)</th></tr>
+  <tr><th>Artifact</th><td><div>com.typesafe.akka</div>
+  <div>akka-persistence-typed</div>
+  <div>2.9.0-M1</div>
+  <div><a href="project/links.html#snapshots-repository">Snapshots are available</a></div>
+  </td></tr>
+  <tr><th>JDK versions</th><td><div>Adopt OpenJDK 8</div><div>Adopt OpenJDK 11</div></td></tr>
+  <tr><th>Scala versions</th><td>2.13.11, 2.12.18, 3.2.2</td></tr>
+  <tr><th>JPMS module name</th><td>akka.persistence.typed</td></tr>
+  <tr><th>License</th><td><div><a href="https://raw.githubusercontent.com/akka/akka/v2.9.0-M1/LICENSE" target="_blank" rel="noopener noreferrer">BUSL-1.1</a></div>
+  </td></tr>
+  <tr><th>Readiness level</th><td><div class="readiness-level"><a href="https://developer.lightbend.com/docs/introduction/getting-help/support-terminology.html#supported" target="_blank" rel="noopener">Supported</a>, <a href="https://www.lightbend.com/lightbend-subscription" target="_blank" rel="noopener">Lightbend Subscription</a> provides support</div>
+  <div>Since 2.6.0, 2019-11-06</div>
+  </td></tr>
+  <tr><th>Home page</th><td><a href="https://akka.io/">https://akka.io/</a></td></tr>
+  <tr><th>API documentation</th><td>
+  <div><a href="https://doc.akka.io/api/akka/2.9.0-M1/akka/persistence/typed/index.html" target="_blank" rel="noopener noreferrer">API (Scaladoc)</a></div>
+  <div><a href="https://doc.akka.io/japi/akka/2.9.0-M1/akka/persistence/typed/package-summary.html" target="_blank" rel="noopener noreferrer">API (Javadoc)</a></div>
+  </td></tr>
+  <tr><th>Forums</th><td>
+  <div><a href="https://discuss.akka.io" target="_blank" rel="noopener noreferrer">Lightbend Discuss</a></div>
+  <div><a href="https://gitter.im/akka/akka" target="_blank" rel="noopener noreferrer">akka/akka Gitter channel</a></div>
+  </td></tr>
+  <tr><th>Release notes</th><td><a href="https://akka.io/blog/news-archive.html">akka.io blog</a></td></tr>
+  <tr><th>Issues</th><td><a href="https://github.com/akka/akka/issues" target="_blank" rel="noopener noreferrer">Github issues</a></td></tr>
+  <tr><th>Sources</th><td><a href="https://github.com/akka/akka" target="_blank" rel="noopener noreferrer">https://github.com/akka/akka</a></td></tr>
+</table>
+
+<h2><a href="#introduction" name="introduction" class="anchor"><span class="anchor-link"></span></a>Introduction</h2>
+
+<p>This model of Akka Persistence enables a stateful actor / entity to store the full state after processing each command instead of using event sourcing. This reduces the conceptual complexity and can be a handy tool for simple use cases. Very much like a CRUD based operation, the API is conceptually simple - a function from current state and incoming command to the next state which replaces the current state in the database. </p>
+
+<pre><code>(State, Command) =&gt; State
+</code></pre>
+<p>The current state is always stored in the database. Since only the latest state is stored, we don&rsquo;t have access to any of the history of changes, unlike event sourced storage. Akka Persistence would read that state and store it in memory. After processing of the command is finished, the new state will be stored in the database. The processing of the next command will not start until the state has been successfully stored in the database.</p>
+<p>Akka Persistence also supports <a href="../persistence.html">Event Sourcing</a> based implementation, where only the <em>events</em> that are persisted by the actor are stored, but not the actual state of the actor. By storing all events, using this model, a stateful actor can be recovered by replaying the stored events to the actor, which allows it to rebuild its state.</p>
+<p>Since each entity lives on one node, consistency is guaranteed and reads can be served directly from memory. For details on how this guarantee is ensured, have a look at the <a href="persistence.html#cluster-sharding-and-durablestatebehavior">Cluster Sharding and DurableStateBehavior</a> section below.</p>
+<h2><a href="#example-and-core-api" name="example-and-core-api" class="anchor"><span class="anchor-link"></span></a>Example and core API</h2>
+<p>Let&rsquo;s start with a simple example that models a counter using an Akka persistent actor. The minimum required for a <span class="group-java"><a href="https://doc.akka.io/japi/akka/2.8/akka/persistence/typed/state/javadsl/DurableStateBehavior.html" title="akka.persistence.typed.state.javadsl.DurableStateBehavior"><code>DurableStateBehavior</code></a></span><span class="group-scala"><a href="https://doc.akka.io/api/akka/2.8/akka/persistence/typed/state/scaladsl/DurableStateBehavior.html" title="akka.persistence.typed.state.scaladsl.DurableStateBehavior"><code>DurableStateBehavior</code></a></span> is:</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.9.0-M1/akka-persistence-typed/src/test/scala/docs/akka/persistence/typed/DurableStatePersistentBehaviorCompileOnly.scala#L15-L75" target="_blank" title="Go to snippet source">source</a><code class="language-scala">import akka.persistence.typed.state.scaladsl.DurableStateBehavior
+import akka.persistence.typed.PersistenceId
+
+object MyPersistentCounter {
+  sealed trait Command[ReplyMessage] extends CborSerializable
+
+  final case class State(value: Int) extends CborSerializable
+
+  def counter(persistenceId: PersistenceId): DurableStateBehavior[Command[_], State] = {
+    DurableStateBehavior.apply[Command[_], State](
+      persistenceId,
+      emptyState = State(0),
+      commandHandler =
+        (state, command) =&gt; throw new NotImplementedError(&quot;TODO: process the command &amp; return an Effect&quot;))
+  }
+}</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.9.0-M1/akka-persistence-typed/src/test/java/jdocs/akka/persistence/typed/DurableStatePersistentBehaviorTest.java#L29-L65" target="_blank" title="Go to snippet source">source</a><code class="language-java">public class MyPersistentCounter
+    extends DurableStateBehavior&lt;MyPersistentCounter.Command&lt;?&gt;, MyPersistentCounter.State&gt; {
+
+  interface Command&lt;ReplyMessage&gt; {}
+
+  public static class State {
+    private final int value;
+
+    public State(int value) {
+      this.value = value;
+    }
+
+    public int get() {
+      return value;
+    }
+  }
+
+  public static Behavior&lt;Command&lt;?&gt;&gt; create(PersistenceId persistenceId) {
+    return new MyPersistentCounter(persistenceId);
+  }
+
+  private MyPersistentCounter(PersistenceId persistenceId) {
+    super(persistenceId);
+  }
+
+  @Override
+  public State emptyState() {
+    return new State(0);
+  }
+
+  @Override
+  public CommandHandler&lt;Command&lt;?&gt;, State&gt; commandHandler() {
+    return (state, command) -&gt; {
+      throw new RuntimeException(&quot;TODO: process the command &amp; return an Effect&quot;);
+    };
+  }
+}</code></pre></dd>
+</dl>
+<p>The first important thing to notice is the <code>Behavior</code> of a persistent actor is typed to the type of the <code>Command</code> because this is the type of message a persistent actor should receive. In Akka this is now enforced by the type system.</p>
+<p>The components that make up a <code>DurableStateBehavior</code> are:</p>
+<ul>
+  <li><code>persistenceId</code> is the stable unique identifier for the persistent actor.</li>
+  <li><code>emptyState</code> defines the <code>State</code> when the entity is first created e.g. a Counter would start with 0 as state.</li>
+  <li><code>commandHandler</code> defines how to handle commands and map to appropriate effects e.g. persisting state and replying to actors.</li>
+</ul>
+<p>Next we&rsquo;ll discuss each of these in detail.</p>
+<h3><a href="#persistenceid" name="persistenceid" class="anchor"><span class="anchor-link"></span></a>PersistenceId</h3>
+<p>The <span class="group-scala"><a href="https://doc.akka.io/api/akka/2.8/akka/persistence/typed/PersistenceId.html" title="akka.persistence.typed.PersistenceId"><code>PersistenceId</code></a></span><span class="group-java"><a href="https://doc.akka.io/japi/akka/2.8/akka/persistence/typed/PersistenceId.html" title="akka.persistence.typed.PersistenceId"><code>PersistenceId</code></a></span> is the stable unique identifier for the persistent actor in the backend durabe state store.</p>
+<p><a href="../cluster-sharding.html">Cluster Sharding</a> is typically used together with <code>DurableStateBehavior</code> to ensure that there is only one active entity for each <code>PersistenceId</code> (<code>entityId</code>). There are techniques to ensure this uniqueness, an example of which can be found in the <a href="../cluster-sharding.html#persistence-example">Persistence example in the Cluster Sharding documentation</a>. This illustrates how to construct the <code>PersistenceId</code> from the <code>entityTypeKey</code> and <code>entityId</code> provided by the <code>EntityContext</code>.</p>
+<p>The <code>entityId</code> in Cluster Sharding is the business domain identifier which uniquely identifies the instance of that specific <code>EntityType</code>. This means that across the cluster we have a unique combination of (<code>EntityType</code>, <code>EntityId</code>). Hence the <code>entityId</code> might not be unique enough to be used as the <code>PersistenceId</code> by itself. For example two different types of entities may have the same <code>entityId</code>. To create a unique <code>PersistenceId</code> the <code>entityId</code> should be prefixed with a stable name of the entity type, which typically is the same as the <code>EntityTypeKey.name</code> that is used in Cluster Sharding. There are <span class="group-scala"><code>PersistenceId.apply</code></span><span class="group-java"><code>PersistenceId.of</code></span> factory methods to help with constructing such <code>PersistenceId</code> from an <code>entityTypeHint</code> and <code>entityId</code>.</p>
+<p>The default separator when concatenating the <code>entityTypeHint</code> and <code>entityId</code> is <code>|</code>, but a custom separator is supported.</p>
+<p>A custom identifier can be created with <code>PersistenceId.ofUniqueId</code>. </p>
+<h3><a href="#command-handler" name="command-handler" class="anchor"><span class="anchor-link"></span></a>Command handler</h3>
+<p>The command handler is a function with 2 parameters, the current <code>State</code> and the incoming <code>Command</code>.</p>
+<p>A command handler returns an <code>Effect</code> directive that defines what state, if any, to persist. Effects are created using <span class="group-java">a factory that is returned via the <code>Effect()</code> method</span> <span class="group-scala">the <code>Effect</code> factory</span>.</p>
+<p>The two most commonly used effects are: </p>
+<ul>
+  <li><code>persist</code> will persist the latest value of the state. No history of state changes will be stored</li>
+  <li><code>none</code> no state to be persisted, for example a read-only command</li>
+</ul>
+<p>More effects are explained in <a href="persistence.html#effects-and-side-effects">Effects and Side Effects</a>.</p>
+<p>In addition to returning the primary <code>Effect</code> for the command, <code>DurableStateBehavior</code>s can also chain side effects that are to be performed after successful persist which is achieved with the <code>thenRun</code> function e.g. <span class="group-scala"><code>Effect.persist(..).thenRun</code></span><span class="group-java"><code>Effect().persist(..).thenRun</code></span>.</p>
+<h3><a href="#completing-the-example" name="completing-the-example" class="anchor"><span class="anchor-link"></span></a>Completing the example</h3>
+<p>Let&rsquo;s fill in the details of the example.</p>
+<p>Commands:</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.9.0-M1/akka-persistence-typed/src/test/scala/docs/akka/persistence/typed/DurableStatePersistentBehaviorCompileOnly.scala#L29-L33" target="_blank" title="Go to snippet source">source</a><code class="language-scala">sealed trait Command[ReplyMessage] extends CborSerializable
+final case object Increment extends Command[Nothing]
+final case class IncrementBy(value: Int) extends Command[Nothing]
+final case class GetValue(replyTo: ActorRef[State]) extends Command[State]
+final case object Delete extends Command[Nothing]</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.9.0-M1/akka-persistence-typed/src/test/java/jdocs/akka/persistence/typed/DurableStatePersistentBehaviorTest.java#L77-L101" target="_blank" title="Go to snippet source">source</a><code class="language-java">interface Command&lt;ReplyMessage&gt; {}
+
+public enum Increment implements Command&lt;Void&gt; {
+  INSTANCE
+}
+
+public static class IncrementBy implements Command&lt;Void&gt; {
+  public final int value;
+
+  public IncrementBy(int value) {
+    this.value = value;
+  }
+}
+
+public static class GetValue implements Command&lt;State&gt; {
+  private final ActorRef&lt;Integer&gt; replyTo;
+
+  public GetValue(ActorRef&lt;Integer&gt; replyTo) {
+    this.replyTo = replyTo;
+  }
+}
+
+public enum Delete implements Command&lt;Void&gt; {
+  INSTANCE
+}</code></pre></dd>
+</dl>
+<p>State is a storage for the latest value of the counter.</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.9.0-M1/akka-persistence-typed/src/test/scala/docs/akka/persistence/typed/DurableStatePersistentBehaviorCompileOnly.scala#L37" target="_blank" title="Go to snippet source">source</a><code class="language-scala">final case class State(value: Int) extends CborSerializable</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.9.0-M1/akka-persistence-typed/src/test/java/jdocs/akka/persistence/typed/DurableStatePersistentBehaviorTest.java#L105-L115" target="_blank" title="Go to snippet source">source</a><code class="language-java">public static class State {
+  private final int value;
+
+  public State(int value) {
+    this.value = value;
+  }
+
+  public int get() {
+    return value;
+  }
+}</code></pre></dd>
+</dl>
+<p>The command handler handles the commands <code>Increment</code>, <code>IncrementBy</code> and <code>GetValue</code>. </p>
+<ul>
+  <li><code>Increment</code> increments the counter by <code>1</code> and persists the updated value as an effect in the State</li>
+  <li><code>IncrementBy</code> increments the counter by the value passed to it and persists the updated value as an effect in the State</li>
+  <li><code>GetValue</code> retrieves the value of the counter from the State and replies with it to the actor passed in</li>
+</ul>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.9.0-M1/akka-persistence-typed/src/test/scala/docs/akka/persistence/typed/DurableStatePersistentBehaviorCompileOnly.scala#L41-L49" target="_blank" title="Go to snippet source">source</a><code class="language-scala">import akka.persistence.typed.state.scaladsl.Effect
+
+val commandHandler: (State, Command[_]) =&gt; Effect[State] = (state, command) =&gt;
+  command match {
+    case Increment         =&gt; Effect.persist(state.copy(value = state.value + 1))
+    case IncrementBy(by)   =&gt; Effect.persist(state.copy(value = state.value + by))
+    case GetValue(replyTo) =&gt; Effect.reply(replyTo)(state)
+    case Delete            =&gt; Effect.delete[State]()
+  }</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.9.0-M1/akka-persistence-typed/src/test/java/jdocs/akka/persistence/typed/DurableStatePersistentBehaviorTest.java#L135-L149" target="_blank" title="Go to snippet source">source</a><code class="language-java">@Override
+public CommandHandler&lt;Command&lt;?&gt;, State&gt; commandHandler() {
+  return newCommandHandlerBuilder()
+      .forAnyState()
+      .onCommand(
+          Increment.class, (state, command) -&gt; Effect().persist(new State(state.get() + 1)))
+      .onCommand(
+          IncrementBy.class,
+          (state, command) -&gt; Effect().persist(new State(state.get() + command.value)))
+      .onCommand(
+          GetValue.class, (state, command) -&gt; Effect().reply(command.replyTo, state.get()))
+      .onCommand(
+          Delete.class, (state, command) -&gt; Effect().delete())
+      .build();
+}</code></pre></dd>
+</dl>
+<p><span class="group-scala">These are used to create a <code>DurableStateBehavior</code>:</span> <span class="group-java">These are defined in an <code>DurableStateBehavior</code>:</span></p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.9.0-M1/akka-persistence-typed/src/test/scala/docs/akka/persistence/typed/DurableStatePersistentBehaviorCompileOnly.scala#L15-L58" target="_blank" title="Go to snippet source">source</a><code class="language-scala">import akka.persistence.typed.state.scaladsl.DurableStateBehavior
+import akka.persistence.typed.PersistenceId
+
+def counter(id: String): DurableStateBehavior[Command[_], State] = {
+  DurableStateBehavior.apply[Command[_], State](
+    persistenceId = PersistenceId.ofUniqueId(id),
+    emptyState = State(0),
+    commandHandler = commandHandler)
+}</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.9.0-M1/akka-persistence-typed/src/test/java/jdocs/akka/persistence/typed/DurableStatePersistentBehaviorTest.java#L14-L151" target="_blank" title="Go to snippet source">source</a><code class="language-java">import akka.persistence.typed.state.javadsl.DurableStateBehavior;
+import akka.persistence.typed.PersistenceId;
+
+public class MyPersistentCounter
+    extends DurableStateBehavior&lt;MyPersistentCounter.Command&lt;?&gt;, MyPersistentCounter.State&gt; {
+
+  // commands, events and state defined here
+
+  public static Behavior&lt;Command&lt;?&gt;&gt; create(PersistenceId persistenceId) {
+    return new MyPersistentCounter(persistenceId);
+  }
+
+  private MyPersistentCounter(PersistenceId persistenceId) {
+    super(persistenceId);
+  }
+
+  @Override
+  public State emptyState() {
+    return new State(0);
+  }
+
+  @Override
+  public CommandHandler&lt;Command&lt;?&gt;, State&gt; commandHandler() {
+    return newCommandHandlerBuilder()
+        .forAnyState()
+        .onCommand(
+            Increment.class, (state, command) -&gt; Effect().persist(new State(state.get() + 1)))
+        .onCommand(
+            IncrementBy.class,
+            (state, command) -&gt; Effect().persist(new State(state.get() + command.value)))
+        .onCommand(
+            GetValue.class, (state, command) -&gt; Effect().reply(command.replyTo, state.get()))
+        .onCommand(
+            Delete.class, (state, command) -&gt; Effect().delete())
+        .build();
+  }
+}</code></pre></dd>
+</dl>
+<h2><a href="#effects-and-side-effects" name="effects-and-side-effects" class="anchor"><span class="anchor-link"></span></a>Effects and Side Effects</h2>
+<p>A command handler returns an <code>Effect</code> directive that defines what state, if any, to persist. Effects are created using <span class="group-java">a factory that is returned via the <code>Effect()</code> method</span> <span class="group-scala">the <code>Effect</code> factory</span> and can be one of: </p>
+<ul>
+  <li><code>persist</code> will persist the latest state. If it&rsquo;s a new persistence id, the record will be inserted. In case of an existing persistence id, the record will be updated only if the revision number of the incoming record is 1 more than the already existing record. Otherwise <code>persist</code> will fail.</li>
+  <li><code>delete</code> will delete the state by setting it to the empty state and the revision number will be incremented by 1.</li>
+  <li><code>none</code> no state to be persisted, for example a read-only command</li>
+  <li><code>unhandled</code> the command is unhandled (not supported) in current state</li>
+  <li><code>stop</code> stop this actor</li>
+  <li><code>stash</code> the current command is stashed</li>
+  <li><code>unstashAll</code> process the commands that were stashed with <span class="group-scala"><code>Effect.stash</code></span><span class="group-java"><code>Effect().stash</code></span></li>
+  <li><code>reply</code> send a reply message to the given <code>ActorRef</code></li>
+</ul>
+<p>Note that only one of those can be chosen per incoming command. It is not possible to both persist and say none/unhandled.</p>
+<p>In addition to returning the primary <code>Effect</code> for the command <code>DurableStateBehavior</code>s can also chain side effects that are to be performed after successful persist which is achieved with the <code>thenRun</code> function that runs the callback passed to it e.g. <span class="group-scala"><code>Effect.persist(..).thenRun</code></span><span class="group-java"><code>Effect().persist(..).thenRun</code></span>. </p>
+<p>All <code>thenRun</code> registered callbacks are executed sequentially after successful execution of the persist statement (or immediately, in case of <code>none</code> and <code>unhandled</code>).</p>
+<p>In addition to <code>thenRun</code> the following actions can also be performed after successful persist:</p>
+<ul>
+  <li><code>thenStop</code> the actor will be stopped</li>
+  <li><code>thenUnstashAll</code> process the commands that were stashed with <span class="group-scala"><code>Effect.stash</code></span><span class="group-java"><code>Effect().stash</code></span></li>
+  <li><code>thenReply</code> send a reply message to the given <code>ActorRef</code></li>
+</ul>
+<p>In the example below, we use a different constructor of <code>DurableStateBehavior.withEnforcedReplies</code>, which creates a <code>Behavior</code> for a persistent actor that ensures that every command sends a reply back. Hence it will be a compilation error if the returned effect from a <code>CommandHandler</code> isn&rsquo;t a <code>ReplyEffect</code>.</p>
+<p>Instead of <code>Increment</code> we will have a new command <code>IncrementWithConfirmation</code> that, along with persistence will also send an acknowledgement as a reply to the <code>ActorRef</code> passed in the command. </p>
+<p>Example of effects and side-effects:</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.9.0-M1/akka-persistence-typed/src/test/scala/docs/akka/persistence/typed/DurableStatePersistentBehaviorCompileOnly.scala#L83-L102" target="_blank" title="Go to snippet source">source</a><code class="language-scala">sealed trait Command[ReplyMessage] extends CborSerializable
+final case class IncrementWithConfirmation(replyTo: ActorRef[Done]) extends Command[Done]
+final case class GetValue(replyTo: ActorRef[State]) extends Command[State]
+
+final case class State(value: Int) extends CborSerializable
+
+def counter(persistenceId: PersistenceId): DurableStateBehavior[Command[_], State] = {
+  DurableStateBehavior.withEnforcedReplies[Command[_], State](
+    persistenceId,
+    emptyState = State(0),
+    commandHandler = (state, command) =&gt;
+      command match {
+
+        case IncrementWithConfirmation(replyTo) =&gt;
+          Effect.persist(state.copy(value = state.value + 1)).thenReply(replyTo)(_ =&gt; Done)
+
+        case GetValue(replyTo) =&gt;
+          Effect.reply(replyTo)(state)
+      })
+}</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.9.0-M1/akka-persistence-typed/src/test/java/jdocs/akka/persistence/typed/DurableStatePersistentBehaviorTest.java#L20-L218" target="_blank" title="Go to snippet source">source</a><code class="language-java">import akka.Done;
+interface Command&lt;ReplyMessage&gt; {}
+
+public static class IncrementWithConfirmation implements Command&lt;Void&gt; {
+  public final ActorRef&lt;Done&gt; replyTo;
+
+  public IncrementWithConfirmation(ActorRef&lt;Done&gt; replyTo) {
+    this.replyTo = replyTo;
+  }
+}
+
+public static class GetValue implements Command&lt;State&gt; {
+  private final ActorRef&lt;Integer&gt; replyTo;
+
+  public GetValue(ActorRef&lt;Integer&gt; replyTo) {
+    this.replyTo = replyTo;
+  }
+}
+
+public static class State {
+  private final int value;
+
+  public State(int value) {
+    this.value = value;
+  }
+
+  public int get() {
+    return value;
+  }
+}
+
+public static Behavior&lt;Command&lt;?&gt;&gt; create(PersistenceId persistenceId) {
+  return new MyPersistentCounterWithReplies(persistenceId);
+}
+
+private MyPersistentCounterWithReplies(PersistenceId persistenceId) {
+  super(persistenceId);
+}
+
+@Override
+public State emptyState() {
+  return new State(0);
+}
+
+@Override
+public CommandHandler&lt;Command&lt;?&gt;, State&gt; commandHandler() {
+  return newCommandHandlerBuilder()
+      .forAnyState()
+      .onCommand(
+          IncrementWithConfirmation.class,
+          (state, command) -&gt;
+              Effect()
+                  .persist(new State(state.get() + 1))
+                  .thenReply(command.replyTo, (st) -&gt; Done.getInstance()))
+      .onCommand(
+          GetValue.class, (state, command) -&gt; Effect().reply(command.replyTo, state.get()))
+      .build();
+}</code></pre></dd>
+</dl>
+<p>The most common way to have a side-effect is to use the <code>thenRun</code> method on <code>Effect</code>. In case you have multiple side-effects that needs to be run for several commands, you can factor them out into functions and reuse for all the commands. For example:</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.9.0-M1/akka-persistence-typed/src/test/scala/akka/persistence/typed/scaladsl/PersistentActorCompileOnlyTest.scala#L242-L247" target="_blank" title="Go to snippet source">source</a><code class="language-scala">// Example factoring out a chained effect to use in several places with `thenRun`
+val commonChainedEffects: Mood =&gt; Unit = _ =&gt; println(&quot;Command processed&quot;)
+// Then in a command handler:
+Effect
+  .persist(Remembered(&quot;Yep&quot;)) // persist event
+  .thenRun(commonChainedEffects) // add on common chained effect</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.9.0-M1/akka-persistence-typed/src/test/java/akka/persistence/typed/javadsl/PersistentActorCompileOnlyTest.java#L207-L234" target="_blank" title="Go to snippet source">source</a><code class="language-java">// Example factoring out a chained effect to use in several places with `thenRun`
+static final Procedure&lt;ExampleState&gt; commonChainedEffect =
+    state -&gt; System.out.println(&quot;Command handled!&quot;);
+
+      @Override
+      public CommandHandler&lt;MyCommand, MyEvent, ExampleState&gt; commandHandler() {
+        return newCommandHandlerBuilder()
+            .forStateType(ExampleState.class)
+            .onCommand(
+                Cmd.class,
+                (state, cmd) -&gt;
+                    Effect()
+                        .persist(new Evt(cmd.data))
+                        .thenRun(() -&gt; cmd.replyTo.tell(new Ack()))
+                        .thenRun(commonChainedEffect))
+            .build();
+      }</code></pre></dd>
+</dl>
+<h3><a href="#side-effects-ordering-and-guarantees" name="side-effects-ordering-and-guarantees" class="anchor"><span class="anchor-link"></span></a>Side effects ordering and guarantees</h3>
+<p>Any side effects are executed on an at-most-once basis and will not be executed if the persist fails.</p>
+<p>Side effects are not run when the actor is restarted or started again after being stopped.</p>
+<p>The side effects are executed sequentially, it is not possible to execute side effects in parallel, unless they call out to something that is running concurrently (for example sending a message to another actor).</p>
+<p>It&rsquo;s possible to execute a side effect before persisting the state, but that can result in that the side effect is performed but that the state is not stored if the persist fails.</p>
+<h2><a href="#cluster-sharding-and-durablestatebehavior" name="cluster-sharding-and-durablestatebehavior" class="anchor"><span class="anchor-link"></span></a>Cluster Sharding and DurableStateBehavior</h2>
+<p><a href="../cluster-sharding.html">Cluster Sharding</a> is an excellent fit to spread persistent actors over a cluster, addressing them by id. It makes it possible to have more persistent actors exist in the cluster than what would fit in the memory of one node. Cluster sharding improves the resilience of the cluster. If a node crashes, the persistent actors are quickly started on a new node and can resume operations.</p>
+<p>The <code>DurableStateBehavior</code> can then be run as any plain actor as described in <a href="../actors.html">actors documentation</a>, but since Akka Persistence is based on the single-writer principle, the persistent actors are typically used together with Cluster Sharding. For a particular <code>persistenceId</code> only one persistent actor instance should be active at one time. Cluster Sharding ensures that there is only one active entity (or actor instance) for each id. </p>
+<h2><a href="#accessing-the-actorcontext" name="accessing-the-actorcontext" class="anchor"><span class="anchor-link"></span></a>Accessing the ActorContext</h2>
+<p>If the <span class="group-java"><a href="https://doc.akka.io/japi/akka/2.8/akka/persistence/typed/state/javadsl/DurableStateBehavior.html" title="akka.persistence.typed.state.javadsl.DurableStateBehavior"><code>DurableStateBehavior</code></a></span><span class="group-scala"><a href="https://doc.akka.io/api/akka/2.8/akka/persistence/typed/state/scaladsl/DurableStateBehavior.html" title="akka.persistence.typed.state.scaladsl.DurableStateBehavior"><code>DurableStateBehavior</code></a></span> needs to use the <span class="group-java"><a href="https://doc.akka.io/japi/akka/2.8/akka/actor/typed/javadsl/ActorContext.html" title="akka.actor.typed.javadsl.ActorContext"><code>ActorContext</code></a></span><span class="group-scala"><a href="https://doc.akka.io/api/akka/2.8/akka/actor/typed/scaladsl/ActorContext.html" title="akka.actor.typed.scaladsl.ActorContext"><code>ActorContext</code></a></span>, for example to spawn child actors, it can be obtained by wrapping construction with <code>Behaviors.setup</code>:</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.9.0-M1/akka-persistence-typed/src/test/scala/docs/akka/persistence/typed/DurableStatePersistentBehaviorCompileOnly.scala#L108-L120" target="_blank" title="Go to snippet source">source</a><code class="language-scala">import akka.persistence.typed.state.scaladsl.Effect
+import akka.persistence.typed.state.scaladsl.DurableStateBehavior.CommandHandler
+
+def apply(): Behavior[String] =
+  Behaviors.setup { context =&gt;
+    DurableStateBehavior[String, State](
+      persistenceId = PersistenceId.ofUniqueId(&quot;myPersistenceId&quot;),
+      emptyState = State(0),
+      commandHandler = CommandHandler.command { cmd =&gt;
+        context.log.info(&quot;Got command {}&quot;, cmd)
+        Effect.none
+      })
+  }</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.9.0-M1/akka-persistence-typed/src/test/java/jdocs/akka/persistence/typed/DurableStatePersistentBehaviorTest.java#L226-L262" target="_blank" title="Go to snippet source">source</a><code class="language-java">public class MyPersistentBehavior
+    extends DurableStateBehavior&lt;MyPersistentBehavior.Command, MyPersistentBehavior.State&gt; {
+
+  public static Behavior&lt;Command&gt; create(PersistenceId persistenceId) {
+    return Behaviors.setup(ctx -&gt; new MyPersistentBehavior(persistenceId, ctx));
+  }
+
+  // this makes the context available to the command handler etc.
+  private final ActorContext&lt;Command&gt; context;
+
+  // optionally if you only need `ActorContext.getSelf()`
+  private final ActorRef&lt;Command&gt; self;
+
+  public MyPersistentBehavior(PersistenceId persistenceId, ActorContext&lt;Command&gt; ctx) {
+    super(persistenceId);
+    this.context = ctx;
+    this.self = ctx.getSelf();
+  }
+
+}</code></pre></dd>
+</dl>
+<h2><a href="#changing-behavior" name="changing-behavior" class="anchor"><span class="anchor-link"></span></a>Changing Behavior</h2>
+<p>After processing a message, actors are able to return the <code>Behavior</code> that is used for the next message.</p>
+<p>As you can see in the above examples this is not supported by persistent actors. Instead, the state is persisted as an <code>Effect</code> by the <code>commandHandler</code>. </p>
+<p>The reason a new behavior can&rsquo;t be returned is that behavior is part of the actor&rsquo;s state and must also carefully be reconstructed during recovery from the persisted state. This would imply that the state needs to be encoded such that the behavior can also be restored from it. That would be very prone to mistakes which is why it is not allowed in Akka Persistence.</p>
+<p>For basic actors you can use the same set of command handlers independent of what state the entity is in. For more complex actors it&rsquo;s useful to be able to change the behavior in the sense that different functions for processing commands may be defined depending on what state the actor is in. This is useful when implementing finite state machine (FSM) like entities.</p>
+<p>The next example demonstrates how to define different behavior based on the current <code>State</code>. It shows an actor that represents the state of a blog post. Before a post is started the only command it can process is to <code>AddPost</code>. Once it is started then one can look it up with <code>GetPost</code>, modify it with <code>ChangeBody</code> or publish it with <code>Publish</code>.</p>
+<p>The state is captured by:</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.9.0-M1/akka-persistence-typed/src/test/scala/docs/akka/persistence/typed/BlogPostEntityDurableState.scala#L23-L36" target="_blank" title="Go to snippet source">source</a><code class="language-scala">sealed trait State
+
+case object BlankState extends State
+
+final case class DraftState(content: PostContent) extends State {
+  def withBody(newBody: String): DraftState =
+    copy(content = content.copy(body = newBody))
+
+  def postId: String = content.postId
+}
+
+final case class PublishedState(content: PostContent) extends State {
+  def postId: String = content.postId
+}</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.9.0-M1/akka-persistence-typed/src/test/java/jdocs/akka/persistence/typed/BlogPostEntityDurableState.java#L23-L67" target="_blank" title="Go to snippet source">source</a><code class="language-java">interface State {}
+
+enum BlankState implements State {
+  INSTANCE
+}
+
+static class DraftState implements State {
+  final PostContent content;
+
+  DraftState(PostContent content) {
+    this.content = content;
+  }
+
+  DraftState withContent(PostContent newContent) {
+    return new DraftState(newContent);
+  }
+
+  DraftState withBody(String newBody) {
+    return withContent(new PostContent(postId(), content.title, newBody));
+  }
+
+  String postId() {
+    return content.postId;
+  }
+}
+
+static class PublishedState implements State {
+  final PostContent content;
+
+  PublishedState(PostContent content) {
+    this.content = content;
+  }
+
+  PublishedState withContent(PostContent newContent) {
+    return new PublishedState(newContent);
+  }
+
+  PublishedState withBody(String newBody) {
+    return withContent(new PostContent(postId(), content.title, newBody));
+  }
+
+  String postId() {
+    return content.postId;
+  }
+}</code></pre></dd>
+</dl>
+<p>The commands, of which only a subset are valid depending on the state:</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.9.0-M1/akka-persistence-typed/src/test/scala/docs/akka/persistence/typed/BlogPostEntityDurableState.scala#L40-L48" target="_blank" title="Go to snippet source">source</a><code class="language-scala">sealed trait Command
+final case class AddPost(content: PostContent, replyTo: ActorRef[StatusReply[AddPostDone]]) extends Command
+final case class AddPostDone(postId: String)
+final case class GetPost(replyTo: ActorRef[PostContent]) extends Command
+final case class ChangeBody(newBody: String, replyTo: ActorRef[Done]) extends Command
+final case class Publish(replyTo: ActorRef[Done]) extends Command
+final case class PostContent(postId: String, title: String, body: String)</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.9.0-M1/akka-persistence-typed/src/test/java/jdocs/akka/persistence/typed/BlogPostEntityDurableState.java#L71-L127" target="_blank" title="Go to snippet source">source</a><code class="language-java">public interface Command {}
+public static class AddPost implements Command {
+  final PostContent content;
+  final ActorRef&lt;AddPostDone&gt; replyTo;
+
+  public AddPost(PostContent content, ActorRef&lt;AddPostDone&gt; replyTo) {
+    this.content = content;
+    this.replyTo = replyTo;
+  }
+}
+
+public static class AddPostDone implements Command {
+  final String postId;
+
+  public AddPostDone(String postId) {
+    this.postId = postId;
+  }
+}
+public static class GetPost implements Command {
+  final ActorRef&lt;PostContent&gt; replyTo;
+
+  public GetPost(ActorRef&lt;PostContent&gt; replyTo) {
+    this.replyTo = replyTo;
+  }
+}
+
+public static class ChangeBody implements Command {
+  final String newBody;
+  final ActorRef&lt;Done&gt; replyTo;
+
+  public ChangeBody(String newBody, ActorRef&lt;Done&gt; replyTo) {
+    this.newBody = newBody;
+    this.replyTo = replyTo;
+  }
+}
+
+public static class Publish implements Command {
+  final ActorRef&lt;Done&gt; replyTo;
+
+  public Publish(ActorRef&lt;Done&gt; replyTo) {
+    this.replyTo = replyTo;
+  }
+}
+
+public static class PostContent implements Command {
+  final String postId;
+  final String title;
+  final String body;
+
+  public PostContent(String postId, String title, String body) {
+    this.postId = postId;
+    this.title = title;
+    this.body = body;
+  }
+}</code></pre></dd>
+</dl>
+<p><span class="group-java">The command handler to process each command is decided by the state class (or state predicate) that is given to the <code>forStateType</code> of the <code>CommandHandlerBuilder</code> and the match cases in the builders.</span> <span class="group-scala">The command handler to process each command is decided by first looking at the state and then the command. It typically becomes two levels of pattern matching, first on the state and then on the command.</span> Delegating to methods like <code>addPost</code>, <code>changeBody</code>, <code>publish</code> etc. is a good practice because the one-line cases give a nice overview of the message dispatch.</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.9.0-M1/akka-persistence-typed/src/test/scala/docs/akka/persistence/typed/BlogPostEntityDurableState.scala#L61-L119" target="_blank" title="Go to snippet source">source</a><code class="language-scala">private val commandHandler: (State, Command) =&gt; Effect[State] = { (state, command) =&gt;
+  state match {
+
+    case BlankState =&gt;
+      command match {
+        case cmd: AddPost =&gt; addPost(cmd)
+        case _            =&gt; Effect.unhandled
+      }
+
+    case draftState: DraftState =&gt;
+      command match {
+        case cmd: ChangeBody  =&gt; changeBody(draftState, cmd)
+        case Publish(replyTo) =&gt; publish(draftState, replyTo)
+        case GetPost(replyTo) =&gt; getPost(draftState, replyTo)
+        case AddPost(_, replyTo) =&gt;
+          Effect.unhandled[State].thenRun(_ =&gt; replyTo ! StatusReply.Error(&quot;Cannot add post while in draft state&quot;))
+      }
+
+    case publishedState: PublishedState =&gt;
+      command match {
+        case GetPost(replyTo) =&gt; getPost(publishedState, replyTo)
+        case AddPost(_, replyTo) =&gt;
+          Effect.unhandled[State].thenRun(_ =&gt; replyTo ! StatusReply.Error(&quot;Cannot add post, already published&quot;))
+        case _ =&gt; Effect.unhandled
+      }
+  }
+}
+
+private def addPost(cmd: AddPost): Effect[State] = {
+  Effect.persist(DraftState(cmd.content)).thenRun { _ =&gt;
+    // After persist is done additional side effects can be performed
+    cmd.replyTo ! StatusReply.Success(AddPostDone(cmd.content.postId))
+  }
+}
+
+private def changeBody(state: DraftState, cmd: ChangeBody): Effect[State] = {
+  Effect.persist(state.withBody(cmd.newBody)).thenRun { _ =&gt;
+    cmd.replyTo ! Done
+  }
+}
+
+private def publish(state: DraftState, replyTo: ActorRef[Done]): Effect[State] = {
+  Effect.persist(PublishedState(state.content)).thenRun { _ =&gt;
+    println(s&quot;Blog post ${state.postId} was published&quot;)
+    replyTo ! Done
+  }
+}
+
+private def getPost(state: DraftState, replyTo: ActorRef[PostContent]): Effect[State] = {
+  replyTo ! state.content
+  Effect.none
+}
+
+private def getPost(state: PublishedState, replyTo: ActorRef[PostContent]): Effect[State] = {
+  replyTo ! state.content
+  Effect.none
+}</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.9.0-M1/akka-persistence-typed/src/test/java/jdocs/akka/persistence/typed/BlogPostEntityDurableState.java#L151-L211" target="_blank" title="Go to snippet source">source</a><code class="language-java">@Override
+public CommandHandler&lt;Command, State&gt; commandHandler() {
+  CommandHandlerBuilder&lt;Command, State&gt; builder = newCommandHandlerBuilder();
+
+  builder.forStateType(BlankState.class).onCommand(AddPost.class, this::onAddPost);
+
+  builder
+      .forStateType(DraftState.class)
+      .onCommand(ChangeBody.class, this::onChangeBody)
+      .onCommand(Publish.class, this::onPublish)
+      .onCommand(GetPost.class, this::onGetPost);
+
+  builder
+      .forStateType(PublishedState.class)
+      .onCommand(ChangeBody.class, this::onChangeBody)
+      .onCommand(GetPost.class, this::onGetPost);
+
+  builder.forAnyState().onCommand(AddPost.class, (state, cmd) -&gt; Effect().unhandled());
+
+  return builder.build();
+}
+
+private Effect&lt;State&gt; onAddPost(AddPost cmd) {
+  return Effect()
+      .persist(new DraftState(cmd.content))
+      .thenRun(() -&gt; cmd.replyTo.tell(new AddPostDone(cmd.content.postId)));
+}
+
+private Effect&lt;State&gt; onChangeBody(DraftState state, ChangeBody cmd) {
+  return Effect()
+      .persist(state.withBody(cmd.newBody))
+      .thenRun(() -&gt; cmd.replyTo.tell(Done.getInstance()));
+}
+
+private Effect&lt;State&gt; onChangeBody(PublishedState state, ChangeBody cmd) {
+  return Effect()
+      .persist(state.withBody(cmd.newBody))
+      .thenRun(() -&gt; cmd.replyTo.tell(Done.getInstance()));
+}
+
+private Effect&lt;State&gt; onPublish(DraftState state, Publish cmd) {
+  return Effect()
+      .persist(new PublishedState(state.content))
+      .thenRun(
+          () -&gt; {
+            System.out.println(&quot;Blog post published: &quot; + state.postId());
+            cmd.replyTo.tell(Done.getInstance());
+          });
+}
+
+private Effect&lt;State&gt; onGetPost(DraftState state, GetPost cmd) {
+  cmd.replyTo.tell(state.content);
+  return Effect().none();
+}
+
+private Effect&lt;State&gt; onGetPost(PublishedState state, GetPost cmd) {
+  cmd.replyTo.tell(state.content);
+  return Effect().none();
+}</code></pre></dd>
+</dl>
+<p>And finally the behavior is created <span class="group-scala">from the <code>DurableStateBehavior.apply</code></span>:</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.9.0-M1/akka-persistence-typed/src/test/scala/docs/akka/persistence/typed/BlogPostEntityDurableState.scala#L17-L124" target="_blank" title="Go to snippet source">source</a><code class="language-scala">object BlogPostEntityDurableState {
+  // commands, state defined here
+
+  def apply(entityId: String, persistenceId: PersistenceId): Behavior[Command] = {
+    Behaviors.setup { context =&gt;
+      context.log.info(&quot;Starting BlogPostEntityDurableState {}&quot;, entityId)
+      DurableStateBehavior[Command, State](persistenceId, emptyState = BlankState, commandHandler)
+    }
+  }
+
+  // commandHandler defined here
+}</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.9.0-M1/akka-persistence-typed/src/test/java/jdocs/akka/persistence/typed/BlogPostEntityDurableState.java#L15-L216" target="_blank" title="Go to snippet source">source</a><code class="language-java">public class BlogPostEntityDurableState
+    extends DurableStateBehavior&lt;
+        BlogPostEntityDurableState.Command, BlogPostEntityDurableState.State&gt; {
+  // commands and state as in above snippets
+
+  public static Behavior&lt;Command&gt; create(String entityId, PersistenceId persistenceId) {
+    return Behaviors.setup(
+        context -&gt; {
+          context.getLog().info(&quot;Starting BlogPostEntityDurableState {}&quot;, entityId);
+          return new BlogPostEntityDurableState(persistenceId);
+        });
+  }
+
+  private BlogPostEntityDurableState(PersistenceId persistenceId) {
+    super(persistenceId);
+  }
+
+  @Override
+  public State emptyState() {
+    return BlankState.INSTANCE;
+  }
+
+  // commandHandler, eventHandler as in above snippets
+}</code></pre></dd>
+</dl>
+<p>This can be refactored one or two steps further by defining the command handlers in the state class as illustrated in <a href="persistence-style.html#command-handlers-in-the-state">command handlers in the state</a>.</p>
+<p>There is also an example illustrating an <a href="persistence-style.html#optional-initial-state">optional initial state</a>.</p>
+<h2><a href="#replies" name="replies" class="anchor"><span class="anchor-link"></span></a>Replies</h2>
+<p>The <a href="../interaction-patterns.html#request-response">Request-Response interaction pattern</a> is very common for persistent actors, because you typically want to know if the command was rejected due to validation errors and when accepted you want a confirmation when the events have been successfully stored.</p>
+<p>Therefore you typically include a <span class="group-scala"><code>ActorRef[ReplyMessageType]</code></span><span class="group-java"><code>ActorRef&lt;ReplyMessageType&gt;</code></span>. If the command can either have a successful response or a validation error returned, the generic response type <span class="group-scala"><code>StatusReply[ReplyType]]</code></span> <span class="group-java"><code>StatusReply&lt;ReplyType&gt;</code></span> can be used. If the successful reply does not contain a value but is more of an acknowledgement a pre defined <span class="group-scala"><code>StatusReply.Ack</code></span><span class="group-java"><code>StatusReply.ack()</code></span> of type <span class="group-scala"><code>StatusReply[Done]</code></span><span class="group-java"><code>StatusReply&lt;Done&gt;</code></span> can be used.</p>
+<p>After validation errors or after persisting events, using a <code>thenRun</code> side effect, the reply message can be sent to the <code>ActorRef</code>.</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.9.0-M1/akka-persistence-typed/src/test/scala/docs/akka/persistence/typed/BlogPostEntityDurableState.scala#L42-L43" target="_blank" title="Go to snippet source">source</a><code class="language-scala">final case class AddPost(content: PostContent, replyTo: ActorRef[StatusReply[AddPostDone]]) extends Command
+final case class AddPostDone(postId: String)</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.9.0-M1/akka-persistence-typed/src/test/java/jdocs/akka/persistence/typed/BlogPostEntityDurableState.java#L73-L89" target="_blank" title="Go to snippet source">source</a><code class="language-java">public static class AddPost implements Command {
+  final PostContent content;
+  final ActorRef&lt;AddPostDone&gt; replyTo;
+
+  public AddPost(PostContent content, ActorRef&lt;AddPostDone&gt; replyTo) {
+    this.content = content;
+    this.replyTo = replyTo;
+  }
+}
+
+public static class AddPostDone implements Command {
+  final String postId;
+
+  public AddPostDone(String postId) {
+    this.postId = postId;
+  }
+}</code></pre></dd>
+</dl>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.9.0-M1/akka-persistence-typed/src/test/scala/docs/akka/persistence/typed/BlogPostEntityDurableState.scala#L91-L94" target="_blank" title="Go to snippet source">source</a><code class="language-scala">Effect.persist(DraftState(cmd.content)).thenRun { _ =&gt;
+  // After persist is done additional side effects can be performed
+  cmd.replyTo ! StatusReply.Success(AddPostDone(cmd.content.postId))
+}</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.9.0-M1/akka-persistence-typed/src/test/java/jdocs/akka/persistence/typed/BlogPostEntityDurableState.java#L175-L177" target="_blank" title="Go to snippet source">source</a><code class="language-java">return Effect()
+    .persist(new DraftState(cmd.content))
+    .thenRun(() -&gt; cmd.replyTo.tell(new AddPostDone(cmd.content.postId)));</code></pre></dd>
+</dl>
+<p>Since this is such a common pattern there is a reply effect for this purpose. It has the nice property that it can be used to enforce that you do not forget to specify replies when implementing the <code>DurableStateBehavior</code>. If it&rsquo;s defined with <span class="group-scala"><code>DurableStateBehavior.withEnforcedReplies</code></span><span class="group-java"><code>DurableStateBehaviorWithEnforcedReplies</code></span> there will be compilation errors if the returned effect isn&rsquo;t a <code>ReplyEffect</code>, which can be created with <span class="group-scala"><code>Effect.reply</code></span><span class="group-java"><code>Effect().reply</code></span>, <span class="group-scala"><code>Effect.noReply</code></span><span class="group-java"><code>Effect().noReply</code></span>, <span class="group-scala"><code>Effect.thenReply</code></span><span class="group-java"><code>Effect().thenReply</code></span>, or <span class="group-scala"><code>Effect.thenNoReply</code></span><span class="group-java"><code>Effect().thenNoReply</code></span>.</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.9.0-M1/akka-cluster-sharding-typed/src/test/scala/docs/akka/cluster/sharding/typed/AccountExampleWithCommandHandlersInDurableState.scala#L127-L130" target="_blank" title="Go to snippet source">source</a><code class="language-scala">def apply(persistenceId: PersistenceId): Behavior[Command] = {
+  DurableStateBehavior
+    .withEnforcedReplies[Command, Account](persistenceId, EmptyAccount, (state, cmd) =&gt; state.applyCommand(cmd))
+}</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.9.0-M1/akka-cluster-sharding-typed/src/test/java/jdocs/akka/cluster/sharding/typed/AccountExampleWithNullDurableState.java#L30-L32" target="_blank" title="Go to snippet source">source</a><code class="language-java">public class AccountEntity
+    extends DurableStateBehaviorWithEnforcedReplies&lt;
+        AccountEntity.Command, AccountEntity.Account&gt; {</code></pre></dd>
+</dl>
+<p>The commands must have a field of <span class="group-scala"><code>ActorRef[ReplyMessageType]</code></span><span class="group-java"><code>ActorRef&lt;ReplyMessageType&gt;</code></span> that can then be used to send a reply.</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.9.0-M1/akka-cluster-sharding-typed/src/test/scala/docs/akka/cluster/sharding/typed/AccountExampleWithCommandHandlersInDurableState.scala#L29-L34" target="_blank" title="Go to snippet source">source</a><code class="language-scala">sealed trait Command extends CborSerializable
+final case class Withdraw(amount: BigDecimal, replyTo: ActorRef[StatusReply[Done]]) extends Command</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.9.0-M1/akka-cluster-sharding-typed/src/test/java/jdocs/akka/cluster/sharding/typed/AccountExampleWithNullDurableState.java#L40" target="_blank" title="Go to snippet source">source</a><code class="language-java">interface Command extends CborSerializable {}</code></pre></dd>
+</dl>
+<p>The <code>ReplyEffect</code> is created with <span class="group-scala"><code>Effect.reply</code></span><span class="group-java"><code>Effect().reply</code></span>, <span class="group-scala"><code>Effect.noReply</code></span><span class="group-java"><code>Effect().noReply</code></span>, <span class="group-scala"><code>Effect.thenReply</code></span><span class="group-java"><code>Effect().thenReply</code></span>, or <span class="group-scala"><code>Effect.thenNoReply</code></span><span class="group-java"><code>Effect().thenNoReply</code></span>.</p>
+<p><span class="group-java">Note that command handlers are defined with <code>newCommandHandlerWithReplyBuilder</code> when using <code>EventSourcedBehaviorWithEnforcedReplies</code>, as opposed to newCommandHandlerBuilder when using <code>EventSourcedBehavior</code>.</span></p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.9.0-M1/akka-cluster-sharding-typed/src/test/scala/docs/akka/cluster/sharding/typed/AccountExampleWithCommandHandlersInDurableState.scala#L89-L99" target="_blank" title="Go to snippet source">source</a><code class="language-scala">private def deposit(cmd: Deposit) = {
+  Effect.persist(copy(balance = balance + cmd.amount)).thenReply(cmd.replyTo)(_ =&gt; StatusReply.Ack)
+}
+
+private def withdraw(cmd: Withdraw) = {
+  if (canWithdraw(cmd.amount))
+    Effect.persist(copy(balance = balance - cmd.amount)).thenReply(cmd.replyTo)(_ =&gt; StatusReply.Ack)
+  else
+    Effect.reply(cmd.replyTo)(
+      StatusReply.Error(s&quot;Insufficient balance ${balance} to be able to withdraw ${cmd.amount}&quot;))
+}</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.9.0-M1/akka-cluster-sharding-typed/src/test/java/jdocs/akka/cluster/sharding/typed/AccountExampleWithNullDurableState.java#L186-L197" target="_blank" title="Go to snippet source">source</a><code class="language-java">private ReplyEffect&lt;Account&gt; withdraw(OpenedAccount account, Withdraw command) {
+  if (!account.canWithdraw(command.amount)) {
+    return Effect()
+        .reply(
+            command.replyTo,
+            StatusReply.error(&quot;not enough funds to withdraw &quot; + command.amount));
+  } else {
+    return Effect()
+        .persist(account.makeWithdraw(command.amount))
+        .thenReply(command.replyTo, account2 -&gt; StatusReply.ack());
+  }
+}</code></pre></dd>
+</dl>
+<p>These effects will send the reply message even when <span class="group-scala"><code>DurableStateBehavior.withEnforcedReplies</code></span><span class="group-java"><code>DurableStateBehaviorWithEnforcedReplies</code></span> is not used, but then there will be no compilation errors if the reply decision is left out.</p>
+<p>Note that the <code>noReply</code> is a way of making a conscious decision that a reply shouldn&rsquo;t be sent for a specific command or that a reply will be sent later, perhaps after some asynchronous interaction with other actors or services.</p>
+<h2><a href="#serialization" name="serialization" class="anchor"><span class="anchor-link"></span></a>Serialization</h2>
+<p>The same <a href="../../serialization.html">serialization</a> mechanism as for actor messages is also used for persistent actors.</p>
+<p>You need to enable <a href="../../serialization.html">serialization</a> for your commands (messages) and state. <a href="../../serialization-jackson.html">Serialization with Jackson</a> is a good choice in many cases and our recommendation if you don&rsquo;t have other preference.</p>
+<h2><a href="#tagging" name="tagging" class="anchor"><span class="anchor-link"></span></a>Tagging</h2>
+<p>Persistence allows you to use tags in persistence query. Tagging allows you to identify a subset of states in the durable store and separately consume them as a stream through the <code>DurableStateStoreQuery</code> interface. </p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.9.0-M1/akka-persistence-typed/src/test/scala/docs/akka/persistence/typed/DurableStatePersistentBehaviorCompileOnly.scala#L127-L131" target="_blank" title="Go to snippet source">source</a><code class="language-scala">DurableStateBehavior[Command[_], State](
+  persistenceId = PersistenceId.ofUniqueId(&quot;abc&quot;),
+  emptyState = State(0),
+  commandHandler = (state, cmd) =&gt; throw new NotImplementedError(&quot;TODO: process the command &amp; return an Effect&quot;))
+  .withTag(&quot;tag1&quot;)</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.9.0-M1/akka-persistence-typed/src/test/java/jdocs/akka/persistence/typed/DurableStatePersistentBehaviorTest.java#L270-L309" target="_blank" title="Go to snippet source">source</a><code class="language-java">public class MyPersistentBehavior
+    extends DurableStateBehavior&lt;MyPersistentBehavior.Command, MyPersistentBehavior.State&gt; {
+  @Override
+  public String tag() {
+    return &quot;tag1&quot;;
+  }</code></pre></dd>
+</dl>
+<h2><a href="#wrapping-durablestatebehavior" name="wrapping-durablestatebehavior" class="anchor"><span class="anchor-link"></span></a>Wrapping DurableStateBehavior</h2>
+<p>When creating a <code>DurableStateBehavior</code>, it is possible to wrap <code>DurableStateBehavior</code> in other behaviors such as <code>Behaviors.setup</code> in order to access the <code>ActorContext</code> object. For instance to access the logger from within the <code>ActorContext</code> to log for debugging the <code>commandHandler</code>.</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.9.0-M1/akka-persistence-typed/src/test/scala/docs/akka/persistence/typed/DurableStatePersistentBehaviorCompileOnly.scala#L141-L149" target="_blank" title="Go to snippet source">source</a><code class="language-scala">Behaviors.setup[Command[_]] { context =&gt;
+  DurableStateBehavior[Command[_], State](
+    persistenceId = PersistenceId.ofUniqueId(&quot;abc&quot;),
+    emptyState = State(0),
+    commandHandler = CommandHandler.command { cmd =&gt;
+      context.log.info(&quot;Got command {}&quot;, cmd)
+      Effect.none
+    })
+}</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.9.0-M1/akka-persistence-typed/src/test/java/jdocs/akka/persistence/typed/DurableStatePersistentBehaviorTest.java#L319-L356" target="_blank" title="Go to snippet source">source</a><code class="language-java">public class MyPersistentBehavior
+    extends DurableStateBehavior&lt;MyPersistentBehavior.Command, MyPersistentBehavior.State&gt; {
+
+
+  public static Behavior&lt;Command&gt; create(PersistenceId persistenceId) {
+    return Behaviors.setup(context -&gt; new MyPersistentBehavior(persistenceId, context));
+  }
+
+  private final ActorContext&lt;Command&gt; context;
+
+  private MyPersistentBehavior(PersistenceId persistenceId, ActorContext&lt;Command&gt; context) {
+    super(
+        persistenceId,
+        SupervisorStrategy.restartWithBackoff(
+            Duration.ofSeconds(10), Duration.ofSeconds(30), 0.2));
+    this.context = context;
+  }
+
+  @Override
+  public CommandHandler&lt;Command, State&gt; commandHandler() {
+    return (state, command) -&gt; {
+      context.getLog().info(&quot;In command handler&quot;);
+      return Effect().none();
+    };
+  }</code></pre></dd>
+</dl>
+</div>
+</article>
+<div class="row">
+<div class="small-12 column">
+<section class="nav-prev-next row">
+<div class="nav-prev small-6 column">
+<a href="../../typed/index-persistence-durable-state.html"><i class="icon-prev"></i> <span class="link-prev">Persistence (Durable State)</span></a>
+</div>
+<div class="nav-next small-6 column clearfix">
+<a class="float-right" href="../../typed/durable-state/persistence-style.html">Style Guide <i class="icon-next"></i></a>
+</div>
+</section>
+</div>
+</div>
+<div class="source-github row">
+Found an error in this documentation? The source code for this page can be found <a href="https://github.com/akka/akka/tree/v2.9.0-M1/akka-docs/src/main/paradox/typed/durable-state/persistence.md">here</a>.
+Please feel free to edit and contribute a pull request.
+</div>
+
+<footer class="page-footer row clearfix">
+<img class="akka-icon float-left show-for-medium" src="../../images/akka-icon.svg" />
+<section class="copyright">
+<div>Akka is available under the <a href="https://www.lightbend.com/akka/license" target="_blank">Business Source License 1.1</a>.</div>
+<p class="legal">
+&copy; 2011-2023 <a href="https://www.lightbend.com" target="_blank">Lightbend, Inc.</a> |
+<a href="https://www.lightbend.com/legal/licenses" target="_blank">Licenses</a> |
+<a href="https://www.lightbend.com/legal/terms" target="_blank">Terms</a> |
+<a href="https://www.lightbend.com/legal/privacy" target="_blank">Privacy Policy</a> |
+<a href="https://akka.io/cookie/" target="_blank">Cookie Listing</a> |
+<a class="optanon-toggle-display">Cookie Settings</a>
+</p>
+</section>
+
+</footer>
+</section>
+</main>
+</div>
+
+<script type="text/javascript" src="../../js/scrollsneak.js"></script>
+<script type="text/javascript">jQuery(document).foundation();</script>
+<script type="text/javascript" src="../../js/groups.js"></script>
+<script type="text/javascript" src="../../js/page.js"></script>
+<script type="text/javascript" src="../../js/snippets.js"></script>
+<script type="text/javascript" src="../../js/magellan.js"></script>
+<script type="text/javascript" src="../../js/metadata-toggle.js"></script>
+<script type="text/javascript" src="../../js/lbHeader.js"></script>
+
+<style type="text/css">@import "../../lib/prettify/prettify.css";</style>
+<script type="text/javascript" src="../../lib/prettify/prettify.js"></script>
+<script type="text/javascript" src="../../lib/prettify/lang-scala.js"></script>
+<script type="text/javascript">//<![CDATA[
+jQuery(function(){window.prettyPrint && prettyPrint()});
+//]]></script>
+<!-- Algolia docs search -->
+<script type="text/javascript" src="https://cdn.jsdelivr.net/docsearch.js/2/docsearch.min.js"></script>
+<style>.algolia-autocomplete { display: block !important }</style>
+<script type="text/javascript">
+docsearch({
+appId: 'XUXZ6LW9B1',
+apiKey: '5b6260148e92f7c5e38338fcf7eaa3e0',
+indexName: 'akka_docs',
+inputSelector: '#search',
+algoliaOptions: {
+hitsPerPage: 5
+}
+});
+
+docsearch({
+appId: 'XUXZ6LW9B1',
+apiKey: '5b6260148e92f7c5e38338fcf7eaa3e0',
+indexName: 'akka_docs',
+inputSelector: '#overlay-search',
+algoliaOptions: {
+hitsPerPage: 5
+}
+});
+
+// set up "/" as global shortcut for focusing on search
+jQuery(document).keypress(function (event) {
+if (event.keyCode == 47) {
+jQuery("#search").focus();
+return false; // swallow key event, otherwise the / char would be input into the search box
+}
+});
+</script>
+
+<script type="text/javascript" src="../../assets/js/warnOldDocs.js"></script>
+
+
+</body>
+</html>
