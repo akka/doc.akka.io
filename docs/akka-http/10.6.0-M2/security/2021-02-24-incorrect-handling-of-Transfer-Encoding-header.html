@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html class="no-js" lang="en">
+
+<head>
+<title>Incorrect Handling Of Transfer-Encoding Header &bull; Akka HTTP</title>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta name="description" content="Akka Http: Modern, fast, asynchronous, streaming-first HTTP server and client."/>
+<link rel="canonical" href="https://doc.akka.io/docs/akka-http/current/security/2021-02-24-incorrect-handling-of-Transfer-Encoding-header.html"/>
+<script type="text/javascript" src="../lib/jquery/jquery.min.js"></script>
+<script type="text/javascript" src="../lib/foundation/dist/js/foundation.min.js"></script>
+<link rel="stylesheet" type="text/css" href="../lib/normalize.css/normalize.css"/>
+<link rel="stylesheet" type="text/css" href="../lib/foundation/dist/css/foundation.min.css"/>
+<link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/docsearch.js/2/docsearch.min.css" />
+<link rel="stylesheet" type="text/css" href="../css/icons.css"/>
+<link rel="stylesheet" type="text/css" href="../css/page-8.css"/>
+<link rel="stylesheet" type="text/css" href="../css/banner-2.css"/>
+<link rel="shortcut icon" href="../images/favicon.ico" />
+<link rel="apple-touch-icon" sizes="180x180" href="../images/apple-touch-icon.png"/>
+<link rel="icon" type="image/png" sizes="32x32" href="../images/favicon-32x32.png"/>
+<link rel="icon" type="image/png" sizes="16x16" href="../images/favicon-16x16.png"/>
+<link rel="manifest" href="../images/manifest.json"/>
+<meta name="msapplication-TileImage" content="../images/mstile-150x150.png"/>
+<meta name="msapplication-TileColor" content="#15a9ce"/>
+<meta name="theme-color" content="#15a9ce"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<!-- OneTrust Cookies Consent Notice (Production Standard, akka.io, en-GB) start -->
+<script src="https://cdn.cookielaw.org/scripttemplates/otSDKStub.js"  type="text/javascript" charset="UTF-8" data-domain-script="28b912e7-09e9-43d5-91e4-3d1897044004" ></script>
+<script type="text/javascript">
+function OptanonWrapper() { }
+</script>
+<!-- OneTrust Cookies Consent Notice (Production Standard, akka.io, en-GB) end -->
+<!--Google Analytics NOTE this will stop processing data July 1st 2023. At which point this embed code can be removed-->
+<script type="text/plain" class="optanon-category-2">
+var _gaq = _gaq || [];
+_gaq.push(['_setAccount', 'UA-21117439-1']);
+_gaq.push(['_setDomainName', 'akka.io']);
+_gaq.push(['_trackPageview']);
+(function() {
+var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+})()
+</script>
+
+<!-- Google Tag Manager: Updated May 17th 2023 - Cookie Compliance checks have been moved into Google Tag Manager -->
+<script type="text/javascript">
+(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+})(window,document,'script','dataLayer','GTM-KBJGH35');
+</script>
+
+</head>
+
+<body id="underlay" data-toggler="nav-open">
+<div id="lightbend-banner" class="lightbend-banner akka full-width" data-category="OSS Lightbend Banner Impression" data-label="Akka Banner Impression">
+<div class="oss-wrapper">
+<div class="oss-brand">
+<a class="oss-track-link-label" data-category="OSS Lightbend Banner Clicks" data-label="Lightbend Logo - Akka Banner" href="https://www.lightbend.com">
+<img class="lightbend-logo" src="../images/banner-logos/lightbend-reverse.svg" alt="Lightbend" title="Lightbend">
+</a>
+</div>
+<div class="oss-ad no-drop-down">
+<nav id="lightbendRotator" class="lightbend-rotator">
+<a class="oss-track-link-label" data-category="OSS Lightbend Banner Clicks" data-label="Promo Rotator - Lightbend Changed its Software Licensing Model for Akka Technology. [License FAQ] - Akka Banner" href="https://www.lightbend.com/akka/license-faq">
+<strong>Lightbend</strong> Changed its Software Licensing Model for Akka Technology. <span class="akka-btn">License FAQ</span>
+</a>
+</nav>
+</div>
+</div>
+</div>
+
+<header class="site-header hide-for-large">
+<div class="sticky-header clearfix">
+<a href="https://akka.io"><img class="logo" src="../images/akka-logo-reverse.svg"/></a>
+
+<button class="menu-icon float-right" type="button" data-toggle="underlay overlay"></button>
+</div>
+<div id="overlay" class="overlay-nav" data-toggler="nav-open">
+<header class="nav-header">
+<div class="nav-header-title">
+<h1><a href="../index.html">Akka HTTP</a></h1>
+</div>
+<div class="nav-header-version">
+Version 10.6.0-M2
+</div>
+<div class="nav-header-groups">
+<select class="supergroup" name="Language"><option class="group" value="group-scala">Scala</option><option class="group" value="group-java">Java</option></select>
+</div>
+<div id="overlay-search-container" class="nav-header-search">
+<input id="overlay-search" type="search" class="search" placeholder="Search" />
+</div>
+</header>
+<nav class="nav-toc">
+<ul>
+  <li><a href="../security.html" class="page">Security Announcements</a>
+  <ul>
+    <li><a href="../security.html#receiving-security-advisories" class="header">Receiving Security Advisories</a></li>
+    <li><a href="../security.html#reporting-vulnerabilities" class="header">Reporting Vulnerabilities</a></li>
+    <li><a href="../security.html#fixed-security-vulnerabilities" class="header">Fixed Security Vulnerabilities</a></li>
+    <li><a href="../security/2021.html" class="page">2021</a>
+    <ul>
+      <li><a href="../security/2021-CVE-2021-42697-stack-overflow-parsing-user-agent.html" class="page">CVE-2021-42697: Stack overflow while parsing User-Agent header with deeply nested comments</a></li>
+      <li><a href="../security/2021-02-24-incorrect-handling-of-Transfer-Encoding-header.html#incorrect-handling-of-transfer-encoding-header" class="active page">Incorrect Handling Of Transfer-Encoding Header</a>
+      <ul>
+        <li><a href="../security/2021-02-24-incorrect-handling-of-Transfer-Encoding-header.html#date" class="header">Date</a></li>
+        <li><a href="../security/2021-02-24-incorrect-handling-of-Transfer-Encoding-header.html#description-of-vulnerability" class="header">Description of Vulnerability</a></li>
+        <li><a href="../security/2021-02-24-incorrect-handling-of-Transfer-Encoding-header.html#severity" class="header">Severity</a></li>
+        <li><a href="../security/2021-02-24-incorrect-handling-of-Transfer-Encoding-header.html#impact" class="header">Impact</a></li>
+        <li><a href="../security/2021-02-24-incorrect-handling-of-Transfer-Encoding-header.html#resolution" class="header">Resolution</a></li>
+        <li><a href="../security/2021-02-24-incorrect-handling-of-Transfer-Encoding-header.html#affected-versions" class="header">Affected versions</a></li>
+        <li><a href="../security/2021-02-24-incorrect-handling-of-Transfer-Encoding-header.html#fixed-versions" class="header">Fixed versions</a></li>
+        <li><a href="../security/2021-02-24-incorrect-handling-of-Transfer-Encoding-header.html#acknowledgements" class="header">Acknowledgements</a></li>
+        <li><a href="../security/2021-02-24-incorrect-handling-of-Transfer-Encoding-header.html#references" class="header">References</a></li>
+      </ul></li>
+    </ul></li>
+    <li><a href="../security/2018.html" class="page">2018</a></li>
+    <li><a href="../security/2017.html" class="page">2017</a></li>
+    <li><a href="../security/2016.html" class="page">2016</a></li>
+  </ul></li>
+  <li><a href="../introduction.html" class="page">1. Introduction</a></li>
+  <li><a href="../usage.html" class="page">2. Usage</a></li>
+  <li><a href="../common/index.html" class="page">3. Data Types &amp; Abstractions</a></li>
+  <li><a href="../server-side/index.html" class="page">4. Server API</a></li>
+  <li><a href="../client-side/index.html" class="page">5. Client API</a></li>
+  <li><a href="../extensions.html" class="page">6. Extensions</a></li>
+  <li><a href="../technologies.html" class="page">7. Supported Technologies</a></li>
+  <li><a href="../tipsandtricks.html" class="page">8. Tips And Tricks</a></li>
+  <li><a href="../contributing.html" class="page">9. Contributing</a></li>
+  <li><a href="../reference.html" class="page">10. Reference</a></li>
+  <li><a href="../release-notes/index.html" class="page">11. Release Notes</a></li>
+</ul>
+</nav>
+</div>
+</header>
+<div class="site-content-wrapper">
+<aside class="sticky-sidebar show-for-large">
+<header class="nav-header sticky-sidebar-header">
+<div class="nav-header-title">
+<h1><a href="../index.html">Akka HTTP</a></h1>
+</div>
+<div class="nav-header-version">
+Version 10.6.0-M2
+</div>
+<div class="nav-header-groups">
+<select class="supergroup" name="Language"><option class="group" value="group-scala">Scala</option><option class="group" value="group-java">Java</option></select>
+</div>
+<div class="nav-header-search">
+<input id="search" type="search" class="search" placeholder="Search" />
+</div>
+</header>
+<nav class="site-nav sticky-sidebar-contents">
+<div class="nav-toc">
+<ul>
+  <li><a href="../security.html" class="page">Security Announcements</a>
+  <ul>
+    <li><a href="../security.html#receiving-security-advisories" class="header">Receiving Security Advisories</a></li>
+    <li><a href="../security.html#reporting-vulnerabilities" class="header">Reporting Vulnerabilities</a></li>
+    <li><a href="../security.html#fixed-security-vulnerabilities" class="header">Fixed Security Vulnerabilities</a></li>
+    <li><a href="../security/2021.html" class="page">2021</a>
+    <ul>
+      <li><a href="../security/2021-CVE-2021-42697-stack-overflow-parsing-user-agent.html" class="page">CVE-2021-42697: Stack overflow while parsing User-Agent header with deeply nested comments</a></li>
+      <li><a href="../security/2021-02-24-incorrect-handling-of-Transfer-Encoding-header.html#incorrect-handling-of-transfer-encoding-header" class="active page">Incorrect Handling Of Transfer-Encoding Header</a>
+      <ul>
+        <li><a href="../security/2021-02-24-incorrect-handling-of-Transfer-Encoding-header.html#date" class="header">Date</a></li>
+        <li><a href="../security/2021-02-24-incorrect-handling-of-Transfer-Encoding-header.html#description-of-vulnerability" class="header">Description of Vulnerability</a></li>
+        <li><a href="../security/2021-02-24-incorrect-handling-of-Transfer-Encoding-header.html#severity" class="header">Severity</a></li>
+        <li><a href="../security/2021-02-24-incorrect-handling-of-Transfer-Encoding-header.html#impact" class="header">Impact</a></li>
+        <li><a href="../security/2021-02-24-incorrect-handling-of-Transfer-Encoding-header.html#resolution" class="header">Resolution</a></li>
+        <li><a href="../security/2021-02-24-incorrect-handling-of-Transfer-Encoding-header.html#affected-versions" class="header">Affected versions</a></li>
+        <li><a href="../security/2021-02-24-incorrect-handling-of-Transfer-Encoding-header.html#fixed-versions" class="header">Fixed versions</a></li>
+        <li><a href="../security/2021-02-24-incorrect-handling-of-Transfer-Encoding-header.html#acknowledgements" class="header">Acknowledgements</a></li>
+        <li><a href="../security/2021-02-24-incorrect-handling-of-Transfer-Encoding-header.html#references" class="header">References</a></li>
+      </ul></li>
+    </ul></li>
+    <li><a href="../security/2018.html" class="page">2018</a></li>
+    <li><a href="../security/2017.html" class="page">2017</a></li>
+    <li><a href="../security/2016.html" class="page">2016</a></li>
+  </ul></li>
+  <li><a href="../introduction.html" class="page">1. Introduction</a></li>
+  <li><a href="../usage.html" class="page">2. Usage</a></li>
+  <li><a href="../common/index.html" class="page">3. Data Types &amp; Abstractions</a></li>
+  <li><a href="../server-side/index.html" class="page">4. Server API</a></li>
+  <li><a href="../client-side/index.html" class="page">5. Client API</a></li>
+  <li><a href="../extensions.html" class="page">6. Extensions</a></li>
+  <li><a href="../technologies.html" class="page">7. Supported Technologies</a></li>
+  <li><a href="../tipsandtricks.html" class="page">8. Tips And Tricks</a></li>
+  <li><a href="../contributing.html" class="page">9. Contributing</a></li>
+  <li><a href="../reference.html" class="page">10. Reference</a></li>
+  <li><a href="../release-notes/index.html" class="page">11. Release Notes</a></li>
+</ul>
+</div>
+</nav>
+<footer class="nav-footer sticky-sidebar-footer">
+<a href="https://akka.io"><img class="logo" src="../images/akka-logo-reverse.svg"/></a>
+
+</footer>
+</aside>
+<main class="fixed-shift-for-large expanded row">
+<section class="site-content small-12 column">
+<article class="page-content row">
+<div class="small-12 column" id="docs">
+<h1><a href="#incorrect-handling-of-transfer-encoding-header" name="incorrect-handling-of-transfer-encoding-header" class="anchor"><span class="anchor-link"></span></a>Incorrect Handling Of Transfer-Encoding Header</h1>
+<h2><a href="#date" name="date" class="anchor"><span class="anchor-link"></span></a>Date</h2>
+<p>24 February 2021</p>
+<h2><a href="#description-of-vulnerability" name="description-of-vulnerability" class="anchor"><span class="anchor-link"></span></a>Description of Vulnerability</h2>
+<p>HTTP/1.1 defines rules which <code>Transfer-Encoding</code> headers are valid and how they should be interpreted. In particular, a <code>Transfer-Encoding: chunked</code> header and a <code>Content-Length</code> header are not allowed to appear in a single message at the same time. This is important to unambiguously delimit subsequent HTTP messages on a connection.</p>
+<p>In theory, HTTP/1.1 allows multiple encodings, although, in practice, only <code>chunked</code> is relevant. In the case that multiple encodings are present, vulnerable versions of Akka HTTP do not correctly validate the rules of the specification and effectively ignore the <code>Transfer-Encoding</code> header, use a <code>Content-Length</code> header if present for delimiting a message, and pass the message to the user unchanged.</p>
+<p>If users used Akka HTTP as a reverse proxy, such a message might be forwarded to a backend server. This can potentially lead to &ldquo;Request Smuggling&rdquo; if the backend server has a similar but different interpretation for that (invalid) set of headers.</p>
+<h2><a href="#severity" name="severity" class="anchor"><span class="anchor-link"></span></a>Severity</h2>
+<p>Based on our assessment, the CVSS score of this vulnerability is 4.2 (Medium), based on vector <a href="https://nvd.nist.gov/vuln-metrics/cvss/v3-calculator?vector=AV:N/AC:H/PR:N/UI:N/S:U/C:L/I:L/A:N/E:U/RL:O/RC:C&version=3.1">(AV:N/AC:H/PR:N/UI:N/S:U/C:L/I:L/A:N/E:U/RL:O/RC:C)</a>.</p>
+<h2><a href="#impact" name="impact" class="anchor"><span class="anchor-link"></span></a>Impact</h2>
+<p>A vulnerable Akka HTTP server will accept a malformed message as described above and hand it over to the user. If the user application proxies this message to another server unchanged and that server also accepts that message but interprets it as two HTTP messages, the second message has reached the second server without having been inspected by the proxy.</p>
+<p>Note that Akka HTTP itself currently does not provide functionality to proxy requests to other servers (but it&rsquo;s easy to build).</p>
+<p>In summary, these conditions must be true for an application to be vulnerable:</p>
+<ul>
+  <li>use a vulnerable version of Akka HTTP</li>
+  <li>the application must proxy requests to a backend server</li>
+  <li>the backend server must have another bug that accepts the message and interprets the malformed message as two messages</li>
+</ul>
+<h2><a href="#resolution" name="resolution" class="anchor"><span class="anchor-link"></span></a>Resolution</h2>
+<p>Akka HTTP will no longer accept multiple encodings in <code>Transfer-Encoding</code> but only a single <code>chunked</code> encoding is valid. HTTP message carrying a combination of <code>Transfer-Encoding</code> and <code>Content-Length</code> headers are rejected.</p>
+<h2><a href="#affected-versions" name="affected-versions" class="anchor"><span class="anchor-link"></span></a>Affected versions</h2>
+<ul>
+  <li>akka-http prior to <code>10.2.4</code> and <code>10.1.14</code></li>
+</ul>
+<h2><a href="#fixed-versions" name="fixed-versions" class="anchor"><span class="anchor-link"></span></a>Fixed versions</h2>
+<ul>
+  <li>akka-http <code>10.2.4</code></li>
+  <li>akka-http <code>10.1.14</code></li>
+</ul>
+<h2><a href="#acknowledgements" name="acknowledgements" class="anchor"><span class="anchor-link"></span></a>Acknowledgements</h2>
+<p>Thanks, Bastian Ike and Sebastian Rose of AOE for bringing this issue to our attention.</p>
+<h2><a href="#references" name="references" class="anchor"><span class="anchor-link"></span></a>References</h2>
+<ul>
+  <li><a href="https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2021-23339">CVE-2021-23339</a></li>
+  <li><a href="https://snyk.io/vuln/SNYK-JAVA-COMTYPESAFEAKKA-1075043">SNYK-JAVA-COMTYPESAFEAKKA-1075043</a></li>
+  <li><a href="https://github.com/akka/akka-http/pull/3754">#3754</a></li>
+</ul>
+</div>
+</article>
+<div class="row">
+<div class="small-12 column">
+<section class="nav-prev-next row">
+<div class="nav-prev small-6 column">
+<a href="../security/2021-CVE-2021-42697-stack-overflow-parsing-user-agent.html"><i class="icon-prev"></i> <span class="link-prev">CVE-2021-42697: Stack overflow while parsing User-Agent header with deeply nested comments</span></a>
+</div>
+<div class="nav-next small-6 column clearfix">
+<a class="float-right" href="../security/2018.html">2018 <i class="icon-next"></i></a>
+</div>
+</section>
+</div>
+</div>
+<div class="source-github row">
+Found an error in this documentation? The source code for this page can be found <a href="https://github.com/akka/akka-http/tree/v10.6.0-M2/docs/src/main/paradox/security/2021-02-24-incorrect-handling-of-Transfer-Encoding-header.md">here</a>.
+Please feel free to edit and contribute a pull request.
+</div>
+
+<footer class="page-footer row clearfix">
+<img class="akka-icon float-left show-for-medium" src="../images/akka-icon.svg" />
+<section class="copyright">
+<div>Akka HTTP is available under the <a href="https://www.lightbend.com/akka/license" target="_blank">Business Source License 1.1</a>.</div>
+<p class="legal">
+&copy; 2011-2023 <a href="https://www.lightbend.com" target="_blank">Lightbend, Inc.</a> |
+<a href="https://www.lightbend.com/legal/licenses" target="_blank">Licenses</a> |
+<a href="https://www.lightbend.com/legal/terms" target="_blank">Terms</a> |
+<a href="https://www.lightbend.com/legal/privacy" target="_blank">Privacy Policy</a> |
+<a href="https://akka.io/cookie/" target="_blank">Cookie Listing</a> |
+<a class="optanon-toggle-display">Cookie Settings</a>
+</p>
+</section>
+
+</footer>
+</section>
+</main>
+</div>
+
+<script type="text/javascript" src="../js/scrollsneak.js"></script>
+<script type="text/javascript">jQuery(document).foundation();</script>
+<script type="text/javascript" src="../js/groups.js"></script>
+<script type="text/javascript" src="../js/page.js"></script>
+<script type="text/javascript" src="../js/snippets.js"></script>
+<script type="text/javascript" src="../js/magellan.js"></script>
+<script type="text/javascript" src="../js/metadata-toggle.js"></script>
+<script type="text/javascript" src="../js/lbHeader.js"></script>
+
+<style type="text/css">@import "../lib/prettify/prettify.css";</style>
+<script type="text/javascript" src="../lib/prettify/prettify.js"></script>
+<script type="text/javascript" src="../lib/prettify/lang-scala.js"></script>
+<script type="text/javascript">//<![CDATA[
+jQuery(function(){window.prettyPrint && prettyPrint()});
+//]]></script>
+<!-- Algolia docs search -->
+<script type="text/javascript" src="https://cdn.jsdelivr.net/docsearch.js/2/docsearch.min.js"></script>
+<style>.algolia-autocomplete { display: block !important }</style>
+<script type="text/javascript">
+docsearch({
+appId: 'XUXZ6LW9B1',
+apiKey: '5b6260148e92f7c5e38338fcf7eaa3e0',
+indexName: 'akka_http_docs',
+inputSelector: '#search',
+algoliaOptions: {
+hitsPerPage: 5
+}
+});
+
+docsearch({
+appId: 'XUXZ6LW9B1',
+apiKey: '5b6260148e92f7c5e38338fcf7eaa3e0',
+indexName: 'akka_http_docs',
+inputSelector: '#overlay-search',
+algoliaOptions: {
+hitsPerPage: 5
+}
+});
+
+// set up "/" as global shortcut for focusing on search
+jQuery(document).keypress(function (event) {
+if (event.keyCode == 47) {
+jQuery("#search").focus();
+return false; // swallow key event, otherwise the / char would be input into the search box
+}
+});
+</script>
+
+<script type="text/javascript" src="../assets/js/warnOldDocs.js"></script>
+<script type="text/javascript" src="../assets/js/scrollToFragment.js"></script>
+
+
+</body>
+</html>

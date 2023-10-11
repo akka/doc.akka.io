@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html class="no-js" lang="en">
+
+<head>
+<title>Persistence Query &bull; Akka Persistence JDBC</title>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta name="description" content="A plugin for storing events in an event journal akka-persistence-jdbc"/>
+<link rel="canonical" href="https://doc.akka.io/docs/akka-persistence-jdbc/current/query.html"/>
+<script type="text/javascript" src="lib/jquery/jquery.min.js"></script>
+<script type="text/javascript" src="lib/foundation/dist/js/foundation.min.js"></script>
+<link rel="stylesheet" type="text/css" href="lib/normalize.css/normalize.css"/>
+<link rel="stylesheet" type="text/css" href="lib/foundation/dist/css/foundation.min.css"/>
+<link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/docsearch.js/2/docsearch.min.css" />
+<link rel="stylesheet" type="text/css" href="css/icons.css"/>
+<link rel="stylesheet" type="text/css" href="css/page-8.css"/>
+<link rel="stylesheet" type="text/css" href="css/banner-2.css"/>
+<link rel="shortcut icon" href="images/favicon.ico" />
+<link rel="apple-touch-icon" sizes="180x180" href="images/apple-touch-icon.png"/>
+<link rel="icon" type="image/png" sizes="32x32" href="images/favicon-32x32.png"/>
+<link rel="icon" type="image/png" sizes="16x16" href="images/favicon-16x16.png"/>
+<link rel="manifest" href="images/manifest.json"/>
+<meta name="msapplication-TileImage" content="images/mstile-150x150.png"/>
+<meta name="msapplication-TileColor" content="#15a9ce"/>
+<meta name="theme-color" content="#15a9ce"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<!-- OneTrust Cookies Consent Notice (Production Standard, akka.io, en-GB) start -->
+<script src="https://cdn.cookielaw.org/scripttemplates/otSDKStub.js"  type="text/javascript" charset="UTF-8" data-domain-script="28b912e7-09e9-43d5-91e4-3d1897044004" ></script>
+<script type="text/javascript">
+function OptanonWrapper() { }
+</script>
+<!-- OneTrust Cookies Consent Notice (Production Standard, akka.io, en-GB) end -->
+<!--Google Analytics NOTE this will stop processing data July 1st 2023. At which point this embed code can be removed-->
+<script type="text/plain" class="optanon-category-2">
+var _gaq = _gaq || [];
+_gaq.push(['_setAccount', '']);
+_gaq.push(['_setDomainName', '']);
+_gaq.push(['_trackPageview']);
+(function() {
+var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+})()
+</script>
+
+<!-- Google Tag Manager: Updated May 17th 2023 - Cookie Compliance checks have been moved into Google Tag Manager -->
+<script type="text/javascript">
+(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+})(window,document,'script','dataLayer','GTM-KBJGH35');
+</script>
+
+</head>
+
+<body id="underlay" data-toggler="nav-open">
+<div id="lightbend-banner" class="lightbend-banner akka full-width" data-category="OSS Lightbend Banner Impression" data-label="Akka Banner Impression">
+<div class="oss-wrapper">
+<div class="oss-brand">
+<a class="oss-track-link-label" data-category="OSS Lightbend Banner Clicks" data-label="Lightbend Logo - Akka Banner" href="https://www.lightbend.com">
+<img class="lightbend-logo" src="images/banner-logos/lightbend-reverse.svg" alt="Lightbend" title="Lightbend">
+</a>
+</div>
+<div class="oss-ad no-drop-down">
+<nav id="lightbendRotator" class="lightbend-rotator">
+<a class="oss-track-link-label" data-category="OSS Lightbend Banner Clicks" data-label="Promo Rotator - Lightbend Changed its Software Licensing Model for Akka Technology. [License FAQ] - Akka Banner" href="https://www.lightbend.com/akka/license-faq">
+<strong>Lightbend</strong> Changed its Software Licensing Model for Akka Technology. <span class="akka-btn">License FAQ</span>
+</a>
+</nav>
+</div>
+</div>
+</div>
+
+<header class="site-header hide-for-large">
+<div class="sticky-header clearfix">
+<a href="https://akka.io"><img class="logo" src="images/akka-logo-reverse.svg"/></a>
+
+<button class="menu-icon float-right" type="button" data-toggle="underlay overlay"></button>
+</div>
+<div id="overlay" class="overlay-nav" data-toggler="nav-open">
+<header class="nav-header">
+<div class="nav-header-title">
+<h1><a href="index.html">Akka Persistence JDBC</a></h1>
+</div>
+<div class="nav-header-version">
+Version 5.3.0-M1
+</div>
+<div class="nav-header-groups">
+<select class="supergroup" name="Language"><option class="group" value="group-java">Java</option><option class="group" value="group-scala">Scala</option></select>
+</div>
+</header>
+<nav class="nav-toc">
+<ul>
+  <li><a href="overview.html" class="page">Overview</a></li>
+  <li><a href="configuration.html" class="page">Configuration</a></li>
+  <li><a href="migration.html" class="page">Migration</a></li>
+  <li><a href="query.html#persistence-query" class="active page">Persistence Query</a>
+  <ul>
+    <li><a href="query.html#how-to-get-the-readjournal" class="header">How to get the ReadJournal</a></li>
+    <li><a href="query.html#persistence-query-plugin" class="header">Persistence Query Plugin</a></li>
+    <li><a href="query.html#allpersistenceidsquery-and-currentpersistenceidsquery" class="header">AllPersistenceIdsQuery and CurrentPersistenceIdsQuery</a></li>
+    <li><a href="query.html#eventsbypersistenceidquery-and-currenteventsbypersistenceidquery" class="header">EventsByPersistenceIdQuery and CurrentEventsByPersistenceIdQuery</a></li>
+    <li><a href="query.html#eventsbytag-and-currenteventsbytag" class="header">EventsByTag and CurrentEventsByTag</a></li>
+  </ul></li>
+  <li><a href="custom-dao.html" class="page">Custom DAO Implementation</a></li>
+  <li><a href="snapshots.html" class="page">Snapshots</a></li>
+  <li><a href="durable-state-store.html" class="page">DurableStateStore</a></li>
+</ul>
+</nav>
+</div>
+</header>
+<div class="site-content-wrapper">
+<aside class="sticky-sidebar show-for-large">
+<header class="nav-header sticky-sidebar-header">
+<div class="nav-header-title">
+<h1><a href="index.html">Akka Persistence JDBC</a></h1>
+</div>
+<div class="nav-header-version">
+Version 5.3.0-M1
+</div>
+<div class="nav-header-groups">
+<select class="supergroup" name="Language"><option class="group" value="group-java">Java</option><option class="group" value="group-scala">Scala</option></select>
+</div>
+</header>
+<nav class="site-nav sticky-sidebar-contents">
+<div class="nav-toc">
+<ul>
+  <li><a href="overview.html" class="page">Overview</a></li>
+  <li><a href="configuration.html" class="page">Configuration</a></li>
+  <li><a href="migration.html" class="page">Migration</a></li>
+  <li><a href="query.html#persistence-query" class="active page">Persistence Query</a>
+  <ul>
+    <li><a href="query.html#how-to-get-the-readjournal" class="header">How to get the ReadJournal</a></li>
+    <li><a href="query.html#persistence-query-plugin" class="header">Persistence Query Plugin</a></li>
+    <li><a href="query.html#allpersistenceidsquery-and-currentpersistenceidsquery" class="header">AllPersistenceIdsQuery and CurrentPersistenceIdsQuery</a></li>
+    <li><a href="query.html#eventsbypersistenceidquery-and-currenteventsbypersistenceidquery" class="header">EventsByPersistenceIdQuery and CurrentEventsByPersistenceIdQuery</a></li>
+    <li><a href="query.html#eventsbytag-and-currenteventsbytag" class="header">EventsByTag and CurrentEventsByTag</a></li>
+  </ul></li>
+  <li><a href="custom-dao.html" class="page">Custom DAO Implementation</a></li>
+  <li><a href="snapshots.html" class="page">Snapshots</a></li>
+  <li><a href="durable-state-store.html" class="page">DurableStateStore</a></li>
+</ul>
+</div>
+</nav>
+<footer class="nav-footer sticky-sidebar-footer">
+<a href="https://akka.io"><img class="logo" src="images/akka-logo-reverse.svg"/></a>
+
+</footer>
+</aside>
+<main class="fixed-shift-for-large expanded row">
+<section class="site-content small-12 column">
+<article class="page-content row">
+<div class="small-12 column" id="docs">
+<h1><a href="#persistence-query" name="persistence-query" class="anchor"><span class="anchor-link"></span></a>Persistence Query</h1>
+<h2><a href="#how-to-get-the-readjournal" name="how-to-get-the-readjournal" class="anchor"><span class="anchor-link"></span></a>How to get the ReadJournal</h2>
+<p>The <code>ReadJournal</code> is retrieved via the <code>akka.persistence.query.PersistenceQuery</code> extension:</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka-persistence-jdbc/tree/master/core/src/test/scala/akka/persistence/jdbc/ScaladslSnippets.scala#L28-L32" target="_blank" title="Go to snippet source">source</a><code class="language-scala">import akka.persistence.query.PersistenceQuery
+import akka.persistence.jdbc.query.scaladsl.JdbcReadJournal
+
+val readJournal: JdbcReadJournal =
+  PersistenceQuery(system).readJournalFor[JdbcReadJournal](JdbcReadJournal.Identifier)</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka-persistence-jdbc/tree/master/core/src/test/java/akka/persistence/jdbc/JavadslSnippets.java#L15-L53" target="_blank" title="Go to snippet source">source</a><code class="language-java">import akka.persistence.query.*;
+import akka.persistence.jdbc.query.javadsl.JdbcReadJournal;
+
+final JdbcReadJournal readJournal =
+    PersistenceQuery.get(system)
+        .getReadJournalFor(JdbcReadJournal.class, JdbcReadJournal.Identifier());</code></pre></dd>
+</dl>
+<h2><a href="#persistence-query-plugin" name="persistence-query-plugin" class="anchor"><span class="anchor-link"></span></a>Persistence Query Plugin</h2>
+<p>The plugin supports the following queries:</p>
+<h2><a href="#allpersistenceidsquery-and-currentpersistenceidsquery" name="allpersistenceidsquery-and-currentpersistenceidsquery" class="anchor"><span class="anchor-link"></span></a>AllPersistenceIdsQuery and CurrentPersistenceIdsQuery</h2>
+<p><code>allPersistenceIds</code> and <code>currentPersistenceIds</code> are used for retrieving all persistenceIds of all persistent actors.</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka-persistence-jdbc/tree/master/core/src/test/scala/akka/persistence/jdbc/ScaladslSnippets.scala#L40-L49" target="_blank" title="Go to snippet source">source</a><code class="language-scala">import akka.stream.scaladsl.Source
+import akka.persistence.query.PersistenceQuery
+import akka.persistence.jdbc.query.scaladsl.JdbcReadJournal
+
+val readJournal: JdbcReadJournal =
+  PersistenceQuery(system).readJournalFor[JdbcReadJournal](JdbcReadJournal.Identifier)
+
+val willNotCompleteTheStream: Source[String, NotUsed] = readJournal.persistenceIds()
+
+val willCompleteTheStream: Source[String, NotUsed] = readJournal.currentPersistenceIds()</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka-persistence-jdbc/tree/master/core/src/test/java/akka/persistence/jdbc/JavadslSnippets.java#L19-L68" target="_blank" title="Go to snippet source">source</a><code class="language-java">import akka.stream.javadsl.Source;
+import akka.persistence.query.PersistenceQuery;
+import akka.persistence.jdbc.query.javadsl.JdbcReadJournal;
+
+JdbcReadJournal readJournal =
+    PersistenceQuery.get(system)
+        .getReadJournalFor(JdbcReadJournal.class, JdbcReadJournal.Identifier());
+
+Source&lt;String, NotUsed&gt; willNotCompleteTheStream = readJournal.persistenceIds();
+
+Source&lt;String, NotUsed&gt; willCompleteTheStream = readJournal.currentPersistenceIds();</code></pre></dd>
+</dl>
+<p>The returned event stream is unordered and you can expect different order for multiple executions of the query.</p>
+<p>When using the <code>persistenceIds</code> query, the stream is not completed when it reaches the end of the currently used persistenceIds, but it continues to push new persistenceIds when new persistent actors are created.</p>
+<p>When using the <code>currentPersistenceIds</code> query, the stream is completed when the end of the current list of persistenceIds is reached, thus it is not a <code>live</code> query.</p>
+<p>The stream is completed with failure if there is a failure in executing the query in the backend journal.</p>
+<h2><a href="#eventsbypersistenceidquery-and-currenteventsbypersistenceidquery" name="eventsbypersistenceidquery-and-currenteventsbypersistenceidquery" class="anchor"><span class="anchor-link"></span></a>EventsByPersistenceIdQuery and CurrentEventsByPersistenceIdQuery</h2>
+<p><code>eventsByPersistenceId</code> and <code>currentEventsByPersistenceId</code> is used for retrieving events for a specific PersistentActor identified by persistenceId.</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka-persistence-jdbc/tree/master/core/src/test/scala/akka/persistence/jdbc/ScaladslSnippets.scala#L57-L68" target="_blank" title="Go to snippet source">source</a><code class="language-scala">import akka.stream.scaladsl.Source
+import akka.persistence.query.{ EventEnvelope, PersistenceQuery }
+import akka.persistence.jdbc.query.scaladsl.JdbcReadJournal
+
+val readJournal: JdbcReadJournal =
+  PersistenceQuery(system).readJournalFor[JdbcReadJournal](JdbcReadJournal.Identifier)
+
+val willNotCompleteTheStream: Source[EventEnvelope, NotUsed] =
+  readJournal.eventsByPersistenceId(&quot;some-persistence-id&quot;, 0L, Long.MaxValue)
+
+val willCompleteTheStream: Source[EventEnvelope, NotUsed] =
+  readJournal.currentEventsByPersistenceId(&quot;some-persistence-id&quot;, 0L, Long.MaxValue)</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka-persistence-jdbc/tree/master/core/src/test/java/akka/persistence/jdbc/JavadslSnippets.java#L24-L85" target="_blank" title="Go to snippet source">source</a><code class="language-java">import akka.stream.javadsl.Source;
+import akka.persistence.query.PersistenceQuery;
+import akka.persistence.query.EventEnvelope;
+import akka.persistence.jdbc.query.javadsl.JdbcReadJournal;
+
+JdbcReadJournal readJournal =
+    PersistenceQuery.get(system)
+        .getReadJournalFor(JdbcReadJournal.class, JdbcReadJournal.Identifier());
+
+Source&lt;EventEnvelope, NotUsed&gt; willNotCompleteTheStream =
+    readJournal.eventsByPersistenceId(&quot;some-persistence-id&quot;, 0L, Long.MAX_VALUE);
+
+Source&lt;EventEnvelope, NotUsed&gt; willCompleteTheStream =
+    readJournal.currentEventsByPersistenceId(&quot;some-persistence-id&quot;, 0L, Long.MAX_VALUE);</code></pre></dd>
+</dl>
+<p>You can retrieve a subset of all events by specifying <code>fromSequenceNr</code> and <code>toSequenceNr</code> or use <code>0L</code> and <code>Long.MaxValue</code> respectively to retrieve all events. Note that the corresponding sequence number of each event is provided in the <code>EventEnvelope</code>, which makes it possible to resume the stream at a later point from a given sequence number.</p>
+<p>The returned event stream is ordered by sequence number, i.e. the same order as the PersistentActor persisted the events. The same prefix of stream elements (in same order) are returned for multiple executions of the query, except for when events have been deleted.</p>
+<p>The stream is completed with failure if there is a failure in executing the query in the backend journal.</p>
+<h2><a href="#eventsbytag-and-currenteventsbytag" name="eventsbytag-and-currenteventsbytag" class="anchor"><span class="anchor-link"></span></a>EventsByTag and CurrentEventsByTag</h2>
+<p><code>eventsByTag</code> and <code>currentEventsByTag</code> are used for retrieving events that were marked with a given <code>tag</code>, e.g. all domain events of an Aggregate Root type.</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka-persistence-jdbc/tree/master/core/src/test/scala/akka/persistence/jdbc/ScaladslSnippets.scala#L75-L84" target="_blank" title="Go to snippet source">source</a><code class="language-scala">import akka.stream.scaladsl.Source
+import akka.persistence.query.{ EventEnvelope, PersistenceQuery }
+import akka.persistence.jdbc.query.scaladsl.JdbcReadJournal
+
+val readJournal: JdbcReadJournal =
+  PersistenceQuery(system).readJournalFor[JdbcReadJournal](JdbcReadJournal.Identifier)
+
+val willNotCompleteTheStream: Source[EventEnvelope, NotUsed] = readJournal.eventsByTag(&quot;apple&quot;, 0L)
+
+val willCompleteTheStream: Source[EventEnvelope, NotUsed] = readJournal.currentEventsByTag(&quot;apple&quot;, 0L)</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka-persistence-jdbc/tree/master/core/src/test/java/akka/persistence/jdbc/JavadslSnippets.java#L30-L101" target="_blank" title="Go to snippet source">source</a><code class="language-java">import akka.stream.javadsl.Source;
+import akka.persistence.query.PersistenceQuery;
+import akka.persistence.query.EventEnvelope;
+import akka.persistence.jdbc.query.javadsl.JdbcReadJournal;
+
+JdbcReadJournal readJournal =
+    PersistenceQuery.get(system)
+        .getReadJournalFor(JdbcReadJournal.class, JdbcReadJournal.Identifier());
+
+Source&lt;EventEnvelope, NotUsed&gt; willNotCompleteTheStream =
+    readJournal.eventsByTag(&quot;apple&quot;, Offset.sequence(0L));
+
+Source&lt;EventEnvelope, NotUsed&gt; willCompleteTheStream =
+    readJournal.currentEventsByTag(&quot;apple&quot;, Offset.sequence(0L));</code></pre></dd>
+</dl>
+</div>
+</article>
+<div class="row">
+<div class="small-12 column">
+<section class="nav-prev-next row">
+<div class="nav-prev small-6 column">
+<a href="migration.html"><i class="icon-prev"></i> <span class="link-prev">Migration</span></a>
+</div>
+<div class="nav-next small-6 column clearfix">
+<a class="float-right" href="custom-dao.html">Custom DAO Implementation <i class="icon-next"></i></a>
+</div>
+</section>
+</div>
+</div>
+<div class="source-github row">
+Found an error in this documentation? The source code for this page can be found <a href="https://github.com/akka/akka-persistence-jdbc/tree/master/docs/src/main/paradox/query.md">here</a>.
+Please feel free to edit and contribute a pull request.
+</div>
+
+<footer class="page-footer row clearfix">
+<img class="akka-icon float-left show-for-medium" src="images/akka-icon.svg" />
+<section class="copyright">
+<div>Akka Persistence JDBC is available under the <a href="https://www.lightbend.com/akka/license" target="_blank">Business Source License 1.1</a>.</div>
+<p class="legal">
+&copy; 2011-2023 <a href="https://www.lightbend.com" target="_blank">Lightbend, Inc.</a> |
+<a href="https://www.lightbend.com/legal/licenses" target="_blank">Licenses</a> |
+<a href="https://www.lightbend.com/legal/terms" target="_blank">Terms</a> |
+<a href="https://www.lightbend.com/legal/privacy" target="_blank">Privacy Policy</a> |
+<a href="https://akka.io/cookie/" target="_blank">Cookie Listing</a> |
+<a class="optanon-toggle-display">Cookie Settings</a>
+</p>
+</section>
+
+</footer>
+</section>
+</main>
+</div>
+
+<script type="text/javascript" src="js/scrollsneak.js"></script>
+<script type="text/javascript">jQuery(document).foundation();</script>
+<script type="text/javascript" src="js/groups.js"></script>
+<script type="text/javascript" src="js/page.js"></script>
+<script type="text/javascript" src="js/snippets.js"></script>
+<script type="text/javascript" src="js/magellan.js"></script>
+<script type="text/javascript" src="js/metadata-toggle.js"></script>
+<script type="text/javascript" src="js/lbHeader.js"></script>
+
+<style type="text/css">@import "lib/prettify/prettify.css";</style>
+<script type="text/javascript" src="lib/prettify/prettify.js"></script>
+<script type="text/javascript" src="lib/prettify/lang-scala.js"></script>
+<script type="text/javascript">//<![CDATA[
+jQuery(function(){window.prettyPrint && prettyPrint()});
+//]]></script>
+<script type="text/javascript" src="assets/js/warnOldVersion.js"></script>
+<script type="text/javascript">//<![CDATA[
+jQuery(function(jq){initOldVersionWarnings(jq, '5.3.0-M1', 'https://doc.akka.io/docs/akka-persistence-jdbc/current/')});
+//]]></script>
+
+
+</body>
+</html>

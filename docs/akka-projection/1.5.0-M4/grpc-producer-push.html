@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html class="no-js" lang="en">
+
+<head>
+<title>Akka Projection gRPC with producer push &bull; Akka Projection</title>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta name="description" content="Akka Projection."/>
+<link rel="canonical" href="https://doc.akka.io/docs/akka-projection/current/grpc-producer-push.html"/>
+<script type="text/javascript" src="lib/jquery/jquery.min.js"></script>
+<script type="text/javascript" src="lib/foundation/dist/js/foundation.min.js"></script>
+<link rel="stylesheet" type="text/css" href="lib/normalize.css/normalize.css"/>
+<link rel="stylesheet" type="text/css" href="lib/foundation/dist/css/foundation.min.css"/>
+<link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/docsearch.js/2/docsearch.min.css" />
+<link rel="stylesheet" type="text/css" href="css/icons.css"/>
+<link rel="stylesheet" type="text/css" href="css/page-8.css"/>
+<link rel="stylesheet" type="text/css" href="css/banner-2.css"/>
+<link rel="shortcut icon" href="images/favicon.ico" />
+<link rel="apple-touch-icon" sizes="180x180" href="images/apple-touch-icon.png"/>
+<link rel="icon" type="image/png" sizes="32x32" href="images/favicon-32x32.png"/>
+<link rel="icon" type="image/png" sizes="16x16" href="images/favicon-16x16.png"/>
+<link rel="manifest" href="images/manifest.json"/>
+<meta name="msapplication-TileImage" content="images/mstile-150x150.png"/>
+<meta name="msapplication-TileColor" content="#15a9ce"/>
+<meta name="theme-color" content="#15a9ce"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<!-- OneTrust Cookies Consent Notice (Production Standard, akka.io, en-GB) start -->
+<script src="https://cdn.cookielaw.org/scripttemplates/otSDKStub.js"  type="text/javascript" charset="UTF-8" data-domain-script="28b912e7-09e9-43d5-91e4-3d1897044004" ></script>
+<script type="text/javascript">
+function OptanonWrapper() { }
+</script>
+<!-- OneTrust Cookies Consent Notice (Production Standard, akka.io, en-GB) end -->
+<!--Google Analytics NOTE this will stop processing data July 1st 2023. At which point this embed code can be removed-->
+<script type="text/plain" class="optanon-category-2">
+var _gaq = _gaq || [];
+_gaq.push(['_setAccount', '']);
+_gaq.push(['_setDomainName', '']);
+_gaq.push(['_trackPageview']);
+(function() {
+var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+})()
+</script>
+
+<!-- Google Tag Manager: Updated May 17th 2023 - Cookie Compliance checks have been moved into Google Tag Manager -->
+<script type="text/javascript">
+(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+})(window,document,'script','dataLayer','GTM-KBJGH35');
+</script>
+
+</head>
+
+<body id="underlay" data-toggler="nav-open">
+<div id="lightbend-banner" class="lightbend-banner akka full-width" data-category="OSS Lightbend Banner Impression" data-label="Akka Banner Impression">
+<div class="oss-wrapper">
+<div class="oss-brand">
+<a class="oss-track-link-label" data-category="OSS Lightbend Banner Clicks" data-label="Lightbend Logo - Akka Banner" href="https://www.lightbend.com">
+<img class="lightbend-logo" src="images/banner-logos/lightbend-reverse.svg" alt="Lightbend" title="Lightbend">
+</a>
+</div>
+<div class="oss-ad no-drop-down">
+<nav id="lightbendRotator" class="lightbend-rotator">
+<a class="oss-track-link-label" data-category="OSS Lightbend Banner Clicks" data-label="Promo Rotator - Lightbend Changed its Software Licensing Model for Akka Technology. [License FAQ] - Akka Banner" href="https://www.lightbend.com/akka/license-faq">
+<strong>Lightbend</strong> Changed its Software Licensing Model for Akka Technology. <span class="akka-btn">License FAQ</span>
+</a>
+</nav>
+</div>
+</div>
+</div>
+
+<header class="site-header hide-for-large">
+<div class="sticky-header clearfix">
+<a href="https://akka.io"><img class="logo" src="images/akka-logo-reverse.svg"/></a>
+
+<button class="menu-icon float-right" type="button" data-toggle="underlay overlay"></button>
+</div>
+<div id="overlay" class="overlay-nav" data-toggler="nav-open">
+<header class="nav-header">
+<div class="nav-header-title">
+<h1><a href="index.html">Akka Projection</a></h1>
+</div>
+<div class="nav-header-version">
+Version 1.5.0-M4
+</div>
+<div class="nav-header-groups">
+<select class="supergroup" name="Language"><option class="group" value="group-java">Java</option><option class="group" value="group-scala">Scala</option></select>
+</div>
+</header>
+<nav class="nav-toc">
+<ul>
+  <li><a href="overview.html" class="page">Overview</a></li>
+  <li><a href="use-cases.html" class="page">Use Cases</a></li>
+  <li><a href="getting-started/index.html" class="page">Getting Started Guide</a></li>
+  <li><a href="eventsourced.html" class="page">Events from Akka Persistence</a></li>
+  <li><a href="durable-state.html" class="page">Changes from Durable State</a></li>
+  <li><a href="kafka.html" class="page">Messages from and to Kafka</a></li>
+  <li><a href="r2dbc.html" class="page">Offset in a relational DB with R2DBC</a></li>
+  <li><a href="cassandra.html" class="page">Offset in Cassandra</a></li>
+  <li><a href="jdbc.html" class="page">Offset in a relational DB with JDBC</a></li>
+  <li><a href="slick.html" class="page">Offset in a relational DB with Slick</a></li>
+  <li><a href="running.html" class="page">Running a Projection</a></li>
+  <li><a href="actor.html" class="page">Processing with Actor</a></li>
+  <li><a href="flow.html" class="page">Processing with Akka Streams</a></li>
+  <li><a href="error.html" class="page">Error handling</a></li>
+  <li><a href="projection-settings.html" class="page">Projection Settings</a></li>
+  <li><a href="grpc.html" class="page">Akka Projection gRPC</a></li>
+  <li><a href="grpc-producer-push.html#akka-projection-grpc-with-producer-push" class="active page">Akka Projection gRPC with producer push</a>
+  <ul>
+    <li><a href="grpc-producer-push.html#overview" class="header">Overview</a></li>
+    <li><a href="grpc-producer-push.html#dependencies" class="header">Dependencies</a></li>
+    <li><a href="grpc-producer-push.html#consumer-set-up" class="header">Consumer set up</a></li>
+    <li><a href="grpc-producer-push.html#producer-set-up" class="header">Producer set up</a></li>
+  </ul></li>
+  <li><a href="grpc-replicated-event-sourcing-transport.html" class="page">Akka Replicated Event Sourcing over gRPC</a></li>
+  <li><a href="management.html" class="page">Management of a Projection</a></li>
+  <li><a href="testing.html" class="page">Testing</a></li>
+  <li><a href="classic.html" class="page">Akka Classic</a></li>
+  <li><a href="snapshots.html" class="page">Snapshots</a></li>
+</ul>
+</nav>
+</div>
+</header>
+<div class="site-content-wrapper">
+<aside class="sticky-sidebar show-for-large">
+<header class="nav-header sticky-sidebar-header">
+<div class="nav-header-title">
+<h1><a href="index.html">Akka Projection</a></h1>
+</div>
+<div class="nav-header-version">
+Version 1.5.0-M4
+</div>
+<div class="nav-header-groups">
+<select class="supergroup" name="Language"><option class="group" value="group-java">Java</option><option class="group" value="group-scala">Scala</option></select>
+</div>
+</header>
+<nav class="site-nav sticky-sidebar-contents">
+<div class="nav-toc">
+<ul>
+  <li><a href="overview.html" class="page">Overview</a></li>
+  <li><a href="use-cases.html" class="page">Use Cases</a></li>
+  <li><a href="getting-started/index.html" class="page">Getting Started Guide</a></li>
+  <li><a href="eventsourced.html" class="page">Events from Akka Persistence</a></li>
+  <li><a href="durable-state.html" class="page">Changes from Durable State</a></li>
+  <li><a href="kafka.html" class="page">Messages from and to Kafka</a></li>
+  <li><a href="r2dbc.html" class="page">Offset in a relational DB with R2DBC</a></li>
+  <li><a href="cassandra.html" class="page">Offset in Cassandra</a></li>
+  <li><a href="jdbc.html" class="page">Offset in a relational DB with JDBC</a></li>
+  <li><a href="slick.html" class="page">Offset in a relational DB with Slick</a></li>
+  <li><a href="running.html" class="page">Running a Projection</a></li>
+  <li><a href="actor.html" class="page">Processing with Actor</a></li>
+  <li><a href="flow.html" class="page">Processing with Akka Streams</a></li>
+  <li><a href="error.html" class="page">Error handling</a></li>
+  <li><a href="projection-settings.html" class="page">Projection Settings</a></li>
+  <li><a href="grpc.html" class="page">Akka Projection gRPC</a></li>
+  <li><a href="grpc-producer-push.html#akka-projection-grpc-with-producer-push" class="active page">Akka Projection gRPC with producer push</a>
+  <ul>
+    <li><a href="grpc-producer-push.html#overview" class="header">Overview</a></li>
+    <li><a href="grpc-producer-push.html#dependencies" class="header">Dependencies</a></li>
+    <li><a href="grpc-producer-push.html#consumer-set-up" class="header">Consumer set up</a></li>
+    <li><a href="grpc-producer-push.html#producer-set-up" class="header">Producer set up</a></li>
+  </ul></li>
+  <li><a href="grpc-replicated-event-sourcing-transport.html" class="page">Akka Replicated Event Sourcing over gRPC</a></li>
+  <li><a href="management.html" class="page">Management of a Projection</a></li>
+  <li><a href="testing.html" class="page">Testing</a></li>
+  <li><a href="classic.html" class="page">Akka Classic</a></li>
+  <li><a href="snapshots.html" class="page">Snapshots</a></li>
+</ul>
+</div>
+</nav>
+<footer class="nav-footer sticky-sidebar-footer">
+<a href="https://akka.io"><img class="logo" src="images/akka-logo-reverse.svg"/></a>
+
+</footer>
+</aside>
+<main class="fixed-shift-for-large expanded row">
+<section class="site-content small-12 column">
+<article class="page-content row">
+<div class="small-12 column" id="docs">
+<h1><a href="#akka-projection-grpc-with-producer-push" name="akka-projection-grpc-with-producer-push" class="anchor"><span class="anchor-link"></span></a>Akka Projection gRPC with producer push</h1>
+<p>Normally for <a href="grpc.html">Akka Projection gRPC</a> the consumer connects to the producers and requests them to stream relevant journal events back.</p>
+<p>In some use cases it is not possible for the consumer to connect to the producers, for example because of firewalls or NAT in front of each producer. The consumer may also not know about all producers up front. Akka Projection gRPC producer push solves this by letting the producers initiate the connection to the consumer and then push events that the consumer is interested in.</p><div class="callout warning "><div class="callout-title">Warning</div>
+<p>This module is currently marked as <a href="https://doc.akka.io/docs/akka/current/common/may-change.html">May Change</a> in the sense that the API might be changed based on feedback from initial usage. However, the module is ready for usage in production and we will not break serialization format of messages or stored data.</p></div>
+<h2><a href="#overview" name="overview" class="anchor"><span class="anchor-link"></span></a>Overview</h2>
+<p><img src="images/reverse-grpc.svg" alt="overview.png" /></p>
+<ol>
+  <li>Entities stores their events journal in the producer journal.</li>
+  <li>The consumer service accepts gRPC connections from producers.</li>
+  <li>The producer establishes a replication stream to the consumer.</li>
+  <li>Events are read from the journal.</li>
+  <li>Event is emitted to the replication stream.</li>
+  <li>The consumer writes incoming events directly to its configured journal.</li>
+  <li>The producer keeps track of offset for the stream.</li>
+  <li>On the consumer, separate projections can run over the local journal with events from all producers.</li>
+</ol>
+<h2><a href="#dependencies" name="dependencies" class="anchor"><span class="anchor-link"></span></a>Dependencies</h2>
+<p>Producer push is provided by the Akka Projection gRPC module, refer to <a href="grpc.html#dependencies">the dependency info in the Akka Projection gRPC page</a>.</p>
+<h2><a href="#consumer-set-up" name="consumer-set-up" class="anchor"><span class="anchor-link"></span></a>Consumer set up</h2>
+<p>Setting up the consumer starts with creating an <span class="group-java"><a href="/api/akka-projection/1.5.0-M4/akka/projection/grpc/consumer/javadsl/EventProducerPushDestination.html" title="akka.projection.grpc.consumer.javadsl.EventProducerPushDestination"><code>EventProducerPushDestination</code></a></span><span class="group-scala"><a href="/api/akka-projection/1.5.0-M4/akka/projection/grpc/consumer/scaladsl/EventProducerPushDestination.html" title="akka.projection.grpc.consumer.scaladsl.EventProducerPushDestination"><code>EventProducerPushDestination</code></a></span> defining what stream id it will accept. The stream id is a public identifier of entity types between producers and consumers, a producer pushing events for unknown stream ids will be denied.</p>
+<p>The destination is then used as a parameter to <span class="group-java"><a href="/api/akka-projection/1.5.0-M4/akka/projection/grpc/consumer/javadsl/EventProducerPushDestination.html#grpcServiceHandler" title="akka.projection.grpc.consumer.javadsl.EventProducerPushDestination"><code>EventProducerPushDestination</code></a></span><span class="group-scala"><a href="/api/akka-projection/1.5.0-M4/akka/projection/grpc/consumer/scaladsl/EventProducerPushDestination.html#grpcServiceHandler" title="akka.projection.grpc.consumer.scaladsl.EventProducerPushDestination"><code>EventProducerPushDestination</code></a></span> to get a gRPC service handler that can be bound as an Akka HTTP/gRPC endpoint:</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka-projection/tree/master/akka-projection-grpc-tests/src/it/scala/akka/projection/grpc/producer/EventProducerPushSpec.scala#L144-L164" target="_blank" title="Go to snippet source">source</a><code class="language-scala">val destination =
+  // FIXME why not just StringValue.scalaDescriptor for scala API?
+  EventProducerPushDestination(streamId, StringValue.javaDescriptor.getFile :: Nil)
+val bound = Http(system)
+  .newServerAt(&quot;127.0.0.1&quot;, grpcPort)
+  .bind(EventProducerPushDestination.grpcServiceHandler(destination))</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka-projection/tree/master/akka-projection-grpc-tests/src/test/java/akka/projection/grpc/consumer/javadsl/EventProducerPushDestinationCompileTest.java#L72-L77" target="_blank" title="Go to snippet source">source</a><code class="language-java">EventProducerPushDestination destination = EventProducerPushDestination.create(&quot;stream-id&quot;, protoDescriptors, system);
+CompletionStage&lt;ServerBinding&gt; bound = Http.get(system)
+    .newServerAt(&quot;127.0.0.1&quot;, 8080)
+    .bind(EventProducerPushDestination.grpcServiceHandler(destination, system));
+bound.thenAccept(binding -&gt;
+    LOGGER.info(&quot;Consumer listening at: {}:{}&quot;, binding.localAddress().getHostString(), binding.localAddress().getPort()));</code></pre></dd>
+</dl>
+<p>The Protobuf descriptor parameter needs to contain descriptors for all Protobuf messages that the producer will publish, unless not using Protobuf as wire format, in that case an empty list can be passed to the <code>EventProducerPushDestination</code>. For more details about using Protobuf as wire format see <a href="grpc-producer-push.html#serialization">Serialization</a>.</p>
+<h3><a href="#filtering" name="filtering" class="anchor"><span class="anchor-link"></span></a>Filtering</h3>
+<p>The consumer can define filters for what events it wants the producers to send. Filtered events will still have an entry in the consumer journal but without any payload sent from the producer or stored in the consumer.</p>
+<p>Filters are set for the destination using <span class="group-java"><a href="/api/akka-projection/1.5.0-M4/akka/projection/grpc/consumer/javadsl/EventProducerPushDestination.html#withConsumerFilters(java.util.List)" title="akka.projection.grpc.consumer.javadsl.EventProducerPushDestination"><code>withConsumerFilters</code></a></span><span class="group-scala"><a href="/api/akka-projection/1.5.0-M4/akka/projection/grpc/consumer/scaladsl/EventProducerPushDestination.html#withConsumerFilters(filters:immutable.Seq)" title="akka.projection.grpc.consumer.scaladsl.EventProducerPushDestination"><code>withConsumerFilters</code></a></span></p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka-projection/tree/master/akka-projection-grpc-tests/src/it/scala/akka/projection/grpc/producer/EventProducerPushSpec.scala#L245-L246" target="_blank" title="Go to snippet source">source</a><code class="language-scala">val destination = EventProducerPushDestination(streamId, protoDescriptors)
+  .withConsumerFilters(Vector(ConsumerFilter.IncludeTopics(Set(&quot;myhome/groundfloor/+/temperature&quot;))))</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka-projection/tree/master/akka-projection-grpc-tests/src/test/java/akka/projection/grpc/consumer/javadsl/EventProducerPushDestinationCompileTest.java#L83-L87" target="_blank" title="Go to snippet source">source</a><code class="language-java">EventProducerPushDestination destination =
+    EventProducerPushDestination.create(&quot;stream-id&quot;, protoDescriptors, system)
+        .withConsumerFilters(
+            Collections.singletonList(new ConsumerFilter.IncludeTopics(Collections.singleton(&quot;myhome/groundfloor/+/temperature&quot;)))
+        );</code></pre></dd>
+</dl>
+<p>For a full overview of the available types of filters see <a href="grpc.html#filters">the filter section of the Akka Projection gRPC page</a>.</p>
+<p>Note that producer push does not currently provide the capability to dynamically change the filters once a destination is started. This may be implemented as a future improvement.</p>
+<h3><a href="#transformation" name="transformation" class="anchor"><span class="anchor-link"></span></a>Transformation</h3>
+<p>The events and some of their metadata can be transformed before being stored in the consumer, <span class="group-java"><a href="/api/akka-projection/1.5.0-M4/akka/projection/grpc/consumer/javadsl/EventProducerPushDestination.html#withTransformation(Transformation)" title="akka.projection.grpc.consumer.javadsl.EventProducerPushDestination"><code>withTransformation</code></a></span><span class="group-scala"><a href="/api/akka-projection/1.5.0-M4/akka/projection/grpc/consumer/scaladsl/EventProducerPushDestination.html#withTransformation(transformation:Transformation)" title="akka.projection.grpc.consumer.scaladsl.EventProducerPushDestination"><code>withTransformation</code></a></span> defines a single transformation to use for all producers, while <span class="group-java"><a href="/api/akka-projection/1.5.0-M4/akka/projection/grpc/consumer/javadsl/EventProducerPushDestination.html#withTransformationForOrigin" title="akka.projection.grpc.consumer.javadsl.EventProducerPushDestination"><code>EventProducerPushDestination</code></a></span><span class="group-scala"><a href="/api/akka-projection/1.5.0-M4/akka/projection/grpc/consumer/scaladsl/EventProducerPushDestination.html#withTransformationForOrigin" title="akka.projection.grpc.consumer.scaladsl.EventProducerPushDestination"><code>EventProducerPushDestination</code></a></span> is invoked with an origin id for the producer and additional metadata specified when setting up the producer and can provide transformations based on those.</p>
+<p>Use <span class="group-scala"><code>Transformation.identity</code></span><span class="group-java"><code>Transformation.identity()</code></span> to pass through each event as is.</p>
+<p>The payload transformation also allows for arbitrary filtering logic, returning a <span class="group-scala">None</span><span class="group-java">Optional.empty()</span> marks the event as filtered and avoids storing the payload in the consumer journal.</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka-projection/tree/master/akka-projection-grpc-tests/src/it/scala/akka/projection/grpc/producer/EventProducerPushSpec.scala#L254-L263" target="_blank" title="Go to snippet source">source</a><code class="language-scala">val destination = EventProducerPushDestination(streamId, protoDescriptors)
+  .withTransformationForOrigin { (originId, metadata) =&gt;
+    EventProducerPushDestination.Transformation.empty
+      .registerPersistenceIdMapper { envelope =&gt;
+        val pid = envelope.persistenceId
+        pid.replace(&quot;originalPrefix&quot;, &quot;newPrefix&quot;)
+      }
+      .registerTagMapper[SomeProtobufEvent](envelope =&gt; envelope.tags + s&quot;origin-$originId&quot;)
+
+  }</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka-projection/tree/master/akka-projection-grpc-tests/src/test/java/akka/projection/grpc/consumer/javadsl/EventProducerPushDestinationCompileTest.java#L93-L104" target="_blank" title="Go to snippet source">source</a><code class="language-java">EventProducerPushDestination destination =
+  EventProducerPushDestination.create(&quot;stream-id&quot;, protoDescriptors, system)
+    .withTransformationForOrigin((String originId, Metadata metadata) -&gt;
+        Transformation.empty()
+          .registerPersistenceIdMapper(system, envelope -&gt;
+              envelope.persistenceId().replace(&quot;originalPrefix&quot;, &quot;newPrefix&quot;))
+          .registerTagMapper(String.class, envelope -&gt; {
+              Set&lt;String&gt; newTags = new HashSet&lt;&gt;();
+              newTags.addAll(envelope.getTags());
+              newTags.add(&quot;origin-&quot; + originId);
+              return newTags;
+        }));</code></pre></dd>
+</dl>
+<h3><a href="#intercepting-connections" name="intercepting-connections" class="anchor"><span class="anchor-link"></span></a>Intercepting connections</h3>
+<p>Connections from producers can be intercepted by adding an interceptor via <span class="group-java"><a href="/api/akka-projection/1.5.0-M4/akka/projection/grpc/consumer/javadsl/EventProducerPushDestination.html#withInterceptor" title="akka.projection.grpc.consumer.javadsl.EventProducerPushDestination"><code>withInterceptor</code></a></span><span class="group-scala"><a href="/api/akka-projection/1.5.0-M4/akka/projection/grpc/consumer/scaladsl/EventProducerPushDestination.html#withInterceptor" title="akka.projection.grpc.consumer.scaladsl.EventProducerPushDestination"><code>withInterceptor</code></a></span>. This can be used together with the additional producer metadata to add authentication, as an alternative to or in addition to mTLS.</p>
+<h2><a href="#producer-set-up" name="producer-set-up" class="anchor"><span class="anchor-link"></span></a>Producer set up</h2>
+<p>The producer is essentially a special projection handler for a projection running on the producer. It could be a single actor system running one projection handling all slices, or it could be <a href="https://doc.akka.io/docs/akka/2.9/typed/cluster-sharded-daemon-process.md">Sharded Daemon Process</a> pushing events for partitioned slices of the entities.</p>
+<p>The producer is created through <span class="group-java"><a href="/api/akka-projection/1.5.0-M4/akka/projection/grpc/producer/javadsl/EventProducerPush.html" title="akka.projection.grpc.producer.javadsl.EventProducerPush"><code>EventProducerPush</code></a></span><span class="group-scala"><a href="/api/akka-projection/1.5.0-M4/akka/projection/grpc/producer/scaladsl/EventProducerPush.html" title="akka.projection.grpc.producer.scaladsl.EventProducerPush"><code>EventProducerPush</code></a></span>, which has a method <code>handler()</code> which returns a handler to be plugged into an <code>atLeastOnceFlow</code> projection. The first parameter, the <code>originId</code> is how the producer identifies itself to the consumer.</p>
+<p>FIXME better producer setup sample than this</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka-projection/tree/master/akka-projection-grpc-tests/src/it/scala/akka/projection/grpc/producer/EventProducerPushSpec.scala#L171-L236" target="_blank" title="Go to snippet source">source</a><code class="language-scala">val eventProducer = EventProducerPush[String](
+  originId = producerOriginId,
+  eventProducerSource = EventProducerSource[String](
+    entityType,
+    streamId,
+    // wire protocol is protobuf StringValue messages rather than Akka serialization format for String
+    EventProducer.Transformation.empty.registerMapper[String, StringValue](s =&gt; Some(StringValue(s))),
+    EventProducerSettings(system),
+    // no veggies allowed
+    producerFilter = envelope =&gt; !veggies(envelope.event)),
+  connectionMetadata = authMetadata,
+  GrpcClientSettings.connectToServiceAt(&quot;localhost&quot;, grpcPort).withTls(false))
+ProjectionBehavior(
+  R2dbcProjection.atLeastOnceFlow[Offset, EventEnvelope[String]](
+    producerProjectionId,
+    settings = None,
+    sourceProvider = EventSourcedProvider.eventsBySlices[String](
+      system,
+      R2dbcReadJournal.Identifier,
+      eventProducer.eventProducerSource.entityType,
+      0,
+      1023),
+    handler = eventProducer.handler()))</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka-projection/tree/master/akka-projection-grpc-tests/src/test/java/akka/projection/grpc/producer/javadsl/EventProducerPushCompileTest.java#L34-L51" target="_blank" title="Go to snippet source">source</a><code class="language-java">EventProducerPush&lt;String&gt; eventProducer = EventProducerPush.create(
+    &quot;producer-id&quot;,
+    new EventProducerSource(&quot;entityTypeKeyName&quot;, &quot;stream-id&quot;, Transformation.empty(), EventProducerSettings.create(system)),
+    GrpcClientSettings.connectToServiceAt(&quot;localhost&quot;, 8080, system).withTls(false));
+SourceProvider&lt;Offset, EventEnvelope&lt;String&gt;&gt; eventSourcedProvider =
+    EventSourcedProvider.eventsBySlices(
+    system,
+    R2dbcReadJournal.Identifier(),
+    eventProducer.eventProducerSource().entityType(),
+    0,
+    1023);
+Behavior&lt;ProjectionBehavior.Command&gt; projectionBehavior = ProjectionBehavior.create(
+    R2dbcProjection.atLeastOnceFlow(
+        ProjectionId.of(&quot;producer&quot;, &quot;0-1023&quot;),
+        Optional.empty(),
+        eventSourcedProvider,
+        eventProducer.handler(system),
+        system));</code></pre></dd>
+</dl>
+<h3><a href="#filters" name="filters" class="anchor"><span class="anchor-link"></span></a>Filters</h3>
+<p>The producer can also define filters, an event filtered by the producer is never passed over to the consumer, regardless of configured consumer filters. The filters are defined using <code>withProducerFilter</code> or <code>withTopicProducerFilter</code> on <span class="group-java"><a href="/api/akka-projection/1.5.0-M4/akka/projection/grpc/producer/javadsl/EventProducerSource.html" title="akka.projection.grpc.producer.javadsl.EventProducerSource"><code>EventProducerSource</code></a></span><span class="group-scala"><a href="/api/akka-projection/1.5.0-M4/akka/projection/grpc/producer/scaladsl/EventProducer$$EventProducerSource.html" title="akka.projection.grpc.producer.scaladsl.EventProducer.EventProducerSource"><code>EventProducer.EventProducerSource</code></a></span>. </p>
+<h3><a href="#additional-connection-metadata" name="additional-connection-metadata" class="anchor"><span class="anchor-link"></span></a>Additional connection metadata</h3>
+<p>It is possible to define additional connection metadata that is passed to the consumer on connection when constructing the <span class="group-java"><a href="/api/akka-projection/1.5.0-M4/akka/projection/grpc/producer/javadsl/EventProducerPush.html" title="akka.projection.grpc.producer.javadsl.EventProducerPush"><code>EventProducerPush</code></a></span><span class="group-scala"><a href="/api/akka-projection/1.5.0-M4/akka/projection/grpc/producer/scaladsl/EventProducerPush.html" title="akka.projection.grpc.producer.scaladsl.EventProducerPush"><code>EventProducerPush</code></a></span>. This can be used for authenticating a producer in the consumer interceptor, or providing additional details to use when transforming events in the consumer.</p>
+<h3><a href="#serialization" name="serialization" class="anchor"><span class="anchor-link"></span></a>Serialization</h3>
+<p>If just passed the internal event instances of an application the producer will use Akka Serialization to serialize each event for pushing them the consumer, this is convenient but tightly couples the producer and consumer so that they must be upgraded in lock step, even though they are two separate systems. </p>
+<p>To avoid problems and keeping the lifecycles of the producer and consumer systems separate it is better to use an explicit protobuf message protocol for the events pushed. With Protobuf it is possible evolve of protocol messages without breaking compatibility (the ability for the consumer to read the messages produced with older and newer versions of the producer). Note that even with Protobuf it will still require care to not change the published events in incompatible ways.</p>
+<p>You will likely not want to define the original Event Sourced Entity events as protobuf messages but rather as regular <span class="group-java">Java</span><span class="group-scala">Scala</span> classes, like you&rsquo;d normally do, but, you can still use protobuf messages as a wire format.</p>
+<p>In the producer this is done by transforming each type of event to an outgoing protobuf messages with the <code>EventProducer.Transformation</code> passed to the <code>EventProducerSource</code> on construction.</p>
+<p>On the consuming side it might be ok to store and use the protobuf messages as they are, but it is also possible to transform them from the wire protocol protobuf messages back to some application domain specific representation before storing in the journal by defining a <code>EventProducerPushDestination.Transformation</code> and specifying for the <code>EventProducerPushDestination</code> on construction using <code>withTransformation</code> or <code>withTransformationForOrigin</code>.</p>
+</div>
+</article>
+<div class="row">
+<div class="small-12 column">
+<section class="nav-prev-next row">
+<div class="nav-prev small-6 column">
+<a href="grpc.html"><i class="icon-prev"></i> <span class="link-prev">Akka Projection gRPC</span></a>
+</div>
+<div class="nav-next small-6 column clearfix">
+<a class="float-right" href="grpc-replicated-event-sourcing-transport.html">Akka Replicated Event Sourcing over gRPC <i class="icon-next"></i></a>
+</div>
+</section>
+</div>
+</div>
+<div class="source-github row">
+Found an error in this documentation? The source code for this page can be found <a href="https://github.com/akka/akka-projection/tree/master/docs/src/main/paradox/grpc-producer-push.md">here</a>.
+Please feel free to edit and contribute a pull request.
+</div>
+
+<footer class="page-footer row clearfix">
+<img class="akka-icon float-left show-for-medium" src="images/akka-icon.svg" />
+<section class="copyright">
+<div>Akka Projections is available under the <a href="https://www.lightbend.com/akka/license" target="_blank">Business Source License 1.1</a>.</div>
+<p class="legal">
+&copy; 2011-2023 <a href="https://www.lightbend.com" target="_blank">Lightbend, Inc.</a> |
+<a href="https://www.lightbend.com/legal/licenses" target="_blank">Licenses</a> |
+<a href="https://www.lightbend.com/legal/terms" target="_blank">Terms</a> |
+<a href="https://www.lightbend.com/legal/privacy" target="_blank">Privacy Policy</a> |
+<a href="https://akka.io/cookie/" target="_blank">Cookie Listing</a> |
+<a class="optanon-toggle-display">Cookie Settings</a>
+</p>
+</section>
+
+</footer>
+</section>
+</main>
+</div>
+
+<script type="text/javascript" src="js/scrollsneak.js"></script>
+<script type="text/javascript">jQuery(document).foundation();</script>
+<script type="text/javascript" src="js/groups.js"></script>
+<script type="text/javascript" src="js/page.js"></script>
+<script type="text/javascript" src="js/snippets.js"></script>
+<script type="text/javascript" src="js/magellan.js"></script>
+<script type="text/javascript" src="js/metadata-toggle.js"></script>
+<script type="text/javascript" src="js/lbHeader.js"></script>
+
+<style type="text/css">@import "lib/prettify/prettify.css";</style>
+<script type="text/javascript" src="lib/prettify/prettify.js"></script>
+<script type="text/javascript" src="lib/prettify/lang-scala.js"></script>
+<script type="text/javascript">//<![CDATA[
+jQuery(function(){window.prettyPrint && prettyPrint()});
+//]]></script>
+<script type="text/javascript" src="assets/js/warnOldVersion.js"></script>
+<script type="text/javascript">//<![CDATA[
+jQuery(function(jq){initOldVersionWarnings(jq, '1.5.0-M4', 'https://doc.akka.io/docs/akka-projection/current/')});
+//]]></script>
+
+
+</body>
+</html>

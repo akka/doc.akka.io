@@ -1,0 +1,821 @@
+<!DOCTYPE html>
+<html class="no-js" lang="en">
+
+<head>
+<title>Restaurant deliveries &bull; Akka Edge</title>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta name="description" content="Akka Projection."/>
+<link rel="canonical" href="https://doc.akka.io/docs/akka-edge/current/guide/3-restaurant-deliveries-service.html"/>
+<script type="text/javascript" src="../lib/jquery/jquery.min.js"></script>
+<script type="text/javascript" src="../lib/foundation/dist/js/foundation.min.js"></script>
+<link rel="stylesheet" type="text/css" href="../lib/normalize.css/normalize.css"/>
+<link rel="stylesheet" type="text/css" href="../lib/foundation/dist/css/foundation.min.css"/>
+<link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/docsearch.js/2/docsearch.min.css" />
+<link rel="stylesheet" type="text/css" href="../css/icons.css"/>
+<link rel="stylesheet" type="text/css" href="../css/page-8.css"/>
+<link rel="stylesheet" type="text/css" href="../css/banner-2.css"/>
+<link rel="shortcut icon" href="../images/favicon.ico" />
+<link rel="apple-touch-icon" sizes="180x180" href="../images/apple-touch-icon.png"/>
+<link rel="icon" type="image/png" sizes="32x32" href="../images/favicon-32x32.png"/>
+<link rel="icon" type="image/png" sizes="16x16" href="../images/favicon-16x16.png"/>
+<link rel="manifest" href="../images/manifest.json"/>
+<meta name="msapplication-TileImage" content="../images/mstile-150x150.png"/>
+<meta name="msapplication-TileColor" content="#15a9ce"/>
+<meta name="theme-color" content="#15a9ce"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<!-- OneTrust Cookies Consent Notice (Production Standard, akka.io, en-GB) start -->
+<script src="https://cdn.cookielaw.org/scripttemplates/otSDKStub.js"  type="text/javascript" charset="UTF-8" data-domain-script="28b912e7-09e9-43d5-91e4-3d1897044004" ></script>
+<script type="text/javascript">
+function OptanonWrapper() { }
+</script>
+<!-- OneTrust Cookies Consent Notice (Production Standard, akka.io, en-GB) end -->
+<!--Google Analytics NOTE this will stop processing data July 1st 2023. At which point this embed code can be removed-->
+<script type="text/plain" class="optanon-category-2">
+var _gaq = _gaq || [];
+_gaq.push(['_setAccount', '']);
+_gaq.push(['_setDomainName', '']);
+_gaq.push(['_trackPageview']);
+(function() {
+var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+})()
+</script>
+
+<!-- Google Tag Manager: Updated May 17th 2023 - Cookie Compliance checks have been moved into Google Tag Manager -->
+<script type="text/javascript">
+(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+})(window,document,'script','dataLayer','GTM-KBJGH35');
+</script>
+
+</head>
+
+<body id="underlay" data-toggler="nav-open">
+<div id="lightbend-banner" class="lightbend-banner akka full-width" data-category="OSS Lightbend Banner Impression" data-label="Akka Banner Impression">
+<div class="oss-wrapper">
+<div class="oss-brand">
+<a class="oss-track-link-label" data-category="OSS Lightbend Banner Clicks" data-label="Lightbend Logo - Akka Banner" href="https://www.lightbend.com">
+<img class="lightbend-logo" src="../images/banner-logos/lightbend-reverse.svg" alt="Lightbend" title="Lightbend">
+</a>
+</div>
+<div class="oss-ad no-drop-down">
+<nav id="lightbendRotator" class="lightbend-rotator">
+<a class="oss-track-link-label" data-category="OSS Lightbend Banner Clicks" data-label="Promo Rotator - Lightbend Changed its Software Licensing Model for Akka Technology. [License FAQ] - Akka Banner" href="https://www.lightbend.com/akka/license-faq">
+<strong>Lightbend</strong> Changed its Software Licensing Model for Akka Technology. <span class="akka-btn">License FAQ</span>
+</a>
+</nav>
+</div>
+</div>
+</div>
+
+<header class="site-header hide-for-large">
+<div class="sticky-header clearfix">
+<a href="https://akka.io"><img class="logo" src="../images/akka-logo-reverse.svg"/></a>
+
+<button class="menu-icon float-right" type="button" data-toggle="underlay overlay"></button>
+</div>
+<div id="overlay" class="overlay-nav" data-toggler="nav-open">
+<header class="nav-header">
+<div class="nav-header-title">
+<h1><a href="../index.html">Akka Edge</a></h1>
+</div>
+<div class="nav-header-version">
+Version 1.5.0-M4
+</div>
+<div class="nav-header-groups">
+<select class="supergroup" name="Language"><option class="group" value="group-java">Java</option><option class="group" value="group-scala">Scala</option></select>
+</div>
+</header>
+<nav class="nav-toc">
+<ul>
+  <li><a href="../overview.html" class="page">Architectural Overview</a></li>
+  <li><a href="../use-cases.html" class="page">Example Use Cases</a></li>
+  <li><a href="../feature-summary.html" class="page">Feature Summary</a></li>
+  <li><a href="../guide.html" class="page">Guide</a>
+  <ul>
+    <li><a href="../guide/1-local-drone-control-service.html" class="page">Local Drone Control Service</a></li>
+    <li><a href="../guide/2-drone-location-to-cloud-service.html" class="page">Coarse Grained Location Replication</a></li>
+    <li><a href="../guide/3-restaurant-deliveries-service.html#restaurant-deliveries" class="active page">Restaurant deliveries</a>
+    <ul>
+      <li><a href="../guide/3-restaurant-deliveries-service.html#implementing-the-restaurant-entity" class="header">Implementing the restaurant entity</a></li>
+      <li><a href="../guide/3-restaurant-deliveries-service.html#running-the-sample" class="header">Running the sample</a></li>
+      <li><a href="../guide/3-restaurant-deliveries-service.html#whats-next-" class="header">What&rsquo;s next?</a></li>
+    </ul></li>
+    <li><a href="../guide/4-local-drone-delivery-selection.html" class="page">Local Drone Delivery Selection</a></li>
+    <li><a href="../guide/5-deploying-delivery-service.html" class="page">Deploying the Restaurant Delivery Service</a></li>
+    <li><a href="../guide/6-deploying-local-drone-control-service.html" class="page">Deploying the Local Drone Control Service</a></li>
+  </ul></li>
+</ul>
+</nav>
+</div>
+</header>
+<div class="site-content-wrapper">
+<aside class="sticky-sidebar show-for-large">
+<header class="nav-header sticky-sidebar-header">
+<div class="nav-header-title">
+<h1><a href="../index.html">Akka Edge</a></h1>
+</div>
+<div class="nav-header-version">
+Version 1.5.0-M4
+</div>
+<div class="nav-header-groups">
+<select class="supergroup" name="Language"><option class="group" value="group-java">Java</option><option class="group" value="group-scala">Scala</option></select>
+</div>
+</header>
+<nav class="site-nav sticky-sidebar-contents">
+<div class="nav-toc">
+<ul>
+  <li><a href="../overview.html" class="page">Architectural Overview</a></li>
+  <li><a href="../use-cases.html" class="page">Example Use Cases</a></li>
+  <li><a href="../feature-summary.html" class="page">Feature Summary</a></li>
+  <li><a href="../guide.html" class="page">Guide</a>
+  <ul>
+    <li><a href="../guide/1-local-drone-control-service.html" class="page">Local Drone Control Service</a></li>
+    <li><a href="../guide/2-drone-location-to-cloud-service.html" class="page">Coarse Grained Location Replication</a></li>
+    <li><a href="../guide/3-restaurant-deliveries-service.html#restaurant-deliveries" class="active page">Restaurant deliveries</a>
+    <ul>
+      <li><a href="../guide/3-restaurant-deliveries-service.html#implementing-the-restaurant-entity" class="header">Implementing the restaurant entity</a></li>
+      <li><a href="../guide/3-restaurant-deliveries-service.html#running-the-sample" class="header">Running the sample</a></li>
+      <li><a href="../guide/3-restaurant-deliveries-service.html#whats-next-" class="header">What&rsquo;s next?</a></li>
+    </ul></li>
+    <li><a href="../guide/4-local-drone-delivery-selection.html" class="page">Local Drone Delivery Selection</a></li>
+    <li><a href="../guide/5-deploying-delivery-service.html" class="page">Deploying the Restaurant Delivery Service</a></li>
+    <li><a href="../guide/6-deploying-local-drone-control-service.html" class="page">Deploying the Local Drone Control Service</a></li>
+  </ul></li>
+</ul>
+</div>
+</nav>
+<footer class="nav-footer sticky-sidebar-footer">
+<a href="https://akka.io"><img class="logo" src="../images/akka-logo-reverse.svg"/></a>
+
+</footer>
+</aside>
+<main class="fixed-shift-for-large expanded row">
+<section class="site-content small-12 column">
+<article class="page-content row">
+<div class="small-12 column" id="docs">
+<h1><a href="#restaurant-deliveries" name="restaurant-deliveries" class="anchor"><span class="anchor-link"></span></a>Restaurant deliveries</h1>
+<p>In this section we will update the restaurant-drone-deliveries-service to accept and store restaurant delivery orders.</p>
+<p><img src="../images/guide-section-3.svg" alt="Diagram showing restaurant entities keeping track of deliveries in the cloud" /></p>
+<p>Just like for the drones in the first step of the guide we will represent each restaurant and its list of orders as an <a href="https://doc.akka.io/docs/akka/2.9/typed/persistence.html">Event Sourced Entity</a>.</p>
+<h2><a href="#implementing-the-restaurant-entity" name="implementing-the-restaurant-entity" class="anchor"><span class="anchor-link"></span></a>Implementing the restaurant entity</h2>
+<h3><a href="#commands-and-events" name="commands-and-events" class="anchor"><span class="anchor-link"></span></a>Commands and events</h3>
+<p>The <code>RestaurantDeliveries</code> actor represents deliveries for one restaurant. It accepts the commands <code>SetUpRestaurant</code> to initialize a restaurant with its location, and <code>RegisterDelivery</code> and <code>ListCurrentDeliveries</code> to add and inspect the current deliveries of the restaurant:</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka-projection/tree/master/samples/grpc/restaurant-drone-deliveries-service-scala/src/main/scala/central/deliveries/RestaurantDeliveries.scala#L25-L40" target="_blank" title="Go to snippet source">source</a><code class="language-scala">sealed trait Command extends CborSerializable
+
+final case class RegisterDelivery(
+    deliveryId: String,
+    destination: Coordinates,
+    replyTo: ActorRef[StatusReply[Done]])
+    extends Command
+
+final case class SetUpRestaurant(
+    localControlLocationId: String,
+    restaurantLocation: Coordinates,
+    replyTo: ActorRef[StatusReply[Done]])
+    extends Command
+
+final case class ListCurrentDeliveries(replyTo: ActorRef[Seq[Delivery]])
+    extends Command
+sealed trait Event extends CborSerializable
+
+final case class DeliveryRegistered(delivery: Delivery) extends Event
+final case class RestaurantLocationSet(
+    localControlLocationId: String,
+    coordinates: Coordinates)
+    extends Event
+
+final case class Delivery(
+   deliveryId: String,
+   // FIXME next two fields always the same for the same restaurant, annoying,
+   //       but how else would we see them in downstream projection?
+   localControlLocationId: String,
+   origin: Coordinates,
+   destination: Coordinates,
+   timestamp: Instant)</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka-projection/tree/master/samples/grpc/restaurant-drone-deliveries-service-java/src/main/java/central/deliveries/RestaurantDeliveries.java#L29-L66" target="_blank" title="Go to snippet source">source</a><code class="language-java">public interface Command extends CborSerializable {}
+
+public static final class SetUpRestaurant implements Command {
+  public final String localControlLocationId;
+  public final Coordinates restaurantLocation;
+  public final ActorRef&lt;StatusReply&lt;Done&gt;&gt; replyTo;
+
+  public SetUpRestaurant(
+      String localControlLocationId,
+      Coordinates restaurantLocation,
+      ActorRef&lt;StatusReply&lt;Done&gt;&gt; replyTo) {
+    this.localControlLocationId = localControlLocationId;
+    this.restaurantLocation = restaurantLocation;
+    this.replyTo = replyTo;
+  }
+}
+
+public static final class RegisterDelivery implements Command {
+  public final String deliveryId;
+  public final Coordinates destination;
+  public final ActorRef&lt;StatusReply&lt;Done&gt;&gt; replyTo;
+
+  public RegisterDelivery(
+      String deliveryId, Coordinates destination, ActorRef&lt;StatusReply&lt;Done&gt;&gt; replyTo) {
+    this.deliveryId = deliveryId;
+    this.destination = destination;
+    this.replyTo = replyTo;
+  }
+}
+
+public static final class ListCurrentDeliveries implements Command {
+  public final ActorRef&lt;List&lt;Delivery&gt;&gt; replyTo;
+
+  @JsonCreator
+  public ListCurrentDeliveries(ActorRef&lt;List&lt;Delivery&gt;&gt; replyTo) {
+    this.replyTo = replyTo;
+  }
+}
+public interface Event extends CborSerializable {}
+
+public static final class RestaurantLocationSet implements Event {
+  public final String localControlLocationId;
+  public final Coordinates coordinates;
+
+  public RestaurantLocationSet(String localControlLocationId, Coordinates coordinates) {
+    this.localControlLocationId = localControlLocationId;
+    this.coordinates = coordinates;
+  }
+}
+
+public static final class DeliveryRegistered implements Event {
+  public final Delivery delivery;
+
+  @JsonCreator
+  public DeliveryRegistered(Delivery delivery) {
+    this.delivery = delivery;
+  }
+}
+
+public static final class Delivery {
+  public final String deliveryId;
+  // The following two fields always the same for the same restaurant, so that they can be seen in
+  // the downstream projection.
+  public final String localControlLocationId;
+  public final Coordinates origin;
+  public final Coordinates destination;
+  public final Instant timestamp;
+
+  public Delivery(
+      String deliveryId,
+      String localControlLocationId,
+      Coordinates origin,
+      Coordinates destination,
+      Instant timestamp) {
+    this.deliveryId = deliveryId;
+    this.localControlLocationId = localControlLocationId;
+    this.origin = origin;
+    this.destination = destination;
+    this.timestamp = timestamp;
+  }
+}</code></pre></dd>
+</dl>
+<h3><a href="#state" name="state" class="anchor"><span class="anchor-link"></span></a>State</h3>
+<p>The state starts out as <span class="group-java"><code>null</code></span><span class="group-scala"><code>None</code></span> and then, once the restaurant has been set up will be <span class="group-scala"><code>Some</code> containing</span> an instance of <code>State</code>, which contains the coordinates of the restaurant, the location id of the local-drone-control-service it is closest to, and a list of registered deliveries:</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka-projection/tree/master/samples/grpc/restaurant-drone-deliveries-service-scala/src/main/scala/central/deliveries/RestaurantDeliveries.scala#L63-L66" target="_blank" title="Go to snippet source">source</a><code class="language-scala">private final case class State(
+    localControlLocationId: String,
+    restaurantLocation: Coordinates,
+    currentDeliveries: Vector[Delivery])</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka-projection/tree/master/samples/grpc/restaurant-drone-deliveries-service-java/src/main/java/central/deliveries/RestaurantDeliveries.java#L116-L129" target="_blank" title="Go to snippet source">source</a><code class="language-java">public static final class State implements CborSerializable {
+  public final String localControlLocationId;
+  public final Coordinates restaurantLocation;
+  public final List&lt;Delivery&gt; currentDeliveries;
+
+  public State(
+      String localControlLocationId,
+      Coordinates restaurantLocation,
+      List&lt;Delivery&gt; currentDeliveries) {
+    this.localControlLocationId = localControlLocationId;
+    this.restaurantLocation = restaurantLocation;
+    this.currentDeliveries = currentDeliveries;
+  }
+}</code></pre></dd>
+</dl>
+<h3><a href="#command-handler" name="command-handler" class="anchor"><span class="anchor-link"></span></a>Command handler</h3>
+<p>Since the <code>RestaurantDeliveries</code> can be started with no state, it has two different command handlers, one for no state, where it only accepts the <code>SetUpRestaurant</code> command, and one where it accepts the delivery related commands:</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka-projection/tree/master/samples/grpc/restaurant-drone-deliveries-service-scala/src/main/scala/central/deliveries/RestaurantDeliveries.scala#L90-L142" target="_blank" title="Go to snippet source">source</a><code class="language-scala">private def onCommand(
+    state: Option[State],
+    command: Command): Effect[Event, Option[State]] =
+  state match {
+    case None        =&gt; onCommandNoState(command)
+    case Some(state) =&gt; onCommandInitialized(state, command)
+  }
+
+private def onCommandNoState(command: Command): Effect[Event, Option[State]] =
+  command match {
+    case RegisterDelivery(_, _, replyTo) =&gt;
+      Effect.reply(replyTo)(
+        StatusReply.Error(
+          &quot;Restaurant not yet initialized, cannot accept registrations&quot;))
+    case ListCurrentDeliveries(replyTo) =&gt;
+      Effect.reply(replyTo)(Vector.empty)
+    case SetUpRestaurant(locationId, coordinates, replyTo) =&gt;
+      Effect
+        .persist(RestaurantLocationSet(locationId, coordinates))
+        .thenReply(replyTo)(_ =&gt; StatusReply.Ack)
+  }
+
+private def onCommandInitialized(
+    state: State,
+    command: Command): Effect[Event, Option[State]] = {
+  command match {
+    case RegisterDelivery(deliveryId, destination, replyTo) =&gt;
+      state.currentDeliveries.find(_.deliveryId == deliveryId) match {
+        case Some(existing) if existing.destination == destination =&gt;
+          // already registered
+          Effect.reply(replyTo)(StatusReply.Ack)
+        case Some(_) =&gt;
+          Effect.reply(replyTo)(
+            StatusReply.Error(&quot;Delivery id exists but for other destination&quot;))
+        case None =&gt;
+          Effect
+            .persist(
+              DeliveryRegistered(
+                Delivery(
+                  deliveryId,
+                  state.localControlLocationId,
+                  state.restaurantLocation,
+                  destination,
+                  Instant.now())))
+            .thenReply(replyTo)(_ =&gt; StatusReply.Ack)
+      }
+    case ListCurrentDeliveries(replyTo) =&gt;
+      Effect.reply(replyTo)(state.currentDeliveries)
+    case setup: SetUpRestaurant =&gt;
+      Effect.reply(setup.replyTo)(
+        StatusReply.Error(&quot;Changing restaurant location not supported&quot;))
+  }
+}</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka-projection/tree/master/samples/grpc/restaurant-drone-deliveries-service-java/src/main/java/central/deliveries/RestaurantDeliveries.java#L164-L236" target="_blank" title="Go to snippet source">source</a><code class="language-java">@Override
+public CommandHandler&lt;Command, Event, State&gt; commandHandler() {
+  var noStateHandler =
+      newCommandHandlerBuilder()
+          .forNullState()
+          .onCommand(SetUpRestaurant.class, this::onSetUpRestaurant)
+          .onCommand(
+              RegisterDelivery.class,
+              command -&gt;
+                  Effect()
+                      .reply(
+                          command.replyTo,
+                          StatusReply.error(
+                              &quot;Restaurant not yet initialized, cannot accept registrations&quot;)))
+          .onCommand(
+              ListCurrentDeliveries.class,
+              command -&gt; Effect().reply(command.replyTo, Collections.emptyList()));
+
+  var stateHandler =
+      newCommandHandlerBuilder()
+          .forNonNullState()
+          .onCommand(
+              SetUpRestaurant.class,
+              command -&gt;
+                  Effect()
+                      .reply(
+                          command.replyTo,
+                          StatusReply.error(&quot;Changing restaurant location not supported&quot;)))
+          .onCommand(RegisterDelivery.class, this::onRegisterDelivery)
+          .onCommand(
+              ListCurrentDeliveries.class,
+              (state, command) -&gt;
+                  // reply with defensive copy of internal mutable state
+                  Effect().reply(command.replyTo, new ArrayList&lt;&gt;(state.currentDeliveries)));
+
+  return noStateHandler.orElse(stateHandler).build();
+}
+
+private Effect&lt;Event, State&gt; onRegisterDelivery(State state, RegisterDelivery command) {
+  var existing =
+      state.currentDeliveries.stream()
+          .filter(delivery -&gt; delivery.deliveryId.equals(command.deliveryId))
+          .findFirst();
+
+  if (existing.isPresent()) {
+    if (existing.get().destination.equals(command.destination)) {
+      // already registered
+      return Effect().reply(command.replyTo, StatusReply.ack());
+    } else {
+      return Effect()
+          .reply(
+              command.replyTo, StatusReply.error(&quot;Delivery id exists but for other destination&quot;));
+    }
+  } else {
+    return Effect()
+        .persist(
+            new DeliveryRegistered(
+                new Delivery(
+                    command.deliveryId,
+                    state.localControlLocationId,
+                    state.restaurantLocation,
+                    command.destination,
+                    Instant.now())))
+        .thenReply(command.replyTo, updatedState -&gt; StatusReply.ack());
+  }
+}
+
+private Effect&lt;Event, State&gt; onSetUpRestaurant(SetUpRestaurant command) {
+  return Effect()
+      .persist(
+          new RestaurantLocationSet(command.localControlLocationId, command.restaurantLocation))
+      .thenReply(command.replyTo, updatedState -&gt; StatusReply.ack());
+}</code></pre></dd>
+</dl>
+<h3><a href="#grpc-service" name="grpc-service" class="anchor"><span class="anchor-link"></span></a>gRPC service</h3>
+<p>To make it possible for users of our service to administer the available restaurants and their queued orders we define a gRPC service with one endpoint for setting up restaurants and one to register a delivery for an already set up restaurant: </p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka-projection/tree/master/samples/grpc/restaurant-drone-deliveries-service-scala/src/main/protobuf/central/deliveries/restaurant_deliveries_api.proto" target="_blank" title="Go to snippet source">source</a><code class="language-proto">syntax = &quot;proto3&quot;;
+
+option java_multiple_files = true;
+option java_package = &quot;central.deliveries.proto&quot;;
+
+package central.deliveries;
+
+import &quot;common/coordinates.proto&quot;;
+
+service RestaurantDeliveriesService {
+  rpc SetUpRestaurant(SetUpRestaurantRequest) returns (RegisterRestaurantResponse) {};
+  rpc RegisterDelivery(RegisterDeliveryRequest) returns (RegisterDeliveryResponse) {};
+}
+
+message SetUpRestaurantRequest {
+  string restaurant_id = 1;
+  common.Coordinates coordinates = 2;
+  string local_control_location_id = 3;
+}
+
+message RegisterRestaurantResponse {}
+
+message RegisterDeliveryRequest {
+  string delivery_id = 1;
+  string restaurant_id = 2;
+  common.Coordinates coordinates = 3;
+}
+
+message RegisterDeliveryResponse {
+
+}</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka-projection/tree/master/samples/grpc/restaurant-drone-deliveries-service-java/src/main/protobuf/central/deliveries/restaurant_deliveries_api.proto" target="_blank" title="Go to snippet source">source</a><code class="language-proto">syntax = &quot;proto3&quot;;
+
+option java_multiple_files = true;
+option java_package = &quot;central.deliveries.proto&quot;;
+
+package central.deliveries;
+
+import &quot;common/coordinates.proto&quot;;
+
+service RestaurantDeliveriesService {
+  rpc SetUpRestaurant(SetUpRestaurantRequest) returns (RegisterRestaurantResponse) {};
+  rpc RegisterDelivery(RegisterDeliveryRequest) returns (RegisterDeliveryResponse) {};
+}
+
+message SetUpRestaurantRequest {
+  string restaurant_id = 1;
+  common.Coordinates coordinates = 2;
+  string local_control_location_id = 3;
+}
+
+message RegisterRestaurantResponse {}
+
+message RegisterDeliveryRequest {
+  string delivery_id = 1;
+  string restaurant_id = 2;
+  common.Coordinates coordinates = 3;
+}
+
+message RegisterDeliveryResponse {
+
+}</code></pre></dd>
+</dl>
+<p>And implement the service interface Akka gRPC generates for it.</p>
+<p>The <code>setUpRestaurant</code> method first validates that the location id in the request is known, from a pre-defined set of locations in the application config. Then sends a <code>SetUpRestaurant</code> command to the entity to set it up.</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka-projection/tree/master/samples/grpc/restaurant-drone-deliveries-service-scala/src/main/scala/central/deliveries/RestaurantDeliveriesServiceImpl.scala" target="_blank" title="Go to snippet source">source</a><code class="language-scala">package central.deliveries
+
+import akka.actor.typed.ActorSystem
+import akka.cluster.sharding.typed.scaladsl.ClusterSharding
+import akka.grpc.GrpcServiceException
+import akka.pattern.StatusReply
+import akka.util.Timeout
+import central.{ Coordinates, DeliveriesSettings }
+import io.grpc.Status
+import org.slf4j.LoggerFactory
+
+import scala.concurrent.ExecutionContext
+import scala.concurrent.Future
+import scala.jdk.DurationConverters.JavaDurationOps
+
+class RestaurantDeliveriesServiceImpl(
+    system: ActorSystem[_],
+    settings: DeliveriesSettings)
+    extends proto.RestaurantDeliveriesService {
+
+  private val logger = LoggerFactory.getLogger(getClass)
+  private val sharding = ClusterSharding(system)
+
+  private implicit val ec: ExecutionContext = system.executionContext
+  private implicit val timeout: Timeout = system.settings.config
+    .getDuration(
+      &quot;restaurant-drone-deliveries-service.restaurant-deliveries-ask-timeout&quot;)
+    .toScala
+
+  override def setUpRestaurant(in: proto.SetUpRestaurantRequest)
+      : Future[proto.RegisterRestaurantResponse] = {
+    logger.info(
+      &quot;Set up restaurant {}, coordinates {}, location [{}]&quot;,
+      in.restaurantId,
+      in.coordinates,
+      in.localControlLocationId)
+
+    if (!settings.locationIds.contains(in.localControlLocationId)) {
+      throw new GrpcServiceException(Status.INVALID_ARGUMENT.withDescription(
+        s&quot;The local control location id ${in.localControlLocationId} is not known to the service&quot;))
+    }
+
+    val entityRef =
+      sharding.entityRefFor(RestaurantDeliveries.EntityKey, in.restaurantId)
+
+    val coordinates = toCoordinates(in.coordinates)
+    val reply =
+      entityRef.ask(
+        RestaurantDeliveries
+          .SetUpRestaurant(in.localControlLocationId, coordinates, _))
+
+    reply.map {
+      case StatusReply.Error(error) =&gt;
+        throw new GrpcServiceException(
+          Status.INTERNAL.withDescription(error.getMessage))
+      case _ =&gt;
+        proto.RegisterRestaurantResponse()
+    }
+  }
+
+  override def registerDelivery(in: proto.RegisterDeliveryRequest)
+      : Future[proto.RegisterDeliveryResponse] = {
+    logger.info(
+      &quot;Register delivery for restaurant {}, delivery id {}, destination {}&quot;,
+      in.restaurantId,
+      in.deliveryId,
+      in.coordinates.get)
+
+    val entityRef =
+      sharding.entityRefFor(RestaurantDeliveries.EntityKey, in.restaurantId)
+
+    val destination = toCoordinates(in.coordinates)
+
+    val reply = entityRef.ask(
+      RestaurantDeliveries.RegisterDelivery(in.deliveryId, destination, _))
+
+    reply.map {
+      case StatusReply.Error(error) =&gt;
+        throw new GrpcServiceException(
+          Status.INTERNAL.withDescription(error.getMessage))
+      case _ =&gt; proto.RegisterDeliveryResponse()
+    }
+
+  }
+
+  private def toCoordinates(
+      protoCoordinates: Option[common.proto.Coordinates]): Coordinates =
+    protoCoordinates match {
+      case Some(pc) =&gt; Coordinates.fromProto(pc)
+      case None =&gt;
+        throw new GrpcServiceException(
+          Status.INVALID_ARGUMENT.withDescription(&quot;Missing coordinates&quot;))
+
+    }
+}</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka-projection/tree/master/samples/grpc/restaurant-drone-deliveries-service-java/src/main/java/central/deliveries/RestaurantDeliveriesServiceImpl.java" target="_blank" title="Go to snippet source">source</a><code class="language-java">package central.deliveries;
+
+import akka.Done;
+import akka.actor.typed.ActorSystem;
+import akka.cluster.sharding.typed.javadsl.ClusterSharding;
+import akka.grpc.GrpcServiceException;
+import central.Coordinates;
+import central.DeliveriesSettings;
+import central.deliveries.proto.*;
+import io.grpc.Status;
+import java.time.Duration;
+import java.util.concurrent.CompletionStage;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+public final class RestaurantDeliveriesServiceImpl implements RestaurantDeliveriesService {
+
+  private static final Logger logger = LoggerFactory.getLogger(RestaurantDeliveries.class);
+
+  private final ActorSystem&lt;?&gt; system;
+  private final DeliveriesSettings settings;
+  private final ClusterSharding sharding;
+
+  private final Duration askTimeout;
+
+  public RestaurantDeliveriesServiceImpl(ActorSystem&lt;?&gt; system, DeliveriesSettings settings) {
+    this.system = system;
+    this.settings = settings;
+    this.sharding = ClusterSharding.get(system);
+    this.askTimeout =
+        system
+            .settings()
+            .config()
+            .getDuration(&quot;restaurant-drone-deliveries-service.restaurant-deliveries-ask-timeout&quot;);
+  }
+
+  @Override
+  public CompletionStage&lt;RegisterRestaurantResponse&gt; setUpRestaurant(SetUpRestaurantRequest in) {
+    logger.info(
+        &quot;Set up restaurant {}, coordinates {}-{}, location [{}]&quot;,
+        in.getRestaurantId(),
+        in.getCoordinates().getLatitude(),
+        in.getCoordinates().getLongitude(),
+        in.getLocalControlLocationId());
+
+    if (!settings.locationIds.contains(in.getLocalControlLocationId())) {
+      throw new GrpcServiceException(
+          Status.INVALID_ARGUMENT.withDescription(
+              &quot;The local control location id &quot;
+                  + in.getLocalControlLocationId()
+                  + &quot; is not known to the service&quot;));
+    }
+
+    var entityRef = sharding.entityRefFor(RestaurantDeliveries.ENTITY_KEY, in.getRestaurantId());
+
+    var coordinates = Coordinates.fromProto(in.getCoordinates());
+    CompletionStage&lt;Done&gt; reply =
+        entityRef.askWithStatus(
+            replyTo -&gt;
+                new RestaurantDeliveries.SetUpRestaurant(
+                    in.getLocalControlLocationId(), coordinates, replyTo),
+            askTimeout);
+
+    return reply.handle(
+        (done, error) -&gt; {
+          if (error != null) {
+            throw new GrpcServiceException(Status.INTERNAL.withDescription(error.getMessage()));
+          } else {
+
+            return RegisterRestaurantResponse.getDefaultInstance();
+          }
+        });
+  }
+
+  @Override
+  public CompletionStage&lt;RegisterDeliveryResponse&gt; registerDelivery(RegisterDeliveryRequest in) {
+    logger.info(
+        &quot;Register delivery for restaurant {}, delivery id {}, destination {},{}&quot;,
+        in.getRestaurantId(),
+        in.getDeliveryId(),
+        in.getCoordinates().getLatitude(),
+        in.getCoordinates().getLongitude());
+
+    var entityRef = sharding.entityRefFor(RestaurantDeliveries.ENTITY_KEY, in.getRestaurantId());
+
+    var destination = Coordinates.fromProto(in.getCoordinates());
+
+    CompletionStage&lt;Done&gt; reply =
+        entityRef.askWithStatus(
+            replyTo -&gt;
+                new RestaurantDeliveries.RegisterDelivery(in.getDeliveryId(), destination, replyTo),
+            askTimeout);
+
+    return reply.handle(
+        (done, error) -&gt; {
+          if (error != null) {
+            throw new GrpcServiceException(Status.INTERNAL.withDescription(error.getMessage()));
+          } else {
+            return RegisterDeliveryResponse.getDefaultInstance();
+          }
+        });
+  }
+}</code></pre></dd>
+</dl>
+<h2><a href="#running-the-sample" name="running-the-sample" class="anchor"><span class="anchor-link"></span></a>Running the sample</h2>
+<p>The complete sample can be downloaded from GitHub, but note that it also includes the next step of the guide:</p>
+<ul>
+  <li>Java: <a href="https://github.com/akka/akka-projection/tree/main/samples/grpc/restaurant-drone-deliveries-service-java">https://github.com/akka/akka-projection/tree/main/samples/grpc/restaurant-drone-deliveries-service-java</a></li>
+  <li>Scala: <a href="https://github.com/akka/akka-projection/tree/main/samples/grpc/restaurant-drone-deliveries-service-scala">https://github.com/akka/akka-projection/tree/main/samples/grpc/restaurant-drone-deliveries-service-scala</a></li>
+</ul>
+<p>In this step we created a local entity, so we can try it out by running the restaurant-drone-deliveries-service without any local-drone-control services.</p>
+<p>To start the drone-restaurant-deliveries-service.</p>
+<p>As the service needs a PostgreSQL instance running, start that up in a docker container and create the database schema (if you didn&rsquo;t do that in the previous guide step):</p>
+<pre class="prettyprint"><code class="language-shell">docker compose up --wait
+docker exec -i postgres_db psql -U postgres -t &lt; ddl-scripts/create_tables.sql
+</code></pre>
+<p>Then start the service:</p><div class="group-scala">
+<pre class="prettyprint"><code class="language-shell">sbt -Dconfig.resource=local1.conf run
+</code></pre>
+<p>And optionally one or two more Akka cluster nodes, but note that the local drone controls are statically configured to the gRPC port of the first and will only publish events to that node.</p>
+<pre class="prettyprint"><code class="language-shell">sbt -Dconfig.resource=local2.conf run
+sbt -Dconfig.resource=local3.conf run
+</code></pre></div><div class="group-java">
+<pre class="prettyprint"><code class="language-shell">mvn compile exec:exec -DAPP_CONFIG=local1.conf
+</code></pre>
+<p>And optionally one or two more Akka cluster nodes, but note that the local drone controls are statically configured to the gRPC port of the first and will only publish events to that node.</p>
+<pre class="prettyprint"><code class="language-shell">mvn compile exec:exec -DAPP_CONFIG=local2.conf
+mvn compile exec:exec -DAPP_CONFIG=local3.conf
+</code></pre></div>
+<p>Create a restaurant with <a href="https://github.com/fullstorydev/grpcurl">grpcurl</a>:</p>
+<pre class="prettyprint"><code class="language-shell">grpcurl -d &#39;{&quot;restaurant_id&quot;:&quot;restaurant1&quot;,&quot;coordinates&quot;:{&quot;latitude&quot;: 59.330324, &quot;longitude&quot;: 18.039568}, &quot;local_control_location_id&quot;: &quot;sweden/stockholm/kungsholmen&quot; }&#39; -plaintext localhost:8101 central.deliveries.RestaurantDeliveriesService.SetUpRestaurant
+</code></pre>
+<p>Set up another restaurant, closest to a different local drone control</p>
+<pre class="prettyprint"><code class="language-shell">grpcurl -d &#39;{&quot;restaurant_id&quot;:&quot;restaurant2&quot;,&quot;coordinates&quot;:{&quot;latitude&quot;: 59.342046, &quot;longitude&quot;: 18.059095}, &quot;local_control_location_id&quot;: &quot;sweden/stockholm/norrmalm&quot; }&#39; -plaintext localhost:8101 central.deliveries.RestaurantDeliveriesService.SetUpRestaurant
+</code></pre>
+<p>Register a delivery for the first restaurant</p>
+<pre class="prettyprint"><code class="language-shell">grpcurl -d &#39;{&quot;restaurant_id&quot;:&quot;restaurant1&quot;,&quot;delivery_id&quot;: &quot;order1&quot;,&quot;coordinates&quot;:{&quot;latitude&quot;: 59.330841, &quot;longitude&quot;: 18.038885}}&#39; -plaintext localhost:8101 central.deliveries.RestaurantDeliveriesService.RegisterDelivery
+</code></pre>
+<p>Register a delivery for the second restaurant</p>
+<pre class="prettyprint"><code class="language-shell">grpcurl -d &#39;{&quot;restaurant_id&quot;:&quot;restaurant2&quot;,&quot;delivery_id&quot;: &quot;order2&quot;,&quot;coordinates&quot;:{&quot;latitude&quot;: 59.340128, &quot;longitude&quot;: 18.056303}}&#39; -plaintext localhost:8101 central.deliveries.RestaurantDeliveriesService.RegisterDelivery
+</code></pre>
+<h2><a href="#whats-next-" name="whats-next-" class="anchor"><span class="anchor-link"></span></a>What&rsquo;s next?</h2>
+<ul>
+  <li>Replicate the restaurant orders to the right local-drone-control PoP</li>
+  <li>Let a drone pick up the closest waiting order from the local-drone-control</li>
+</ul>
+</div>
+</article>
+<div class="row">
+<div class="small-12 column">
+<section class="nav-prev-next row">
+<div class="nav-prev small-6 column">
+<a href="../guide/2-drone-location-to-cloud-service.html"><i class="icon-prev"></i> <span class="link-prev">Coarse Grained Location Replication</span></a>
+</div>
+<div class="nav-next small-6 column clearfix">
+<a class="float-right" href="../guide/4-local-drone-delivery-selection.html">Local Drone Delivery Selection <i class="icon-next"></i></a>
+</div>
+</section>
+</div>
+</div>
+<div class="source-github row">
+Found an error in this documentation? The source code for this page can be found <a href="https://github.com/akka/akka-projection/tree/master/akka-edge-docs/src/main/paradox/guide/3-restaurant-deliveries-service.md">here</a>.
+Please feel free to edit and contribute a pull request.
+</div>
+
+<footer class="page-footer row clearfix">
+<img class="akka-icon float-left show-for-medium" src="../images/akka-icon.svg" />
+<section class="copyright">
+<div>Akka Edge is available under the <a href="https://www.lightbend.com/akka/license" target="_blank">Business Source License 1.1</a>.</div>
+<p class="legal">
+&copy; 2011-2023 <a href="https://www.lightbend.com" target="_blank">Lightbend, Inc.</a> |
+<a href="https://www.lightbend.com/legal/licenses" target="_blank">Licenses</a> |
+<a href="https://www.lightbend.com/legal/terms" target="_blank">Terms</a> |
+<a href="https://www.lightbend.com/legal/privacy" target="_blank">Privacy Policy</a> |
+<a href="https://akka.io/cookie/" target="_blank">Cookie Listing</a> |
+<a class="optanon-toggle-display">Cookie Settings</a>
+</p>
+</section>
+
+</footer>
+</section>
+</main>
+</div>
+
+<script type="text/javascript" src="../js/scrollsneak.js"></script>
+<script type="text/javascript">jQuery(document).foundation();</script>
+<script type="text/javascript" src="../js/groups.js"></script>
+<script type="text/javascript" src="../js/page.js"></script>
+<script type="text/javascript" src="../js/snippets.js"></script>
+<script type="text/javascript" src="../js/magellan.js"></script>
+<script type="text/javascript" src="../js/metadata-toggle.js"></script>
+<script type="text/javascript" src="../js/lbHeader.js"></script>
+
+<style type="text/css">@import "../lib/prettify/prettify.css";</style>
+<script type="text/javascript" src="../lib/prettify/prettify.js"></script>
+<script type="text/javascript" src="../lib/prettify/lang-scala.js"></script>
+<script type="text/javascript">//<![CDATA[
+jQuery(function(){window.prettyPrint && prettyPrint()});
+//]]></script>
+<!-- hook for including project specific javascript into the generated docs -->
+
+</body>
+</html>
