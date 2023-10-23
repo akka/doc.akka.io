@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<html class="no-js" lang="en">
+
+<head>
+<title>Cluster Singleton &bull; Akka Documentation</title>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta name="description" content="Akka is a toolkit for building highly concurrent, distributed, and resilient message-driven applications for Java and Scala."/>
+<link rel="canonical" href="https://doc.akka.io/docs/akka/current/typed/cluster-singleton.html"/>
+<script type="text/javascript" src="../lib/jquery/jquery.min.js"></script>
+<script type="text/javascript" src="../lib/foundation/dist/js/foundation.min.js"></script>
+<link rel="stylesheet" type="text/css" href="../lib/normalize.css/normalize.css"/>
+<link rel="stylesheet" type="text/css" href="../lib/foundation/dist/css/foundation.min.css"/>
+<link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/docsearch.js/2/docsearch.min.css" />
+<link rel="stylesheet" type="text/css" href="../css/icons.css"/>
+<link rel="stylesheet" type="text/css" href="../css/page-8.css"/>
+<link rel="stylesheet" type="text/css" href="../css/banner-2.css"/>
+<link rel="shortcut icon" href="../images/favicon.ico" />
+<link rel="apple-touch-icon" sizes="180x180" href="../images/apple-touch-icon.png"/>
+<link rel="icon" type="image/png" sizes="32x32" href="../images/favicon-32x32.png"/>
+<link rel="icon" type="image/png" sizes="16x16" href="../images/favicon-16x16.png"/>
+<link rel="manifest" href="../images/manifest.json"/>
+<meta name="msapplication-TileImage" content="../images/mstile-150x150.png"/>
+<meta name="msapplication-TileColor" content="#15a9ce"/>
+<meta name="theme-color" content="#15a9ce"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<!-- OneTrust Cookies Consent Notice (Production Standard, akka.io, en-GB) start -->
+<script src="https://cdn.cookielaw.org/scripttemplates/otSDKStub.js"  type="text/javascript" charset="UTF-8" data-domain-script="28b912e7-09e9-43d5-91e4-3d1897044004" ></script>
+<script type="text/javascript">
+function OptanonWrapper() { }
+</script>
+<!-- OneTrust Cookies Consent Notice (Production Standard, akka.io, en-GB) end -->
+<!-- Google Tag Manager now loads Google Analytics and any other tracking scripts. GTM also performs respects a users cookie choices-->
+<script type="text/javascript">
+(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+})(window,document,'script','dataLayer','GTM-KBJGH35');
+</script>
+
+</head>
+
+<body id="underlay" data-toggler="nav-open">
+<div id="lightbend-banner" class="lightbend-banner akka full-width" data-category="OSS Lightbend Banner Impression" data-label="Akka Banner Impression">
+<div class="oss-wrapper">
+<div class="oss-brand">
+<a class="oss-track-link-label" data-category="OSS Lightbend Banner Clicks" data-label="Lightbend Logo - Akka Banner" href="https://www.lightbend.com">
+<img class="lightbend-logo" src="../images/banner-logos/lightbend-reverse.svg" alt="Lightbend" title="Lightbend">
+</a>
+</div>
+<div class="oss-ad no-drop-down">
+<nav id="lightbendRotator" class="lightbend-rotator">
+<a class="oss-track-link-label" data-category="OSS Lightbend Banner Clicks" data-label="Promo Rotator - Introducing Akka Cloud to Edge Continuum. Build once for the Cloud. Seamlessly deploy to the Edge. [Learn more] - Akka Banner" href="https://www.lightbend.com/blog/akka-edge-unifying-the-cloud-and-edge">
+Introducing Akka Cloud to Edge Continuum. Build once for the Cloud. Seamlessly deploy to the Edge. <span class="akka-btn">Learn more</span>
+</a>
+</nav>
+</div>
+</div>
+</div>
+
+<header class="site-header hide-for-large">
+<div class="sticky-header clearfix">
+<a href="https://akka.io"><img class="logo" src="../images/akka-logo-reverse.svg"/></a>
+
+<button class="menu-icon float-right" type="button" data-toggle="underlay overlay"></button>
+</div>
+<div id="overlay" class="overlay-nav" data-toggler="nav-open">
+<header class="nav-header">
+<div class="nav-header-title">
+<h1><a href="../index.html">Akka Documentation</a></h1>
+</div>
+<div class="nav-header-version">
+Version 2.9.0
+</div>
+<div class="nav-header-groups">
+<select class="supergroup" name="Language"><option class="group" value="group-scala">Scala</option><option class="group" value="group-java">Java</option></select>
+<select class="supergroup" name="BuildTool"><option class="group" value="group-sbt">sbt</option><option class="group" value="group-maven">Maven</option><option class="group" value="group-gradle">Gradle</option></select>
+</div>
+<div id="overlay-search-container" class="nav-header-search">
+<input id="overlay-search" type="search" class="search" placeholder="Search" />
+</div>
+</header>
+<nav class="nav-toc">
+<ul>
+  <li><a href="../security/index.html" class="page">Security Announcements</a></li>
+  <li><a href="../typed/guide/index.html" class="page">Getting Started Guide</a></li>
+  <li><a href="../general/index.html" class="page">General Concepts</a></li>
+  <li><a href="../typed/index.html" class="page">Actors</a></li>
+  <li><a href="../typed/index-cluster.html" class="page">Cluster</a>
+  <ul>
+    <li><a href="../typed/cluster.html" class="page">Cluster Usage</a></li>
+    <li><a href="../typed/cluster-concepts.html" class="page">Cluster Specification</a></li>
+    <li><a href="../typed/cluster-membership.html" class="page">Cluster Membership Service</a></li>
+    <li><a href="../typed/failure-detector.html" class="page">Phi Accrual Failure Detector</a></li>
+    <li><a href="../typed/distributed-data.html" class="page">Distributed Data</a></li>
+    <li><a href="../typed/cluster-singleton.html#cluster-singleton" class="active page">Cluster Singleton</a>
+    <ul>
+      <li><a href="../typed/cluster-singleton.html#module-info" class="header">Module info</a></li>
+      <li><a href="../typed/cluster-singleton.html#introduction" class="header">Introduction</a></li>
+      <li><a href="../typed/cluster-singleton.html#potential-problems-to-be-aware-of" class="header">Potential problems to be aware of</a></li>
+      <li><a href="../typed/cluster-singleton.html#example" class="header">Example</a></li>
+      <li><a href="../typed/cluster-singleton.html#supervision" class="header">Supervision</a></li>
+      <li><a href="../typed/cluster-singleton.html#application-specific-stop-message" class="header">Application specific stop message</a></li>
+      <li><a href="../typed/cluster-singleton.html#lease" class="header">Lease</a></li>
+      <li><a href="../typed/cluster-singleton.html#accessing-singleton-of-another-data-centre" class="header">Accessing singleton of another data centre</a></li>
+      <li><a href="../typed/cluster-singleton.html#configuration" class="header">Configuration</a></li>
+    </ul></li>
+    <li><a href="../typed/cluster-sharding.html" class="page">Cluster Sharding</a></li>
+    <li><a href="../typed/cluster-sharding-concepts.html" class="page">Cluster Sharding concepts</a></li>
+    <li><a href="../typed/cluster-sharded-daemon-process.html" class="page">Sharded Daemon Process</a></li>
+    <li><a href="../typed/cluster-dc.html" class="page">Multi-DC Cluster</a></li>
+    <li><a href="../typed/distributed-pub-sub.html" class="page">Distributed Publish Subscribe in Cluster</a></li>
+    <li><a href="../typed/reliable-delivery.html" class="page">Reliable delivery</a></li>
+    <li><a href="../serialization.html" class="page">Serialization</a></li>
+    <li><a href="../serialization-jackson.html" class="page">Serialization with Jackson</a></li>
+    <li><a href="../multi-jvm-testing.html" class="page">Multi JVM Testing</a></li>
+    <li><a href="../multi-node-testing.html" class="page">Multi Node Testing</a></li>
+    <li><a href="../remoting-artery.html" class="page">Remoting</a></li>
+    <li><a href="../remote-security.html" class="page">Remote Security</a></li>
+    <li><a href="../split-brain-resolver.html" class="page">Split Brain Resolver</a></li>
+    <li><a href="../coordination.html" class="page">Coordination</a></li>
+    <li><a href="../typed/choosing-cluster.html" class="page">Choosing Akka Cluster</a></li>
+  </ul></li>
+  <li><a href="../typed/index-persistence.html" class="page">Persistence (Event Sourcing)</a></li>
+  <li><a href="../typed/index-persistence-durable-state.html" class="page">Persistence (Durable State)</a></li>
+  <li><a href="../stream/index.html" class="page">Streams</a></li>
+  <li><a href="../discovery/index.html" class="page">Discovery</a></li>
+  <li><a href="../index-utilities.html" class="page">Utilities</a></li>
+  <li><a href="../common/other-modules.html" class="page">Other Akka modules</a></li>
+  <li><a href="../additional/deploy.html" class="page">Package, Deploy and Run</a></li>
+  <li><a href="../project/index.html" class="page">Project Information</a></li>
+  <li><a href="../index-classic.html" class="page">Akka Classic</a></li>
+</ul>
+</nav>
+</div>
+</header>
+<div class="site-content-wrapper">
+<aside class="sticky-sidebar show-for-large">
+<header class="nav-header sticky-sidebar-header">
+<div class="nav-header-title">
+<h1><a href="../index.html">Akka Documentation</a></h1>
+</div>
+<div class="nav-header-version">
+Version 2.9.0
+</div>
+<div class="nav-header-groups">
+<select class="supergroup" name="Language"><option class="group" value="group-scala">Scala</option><option class="group" value="group-java">Java</option></select>
+<select class="supergroup" name="BuildTool"><option class="group" value="group-sbt">sbt</option><option class="group" value="group-maven">Maven</option><option class="group" value="group-gradle">Gradle</option></select>
+</div>
+<div class="nav-header-search">
+<input id="search" type="search" class="search" placeholder="Search" />
+</div>
+</header>
+<nav class="site-nav sticky-sidebar-contents">
+<div class="nav-toc">
+<ul>
+  <li><a href="../security/index.html" class="page">Security Announcements</a></li>
+  <li><a href="../typed/guide/index.html" class="page">Getting Started Guide</a></li>
+  <li><a href="../general/index.html" class="page">General Concepts</a></li>
+  <li><a href="../typed/index.html" class="page">Actors</a></li>
+  <li><a href="../typed/index-cluster.html" class="page">Cluster</a>
+  <ul>
+    <li><a href="../typed/cluster.html" class="page">Cluster Usage</a></li>
+    <li><a href="../typed/cluster-concepts.html" class="page">Cluster Specification</a></li>
+    <li><a href="../typed/cluster-membership.html" class="page">Cluster Membership Service</a></li>
+    <li><a href="../typed/failure-detector.html" class="page">Phi Accrual Failure Detector</a></li>
+    <li><a href="../typed/distributed-data.html" class="page">Distributed Data</a></li>
+    <li><a href="../typed/cluster-singleton.html#cluster-singleton" class="active page">Cluster Singleton</a>
+    <ul>
+      <li><a href="../typed/cluster-singleton.html#module-info" class="header">Module info</a></li>
+      <li><a href="../typed/cluster-singleton.html#introduction" class="header">Introduction</a></li>
+      <li><a href="../typed/cluster-singleton.html#potential-problems-to-be-aware-of" class="header">Potential problems to be aware of</a></li>
+      <li><a href="../typed/cluster-singleton.html#example" class="header">Example</a></li>
+      <li><a href="../typed/cluster-singleton.html#supervision" class="header">Supervision</a></li>
+      <li><a href="../typed/cluster-singleton.html#application-specific-stop-message" class="header">Application specific stop message</a></li>
+      <li><a href="../typed/cluster-singleton.html#lease" class="header">Lease</a></li>
+      <li><a href="../typed/cluster-singleton.html#accessing-singleton-of-another-data-centre" class="header">Accessing singleton of another data centre</a></li>
+      <li><a href="../typed/cluster-singleton.html#configuration" class="header">Configuration</a></li>
+    </ul></li>
+    <li><a href="../typed/cluster-sharding.html" class="page">Cluster Sharding</a></li>
+    <li><a href="../typed/cluster-sharding-concepts.html" class="page">Cluster Sharding concepts</a></li>
+    <li><a href="../typed/cluster-sharded-daemon-process.html" class="page">Sharded Daemon Process</a></li>
+    <li><a href="../typed/cluster-dc.html" class="page">Multi-DC Cluster</a></li>
+    <li><a href="../typed/distributed-pub-sub.html" class="page">Distributed Publish Subscribe in Cluster</a></li>
+    <li><a href="../typed/reliable-delivery.html" class="page">Reliable delivery</a></li>
+    <li><a href="../serialization.html" class="page">Serialization</a></li>
+    <li><a href="../serialization-jackson.html" class="page">Serialization with Jackson</a></li>
+    <li><a href="../multi-jvm-testing.html" class="page">Multi JVM Testing</a></li>
+    <li><a href="../multi-node-testing.html" class="page">Multi Node Testing</a></li>
+    <li><a href="../remoting-artery.html" class="page">Remoting</a></li>
+    <li><a href="../remote-security.html" class="page">Remote Security</a></li>
+    <li><a href="../split-brain-resolver.html" class="page">Split Brain Resolver</a></li>
+    <li><a href="../coordination.html" class="page">Coordination</a></li>
+    <li><a href="../typed/choosing-cluster.html" class="page">Choosing Akka Cluster</a></li>
+  </ul></li>
+  <li><a href="../typed/index-persistence.html" class="page">Persistence (Event Sourcing)</a></li>
+  <li><a href="../typed/index-persistence-durable-state.html" class="page">Persistence (Durable State)</a></li>
+  <li><a href="../stream/index.html" class="page">Streams</a></li>
+  <li><a href="../discovery/index.html" class="page">Discovery</a></li>
+  <li><a href="../index-utilities.html" class="page">Utilities</a></li>
+  <li><a href="../common/other-modules.html" class="page">Other Akka modules</a></li>
+  <li><a href="../additional/deploy.html" class="page">Package, Deploy and Run</a></li>
+  <li><a href="../project/index.html" class="page">Project Information</a></li>
+  <li><a href="../index-classic.html" class="page">Akka Classic</a></li>
+</ul>
+</div>
+</nav>
+<footer class="nav-footer sticky-sidebar-footer">
+<a href="https://akka.io"><img class="logo" src="../images/akka-logo-reverse.svg"/></a>
+
+</footer>
+</aside>
+<main class="fixed-shift-for-large expanded row">
+<section class="site-content small-12 column">
+<article class="page-content row">
+<div class="small-12 column" id="docs">
+<h1><a href="#cluster-singleton" name="cluster-singleton" class="anchor"><span class="anchor-link"></span></a>Cluster Singleton</h1>
+<p>You are viewing the documentation for the new actor APIs, to view the Akka Classic documentation, see <a href="../cluster-singleton.html">Classic Cluster Singleton</a>.</p>
+<h2><a href="#module-info" name="module-info" class="anchor"><span class="anchor-link"></span></a>Module info</h2>
+<p>The Akka dependencies are available from Akka&rsquo;s library repository. To access them there, you need to configure the URL for this repository.</p><dl class="repository"><dt>sbt</dt><dd><pre class="prettyprint"><code class="language-scala">resolvers += "Akka library repository".at("https://repo.akka.io/maven")
+</code></pre></dd><dt>Maven</dt><dd><pre class="prettyprint"><code class="language-xml">&lt;project&gt
+  ...
+  &lt;repositories&gt;
+    &lt;repository&gt;
+      &lt;id&gt;akka-repository&lt;/id&gt;
+      &lt;name>Akka library repository&lt;/name&gt;
+      &lt;url>https://repo.akka.io/maven&lt;/url&gt;
+    &lt;/repository&gt;
+  &lt;/repositories&gt
+&lt;/project&gt;
+</code></pre></dd><dt>Gradle</dt><dd><pre class="prettyprint"><code class="language-gradle">repositories {
+    mavenCentral()
+    maven {
+        url "https://repo.akka.io/maven"
+    }
+}
+</code></pre></dd></dl>
+<p>To use Cluster Singleton, you must add the following dependency in your project:</p><dl class="dependency"><dt>sbt</dt><dd><pre class="prettyprint"><code class="language-scala">val AkkaVersion = "2.9.0"
+libraryDependencies += "com.typesafe.akka" %% "akka-cluster-typed" % AkkaVersion</code></pre></dd><dt>Maven</dt><dd><pre class="prettyprint"><code class="language-xml">&lt;properties&gt;
+  &lt;scala.binary.version&gt;2.13&lt;/scala.binary.version&gt;
+&lt;/properties&gt;
+&lt;dependencyManagement&gt;
+  &lt;dependencies&gt;
+    &lt;dependency&gt;
+      &lt;groupId&gt;com.typesafe.akka&lt;/groupId&gt;
+      &lt;artifactId&gt;akka-bom_${scala.binary.version}&lt;/artifactId&gt;
+      &lt;version&gt;2.9.0&lt;/version&gt;
+      &lt;type&gt;pom&lt;/type&gt;
+      &lt;scope&gt;import&lt;/scope&gt;
+    &lt;/dependency&gt
+  &lt;/dependencies&gt;
+&lt;/dependencyManagement&gt;
+&lt;dependencies&gt
+  &lt;dependency&gt;
+    &lt;groupId&gt;com.typesafe.akka&lt;/groupId&gt;
+    &lt;artifactId&gt;akka-cluster-typed_${scala.binary.version}&lt;/artifactId&gt;
+  &lt;/dependency&gt
+&lt;/dependencies&gt;</code></pre></dd><dt>Gradle</dt><dd><pre class="prettyprint"><code class="language-gradle">def versions = [
+  ScalaBinary: "2.13"
+]
+dependencies {
+  implementation platform("com.typesafe.akka:akka-bom_${versions.ScalaBinary}:2.9.0")
+
+  implementation "com.typesafe.akka:akka-cluster-typed_${versions.ScalaBinary}"
+}</code></pre></dd></dl>
+<table class="project-info">
+<tr><th colspan="2">Project Info: Akka Cluster (typed)</th></tr>
+  <tr><th>Artifact</th><td><div>com.typesafe.akka</div>
+  <div>akka-cluster-typed</div>
+  <div>2.9.0</div>
+  <div><a href="project/links.html#snapshots-repository">Snapshots are available</a></div>
+  </td></tr>
+  <tr><th>JDK versions</th><td><div>Eclipse Temurin JDK 11</div><div>Eclipse Temurin JDK 17</div></td></tr>
+  <tr><th>Scala versions</th><td>2.13.12, 3.3.1</td></tr>
+  <tr><th>JPMS module name</th><td>akka.cluster.typed</td></tr>
+  <tr><th>License</th><td><div><a href="https://raw.githubusercontent.com/akka/akka/v2.9.0/LICENSE" target="_blank" rel="noopener noreferrer">BUSL-1.1</a></div>
+  </td></tr>
+  <tr><th>Readiness level</th><td><div class="readiness-level"><a href="https://developer.lightbend.com/docs/introduction/getting-help/support-terminology.html#supported" target="_blank" rel="noopener">Supported</a>, <a href="https://www.lightbend.com/lightbend-subscription" target="_blank" rel="noopener">Lightbend Subscription</a> provides support</div>
+  <div>Since 2.6.0, 2019-11-06</div>
+  </td></tr>
+  <tr><th>Home page</th><td><a href="https://akka.io/">https://akka.io/</a></td></tr>
+  <tr><th>API documentation</th><td>
+  <div><a href="https://doc.akka.io/api/akka/2.9.0/akka/cluster/typed/index.html" target="_blank" rel="noopener noreferrer">API (Scaladoc)</a></div>
+  <div><a href="https://doc.akka.io/japi/akka/2.9.0/akka/cluster/typed/package-summary.html" target="_blank" rel="noopener noreferrer">API (Javadoc)</a></div>
+  </td></tr>
+  <tr><th>Forums</th><td>
+  <div><a href="https://discuss.akka.io" target="_blank" rel="noopener noreferrer">Lightbend Discuss</a></div>
+  <div><a href="https://gitter.im/akka/akka" target="_blank" rel="noopener noreferrer">akka/akka Gitter channel</a></div>
+  </td></tr>
+  <tr><th>Release notes</th><td><a href="https://akka.io/blog/news-archive.html">akka.io blog</a></td></tr>
+  <tr><th>Issues</th><td><a href="https://github.com/akka/akka/issues" target="_blank" rel="noopener noreferrer">Github issues</a></td></tr>
+  <tr><th>Sources</th><td><a href="https://github.com/akka/akka" target="_blank" rel="noopener noreferrer">https://github.com/akka/akka</a></td></tr>
+</table>
+
+<h2><a href="#introduction" name="introduction" class="anchor"><span class="anchor-link"></span></a>Introduction</h2>
+
+<p>For some use cases it is convenient and sometimes also mandatory to ensure that you have exactly one actor of a certain type running somewhere in the cluster.</p>
+
+<p>Some examples:</p>
+
+<ul>
+  <li>single point of responsibility for certain cluster-wide consistent decisions, or coordination of actions across the cluster system</li>
+  <li>single entry point to an external system</li>
+  <li>single master, many workers</li>
+  <li>centralized naming service, or routing logic</li>
+</ul>
+<p>Using a singleton should not be the first design choice. It has several drawbacks, such as single-point of bottleneck. Single-point of failure is also a relevant concern, but for some cases this feature takes care of that by making sure that another singleton instance will eventually be started.</p><div class="callout warning "><div class="callout-title">Warning</div>
+<p>Make sure to not use a Cluster downing strategy that may split the cluster into several separate clusters in case of network problems or system overload (long GC pauses), since that will result in in <em>multiple Singletons</em> being started, one in each separate cluster! See <a href="cluster.html#downing">Downing</a>.</p></div>
+<h3><a href="#singleton-manager" name="singleton-manager" class="anchor"><span class="anchor-link"></span></a>Singleton manager</h3>
+<p>The cluster singleton pattern manages one singleton actor instance among all cluster nodes or a group of nodes tagged with a specific role. The singleton manager is an actor that is supposed to be started with <span class="group-scala"><a href="https://doc.akka.io/api/akka/2.8/akka/cluster/typed/ClusterSingleton.html#init[M](singleton:akka.cluster.typed.SingletonActor[M]):akka.actor.typed.ActorRef[M]" title="akka.cluster.typed.ClusterSingleton"><code>ClusterSingleton.init</code></a></span><span class="group-java"><a href="https://doc.akka.io/japi/akka/2.8/akka/cluster/typed/ClusterSingleton.html#init(akka.cluster.typed.SingletonActor)" title="akka.cluster.typed.ClusterSingleton"><code>ClusterSingleton.init</code></a></span> as early as possible on all nodes, or all nodes with specified role, in the cluster. </p>
+<p>The actual singleton actor is</p>
+<ul>
+  <li>Started on the oldest node by creating a child actor from supplied <span class="group-scala"><a href="https://doc.akka.io/api/akka/2.8/akka/actor/typed/Behavior.html" title="akka.actor.typed.Behavior"><code>Behavior</code></a></span><span class="group-java"><a href="https://doc.akka.io/japi/akka/2.8/akka/actor/typed/Behavior.html" title="akka.actor.typed.Behavior"><code>Behavior</code></a></span>. It makes sure that at most one singleton instance is running at any point in time.</li>
+  <li>Always running on the oldest member with specified role.</li>
+</ul>
+<p>The oldest member is determined by <span class="group-scala"><a href="https://doc.akka.io/api/akka/2.8/akka/cluster/Member.html#isOlderThan(other:akka.cluster.Member):Boolean" title="akka.cluster.Member"><code>akka.cluster.Member#isOlderThan</code></a></span><span class="group-java"><a href="https://doc.akka.io/japi/akka/2.8/akka/cluster/Member.html#isOlderThan(akka.cluster.Member)" title="akka.cluster.Member"><code>akka.cluster.Member#isOlderThan</code></a></span> This can change when removing that member from the cluster. Be aware that there is a short time period when there is no active singleton during the hand-over process.</p>
+<p>When the oldest node is <a href="cluster.html#leaving">Leaving</a> the cluster there is an exchange from the oldest and the new oldest before a new singleton is started up.</p>
+<p>The cluster <a href="cluster.html#failure-detector">failure detector</a> will notice when oldest node becomes unreachable due to things like JVM crash, hard shut down, or network failure. After <a href="cluster.html#downing">Downing</a> and removing that node the a new oldest node will take over and a new singleton actor is created. For these failure scenarios there will not be a graceful hand-over, but more than one active singletons is prevented by all reasonable means. Some corner cases are eventually resolved by configurable timeouts. Additional safety can be added by using a <a href="cluster-singleton.html#lease">Lease</a>. </p>
+<h3><a href="#singleton-proxy" name="singleton-proxy" class="anchor"><span class="anchor-link"></span></a>Singleton proxy</h3>
+<p>To communicate with a given named singleton in the cluster you can access it though a proxy <span class="group-scala"><a href="https://doc.akka.io/api/akka/2.8/akka/actor/typed/ActorRef.html" title="akka.actor.typed.ActorRef"><code>ActorRef</code></a></span><span class="group-java"><a href="https://doc.akka.io/japi/akka/2.8/akka/actor/typed/ActorRef.html" title="akka.actor.typed.ActorRef"><code>ActorRef</code></a></span>. When calling <span class="group-scala"><a href="https://doc.akka.io/api/akka/2.8/akka/cluster/typed/ClusterSingleton.html#init[M](singleton:akka.cluster.typed.SingletonActor[M]):akka.actor.typed.ActorRef[M]" title="akka.cluster.typed.ClusterSingleton"><code>ClusterSingleton.init</code></a></span><span class="group-java"><a href="https://doc.akka.io/japi/akka/2.8/akka/cluster/typed/ClusterSingleton.html#init(akka.cluster.typed.SingletonActor)" title="akka.cluster.typed.ClusterSingleton"><code>ClusterSingleton.init</code></a></span> for a given <code>singletonName</code> on a node an <code>ActorRef</code> is returned. It is to this <code>ActorRef</code> that you can send messages to the singleton instance, independent of which node the singleton instance is active. <code>ClusterSingleton.init</code> can be called multiple times, if there already is a singleton manager running on this node, no additional manager is started, and if there is one running an <code>ActorRef</code> to the proxy is returned.</p>
+<p>The proxy will route all messages to the current instance of the singleton, and keep track of the oldest node in the cluster and discover the singleton&rsquo;s <code>ActorRef</code>. There might be periods of time during which the singleton is unavailable, e.g., when a node leaves the cluster. In these cases, the proxy will buffer the messages sent to the singleton and then deliver them when the singleton is finally available. If the buffer is full the proxy will drop old messages when new messages are sent via the proxy. The size of the buffer is configurable and it can be disabled by using a buffer size of 0.</p>
+<p>It&rsquo;s worth noting that messages can always be lost because of the distributed nature of these actors. As always, additional logic should be implemented in the singleton (acknowledgement) and in the client (retry) actors to ensure at-least-once message delivery.</p>
+<p>The singleton instance will not run on members with status <a href="cluster-membership.html#weaklyup-members">WeaklyUp</a>.</p>
+<h2><a href="#potential-problems-to-be-aware-of" name="potential-problems-to-be-aware-of" class="anchor"><span class="anchor-link"></span></a>Potential problems to be aware of</h2>
+<p>This pattern may seem to be very tempting to use at first, but it has several drawbacks, some of them are listed below:</p>
+<ul>
+  <li>The cluster singleton may quickly become a <em>performance bottleneck</em>.</li>
+  <li>You can not rely on the cluster singleton to be <em>non-stop</em> available — e.g. when the node on which the singleton  has been running dies, it will take a few seconds for this to be noticed and the singleton be migrated to another node.</li>
+  <li>If many singletons are used be aware of that all will run on the oldest node (or oldest with configured role).  <a href="cluster-sharding.html">Cluster Sharding</a> combined with keeping the &ldquo;singleton&rdquo; entities alive can be a better  alternative.</li>
+</ul><div class="callout warning "><div class="callout-title">Warning</div>
+<p>Make sure to not use a Cluster downing strategy that may split the cluster into several separate clusters in case of network problems or system overload (long GC pauses), since that will result in in <em>multiple Singletons</em> being started, one in each separate cluster! See <a href="cluster.html#downing">Downing</a>.</p></div>
+<h2><a href="#example" name="example" class="anchor"><span class="anchor-link"></span></a>Example</h2>
+<p>Any <span class="group-scala"><a href="https://doc.akka.io/api/akka/2.8/akka/actor/typed/Behavior.html" title="akka.actor.typed.Behavior"><code>Behavior</code></a></span><span class="group-java"><a href="https://doc.akka.io/japi/akka/2.8/akka/actor/typed/Behavior.html" title="akka.actor.typed.Behavior"><code>Behavior</code></a></span> can be run as a singleton. E.g. a basic counter:</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.9.0/akka-cluster-typed/src/test/scala/docs/akka/cluster/typed/SingletonCompileOnlySpec.scala#L18-L40" target="_blank" title="Go to snippet source">source</a><code class="language-scala">object Counter {
+  sealed trait Command
+  case object Increment extends Command
+  final case class GetValue(replyTo: ActorRef[Int]) extends Command
+  case object GoodByeCounter extends Command
+
+  def apply(): Behavior[Command] = {
+    def updated(value: Int): Behavior[Command] = {
+      Behaviors.receiveMessage[Command] {
+        case Increment =&gt;
+          updated(value + 1)
+        case GetValue(replyTo) =&gt;
+          replyTo ! value
+          Behaviors.same
+        case GoodByeCounter =&gt;
+          // Possible async action then stop
+          Behaviors.stopped
+      }
+    }
+
+    updated(0)
+  }
+}</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.9.0/akka-cluster-typed/src/test/java/jdocs/akka/cluster/typed/SingletonCompileOnlyTest.java#L25-L78" target="_blank" title="Go to snippet source">source</a><code class="language-java">public class Counter extends AbstractBehavior&lt;Counter.Command&gt; {
+
+  public interface Command {}
+
+  public enum Increment implements Command {
+    INSTANCE
+  }
+
+  public static class GetValue implements Command {
+    private final ActorRef&lt;Integer&gt; replyTo;
+
+    public GetValue(ActorRef&lt;Integer&gt; replyTo) {
+      this.replyTo = replyTo;
+    }
+  }
+
+  public enum GoodByeCounter implements Command {
+    INSTANCE
+  }
+
+  public static Behavior&lt;Command&gt; create() {
+    return Behaviors.setup(Counter::new);
+  }
+
+  private int value = 0;
+
+  private Counter(ActorContext&lt;Command&gt; context) {
+    super(context);
+  }
+
+  @Override
+  public Receive&lt;Command&gt; createReceive() {
+    return newReceiveBuilder()
+        .onMessage(Increment.class, msg -&gt; onIncrement())
+        .onMessage(GetValue.class, this::onGetValue)
+        .onMessage(GoodByeCounter.class, msg -&gt; onGoodByCounter())
+        .build();
+  }
+
+  private Behavior&lt;Command&gt; onIncrement() {
+    value++;
+    return this;
+  }
+
+  private Behavior&lt;Command&gt; onGetValue(GetValue msg) {
+    msg.replyTo.tell(value);
+    return this;
+  }
+
+  private Behavior&lt;Command&gt; onGoodByCounter() {
+    // Possible async action then stop
+    return this;
+  }
+}</code></pre></dd>
+</dl>
+<p>Then on every node in the cluster, or every node with a given role, use the <span class="group-scala"><a href="https://doc.akka.io/api/akka/2.8/akka/cluster/typed/ClusterSingleton$.html" title="akka.cluster.typed.ClusterSingleton"><code>ClusterSingleton</code></a></span><span class="group-java"><a href="https://doc.akka.io/japi/akka/2.8/akka/cluster/typed/ClusterSingleton.html" title="akka.cluster.typed.ClusterSingleton"><code>ClusterSingleton</code></a></span> extension to spawn the singleton. An instance will per data centre of the cluster:</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.9.0/akka-cluster-typed/src/test/scala/docs/akka/cluster/typed/SingletonCompileOnlySpec.scala#L44-L52" target="_blank" title="Go to snippet source">source</a><code class="language-scala">import akka.cluster.typed.ClusterSingleton
+import akka.cluster.typed.SingletonActor
+
+val singletonManager = ClusterSingleton(system)
+// Start if needed and provide a proxy to a named singleton
+val proxy: ActorRef[Counter.Command] = singletonManager.init(
+  SingletonActor(Behaviors.supervise(Counter()).onFailure[Exception](SupervisorStrategy.restart), &quot;GlobalCounter&quot;))
+
+proxy ! Counter.Increment</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.9.0/akka-cluster-typed/src/test/java/jdocs/akka/cluster/typed/SingletonCompileOnlyTest.java#L16-L19" target="_blank" title="Go to snippet source">source</a><code class="language-java">import akka.cluster.typed.ClusterSingleton;
+import akka.cluster.typed.ClusterSingletonSettings;
+import akka.cluster.typed.SingletonActor;
+
+ClusterSingleton singleton = ClusterSingleton.get(system);
+// Start if needed and provide a proxy to a named singleton
+ActorRef&lt;Counter.Command&gt; proxy =
+    singleton.init(SingletonActor.of(Counter.create(), &quot;GlobalCounter&quot;));
+
+proxy.tell(Counter.Increment.INSTANCE);</code></pre></dd>
+</dl>
+<h2><a href="#supervision" name="supervision" class="anchor"><span class="anchor-link"></span></a>Supervision</h2>
+<p>The default <a href="fault-tolerance.html">supervision strategy</a> when an exception is thrown is for an actor to be stopped. The above example overrides this to <code>restart</code> to ensure it is always running. Another option would be to restart with a backoff: </p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.9.0/akka-cluster-typed/src/test/scala/docs/akka/cluster/typed/SingletonCompileOnlySpec.scala#L61-L66" target="_blank" title="Go to snippet source">source</a><code class="language-scala">val proxyBackOff: ActorRef[Counter.Command] = singletonManager.init(
+  SingletonActor(
+    Behaviors
+      .supervise(Counter())
+      .onFailure[Exception](SupervisorStrategy.restartWithBackoff(1.second, 10.seconds, 0.2)),
+    &quot;GlobalCounter&quot;))</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.9.0/akka-cluster-typed/src/test/java/jdocs/akka/cluster/typed/SingletonCompileOnlyTest.java#L109-L117" target="_blank" title="Go to snippet source">source</a><code class="language-java">ClusterSingleton singleton = ClusterSingleton.get(system);
+ActorRef&lt;Counter.Command&gt; proxy =
+    singleton.init(
+        SingletonActor.of(
+            Behaviors.supervise(Counter.create())
+                .onFailure(
+                    SupervisorStrategy.restartWithBackoff(
+                        Duration.ofSeconds(1), Duration.ofSeconds(10), 0.2)),
+            &quot;GlobalCounter&quot;));</code></pre></dd>
+</dl>
+<p>Be aware that this means there will be times when the singleton won&rsquo;t be running as restart is delayed. See <a href="fault-tolerance.html">Fault Tolerance</a> for a full list of supervision options.</p>
+<h2><a href="#application-specific-stop-message" name="application-specific-stop-message" class="anchor"><span class="anchor-link"></span></a>Application specific stop message</h2>
+<p>An application specific <code>stopMessage</code> can be used to close the resources before actually stopping the singleton actor. This <code>stopMessage</code> is sent to the singleton actor to tell it to finish its work, close resources, and stop. The hand-over to the new oldest node is completed when the singleton actor is terminated. If the shutdown logic does not include any asynchronous actions it can be executed in the <span class="group-scala"><a href="https://doc.akka.io/api/akka/2.8/akka/actor/typed/PostStop$.html" title="akka.actor.typed.PostStop"><code>PostStop</code></a></span><span class="group-java"><a href="https://doc.akka.io/japi/akka/2.8/akka/actor/typed/PostStop.html" title="akka.actor.typed.PostStop"><code>PostStop</code></a></span> signal handler.</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.9.0/akka-cluster-typed/src/test/scala/docs/akka/cluster/typed/SingletonCompileOnlySpec.scala#L56-L57" target="_blank" title="Go to snippet source">source</a><code class="language-scala">val singletonActor = SingletonActor(Counter(), &quot;GlobalCounter&quot;).withStopMessage(Counter.GoodByeCounter)
+singletonManager.init(singletonActor)</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.9.0/akka-cluster-typed/src/test/java/jdocs/akka/cluster/typed/SingletonCompileOnlyTest.java#L99-L102" target="_blank" title="Go to snippet source">source</a><code class="language-java">SingletonActor&lt;Counter.Command&gt; counterSingleton =
+    SingletonActor.of(Counter.create(), &quot;GlobalCounter&quot;)
+        .withStopMessage(Counter.GoodByeCounter.INSTANCE);
+ActorRef&lt;Counter.Command&gt; proxy = singleton.init(counterSingleton);</code></pre></dd>
+</dl>
+<h2><a href="#lease" name="lease" class="anchor"><span class="anchor-link"></span></a>Lease</h2>
+<p>A <a href="../coordination.html">lease</a> can be used as an additional safety measure to ensure that two singletons don&rsquo;t run at the same time. Reasons for how this can happen:</p>
+<ul>
+  <li>Network partitions without an appropriate downing provider</li>
+  <li>Mistakes in the deployment process leading to two separate Akka Clusters</li>
+  <li>Timing issues between removing members from the Cluster on one side of a network partition and shutting them down on the other side</li>
+</ul>
+<p>A lease can be a final backup that means that the singleton actor won&rsquo;t be created unless the lease can be acquired. </p>
+<p>To use a lease for singleton set <code>akka.cluster.singleton.use-lease</code> to the configuration location of the lease to use. A lease with with the name <code>&lt;actor system name&gt;-singleton-&lt;singleton actor path&gt;</code> is used and the owner is set to the <span class="group-scala"><code>Cluster(system).selfAddress.hostPort</code></span><span class="group-java"><code>Cluster.get(system).selfAddress().hostPort()</code></span>.</p>
+<p>If the cluster singleton manager can&rsquo;t acquire the lease it will keep retrying while it is the oldest node in the cluster. If the lease is lost then the singleton actor will be terminated then the lease will be re-tried.</p>
+<h2><a href="#accessing-singleton-of-another-data-centre" name="accessing-singleton-of-another-data-centre" class="anchor"><span class="anchor-link"></span></a>Accessing singleton of another data centre</h2>
+<p>TODO <a href="https://github.com/akka/akka/issues/27705">#27705</a></p>
+<h2><a href="#configuration" name="configuration" class="anchor"><span class="anchor-link"></span></a>Configuration</h2>
+<p>The following configuration properties are read by the <span class="group-scala"><a href="https://doc.akka.io/api/akka/2.8/akka/cluster/singleton/ClusterSingletonManagerSettings.html" title="akka.cluster.singleton.ClusterSingletonManagerSettings"><code>ClusterSingletonManagerSettings</code></a></span><span class="group-java"><a href="https://doc.akka.io/japi/akka/2.8/akka/cluster/singleton/ClusterSingletonManagerSettings.html" title="akka.cluster.singleton.ClusterSingletonManagerSettings"><code>ClusterSingletonManagerSettings</code></a></span> when created with a <span class="group-scala"><a href="https://doc.akka.io/api/akka/2.8/akka/actor/typed/ActorSystem.html" title="akka.actor.typed.ActorSystem"><code>ActorSystem</code></a></span><span class="group-java"><a href="https://doc.akka.io/japi/akka/2.8/akka/actor/typed/ActorSystem.html" title="akka.actor.typed.ActorSystem"><code>ActorSystem</code></a></span> parameter. It is also possible to amend the <code>ClusterSingletonManagerSettings</code> or create it from another config section with the same layout as below. <code>ClusterSingletonManagerSettings</code> is a parameter to the <span class="group-scala"><a href="https://doc.akka.io/api/akka/2.8/akka/cluster/singleton/ClusterSingletonManager$.html#props(singletonProps:akka.actor.Props,terminationMessage:Any,settings:akka.cluster.singleton.ClusterSingletonManagerSettings):akka.actor.Props" title="akka.cluster.singleton.ClusterSingletonManager"><code>ClusterSingletonManager.props</code></a></span><span class="group-java"><a href="https://doc.akka.io/japi/akka/2.8/akka/cluster/singleton/ClusterSingletonManager.html#props(akka.actor.Props,java.lang.Object,akka.cluster.singleton.ClusterSingletonManagerSettings)" title="akka.cluster.singleton.ClusterSingletonManager"><code>ClusterSingletonManager.props</code></a></span> factory method, i.e. each singleton can be configured with different settings if needed.</p>
+<pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.9.0/akka-cluster-tools/src/main/resources/reference.conf#L56-L98" target="_blank" title="Go to snippet source">source</a><code class="language-conf">akka.cluster.singleton {
+  # The actor name of the child singleton actor.
+  singleton-name = &quot;singleton&quot;
+  
+  # Singleton among the nodes tagged with specified role.
+  # If the role is not specified it&#39;s a singleton among all nodes in the cluster.
+  role = &quot;&quot;
+  
+  # When a node is becoming oldest it sends hand-over request to previous oldest, 
+  # that might be leaving the cluster. This is retried with this interval until 
+  # the previous oldest confirms that the hand over has started or the previous 
+  # oldest member is removed from the cluster (+ akka.cluster.down-removal-margin).
+  hand-over-retry-interval = 1s
+  
+  # The number of retries are derived from hand-over-retry-interval and
+  # akka.cluster.down-removal-margin (or ClusterSingletonManagerSettings.removalMargin),
+  # but it will never be less than this property.
+  # After the hand over retries and it&#39;s still not able to exchange the hand over messages
+  # with the previous oldest it will restart itself by throwing ClusterSingletonManagerIsStuck,
+  # to start from a clean state. After that it will still not start the singleton instance
+  # until the previous oldest node has been removed from the cluster.
+  # On the other side, on the previous oldest node, the same number of retries - 3 are used
+  # and after that the singleton instance is stopped.
+  # For large clusters it might be necessary to increase this to avoid too early timeouts while
+  # gossip dissemination of the Leaving to Exiting phase occurs. For normal leaving scenarios
+  # it will not be a quicker hand over by reducing this value, but in extreme failure scenarios
+  # the recovery might be faster.
+  min-number-of-hand-over-retries = 15
+
+  # Config path of the lease to be taken before creating the singleton actor
+  # if the lease is lost then the actor is restarted and it will need to re-acquire the lease
+  # the default is no lease
+  use-lease = &quot;&quot;
+
+  # The interval between retries for acquiring the lease
+  lease-retry-interval = 5s
+
+  # Custom lease name. Note that if you have several singletons each one must have a unique
+  # lease name, which can be defined with the leaseSettings of ClusterSingletonSettings.
+  # If undefined it will be derived from ActorSystem name and singleton actor path,
+  # but that may result in too long lease names.
+  lease-name = &quot;&quot;
+}</code></pre>
+<p>The following configuration properties are read by the <span class="group-scala"><a href="https://doc.akka.io/api/akka/2.8/akka/cluster/typed/ClusterSingletonSettings.html" title="akka.cluster.typed.ClusterSingletonSettings"><code>ClusterSingletonSettings</code></a></span><span class="group-java"><a href="https://doc.akka.io/japi/akka/2.8/akka/cluster/typed/ClusterSingletonSettings.html" title="akka.cluster.typed.ClusterSingletonSettings"><code>ClusterSingletonSettings</code></a></span> when created with a <span class="group-scala"><a href="https://doc.akka.io/api/akka/2.8/akka/actor/typed/ActorSystem.html" title="akka.actor.typed.ActorSystem"><code>ActorSystem</code></a></span><span class="group-java"><a href="https://doc.akka.io/japi/akka/2.8/akka/actor/typed/ActorSystem.html" title="akka.actor.typed.ActorSystem"><code>ActorSystem</code></a></span> parameter. <code>ClusterSingletonSettings</code> is an optional parameter in <span class="group-scala"><a href="https://doc.akka.io/api/akka/2.8/akka/cluster/typed/ClusterSingleton.html#init[M](singleton:akka.cluster.typed.SingletonActor[M]):akka.actor.typed.ActorRef[M]" title="akka.cluster.typed.ClusterSingleton"><code>ClusterSingleton.init</code></a></span><span class="group-java"><a href="https://doc.akka.io/japi/akka/2.8/akka/cluster/typed/ClusterSingleton.html#init(akka.cluster.typed.SingletonActor)" title="akka.cluster.typed.ClusterSingleton"><code>ClusterSingleton.init</code></a></span>. It is also possible to amend the <span class="group-scala"><a href="https://doc.akka.io/api/akka/2.8/akka/cluster/singleton/ClusterSingletonProxySettings.html" title="akka.cluster.singleton.ClusterSingletonProxySettings"><code>ClusterSingletonProxySettings</code></a></span><span class="group-java"><a href="https://doc.akka.io/japi/akka/2.8/akka/cluster/singleton/ClusterSingletonProxySettings.html" title="akka.cluster.singleton.ClusterSingletonProxySettings"><code>ClusterSingletonProxySettings</code></a></span> or create it from another config section with the same layout as below.</p>
+<pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.9.0/akka-cluster-tools/src/main/resources/reference.conf#L102-L123" target="_blank" title="Go to snippet source">source</a><code class="language-conf">akka.cluster.singleton-proxy {
+  # The actor name of the singleton actor that is started by the ClusterSingletonManager
+  singleton-name = ${akka.cluster.singleton.singleton-name}
+  
+  # The role of the cluster nodes where the singleton can be deployed.
+  # Corresponding to the role used by the `ClusterSingletonManager`. If the role is not
+  # specified it&#39;s a singleton among all nodes in the cluster, and the `ClusterSingletonManager`
+  # must then also be configured in same way.
+  role = &quot;&quot;
+  
+  # Interval at which the proxy will try to resolve the singleton instance.
+  singleton-identification-interval = 1s
+  
+  # If the location of the singleton is unknown the proxy will buffer this
+  # number of messages and deliver them when the singleton is identified. 
+  # When the buffer is full old messages will be dropped when new messages are
+  # sent via the proxy.
+  # Use 0 to disable buffering, i.e. messages will be dropped immediately if
+  # the location of the singleton is unknown.
+  # Maximum allowed buffer size is 10000.
+  buffer-size = 1000 
+}</code></pre>
+</div>
+</article>
+<div class="row">
+<div class="small-12 column">
+<section class="nav-prev-next row">
+<div class="nav-prev small-6 column">
+<a href="../typed/distributed-data.html"><i class="icon-prev"></i> <span class="link-prev">Distributed Data</span></a>
+</div>
+<div class="nav-next small-6 column clearfix">
+<a class="float-right" href="../typed/cluster-sharding.html">Cluster Sharding <i class="icon-next"></i></a>
+</div>
+</section>
+</div>
+</div>
+<div class="source-github row">
+Found an error in this documentation? The source code for this page can be found <a href="https://github.com/akka/akka/tree/v2.9.0/akka-docs/src/main/paradox/typed/cluster-singleton.md">here</a>.
+Please feel free to edit and contribute a pull request.
+</div>
+
+<footer class="page-footer row clearfix">
+<img class="akka-icon float-left show-for-medium" src="../images/akka-icon.svg" />
+<section class="copyright">
+<div>Akka is available under the <a href="https://www.lightbend.com/akka/license" target="_blank">Business Source License 1.1</a>.</div>
+<p class="legal">
+&copy; 2011-2023 <a href="https://www.lightbend.com" target="_blank">Lightbend, Inc.</a> |
+<a href="https://www.lightbend.com/legal/licenses" target="_blank">Licenses</a> |
+<a href="https://www.lightbend.com/legal/terms" target="_blank">Terms</a> |
+<a href="https://www.lightbend.com/legal/privacy" target="_blank">Privacy Policy</a> |
+<a href="https://akka.io/cookie/" target="_blank">Cookie Listing</a> |
+<a class="optanon-toggle-display">Cookie Settings</a>
+</p>
+</section>
+
+</footer>
+</section>
+</main>
+</div>
+
+<script type="text/javascript" src="../js/scrollsneak.js"></script>
+<script type="text/javascript">jQuery(document).foundation();</script>
+<script type="text/javascript" src="../js/groups.js"></script>
+<script type="text/javascript" src="../js/page.js"></script>
+<script type="text/javascript" src="../js/snippets.js"></script>
+<script type="text/javascript" src="../js/magellan.js"></script>
+<script type="text/javascript" src="../js/metadata-toggle.js"></script>
+<script type="text/javascript" src="../js/lbHeader.js"></script>
+
+<style type="text/css">@import "../lib/prettify/prettify.css";</style>
+<script type="text/javascript" src="../lib/prettify/prettify.js"></script>
+<script type="text/javascript" src="../lib/prettify/lang-scala.js"></script>
+<script type="text/javascript">//<![CDATA[
+jQuery(function(){window.prettyPrint && prettyPrint()});
+//]]></script>
+<!-- Algolia docs search -->
+<script type="text/javascript" src="https://cdn.jsdelivr.net/docsearch.js/2/docsearch.min.js"></script>
+<style>.algolia-autocomplete { display: block !important }</style>
+<script type="text/javascript">
+docsearch({
+appId: 'XUXZ6LW9B1',
+apiKey: '5b6260148e92f7c5e38338fcf7eaa3e0',
+indexName: 'akka_docs',
+inputSelector: '#search',
+algoliaOptions: {
+hitsPerPage: 5
+}
+});
+
+docsearch({
+appId: 'XUXZ6LW9B1',
+apiKey: '5b6260148e92f7c5e38338fcf7eaa3e0',
+indexName: 'akka_docs',
+inputSelector: '#overlay-search',
+algoliaOptions: {
+hitsPerPage: 5
+}
+});
+
+// set up "/" as global shortcut for focusing on search
+jQuery(document).keypress(function (event) {
+if (event.keyCode == 47) {
+jQuery("#search").focus();
+return false; // swallow key event, otherwise the / char would be input into the search box
+}
+});
+</script>
+
+<script type="text/javascript" src="../assets/js/warnOldDocs.js"></script>
+
+
+</body>
+</html>
