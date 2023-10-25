@@ -1,0 +1,930 @@
+<!DOCTYPE html>
+<html class="no-js" lang="en">
+
+<head>
+<title>Part 2: Service to Service eventing &bull; Akka Distributed Cluster</title>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta name="description" content="Akka Projection."/>
+<link rel="canonical" href="https://doc.akka.io/docs/akka-distributed-cluster/current/guide/2-service-to-service.html"/>
+<script type="text/javascript" src="../lib/jquery/jquery.min.js"></script>
+<script type="text/javascript" src="../lib/foundation/dist/js/foundation.min.js"></script>
+<link rel="stylesheet" type="text/css" href="../lib/normalize.css/normalize.css"/>
+<link rel="stylesheet" type="text/css" href="../lib/foundation/dist/css/foundation.min.css"/>
+<link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/docsearch.js/2/docsearch.min.css" />
+<link rel="stylesheet" type="text/css" href="../css/icons.css"/>
+<link rel="stylesheet" type="text/css" href="../css/page-8.css"/>
+<link rel="stylesheet" type="text/css" href="../css/banner-2.css"/>
+<link rel="shortcut icon" href="../images/favicon.ico" />
+<link rel="apple-touch-icon" sizes="180x180" href="../images/apple-touch-icon.png"/>
+<link rel="icon" type="image/png" sizes="32x32" href="../images/favicon-32x32.png"/>
+<link rel="icon" type="image/png" sizes="16x16" href="../images/favicon-16x16.png"/>
+<link rel="manifest" href="../images/manifest.json"/>
+<meta name="msapplication-TileImage" content="../images/mstile-150x150.png"/>
+<meta name="msapplication-TileColor" content="#15a9ce"/>
+<meta name="theme-color" content="#15a9ce"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<!-- OneTrust Cookies Consent Notice (Production Standard, akka.io, en-GB) start -->
+<script src="https://cdn.cookielaw.org/scripttemplates/otSDKStub.js"  type="text/javascript" charset="UTF-8" data-domain-script="28b912e7-09e9-43d5-91e4-3d1897044004" ></script>
+<script type="text/javascript">
+function OptanonWrapper() { }
+</script>
+<!-- OneTrust Cookies Consent Notice (Production Standard, akka.io, en-GB) end -->
+<!-- Google Tag Manager now loads Google Analytics and any other tracking scripts. GTM also performs respects a users cookie choices-->
+<script type="text/javascript">
+(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+})(window,document,'script','dataLayer','GTM-KBJGH35');
+</script>
+
+</head>
+
+<body id="underlay" data-toggler="nav-open">
+<div id="lightbend-banner" class="lightbend-banner akka full-width" data-category="OSS Lightbend Banner Impression" data-label="Akka Banner Impression">
+<div class="oss-wrapper">
+<div class="oss-brand">
+<a class="oss-track-link-label" data-category="OSS Lightbend Banner Clicks" data-label="Lightbend Logo - Akka Banner" href="https://www.lightbend.com">
+<img class="lightbend-logo" src="../images/banner-logos/lightbend-reverse.svg" alt="Lightbend" title="Lightbend">
+</a>
+</div>
+<div class="oss-ad no-drop-down">
+<nav id="lightbendRotator" class="lightbend-rotator">
+<a class="oss-track-link-label" data-category="OSS Lightbend Banner Clicks" data-label="Promo Rotator - Introducing Akka Cloud to Edge Continuum. Build once for the Cloud. Seamlessly deploy to the Edge. [Learn more] - Akka Banner" href="https://www.lightbend.com/blog/akka-edge-unifying-the-cloud-and-edge">
+Introducing Akka Cloud to Edge Continuum. Build once for the Cloud. Seamlessly deploy to the Edge. <span class="akka-btn">Learn more</span>
+</a>
+</nav>
+</div>
+</div>
+</div>
+
+<header class="site-header hide-for-large">
+<div class="sticky-header clearfix">
+<a href="https://akka.io"><img class="logo" src="../images/akka-logo-reverse.svg"/></a>
+
+<button class="menu-icon float-right" type="button" data-toggle="underlay overlay"></button>
+</div>
+<div id="overlay" class="overlay-nav" data-toggler="nav-open">
+<header class="nav-header">
+<div class="nav-header-title">
+<h1><a href="../index.html">Akka Distributed Cluster</a></h1>
+</div>
+<div class="nav-header-version">
+Version 1.5.0
+</div>
+<div class="nav-header-groups">
+<select class="supergroup" name="Language"><option class="group" value="group-java">Java</option><option class="group" value="group-scala">Scala</option></select>
+</div>
+</header>
+<nav class="nav-toc">
+<ul>
+  <li><a href="../overview.html" class="page">Architectural Overview</a></li>
+  <li><a href="../use-cases.html" class="page">Example Use Cases</a></li>
+  <li><a href="../feature-summary.html" class="page">Feature Summary</a></li>
+  <li><a href="../guide.html" class="page">Guide</a>
+  <ul>
+    <li><a href="../guide/1-event-sourced-shopping-cart.html" class="page">Part 1: Event Sourced Shopping Cart</a></li>
+    <li><a href="../guide/2-service-to-service.html#part-2-service-to-service-eventing" class="active page">Part 2: Service to Service eventing</a>
+    <ul>
+      <li><a href="../guide/2-service-to-service.html#grpc-transport-for-consuming-events" class="header">gRPC transport for consuming events</a></li>
+      <li><a href="../guide/2-service-to-service.html#publish-the-events-of-the-shopping-cart" class="header">Publish the events of the shopping cart</a></li>
+      <li><a href="../guide/2-service-to-service.html#consume-events" class="header">Consume events</a></li>
+      <li><a href="../guide/2-service-to-service.html#filters" class="header">Filters</a></li>
+      <li><a href="../guide/2-service-to-service.html#complete-sample-projects" class="header">Complete Sample Projects</a></li>
+      <li><a href="../guide/2-service-to-service.html#running-the-sample-code-locally" class="header">Running the sample code locally</a></li>
+      <li><a href="../guide/2-service-to-service.html#whats-next-" class="header">What&rsquo;s next?</a></li>
+    </ul></li>
+    <li><a href="../guide/3-active-active.html" class="page">Part 3: Active-active</a></li>
+    <li><a href="../guide/4-deploying.html" class="page">Part 4: Deploying with Kubernetes</a></li>
+  </ul></li>
+</ul>
+</nav>
+</div>
+</header>
+<div class="site-content-wrapper">
+<aside class="sticky-sidebar show-for-large">
+<header class="nav-header sticky-sidebar-header">
+<div class="nav-header-title">
+<h1><a href="../index.html">Akka Distributed Cluster</a></h1>
+</div>
+<div class="nav-header-version">
+Version 1.5.0
+</div>
+<div class="nav-header-groups">
+<select class="supergroup" name="Language"><option class="group" value="group-java">Java</option><option class="group" value="group-scala">Scala</option></select>
+</div>
+</header>
+<nav class="site-nav sticky-sidebar-contents">
+<div class="nav-toc">
+<ul>
+  <li><a href="../overview.html" class="page">Architectural Overview</a></li>
+  <li><a href="../use-cases.html" class="page">Example Use Cases</a></li>
+  <li><a href="../feature-summary.html" class="page">Feature Summary</a></li>
+  <li><a href="../guide.html" class="page">Guide</a>
+  <ul>
+    <li><a href="../guide/1-event-sourced-shopping-cart.html" class="page">Part 1: Event Sourced Shopping Cart</a></li>
+    <li><a href="../guide/2-service-to-service.html#part-2-service-to-service-eventing" class="active page">Part 2: Service to Service eventing</a>
+    <ul>
+      <li><a href="../guide/2-service-to-service.html#grpc-transport-for-consuming-events" class="header">gRPC transport for consuming events</a></li>
+      <li><a href="../guide/2-service-to-service.html#publish-the-events-of-the-shopping-cart" class="header">Publish the events of the shopping cart</a></li>
+      <li><a href="../guide/2-service-to-service.html#consume-events" class="header">Consume events</a></li>
+      <li><a href="../guide/2-service-to-service.html#filters" class="header">Filters</a></li>
+      <li><a href="../guide/2-service-to-service.html#complete-sample-projects" class="header">Complete Sample Projects</a></li>
+      <li><a href="../guide/2-service-to-service.html#running-the-sample-code-locally" class="header">Running the sample code locally</a></li>
+      <li><a href="../guide/2-service-to-service.html#whats-next-" class="header">What&rsquo;s next?</a></li>
+    </ul></li>
+    <li><a href="../guide/3-active-active.html" class="page">Part 3: Active-active</a></li>
+    <li><a href="../guide/4-deploying.html" class="page">Part 4: Deploying with Kubernetes</a></li>
+  </ul></li>
+</ul>
+</div>
+</nav>
+<footer class="nav-footer sticky-sidebar-footer">
+<a href="https://akka.io"><img class="logo" src="../images/akka-logo-reverse.svg"/></a>
+
+</footer>
+</aside>
+<main class="fixed-shift-for-large expanded row">
+<section class="site-content small-12 column">
+<article class="page-content row">
+<div class="small-12 column" id="docs">
+<h1><a href="#part-2-service-to-service-eventing" name="part-2-service-to-service-eventing" class="anchor"><span class="anchor-link"></span></a>Part 2: Service to Service eventing</h1>
+<p><a href="https://doc.akka.io/docs/akka-projection/1.5/">Akka Projection</a> allows for creating read side views, or projections, that are eventually consistent representations of the events for an entity. Such views have historically been possible to define in the same service that owns the entity. For an example of this, see the <a href="https://developer.lightbend.com/docs/akka-guide/microservices-tutorial/">popularity projection in the Akka Microservice Guide</a>.</p>
+<p><a href="https://doc.akka.io/docs/akka-projection/1.5/grpc.html">Akka Projection gRPC</a> defines a gRPC service in the service where the entity lives and that makes the events available for other, separately deployed services, to consume events with an effectively once delivery guarantee, this without requiring a message broker in between services. Each of the services has its own lifecycle and is deployed separately, possibly in different data centers or cloud regions.</p>
+<p>To implement Service to Service eventing, we will use two services, the shopping cart defined in the previous step and a downstream analytics service.</p>
+<h2><a href="#grpc-transport-for-consuming-events" name="grpc-transport-for-consuming-events" class="anchor"><span class="anchor-link"></span></a>gRPC transport for consuming events</h2>
+<p><img src="../images/service-to-service-overview.png" alt="Diagram showing the internals of Akka Projection gRPC step for step" /></p>
+<ol>
+  <li>An Entity stores events in its journal in service A.</li>
+  <li>Consumer in service B starts an Akka Projection which locally reads its offset for service A&rsquo;s replication stream.</li>
+  <li>Service B establishes a replication stream from service A.</li>
+  <li>Events are read from the journal.</li>
+  <li>Event is emitted to the replication stream.</li>
+  <li>Event is handled.</li>
+  <li>Offset is stored.</li>
+  <li>Producer continues to read new events from the journal and emit to the stream. As an optimization, events can also be published directly from the entity to the producer.</li>
+</ol>
+<h2><a href="#publish-the-events-of-the-shopping-cart" name="publish-the-events-of-the-shopping-cart" class="anchor"><span class="anchor-link"></span></a>Publish the events of the shopping cart</h2>
+<p>The cart itself does not need any changes for publishing persisted events, but we need to configure and bind a producer service for it to allow other services to consume the events.</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka-projection/tree/master/samples/grpc/shopping-cart-service-scala/src/main/scala/shopping/cart/PublishEvents.scala#L4-L61" target="_blank" title="Go to snippet source">source</a><code class="language-scala">import akka.actor.typed.ActorSystem
+import akka.http.scaladsl.model.HttpRequest
+import akka.http.scaladsl.model.HttpResponse
+import akka.persistence.query.typed
+import akka.persistence.query.typed.EventEnvelope
+import akka.persistence.typed.PersistenceId
+import akka.projection.grpc.producer.EventProducerSettings
+import akka.projection.grpc.producer.scaladsl.EventProducer
+import akka.projection.grpc.producer.scaladsl.EventProducer.Transformation
+
+import scala.concurrent.Future
+
+object PublishEvents {
+
+  def eventProducerService(system: ActorSystem[_])
+      : PartialFunction[HttpRequest, Future[HttpResponse]] = {
+    val transformation = Transformation.empty
+      .registerAsyncEnvelopeMapper[ShoppingCart.ItemUpdated, proto.ItemQuantityAdjusted](envelope =&gt;
+        Future.successful(Some(transformItemUpdated(envelope))))
+      .registerAsyncEnvelopeMapper[ShoppingCart.CheckedOut, proto.CheckedOut](envelope =&gt;
+        Future.successful(Some(transformCheckedOut(envelope))))
+
+    val eventProducerSource = EventProducer
+      .EventProducerSource(
+        &quot;ShoppingCart&quot;,
+        &quot;cart&quot;,
+        transformation,
+        EventProducerSettings(system))
+
+    EventProducer.grpcServiceHandler(eventProducerSource)(system)
+  }
+}</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka-projection/tree/master/samples/grpc/shopping-cart-service-java/src/main/java/shopping/cart/PublishEvents.java#L4-L71" target="_blank" title="Go to snippet source">source</a><code class="language-java">import akka.actor.typed.ActorSystem;
+import akka.http.javadsl.model.HttpRequest;
+import akka.http.javadsl.model.HttpResponse;
+import akka.japi.function.Function;
+import akka.persistence.query.typed.EventEnvelope;
+import akka.persistence.typed.PersistenceId;
+import akka.projection.grpc.producer.EventProducerSettings;
+import akka.projection.grpc.producer.javadsl.EventProducer;
+import akka.projection.grpc.producer.javadsl.EventProducerSource;
+import akka.projection.grpc.producer.javadsl.Transformation;
+
+import java.util.Optional;
+import java.util.Set;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
+
+public class PublishEvents {
+
+  public static Function&lt;HttpRequest, CompletionStage&lt;HttpResponse&gt;&gt; eventProducerService(ActorSystem&lt;?&gt; system) {
+    Transformation transformation =
+        Transformation.empty()
+            .registerAsyncEnvelopeMapper(ShoppingCart.ItemUpdated.class, envelope -&gt; CompletableFuture.completedFuture(Optional.of(transformItemQuantityAdjusted(envelope))))
+            .registerAsyncEnvelopeMapper(ShoppingCart.CheckedOut.class, envelope -&gt; CompletableFuture.completedFuture(Optional.of(transformCheckedOut(envelope))));
+
+    EventProducerSource eventProducerSource = new EventProducerSource(
+        &quot;ShoppingCart&quot;,
+        &quot;cart&quot;,
+        transformation,
+        EventProducerSettings.create(system)
+    );
+
+    return EventProducer.grpcServiceHandler(system, eventProducerSource);
+  }
+}</code></pre></dd>
+</dl>
+<p>Events can be transformed by application specific code on the producer side. The purpose is to be able to have a different public representation from the internal representation (stored in journal). The transformation functions are registered when creating the <code>EventProducer</code> service. Here is an example of one of those transformation functions accessing the projection envelope to include the shopping cart id in the public message type passed to consumers:</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka-projection/tree/master/samples/grpc/shopping-cart-service-scala/src/main/scala/shopping/cart/PublishEvents.scala#L47-L54" target="_blank" title="Go to snippet source">source</a><code class="language-scala">def transformItemUpdated(
+    envelope: EventEnvelope[ShoppingCart.ItemUpdated]): proto.ItemQuantityAdjusted = {
+  val event = envelope.event
+  proto.ItemQuantityAdjusted(
+    cartId = PersistenceId.extractEntityId(envelope.persistenceId),
+    itemId = event.itemId,
+    quantity = event.quantity)
+}</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka-projection/tree/master/samples/grpc/shopping-cart-service-java/src/main/java/shopping/cart/PublishEvents.java#L55-L62" target="_blank" title="Go to snippet source">source</a><code class="language-java">private static shopping.cart.proto.ItemQuantityAdjusted transformItemQuantityAdjusted(EventEnvelope&lt;ShoppingCart.ItemUpdated&gt; envelope) {
+  var itemUpdated = envelope.event();
+  return shopping.cart.proto.ItemQuantityAdjusted.newBuilder()
+      .setCartId(PersistenceId.extractEntityId(envelope.persistenceId()))
+      .setItemId(itemUpdated.itemId)
+      .setQuantity(itemUpdated.quantity)
+      .build();
+}</code></pre></dd>
+</dl>
+<p>To omit an event the transformation function can return <span class="group-scala"><code>None</code></span><span class="group-java"><code>Optional.empty()</code></span>.</p>
+<p>That <code>EventProducer</code> service is started in an Akka gRPC server like this:</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka-projection/tree/master/samples/grpc/shopping-cart-service-scala/src/main/scala/shopping/cart/ShoppingCartServer.scala#L4-L98" target="_blank" title="Go to snippet source">source</a><code class="language-scala">import scala.concurrent.ExecutionContext
+import scala.concurrent.Future
+import scala.concurrent.duration._
+import scala.util.Failure
+import scala.util.Success
+
+import akka.actor.typed.ActorSystem
+import akka.grpc.scaladsl.ServerReflection
+import akka.grpc.scaladsl.ServiceHandler
+import akka.http.scaladsl.Http
+import akka.http.scaladsl.model.HttpRequest
+import akka.http.scaladsl.model.HttpResponse
+
+object ShoppingCartServer {
+
+  def start(
+      interface: String,
+      port: Int,
+      system: ActorSystem[_],
+      grpcService: proto.ShoppingCartService,
+      eventProducerService: PartialFunction[HttpRequest, Future[HttpResponse]])
+      : Unit = {
+    implicit val sys: ActorSystem[_] = system
+    implicit val ec: ExecutionContext =
+      system.executionContext
+
+    val service: HttpRequest =&gt; Future[HttpResponse] =
+      ServiceHandler.concatOrNotFound(
+        eventProducerService,
+        proto.ShoppingCartServiceHandler.partial(grpcService),
+        // ServerReflection enabled to support grpcurl without import-path and proto parameters
+        ServerReflection.partial(List(proto.ShoppingCartService)))
+
+    val bound =
+      Http()
+        .newServerAt(interface, port)
+        .bind(service)
+        .map(_.addToCoordinatedShutdown(3.seconds))
+
+    bound.onComplete {
+      case Success(binding) =&gt;
+        val address = binding.localAddress
+        system.log.info(
+          &quot;Shopping online at gRPC server {}:{}&quot;,
+          address.getHostString,
+          address.getPort)
+      case Failure(ex) =&gt;
+        system.log.error(&quot;Failed to bind gRPC endpoint, terminating system&quot;, ex)
+        system.terminate()
+    }
+  }
+
+
+}</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka-projection/tree/master/samples/grpc/shopping-cart-service-java/src/main/java/shopping/cart/ShoppingCartServer.java#L4-L91" target="_blank" title="Go to snippet source">source</a><code class="language-java">import akka.actor.typed.ActorSystem;
+import akka.grpc.javadsl.ServerReflection;
+import akka.grpc.javadsl.ServiceHandler;
+import akka.http.javadsl.Http;
+import akka.http.javadsl.ServerBinding;
+import akka.http.javadsl.model.HttpRequest;
+import akka.http.javadsl.model.HttpResponse;
+import akka.japi.function.Function;
+import java.net.InetSocketAddress;
+import java.time.Duration;
+import java.util.Collections;
+import java.util.concurrent.CompletionStage;
+import shopping.cart.proto.ShoppingCartService;
+import shopping.cart.proto.ShoppingCartServiceHandlerFactory;
+
+public final class ShoppingCartServer {
+
+  private ShoppingCartServer() {}
+
+  static void start(String host, int port, ActorSystem&lt;?&gt; system, ShoppingCartService grpcService, Function&lt;HttpRequest, CompletionStage&lt;HttpResponse&gt;&gt; eventProducerService) {
+    @SuppressWarnings(&quot;unchecked&quot;)
+    Function&lt;HttpRequest, CompletionStage&lt;HttpResponse&gt;&gt; service =
+        ServiceHandler.concatOrNotFound(
+            eventProducerService,
+            ShoppingCartServiceHandlerFactory.create(grpcService, system),
+            // ServerReflection enabled to support grpcurl without import-path and proto parameters
+            ServerReflection.create(
+                Collections.singletonList(ShoppingCartService.description), system));
+
+    CompletionStage&lt;ServerBinding&gt; bound =
+        Http.get(system).newServerAt(host, port).bind(service::apply);
+
+    bound.whenComplete(
+        (binding, ex) -&gt; {
+          if (binding != null) {
+            binding.addToCoordinatedShutdown(Duration.ofSeconds(3), system);
+            InetSocketAddress address = binding.localAddress();
+            system
+                .log()
+                .info(
+                    &quot;Shopping online at gRPC server {}:{}&quot;,
+                    address.getHostString(),
+                    address.getPort());
+          } else {
+            system.log().error(&quot;Failed to bind gRPC endpoint, terminating system&quot;, ex);
+            system.terminate();
+          }
+        });
+  }
+
+}</code></pre></dd>
+</dl>
+<h2><a href="#consume-events" name="consume-events" class="anchor"><span class="anchor-link"></span></a>Consume events</h2>
+<p>The consumer is defined in a separate <span class="group-java">maven</span><span class="group-scala">sbt</span> project in the shopping analytics service.</p>
+<p>The analytics service runs in a separate Akka cluster which is deployed and scaled separately from the shopping cart service. When running it will have its own separate database from the shopping cart service. It may run in the same region as the shopping cart, but it could also run in a completely different location.</p>
+<p>On the consumer side the <code>Projection</code> is a <a href="https://doc.akka.io/docs/akka-projection/1.5/eventsourced.html#sourceprovider-for-eventsbyslices">SourceProvider for eventsBySlices</a> that is using <code>eventsBySlices</code> from the GrpcReadJournal. We use <a href="https://doc.akka.io/docs/akka/2.9/typed/cluster-sharded-daemon-process.html">ShardedDaemonProcess</a> to distribute the instances of the Projection across the cluster.</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka-projection/tree/master/samples/grpc/shopping-analytics-service-scala/src/main/scala/shopping/analytics/ShoppingCartEventConsumer.scala#L4-L148" target="_blank" title="Go to snippet source">source</a><code class="language-scala">import scala.concurrent.Future
+
+import akka.Done
+import akka.actor.typed.ActorSystem
+import akka.cluster.sharding.typed.scaladsl.ShardedDaemonProcess
+import akka.persistence.Persistence
+import akka.persistence.query.typed.EventEnvelope
+import akka.projection.ProjectionBehavior
+import akka.projection.ProjectionId
+import akka.projection.eventsourced.scaladsl.EventSourcedProvider
+import akka.projection.grpc.consumer.ConsumerFilter
+import akka.projection.grpc.consumer.scaladsl.GrpcReadJournal
+import akka.projection.r2dbc.scaladsl.R2dbcProjection
+import akka.projection.scaladsl.Handler
+import org.slf4j.LoggerFactory
+import shoppingcart.CheckedOut
+import shoppingcart.ItemQuantityAdjusted
+import shoppingcart.ShoppingCartEventsProto
+
+object ShoppingCartEventConsumer {
+  def init(system: ActorSystem[_]): Unit = {
+    implicit val sys: ActorSystem[_] = system
+    val numberOfProjectionInstances = 4
+    val projectionName: String = &quot;cart-events&quot;
+    val sliceRanges =
+      Persistence(system).sliceRanges(numberOfProjectionInstances)
+
+    val eventsBySlicesQuery =
+      GrpcReadJournal(List(ShoppingCartEventsProto.javaDescriptor))
+
+    ShardedDaemonProcess(system).init(
+      projectionName,
+      numberOfProjectionInstances,
+      { idx =&gt;
+        val sliceRange = sliceRanges(idx)
+        val projectionKey =
+          s&quot;${eventsBySlicesQuery.streamId}-${sliceRange.min}-${sliceRange.max}&quot;
+        val projectionId = ProjectionId.of(projectionName, projectionKey)
+
+        val sourceProvider = EventSourcedProvider.eventsBySlices[AnyRef](
+          system,
+          eventsBySlicesQuery,
+          eventsBySlicesQuery.streamId,
+          sliceRange.min,
+          sliceRange.max)
+
+        ProjectionBehavior(
+          R2dbcProjection.atLeastOnceAsync(
+            projectionId,
+            None,
+            sourceProvider,
+            () =&gt;
+              new EventHandler(
+                projectionId,
+                eventsBySlicesQuery.streamId,
+                sys)))
+      })
+  }
+
+
+}</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka-projection/tree/master/samples/grpc/shopping-analytics-service-java/src/main/java/shopping/analytics/ShoppingCartEventConsumer.java#L4-L154" target="_blank" title="Go to snippet source">source</a><code class="language-java">import akka.cluster.sharding.typed.javadsl.ShardedDaemonProcess;
+import akka.japi.Pair;
+import akka.persistence.Persistence;
+import akka.persistence.query.typed.EventEnvelope;
+import akka.projection.ProjectionBehavior;
+import akka.projection.ProjectionId;
+import akka.projection.eventsourced.javadsl.EventSourcedProvider;
+import akka.projection.grpc.consumer.javadsl.GrpcReadJournal;
+import akka.projection.javadsl.SourceProvider;
+import akka.projection.r2dbc.javadsl.R2dbcProjection;
+import shopping.cart.proto.ShoppingCartEvents;
+
+class ShoppingCartEventConsumer {
+  public static void init(ActorSystem&lt;?&gt; system) {
+    int numberOfProjectionInstances = 4;
+    String projectionName = &quot;cart-events&quot;;
+    List&lt;Pair&lt;Integer, Integer&gt;&gt; sliceRanges = Persistence.get(system).getSliceRanges(numberOfProjectionInstances);
+
+    GrpcReadJournal eventsBySlicesQuery = GrpcReadJournal.create(
+        system,
+        List.of(ShoppingCartEvents.getDescriptor()));
+
+    ShardedDaemonProcess.get(system).init(
+        ProjectionBehavior.Command.class,
+        projectionName,
+        numberOfProjectionInstances,
+        idx -&gt; {
+          Pair&lt;Integer, Integer&gt; sliceRange = sliceRanges.get(idx);
+          String projectionKey = eventsBySlicesQuery.streamId() + &quot;-&quot; + sliceRange.first() + &quot;-&quot; + sliceRange.second();
+          ProjectionId projectionId = ProjectionId.of(projectionName, projectionKey);
+
+          SourceProvider&lt;Offset, EventEnvelope&lt;Object&gt;&gt; sourceProvider = EventSourcedProvider.eventsBySlices(
+              system,
+              eventsBySlicesQuery,
+              eventsBySlicesQuery.streamId(),
+              sliceRange.first(),
+              sliceRange.second());
+
+          return ProjectionBehavior.create(
+              R2dbcProjection.atLeastOnceAsync(
+                  projectionId,
+                  Optional.empty(),
+                  sourceProvider,
+                  () -&gt; new EventHandler(projectionId),
+                  system));
+
+        },
+        ProjectionBehavior.stopMessage());
+  }
+
+
+}</code></pre></dd>
+</dl>
+<p>The Protobuf descriptors are defined when the GrpcReadJournal is created. The descriptors are used when deserializing the received events. <span class="group-scala">The <code>protobufDescriptors</code> is a list of the <code>javaDescriptor</code> for the used protobuf messages. It is defined in the ScalaPB generated <code>Proto</code> companion object.</span> Note that GrpcReadJournal should be created with the GrpcReadJournal <span class="group-scala"><code>apply</code></span><span class="group-java"><code>create</code></span> factory method and not from configuration via <code>GrpcReadJournalProvider</code> when using Protobuf serialization.</p>
+<p>The gRPC connection to the producer is defined in the <a href="https://doc.akka.io/docs/akka-projection/1.5/grpc.html#consumer-configuration">consumer configuration</a>.</p>
+<p>The <a href="https://doc.akka.io/docs/akka-projection/1.5/r2dbc.html">R2dbcProjection</a> has support for storing the offset in a relational database using R2DBC.</p>
+<p>The event handler for this sample is just logging the events rather than for example actually building its own read side in a database for querying:</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka-projection/tree/master/samples/grpc/shopping-analytics-service-scala/src/main/scala/shopping/analytics/ShoppingCartEventConsumer.scala#L30-L89" target="_blank" title="Go to snippet source">source</a><code class="language-scala">private class EventHandler(
+    projectionId: ProjectionId,
+    streamId: String,
+    system: ActorSystem[_])
+    extends Handler[EventEnvelope[AnyRef]] {
+  private var totalCount = 0
+  private var throughputStartTime = System.nanoTime()
+  private var throughputCount = 0
+
+  override def start(): Future[Done] = {
+    log.info(&quot;Started Projection [{}].&quot;, projectionId.id)
+    super.start()
+  }
+  override def stop(): Future[Done] = {
+    log.info(
+      &quot;Stopped Projection [{}]. Consumed [{}] events.&quot;,
+      projectionId.id,
+      totalCount)
+    super.stop()
+  }
+
+  override def process(envelope: EventEnvelope[AnyRef]): Future[Done] = {
+    val event = envelope.event
+    totalCount += 1
+
+    event match {
+      case quantityAdjusted: ItemQuantityAdjusted =&gt;
+        log.info(
+          &quot;Projection [{}] consumed ItemQuantityAdjusted for cart {}, changed {} {}. Total [{}] events.&quot;,
+          projectionId.id,
+          quantityAdjusted.cartId,
+          quantityAdjusted.quantity,
+          quantityAdjusted.itemId,
+          totalCount)
+      case checkedOut: CheckedOut =&gt;
+        log.info(
+          &quot;Projection [{}] consumed CheckedOut for cart {}. Total [{}] events.&quot;,
+          projectionId.id,
+          checkedOut.cartId,
+          totalCount)
+
+      case unknown =&gt;
+        throw new IllegalArgumentException(s&quot;Unknown event $unknown&quot;)
+    }
+
+    throughputCount += 1
+    val durationMs: Long =
+      (System.nanoTime - throughputStartTime) / 1000 / 1000
+    if (throughputCount &gt;= 1000 || durationMs &gt;= 10000) {
+      log.info(
+        &quot;Projection [{}] throughput [{}] events/s in [{}] ms&quot;,
+        projectionId.id,
+        1000L * throughputCount / durationMs,
+        durationMs)
+      throughputCount = 0
+      throughputStartTime = System.nanoTime
+    }
+    Future.successful(Done)
+  }
+}</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka-projection/tree/master/samples/grpc/shopping-analytics-service-java/src/main/java/shopping/analytics/ShoppingCartEventConsumer.java#L46-L95" target="_blank" title="Go to snippet source">source</a><code class="language-java">static class EventHandler extends Handler&lt;EventEnvelope&lt;Object&gt;&gt; {
+  private final ProjectionId projectionId;
+
+  private long totalCount = 0;
+
+  private long throughputStartTime = System.nanoTime();
+  private int throughputCount = 0;
+
+  EventHandler(ProjectionId projectionId) {
+    this.projectionId = projectionId;
+  }
+
+  @Override
+  public CompletionStage&lt;Done&gt; start() {
+    log.info(&quot;Started Projection [{}].&quot;, projectionId.id());
+    return super.start();
+  }
+
+  @Override
+  public CompletionStage&lt;Done&gt; stop() {
+    log.info(&quot;Stopped Projection [{}]. Consumed [{}] events.&quot;, projectionId.id(), totalCount);
+    return super.stop();
+  }
+  @Override
+  public CompletionStage&lt;Done&gt; process(EventEnvelope&lt;Object&gt; envelope) {
+    Object event = envelope.getEvent();
+    totalCount++;
+
+   if (event instanceof ItemQuantityAdjusted) {
+      ItemQuantityAdjusted itemQuantityAdjusted = (ItemQuantityAdjusted) event;
+      log.info(&quot;Projection [{}] consumed ItemQuantityAdjusted for cart {}, changed {} {}. Total [{}] events.&quot;,
+          projectionId.id(), itemQuantityAdjusted.getCartId(), itemQuantityAdjusted.getQuantity(), itemQuantityAdjusted.getItemId(), totalCount);
+    } else if (event instanceof CheckedOut) {
+      CheckedOut checkedOut = (CheckedOut) event;
+      log.info(&quot;Projection [{}] consumed CheckedOut for cart {}. Total [{}] events.&quot;, projectionId.id(), checkedOut.getCartId(), totalCount);
+    } else {
+      throw new IllegalArgumentException(&quot;Unknown event &quot; + event);
+    }
+
+    throughputCount++;
+    long durationMs = (System.nanoTime() - throughputStartTime) / 1000 / 1000;
+    if (throughputCount &gt;= 1000 || durationMs &gt;= 10000) {
+      log.info(&quot;Projection [{}] throughput [{}] events/s in [{}] ms&quot;, projectionId.id(), 1000L * throughputCount / durationMs, durationMs);
+      throughputCount = 0;
+      throughputStartTime = System.nanoTime();
+    }
+
+    return CompletableFuture.completedFuture(done());
+  }
+}</code></pre></dd>
+</dl>
+<p>The configuration for the <code>GrpcReadJournal</code>, for ease of running locally without TLS, may look like this:</p>
+<pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka-projection/tree/master/samples/grpc/shopping-analytics-service-java/src/main/resources/grpc.conf" target="_blank" title="Go to snippet source">source</a><code class="language-conf">akka.http.server.enable-http2 = on
+
+akka.projection.grpc.consumer {
+  client {
+    host = &quot;127.0.0.1&quot;
+    host = ${?SHOPPING_CART_SERVICE_GRPC_HOST}
+    port = 8101
+    port = ${?SHOPPING_CART_SERVICE_GRPC_PORT}
+    use-tls = false
+  }
+  stream-id = &quot;cart&quot;
+}</code></pre>
+<p>The <code>client</code> section in the configuration defines where the producer is running. It is an <a href="https://doc.akka.io/docs/akka-grpc/2.4/client/configuration.html#by-configuration">Akka gRPC configuration</a> with several connection options.</p>
+<h2><a href="#filters" name="filters" class="anchor"><span class="anchor-link"></span></a>Filters</h2>
+<p>Events can be filtered to control what set of events are propagated to the consumers. What is filtered can be managed in two ways, on the producer side or on the consumer side:</p>
+<h3><a href="#producer" name="producer" class="anchor"><span class="anchor-link"></span></a>Producer</h3>
+<p>The producer may define a filter function on the <code>EventProducerSource</code>.</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka-projection/tree/master/samples/grpc/shopping-cart-service-scala/src/main/scala/shopping/cart/PublishEvents.scala#L27-L38" target="_blank" title="Go to snippet source">source</a><code class="language-scala">val eventProducerSource = EventProducer
+  .EventProducerSource(
+    &quot;ShoppingCart&quot;,
+    &quot;cart&quot;,
+    transformation,
+    EventProducerSettings(system))
+  .withProducerFilter[ShoppingCart.Event] { envelope =&gt;
+    val tags = envelope.tags
+    tags.contains(ShoppingCart.MediumQuantityTag) ||
+    tags.contains(ShoppingCart.LargeQuantityTag)
+  }</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka-projection/tree/master/samples/grpc/shopping-cart-service-java/src/main/java/shopping/cart/PublishEvents.java#L29-L40" target="_blank" title="Go to snippet source">source</a><code class="language-java">EventProducerSource eventProducerSource = new EventProducerSource(
+    &quot;ShoppingCart&quot;,
+    &quot;cart&quot;,
+    transformation,
+    EventProducerSettings.create(system)
+)
+.withProducerFilter(envelope -&gt; {
+  Set&lt;String&gt; tags = envelope.getTags();
+  return tags.contains(ShoppingCart.MEDIUM_QUANTITY_TAG) ||
+      tags.contains(ShoppingCart.LARGE_QUANTITY_TAG);
+});</code></pre></dd>
+</dl>
+<p>In this example the decision is based on tags, but the filter function can use anything in the <span class="group-scala"><a href="https://doc.akka.io/api/akka/2.9/akka/persistence/query/typed/EventEnvelope.html" title="akka.persistence.query.typed.EventEnvelope"><code>EventEnvelope</code></a></span><span class="group-java"><a href="https://doc.akka.io/japi/akka/2.9/akka/persistence/query/typed/EventEnvelope.html" title="akka.persistence.query.typed.EventEnvelope"><code>EventEnvelope</code></a></span> parameter or the event itself. Here, the entity sets the tag based on the total quantity of the shopping cart, which requires the full state of the shopping cart and is not known from an individual event.</p>
+<p><a href="https://doc.akka.io/docs/akka-projection/1.5/grpc.html#topics">Topic filters</a> can be defined in similar way, using <code>withTopicProducerFilter</code>.</p>
+<p>Note that the purpose of <code>withProducerFilter</code> and <code>withTopicProducerFilter</code> is to toggle if all events for the entity are to be emitted or not. If the purpose is to filter out certain events you should instead use the <code>Transformation</code>.</p>
+<p>The producer filter is evaluated before the transformation function, i.e. the event is the original event and not the transformed event.</p>
+<h3><a href="#consumer" name="consumer" class="anchor"><span class="anchor-link"></span></a>Consumer</h3>
+<p>The consumer may define declarative filters that are sent to the producer and evaluated on the producer side before emitting the events.</p>
+<p>Consumer filters consists of exclude and include criteria. In short, the exclude criteria are evaluated first and may be overridden by an include criteria. For more details about the consumer filtering capabilities, see <a href="https://doc.akka.io/docs/akka-projection/1.5/grpc.html#filters">Akka Projection gRPC</a></p>
+<p>The filter is updated with the <span class="group-scala"><a href="https://doc.akka.io/api/akka-projection/1.5/akka/projection/grpc/consumer/ConsumerFilter.html" title="akka.projection.grpc.consumer.ConsumerFilter"><code>ConsumerFilter</code></a></span><span class="group-java"><a href="https://doc.akka.io/api/akka-projection/1.5/akka/projection/grpc/consumer/ConsumerFilter.html" title="akka.projection.grpc.consumer.ConsumerFilter"><code>ConsumerFilter</code></a></span> extension.</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka-projection/tree/master/samples/grpc/shopping-analytics-service-scala/src/main/scala/shopping/analytics/ShoppingCartEventConsumer.scala#L134-L144" target="_blank" title="Go to snippet source">source</a><code class="language-scala">def updateConsumerFilter(
+    system: ActorSystem[_],
+    excludeTags: Set[String],
+    includeTags: Set[String]): Unit = {
+  val streamId = system.settings.config
+    .getString(&quot;akka.projection.grpc.consumer.stream-id&quot;)
+  val criteria = Vector(
+    ConsumerFilter.ExcludeTags(excludeTags),
+    ConsumerFilter.IncludeTags(includeTags))
+  ConsumerFilter(system).ref ! ConsumerFilter.UpdateFilter(streamId, criteria)
+}</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka-projection/tree/master/samples/grpc/shopping-analytics-service-java/src/main/java/shopping/analytics/ShoppingCartEventConsumer.java#L19-L150" target="_blank" title="Go to snippet source">source</a><code class="language-java">import akka.projection.grpc.consumer.ConsumerFilter;
+
+static void updateConsumerFilter(
+    ActorSystem&lt;?&gt; system,
+    Set&lt;String&gt; excludeTags,
+    Set&lt;String&gt; includeTags) {
+  String streamId = system.settings().config()
+      .getString(&quot;akka.projection.grpc.consumer.stream-id&quot;);
+
+  List&lt;ConsumerFilter.FilterCriteria&gt; criteria = List.of(
+      new ConsumerFilter.ExcludeTags(excludeTags),
+      new ConsumerFilter.IncludeTags(includeTags));
+
+  ConsumerFilter.get(system).ref().tell(new ConsumerFilter.UpdateFilter(streamId, criteria));
+}</code></pre></dd>
+</dl>
+<p>Note that the <code>streamId</code> must match what is used when initializing the <code>GrpcReadJournal</code>, which by default is from the config property <code>akka.projection.grpc.consumer.stream-id</code>.</p>
+<p>The filters can be dynamically changed in runtime without restarting the Projections or the <code>GrpcReadJournal</code>. The updates are incremental. For example if you first add an <code>IncludeTags</code> of tag <code>&quot;medium&quot;</code> and then update the filter with another <code>IncludeTags</code> of tag <code>&quot;large&quot;</code>, the full filter consists of both <code>&quot;medium&quot;</code> and <code>&quot;large&quot;</code>.</p>
+<p>To remove a filter criteria you would use the corresponding <span class="group-scala"><a href="https://doc.akka.io/api/akka-projection/1.5/akka/projection/grpc/consumer/ConsumerFilter$$RemoveCriteria.html" title="akka.projection.grpc.consumer.ConsumerFilter.RemoveCriteria"><code>RemoveCriteria</code></a></span><span class="group-java"><a href="https://doc.akka.io/api/akka-projection/1.5/akka/projection/grpc/consumer/ConsumerFilter$$RemoveCriteria.html" title="akka.projection.grpc.consumer.ConsumerFilter.RemoveCriteria"><code>RemoveCriteria</code></a></span>, for example <code>RemoveIncludeTags</code>.</p>
+<p>The updated filter is kept and remains after restarts of the Projection instances. If the consumer side is running with Akka Cluster the filter is propagated to other nodes in the cluster automatically with Akka Distributed Data. You only have to update at one place and it will be applied to all running Projections with the given <code>streamId</code>.</p><div class="callout warning "><div class="callout-title">Warning</div>
+<p>The filters will be cleared in case of a full Cluster stop, which means that you need to take care of populating the initial filters at startup.</p></div>
+<p>See <span class="group-scala"><a href="https://doc.akka.io/api/akka-projection/1.5/akka/projection/grpc/consumer/ConsumerFilter.html" title="akka.projection.grpc.consumer.ConsumerFilter"><code>ConsumerFilter</code></a></span><span class="group-java"><a href="https://doc.akka.io/api/akka-projection/1.5/akka/projection/grpc/consumer/ConsumerFilter.html" title="akka.projection.grpc.consumer.ConsumerFilter"><code>ConsumerFilter</code></a></span> for full API documentation.</p>
+<h2><a href="#complete-sample-projects" name="complete-sample-projects" class="anchor"><span class="anchor-link"></span></a>Complete Sample Projects</h2>
+<p>The complete sample can be downloaded from GitHub, the shopping cart:</p>
+<ul>
+  <li>Java: <a href="https://github.com/akka/akka-projection/tree/main/samples/grpc/shopping-cart-service-java">https://github.com/akka/akka-projection/tree/main/samples/grpc/shopping-cart-service-java</a></li>
+  <li>Scala: <a href="https://github.com/akka/akka-projection/tree/main/samples/grpc/shopping-cart-service-scala">https://github.com/akka/akka-projection/tree/main/samples/grpc/shopping-cart-service-scala</a></li>
+</ul>
+<p>And the consuming analytics service:</p>
+<ul>
+  <li>Java: <a href="https://github.com/akka/akka-projection/tree/main/samples/grpc/shopping-analytics-service-java">https://github.com/akka/akka-projection/tree/main/samples/grpc/shopping-analytics-service-java</a></li>
+  <li>Scala: <a href="https://github.com/akka/akka-projection/tree/main/samples/grpc/shopping-analytics-service-scala">https://github.com/akka/akka-projection/tree/main/samples/grpc/shopping-analytics-service-scala</a></li>
+</ul>
+<h2><a href="#running-the-sample-code-locally" name="running-the-sample-code-locally" class="anchor"><span class="anchor-link"></span></a>Running the sample code locally</h2>
+<p>With a copy of each of the two sample projects for the language of your liking you can run the two services locally on your own workstation. Docker, a JDK and <span class="group-java">maven</span><span class="group-scala">sbt</span> is all that needs to be installed.</p>
+<h3><a href="#the-shopping-cart" name="the-shopping-cart" class="anchor"><span class="anchor-link"></span></a>The Shopping Cart</h3><div class="group-scala">
+<ol>
+  <li>
+    <p>Start a local PostgresSQL server on default port 5432. The <code>docker-compose.yml</code> included in the shopping-cart project starts everything required for running locally.</p>
+    <pre class="prettyprint"><code class="language-shell">docker compose up --wait
+
+# creates the tables needed for Akka Persistence
+# as well as the offset store table for Akka Projection
+docker exec -i postgres_db psql -U postgres -t &lt; ddl-scripts/create_tables.sql
+</code></pre>
+  </li>
+  <li>
+    <p>Start a first node:</p>
+    <pre class="prettyprint"><code class="language-shell">sbt -Dconfig.resource=local1.conf run
+</code></pre>
+  </li>
+  <li>
+    <p>(Optional) Start another node with different ports:</p>
+    <pre class="prettyprint"><code class="language-shell">sbt -Dconfig.resource=local2.conf run
+</code></pre>
+  </li>
+  <li>
+    <p>(Optional) More can be started:</p>
+    <pre class="prettyprint"><code class="language-shell">sbt -Dconfig.resource=local3.conf run
+</code></pre>
+  </li>
+  <li>
+    <p>Check for service readiness</p>
+    <pre class="prettyprint"><code class="language-shell">curl http://localhost:9101/ready
+</code></pre>
+  </li>
+  <li>
+    <p>Try it with <a href="https://github.com/fullstorydev/grpcurl">grpcurl</a>. Add at least a total quantity of 10 to the cart, smaller carts are excluded by the event filter.</p>
+    <pre class="prettyprint"><code class="language-shell"># add item to cart
+grpcurl -d &#39;{&quot;cartId&quot;:&quot;cart1&quot;, &quot;itemId&quot;:&quot;socks&quot;, &quot;quantity&quot;:3}&#39; -plaintext 127.0.0.1:8101 shoppingcart.ShoppingCartService.AddItem
+
+# get cart
+grpcurl -d &#39;{&quot;cartId&quot;:&quot;cart1&quot;}&#39; -plaintext 127.0.0.1:8101 shoppingcart.ShoppingCartService.GetCart
+
+# update quantity of item
+grpcurl -d &#39;{&quot;cartId&quot;:&quot;cart1&quot;, &quot;itemId&quot;:&quot;socks&quot;, &quot;quantity&quot;:5}&#39; -plaintext 127.0.0.1:8101 shoppingcart.ShoppingCartService.AddItem
+
+# check out cart
+grpcurl -d &#39;{&quot;cartId&quot;:&quot;cart1&quot;}&#39; -plaintext 127.0.0.1:8101 shoppingcart.ShoppingCartService.Checkout
+
+</code></pre>
+  </li>
+</ol>
+<p>or same <code>grpcurl</code> commands to port 8102 to reach node 2.</p></div><div class="group-java">
+<ol>
+  <li>
+    <p>Start a local PostgresSQL server on default port 5432. The included <code>docker-compose.yml</code> starts everything required for running locally.</p>
+    <pre class="prettyprint"><code class="language-shell">docker compose up --wait
+
+# creates the tables needed for Akka Persistence
+# as well as the offset store table for Akka Projection
+docker exec -i postgres_db psql -U postgres -t &lt; ddl-scripts/create_tables.sql
+</code></pre>
+  </li>
+  <li>
+    <p>Make sure you have compiled the project</p>
+    <pre class="prettyprint"><code class="language-shell">mvn compile 
+</code></pre>
+  </li>
+  <li>
+    <p>Start a first node:</p>
+    <pre class="prettyprint"><code class="language-shell">mvn compile exec:exec -DAPP_CONFIG=local1.conf
+</code></pre>
+  </li>
+  <li>
+    <p>(Optional) Start another node with different ports:</p>
+    <pre class="prettyprint"><code class="language-shell">mvn compile exec:exec -DAPP_CONFIG=local2.conf
+</code></pre>
+  </li>
+  <li>
+    <p>(Optional) More can be started:</p>
+    <pre class="prettyprint"><code class="language-shell">mvn compile exec:exec -DAPP_CONFIG=local3.conf
+</code></pre>
+  </li>
+  <li>
+    <p>Check for service readiness</p>
+    <pre class="prettyprint"><code class="language-shell">curl http://localhost:9101/ready
+</code></pre>
+  </li>
+  <li>
+    <p>Try it with <a href="https://github.com/fullstorydev/grpcurl">grpcurl</a>:</p>
+    <pre class="prettyprint"><code class="language-shell"># add item to cart
+grpcurl -d &#39;{&quot;cartId&quot;:&quot;cart1&quot;, &quot;itemId&quot;:&quot;socks&quot;, &quot;quantity&quot;:3}&#39; -plaintext 127.0.0.1:8101 shoppingcart.ShoppingCartService.AddItem
+
+# get cart
+grpcurl -d &#39;{&quot;cartId&quot;:&quot;cart1&quot;}&#39; -plaintext 127.0.0.1:8101 shoppingcart.ShoppingCartService.GetCart
+
+# update quantity of item
+grpcurl -d &#39;{&quot;cartId&quot;:&quot;cart1&quot;, &quot;itemId&quot;:&quot;socks&quot;, &quot;quantity&quot;:5}&#39; -plaintext 127.0.0.1:8101 shoppingcart.ShoppingCartService.AddItem
+
+# check out cart
+grpcurl -d &#39;{&quot;cartId&quot;:&quot;cart1&quot;}&#39; -plaintext 127.0.0.1:8101 shoppingcart.ShoppingCartService.Checkout
+</code></pre>
+  </li>
+</ol>
+<p>or same <code>grpcurl</code> commands to port 8102 to reach node 2.</p></div>
+<h3><a href="#the-analytics-service" name="the-analytics-service" class="anchor"><span class="anchor-link"></span></a>The analytics service</h3><div class="group-scala">
+<ol>
+  <li>
+    <p>Start a local PostgresSQL server on default port 5432. The included <code>docker-compose.yml</code> starts everything required for running locally. Note that for convenience this service and the shopping cart service is sharing the same database, in an actual service consuming events the consuming services are expected to have their own separate databases.</p>
+    <pre class="prettyprint"><code class="language-shell">docker compose up --wait
+
+# creates the tables needed for Akka Persistence
+# as well as the offset store table for Akka Projection
+docker exec -i postgres_db psql -U postgres -t &lt; ddl-scripts/create_tables.sql
+</code></pre>
+  </li>
+  <li>
+    <p>Start a first node:</p>
+    <pre class="prettyprint"><code class="language-shell ">sbt -Dconfig.resource=local1.conf run
+</code></pre>
+  </li>
+  <li>
+  <p>Start <code>shopping-cart-service</code> and add item to cart</p></li>
+  <li>
+  <p>Add at least a total quantity of 10 to the cart, smaller carts are excluded by the event filter.</p></li>
+  <li>
+  <p>Notice the log output in the terminal of the <code>shopping-analytics-service</code></p></li>
+</ol></div><div class="group-java">
+<ol>
+  <li>
+    <p>Start a local PostgresSQL server on default port 5432. The included <code>docker-compose.yml</code> starts everything required for running locally. Note that for convenience this service and the shopping cart service is sharing the same database, in an actual service consuming events the consuming services are expected to have their own separate databases.</p>
+    <pre class="prettyprint"><code class="language-shell">docker compose up --wait
+
+# creates the tables needed for Akka Persistence
+# as well as the offset store table for Akka Projection
+docker exec -i postgres_db psql -U postgres -t &lt; ddl-scripts/create_tables.sql
+</code></pre>
+  </li>
+  <li>
+    <p>Start a first node:</p>
+    <pre class="prettyprint"><code class="language-shell">mvn compile exec:exec -DAPP_CONFIG=local1.conf
+</code></pre>
+  </li>
+  <li>
+  <p>Start <code>shopping-cart-service</code> and add item to cart</p></li>
+  <li>
+  <p>Notice the log output in the terminal of the <code>shopping-analytics-service</code></p></li>
+</ol></div>
+<h2><a href="#whats-next-" name="whats-next-" class="anchor"><span class="anchor-link"></span></a>What&rsquo;s next?</h2>
+<ul>
+  <li>Turning the shopping cart highly available through Active-Active</li>
+</ul>
+</div>
+</article>
+<div class="row">
+<div class="small-12 column">
+<section class="nav-prev-next row">
+<div class="nav-prev small-6 column">
+<a href="../guide/1-event-sourced-shopping-cart.html"><i class="icon-prev"></i> <span class="link-prev">Part 1: Event Sourced Shopping Cart</span></a>
+</div>
+<div class="nav-next small-6 column clearfix">
+<a class="float-right" href="../guide/3-active-active.html">Part 3: Active-active <i class="icon-next"></i></a>
+</div>
+</section>
+</div>
+</div>
+<div class="source-github row">
+Found an error in this documentation? The source code for this page can be found <a href="https://github.com/akka/akka-projection/tree/master/akka-distributed-cluster-docs/src/main/paradox/guide/2-service-to-service.md">here</a>.
+Please feel free to edit and contribute a pull request.
+</div>
+
+<footer class="page-footer row clearfix">
+<img class="akka-icon float-left show-for-medium" src="../images/akka-icon.svg" />
+<section class="copyright">
+<div>Akka Distributed Cluster is available under the <a href="https://www.lightbend.com/akka/license" target="_blank">Business Source License 1.1</a>.</div>
+<p class="legal">
+&copy; 2011-2023 <a href="https://www.lightbend.com" target="_blank">Lightbend, Inc.</a> |
+<a href="https://www.lightbend.com/legal/licenses" target="_blank">Licenses</a> |
+<a href="https://www.lightbend.com/legal/terms" target="_blank">Terms</a> |
+<a href="https://www.lightbend.com/legal/privacy" target="_blank">Privacy Policy</a> |
+<a href="https://akka.io/cookie/" target="_blank">Cookie Listing</a> |
+<a class="optanon-toggle-display">Cookie Settings</a>
+</p>
+</section>
+
+</footer>
+</section>
+</main>
+</div>
+
+<script type="text/javascript" src="../js/scrollsneak.js"></script>
+<script type="text/javascript">jQuery(document).foundation();</script>
+<script type="text/javascript" src="../js/groups.js"></script>
+<script type="text/javascript" src="../js/page.js"></script>
+<script type="text/javascript" src="../js/snippets.js"></script>
+<script type="text/javascript" src="../js/magellan.js"></script>
+<script type="text/javascript" src="../js/metadata-toggle.js"></script>
+<script type="text/javascript" src="../js/lbHeader.js"></script>
+
+<style type="text/css">@import "../lib/prettify/prettify.css";</style>
+<script type="text/javascript" src="../lib/prettify/prettify.js"></script>
+<script type="text/javascript" src="../lib/prettify/lang-scala.js"></script>
+<script type="text/javascript">//<![CDATA[
+jQuery(function(){window.prettyPrint && prettyPrint()});
+//]]></script>
+<!-- hook for including project specific javascript into the generated docs -->
+
+</body>
+</html>
