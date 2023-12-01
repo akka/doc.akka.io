@@ -1,0 +1,3 @@
+(function() {var implementors = {
+"akka_persistence_rs_commitlog":[["impl&lt;E&gt; WithTags for <a class=\"struct\" href=\"akka_persistence_rs_commitlog/struct.EventEnvelope.html\" title=\"struct akka_persistence_rs_commitlog::EventEnvelope\">EventEnvelope</a>&lt;E&gt;"]]
+};if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

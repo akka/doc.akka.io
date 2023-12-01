@@ -1,0 +1,3 @@
+(function() {var implementors = {
+"akka_persistence_rs":[["impl <a class=\"trait\" href=\"https://doc.rust-lang.org/1.73.0/core/hash/trait.Hash.html\" title=\"trait core::hash::Hash\">Hash</a> for <a class=\"struct\" href=\"akka_persistence_rs/struct.PersistenceId.html\" title=\"struct akka_persistence_rs::PersistenceId\">PersistenceId</a>"]]
+};if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

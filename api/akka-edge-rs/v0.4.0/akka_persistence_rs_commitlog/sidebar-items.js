@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":["CommitLogTopicAdapter","EventEnvelope"],"trait":["CommitLogMarshaller","EncryptedCommitLogMarshaller"]};

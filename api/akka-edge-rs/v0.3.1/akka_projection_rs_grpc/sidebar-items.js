@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"mod":["consumer","producer","proto"],"struct":["BadEvent","EventEnvelope","NoMessage"],"type":["OriginId","StreamId"]};

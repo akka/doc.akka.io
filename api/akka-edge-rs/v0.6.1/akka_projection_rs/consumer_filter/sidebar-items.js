@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["FilterCriteria"],"fn":["exclude_all"],"struct":["BadTopicMatcher","ComparableRegex","EntityIdOffset","Filter","TopicMatcher"]};

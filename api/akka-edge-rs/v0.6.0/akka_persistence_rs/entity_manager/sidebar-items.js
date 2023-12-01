@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":["task","task_with_hasher"],"struct":["EventEnvelope"],"trait":["EntityOps","Handler","SourceProvider"]};

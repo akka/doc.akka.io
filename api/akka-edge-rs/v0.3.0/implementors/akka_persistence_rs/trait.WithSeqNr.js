@@ -1,0 +1,4 @@
+(function() {var implementors = {
+"akka_persistence_rs_commitlog":[["impl&lt;E&gt; WithSeqNr for <a class=\"struct\" href=\"akka_persistence_rs_commitlog/struct.EventEnvelope.html\" title=\"struct akka_persistence_rs_commitlog::EventEnvelope\">EventEnvelope</a>&lt;E&gt;"]],
+"akka_projection_rs_grpc":[["impl&lt;E&gt; WithSeqNr for <a class=\"struct\" href=\"akka_projection_rs_grpc/struct.EventEnvelope.html\" title=\"struct akka_projection_rs_grpc::EventEnvelope\">EventEnvelope</a>&lt;E&gt;"]]
+};if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()
