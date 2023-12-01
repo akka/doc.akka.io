@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html class="no-js" lang="en">
+
+<head>
+<title>Building a storage backend for Durable State &bull; Akka Documentation</title>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta name="description" content="Akka is a toolkit for building highly concurrent, distributed, and resilient message-driven applications for Java and Scala."/>
+<link rel="canonical" href="https://doc.akka.io/docs/akka/current/durable-state/state-store-plugin.html"/>
+<script type="text/javascript" src="../lib/jquery/jquery.min.js"></script>
+<script type="text/javascript" src="../lib/foundation/dist/js/foundation.min.js"></script>
+<link rel="stylesheet" type="text/css" href="../lib/normalize.css/normalize.css"/>
+<link rel="stylesheet" type="text/css" href="../lib/foundation/dist/css/foundation.min.css"/>
+<link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/docsearch.js/2/docsearch.min.css" />
+<link rel="stylesheet" type="text/css" href="../css/icons.css"/>
+<link rel="stylesheet" type="text/css" href="../css/page-8.css"/>
+<link rel="stylesheet" type="text/css" href="../css/banner-2.css"/>
+<link rel="shortcut icon" href="../images/favicon.ico" />
+<link rel="apple-touch-icon" sizes="180x180" href="../images/apple-touch-icon.png"/>
+<link rel="icon" type="image/png" sizes="32x32" href="../images/favicon-32x32.png"/>
+<link rel="icon" type="image/png" sizes="16x16" href="../images/favicon-16x16.png"/>
+<link rel="manifest" href="../images/manifest.json"/>
+<meta name="msapplication-TileImage" content="../images/mstile-150x150.png"/>
+<meta name="msapplication-TileColor" content="#15a9ce"/>
+<meta name="theme-color" content="#15a9ce"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<!-- OneTrust Cookies Consent Notice (Production Standard, akka.io, en-GB) start -->
+<script src="https://cdn.cookielaw.org/scripttemplates/otSDKStub.js"  type="text/javascript" charset="UTF-8" data-domain-script="28b912e7-09e9-43d5-91e4-3d1897044004" ></script>
+<script type="text/javascript">
+function OptanonWrapper() { }
+</script>
+<!-- OneTrust Cookies Consent Notice (Production Standard, akka.io, en-GB) end -->
+<!-- Google Tag Manager now loads Google Analytics and any other tracking scripts. GTM also performs respects a users cookie choices-->
+<script type="text/javascript">
+(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+})(window,document,'script','dataLayer','GTM-KBJGH35');
+</script>
+
+</head>
+
+<body id="underlay" data-toggler="nav-open">
+<div id="lightbend-banner" class="lightbend-banner akka full-width" data-category="OSS Lightbend Banner Impression" data-label="Akka Banner Impression">
+<div class="oss-wrapper">
+<div class="oss-brand">
+<a class="oss-track-link-label" data-category="OSS Lightbend Banner Clicks" data-label="Lightbend Logo - Akka Banner" href="https://www.lightbend.com">
+<img class="lightbend-logo" src="../images/banner-logos/lightbend-reverse.svg" alt="Lightbend" title="Lightbend">
+</a>
+</div>
+<div class="oss-ad no-drop-down">
+<nav id="lightbendRotator" class="lightbend-rotator">
+<a class="oss-track-link-label" data-category="OSS Lightbend Banner Clicks" data-label="Promo Rotator - Introducing Akka Cloud to Edge Continuum. Build once for the Cloud. Seamlessly deploy to the Edge. [Learn more] - Akka Banner" href="https://www.lightbend.com/blog/akka-edge-unifying-the-cloud-and-edge">
+Introducing Akka Cloud to Edge Continuum. Build once for the Cloud. Seamlessly deploy to the Edge. <span class="akka-btn">Learn more</span>
+</a>
+</nav>
+</div>
+</div>
+</div>
+
+<header class="site-header hide-for-large">
+<div class="sticky-header clearfix">
+<a href="https://akka.io"><img class="logo" src="../images/akka-logo-reverse.svg"/></a>
+
+<button class="menu-icon float-right" type="button" data-toggle="underlay overlay"></button>
+</div>
+<div id="overlay" class="overlay-nav" data-toggler="nav-open">
+<header class="nav-header">
+<div class="nav-header-title">
+<h1><a href="../index.html">Akka Documentation</a></h1>
+</div>
+<div class="nav-header-version">
+Version 2.9.1-M1
+</div>
+<div class="nav-header-groups">
+<select class="supergroup" name="Language"><option class="group" value="group-scala">Scala</option><option class="group" value="group-java">Java</option></select>
+<select class="supergroup" name="BuildTool"><option class="group" value="group-sbt">sbt</option><option class="group" value="group-maven">Maven</option><option class="group" value="group-gradle">Gradle</option></select>
+</div>
+<div id="overlay-search-container" class="nav-header-search">
+<input id="overlay-search" type="search" class="search" placeholder="Search" />
+</div>
+</header>
+<nav class="nav-toc">
+<ul>
+  <li><a href="../security/index.html" class="page">Security Announcements</a></li>
+  <li><a href="../typed/guide/index.html" class="page">Getting Started Guide</a></li>
+  <li><a href="../general/index.html" class="page">General Concepts</a></li>
+  <li><a href="../typed/index.html" class="page">Actors</a></li>
+  <li><a href="../typed/index-cluster.html" class="page">Cluster</a></li>
+  <li><a href="../typed/index-persistence.html" class="page">Persistence (Event Sourcing)</a></li>
+  <li><a href="../typed/index-persistence-durable-state.html" class="page">Persistence (Durable State)</a>
+  <ul>
+    <li><a href="../typed/durable-state/persistence.html" class="page">Durable State</a></li>
+    <li><a href="../typed/durable-state/persistence-style.html" class="page">Style Guide</a></li>
+    <li><a href="../typed/durable-state/cqrs.html" class="page">CQRS</a></li>
+    <li><a href="../durable-state/persistence-query.html" class="page">Persistence Query</a></li>
+    <li><a href="../durable-state/state-store-plugin.html#building-a-storage-backend-for-durable-state" class="active page">Building a storage backend for Durable State</a>
+    <ul>
+      <li><a href="../durable-state/state-store-plugin.html#state-store-plugin-api" class="header">State Store plugin API</a></li>
+      <li><a href="../durable-state/state-store-plugin.html#state-store-provider" class="header">State Store provider</a></li>
+      <li><a href="../durable-state/state-store-plugin.html#configure-the-state-store" class="header">Configure the State Store</a></li>
+    </ul></li>
+  </ul></li>
+  <li><a href="../stream/index.html" class="page">Streams</a></li>
+  <li><a href="../discovery/index.html" class="page">Discovery</a></li>
+  <li><a href="../index-utilities.html" class="page">Utilities</a></li>
+  <li><a href="../common/other-modules.html" class="page">Other Akka modules</a></li>
+  <li><a href="../additional/deploy.html" class="page">Package, Deploy and Run</a></li>
+  <li><a href="../project/index.html" class="page">Project Information</a></li>
+  <li><a href="../index-classic.html" class="page">Akka Classic</a></li>
+</ul>
+</nav>
+</div>
+</header>
+<div class="site-content-wrapper">
+<aside class="sticky-sidebar show-for-large">
+<header class="nav-header sticky-sidebar-header">
+<div class="nav-header-title">
+<h1><a href="../index.html">Akka Documentation</a></h1>
+</div>
+<div class="nav-header-version">
+Version 2.9.1-M1
+</div>
+<div class="nav-header-groups">
+<select class="supergroup" name="Language"><option class="group" value="group-scala">Scala</option><option class="group" value="group-java">Java</option></select>
+<select class="supergroup" name="BuildTool"><option class="group" value="group-sbt">sbt</option><option class="group" value="group-maven">Maven</option><option class="group" value="group-gradle">Gradle</option></select>
+</div>
+<div class="nav-header-search">
+<input id="search" type="search" class="search" placeholder="Search" />
+</div>
+</header>
+<nav class="site-nav sticky-sidebar-contents">
+<div class="nav-toc">
+<ul>
+  <li><a href="../security/index.html" class="page">Security Announcements</a></li>
+  <li><a href="../typed/guide/index.html" class="page">Getting Started Guide</a></li>
+  <li><a href="../general/index.html" class="page">General Concepts</a></li>
+  <li><a href="../typed/index.html" class="page">Actors</a></li>
+  <li><a href="../typed/index-cluster.html" class="page">Cluster</a></li>
+  <li><a href="../typed/index-persistence.html" class="page">Persistence (Event Sourcing)</a></li>
+  <li><a href="../typed/index-persistence-durable-state.html" class="page">Persistence (Durable State)</a>
+  <ul>
+    <li><a href="../typed/durable-state/persistence.html" class="page">Durable State</a></li>
+    <li><a href="../typed/durable-state/persistence-style.html" class="page">Style Guide</a></li>
+    <li><a href="../typed/durable-state/cqrs.html" class="page">CQRS</a></li>
+    <li><a href="../durable-state/persistence-query.html" class="page">Persistence Query</a></li>
+    <li><a href="../durable-state/state-store-plugin.html#building-a-storage-backend-for-durable-state" class="active page">Building a storage backend for Durable State</a>
+    <ul>
+      <li><a href="../durable-state/state-store-plugin.html#state-store-plugin-api" class="header">State Store plugin API</a></li>
+      <li><a href="../durable-state/state-store-plugin.html#state-store-provider" class="header">State Store provider</a></li>
+      <li><a href="../durable-state/state-store-plugin.html#configure-the-state-store" class="header">Configure the State Store</a></li>
+    </ul></li>
+  </ul></li>
+  <li><a href="../stream/index.html" class="page">Streams</a></li>
+  <li><a href="../discovery/index.html" class="page">Discovery</a></li>
+  <li><a href="../index-utilities.html" class="page">Utilities</a></li>
+  <li><a href="../common/other-modules.html" class="page">Other Akka modules</a></li>
+  <li><a href="../additional/deploy.html" class="page">Package, Deploy and Run</a></li>
+  <li><a href="../project/index.html" class="page">Project Information</a></li>
+  <li><a href="../index-classic.html" class="page">Akka Classic</a></li>
+</ul>
+</div>
+</nav>
+<footer class="nav-footer sticky-sidebar-footer">
+<a href="https://akka.io"><img class="logo" src="../images/akka-logo-reverse.svg"/></a>
+
+</footer>
+</aside>
+<main class="fixed-shift-for-large expanded row">
+<section class="site-content small-12 column">
+<article class="page-content row">
+<div class="small-12 column" id="docs">
+<h1><a href="#building-a-storage-backend-for-durable-state" name="building-a-storage-backend-for-durable-state" class="anchor"><span class="anchor-link"></span></a>Building a storage backend for Durable State</h1>
+<p>Storage backends for state stores are pluggable in the Akka persistence extension. This documentation described how to build a new storage backend for durable state.</p>
+<p>Applications can provide their own plugins by implementing a plugin API and activating them by configuration. Plugin development requires the following imports:</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.9.1-M1/akka-docs/src/test/scala/docs/persistence/state/PersistenceStatePluginDocSpec.scala#L21-L23" target="_blank" title="Go to snippet source">source</a><code class="language-scala">import akka.persistence._
+import akka.persistence.state.scaladsl.DurableStateUpdateStore
+import akka.persistence.state.scaladsl.GetObjectResult</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.9.1-M1/akka-docs/src/main/java/docs/persistence/state/MyJavaStateStore.java#L8-L15" target="_blank" title="Go to snippet source">source</a><code class="language-java"><br/>import akka.Done;
+import akka.actor.ExtendedActorSystem;
+import akka.persistence.state.javadsl.DurableStateUpdateStore;
+import akka.persistence.state.javadsl.GetObjectResult;
+import com.typesafe.config.Config;
+import java.util.concurrent.CompletionStage;
+</code></pre></dd>
+</dl>
+<h2><a href="#state-store-plugin-api" name="state-store-plugin-api" class="anchor"><span class="anchor-link"></span></a>State Store plugin API</h2>
+<p>A durable state store plugin extends <code>DurableStateUpdateStore</code>. </p>
+<p><code>DurableStateUpdateStore</code> is an interface and the methods to be implemented are:</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.9.1-M1/akka-docs/src/main/scala/docs/persistence/state/MyStateStore.scala#L34-L58" target="_blank" title="Go to snippet source">source</a><code class="language-scala">class MyStateStore[A](system: ExtendedActorSystem, config: Config, cfgPath: String) extends DurableStateUpdateStore[A] {
+
+  /**
+   * Will persist the latest state. If it’s a new persistence id, the record will be inserted.
+   *
+   * In case of an existing persistence id, the record will be updated only if the revision
+   * number of the incoming record is 1 more than the already existing record. Otherwise persist will fail.
+   */
+  override def upsertObject(persistenceId: String, revision: Long, value: A, tag: String): Future[Done] = ???
+
+  /**
+   * Deprecated. Use the deleteObject overload with revision instead.
+   */
+  override def deleteObject(persistenceId: String): Future[Done] = deleteObject(persistenceId, 0)
+
+  /**
+   * Will delete the state by setting it to the empty state and the revision number will be incremented by 1.
+   */
+  override def deleteObject(persistenceId: String, revision: Long): Future[Done] = ???
+
+  /**
+   * Returns the current state for the given persistence id.
+   */
+  override def getObject(persistenceId: String): Future[GetObjectResult[A]] = ???
+}</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.9.1-M1/akka-docs/src/main/java/docs/persistence/state/MyJavaStateStore.java#L19-L67" target="_blank" title="Go to snippet source">source</a><code class="language-java">class MyJavaStateStore&lt;A&gt; implements DurableStateUpdateStore&lt;A&gt; {
+
+  private ExtendedActorSystem system;
+  private Config config;
+  private String cfgPath;
+
+  public MyJavaStateStore(ExtendedActorSystem system, Config config, String cfgPath) {
+    this.system = system;
+    this.config = config;
+    this.cfgPath = cfgPath;
+  }
+
+  /** Returns the current state for the given persistence id. */
+  @Override
+  public CompletionStage&lt;GetObjectResult&lt;A&gt;&gt; getObject(String persistenceId) {
+    // implement getObject here
+    return null;
+  }
+
+  /**
+   * Will persist the latest state. If it’s a new persistence id, the record will be inserted.
+   *
+   * &lt;p&gt;In case of an existing persistence id, the record will be updated only if the revision
+   * number of the incoming record is 1 more than the already existing record. Otherwise persist
+   * will fail.
+   */
+  @Override
+  public CompletionStage&lt;Done&gt; upsertObject(
+      String persistenceId, long revision, Object value, String tag) {
+    // implement upsertObject here
+    return null;
+  }
+
+  /** Deprecated. Use the deleteObject overload with revision instead. */
+  @Override
+  public CompletionStage&lt;Done&gt; deleteObject(String persistenceId) {
+    return deleteObject(persistenceId, 0);
+  }
+
+  /**
+   * Will delete the state by setting it to the empty state and the revision number will be
+   * incremented by 1.
+   */
+  @Override
+  public CompletionStage&lt;Done&gt; deleteObject(String persistenceId, long revision) {
+    // implement deleteObject here
+    return null;
+  }
+}</code></pre></dd>
+</dl>
+<h2><a href="#state-store-provider" name="state-store-provider" class="anchor"><span class="anchor-link"></span></a>State Store provider</h2>
+<p>A <code>DurableStateStoreProvider</code> needs to be implemented to be able to create the plugin itself:</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.9.1-M1/akka-docs/src/main/scala/docs/persistence/state/MyStateStore.scala#L16-L30" target="_blank" title="Go to snippet source">source</a><code class="language-scala">class MyStateStoreProvider(system: ExtendedActorSystem, config: Config, cfgPath: String)
+    extends DurableStateStoreProvider {
+
+  /**
+   * The `DurableStateStore` implementation for the Scala API.
+   * This corresponds to the instance that is returned by [[DurableStateStoreRegistry#durableStateStoreFor]].
+   */
+  override def scaladslDurableStateStore(): DurableStateStore[Any] = new MyStateStore(system, config, cfgPath)
+
+  /**
+   * The `DurableStateStore` implementation for the Java API.
+   * This corresponds to the instance that is returned by [[DurableStateStoreRegistry#getDurableStateStoreFor]].
+   */
+  override def javadslDurableStateStore(): JDurableStateStore[AnyRef] = new MyJavaStateStore(system, config, cfgPath)
+}</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.9.1-M1/akka-docs/src/main/java/docs/persistence/state/MyJavaStateStoreProvider.java#L13-L34" target="_blank" title="Go to snippet source">source</a><code class="language-java">class MyJavaStateStoreProvider implements DurableStateStoreProvider {
+
+  private ExtendedActorSystem system;
+  private Config config;
+  private String cfgPath;
+
+  public MyJavaStateStoreProvider(ExtendedActorSystem system, Config config, String cfgPath) {
+    this.system = system;
+    this.config = config;
+    this.cfgPath = cfgPath;
+  }
+
+  @Override
+  public DurableStateStore&lt;Object&gt; scaladslDurableStateStore() {
+    return new MyStateStore(this.system, this.config, this.cfgPath);
+  }
+
+  @Override
+  public akka.persistence.state.javadsl.DurableStateStore&lt;Object&gt; javadslDurableStateStore() {
+    return new MyJavaStateStore(this.system, this.config, this.cfgPath);
+  }
+}</code></pre></dd>
+</dl>
+<h2><a href="#configure-the-state-store" name="configure-the-state-store" class="anchor"><span class="anchor-link"></span></a>Configure the State Store</h2>
+<p>A durable state store plugin can be activated with the following minimal configuration:</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.9.1-M1/akka-docs/src/test/scala/docs/persistence/state/PersistenceStatePluginDocSpec.scala#L45-L52" target="_blank" title="Go to snippet source">source</a><code class="language-scala"># Path to the state store plugin to be used
+akka.persistence.state.plugin = &quot;my-state-store&quot;
+
+# My custom state store plugin
+my-state-store {
+  # Class name of the plugin.
+  class = &quot;docs.persistence.state.MyStateStoreProvider&quot;
+}</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.9.1-M1/akka-docs/src/test/scala/docs/persistence/state/PersistenceStatePluginDocSpec.scala#L31-L38" target="_blank" title="Go to snippet source">source</a><code class="language-scala"># Path to the state store plugin to be used
+akka.persistence.state.plugin = &quot;my-java-state-store&quot;
+
+# My custom state store plugin
+my-java-state-store {
+  # Class name of the plugin.
+  class = &quot;docs.persistence.state.MyJavaStateStoreProvider&quot;
+}</code></pre></dd>
+</dl>
+</div>
+</article>
+<div class="row">
+<div class="small-12 column">
+<section class="nav-prev-next row">
+<div class="nav-prev small-6 column">
+<a href="../durable-state/persistence-query.html"><i class="icon-prev"></i> <span class="link-prev">Persistence Query</span></a>
+</div>
+<div class="nav-next small-6 column clearfix">
+<a class="float-right" href="../stream/index.html">Streams <i class="icon-next"></i></a>
+</div>
+</section>
+</div>
+</div>
+<div class="source-github row">
+Found an error in this documentation? The source code for this page can be found <a href="https://github.com/akka/akka/tree/v2.9.1-M1/akka-docs/src/main/paradox/durable-state/state-store-plugin.md">here</a>.
+Please feel free to edit and contribute a pull request.
+</div>
+
+<footer class="page-footer row clearfix">
+<img class="akka-icon float-left show-for-medium" src="../images/akka-icon.svg" />
+<section class="copyright">
+<div>Akka is available under the <a href="https://www.lightbend.com/akka/license" target="_blank">Business Source License 1.1</a>.</div>
+<p class="legal">
+&copy; 2011-2023 <a href="https://www.lightbend.com" target="_blank">Lightbend, Inc.</a> |
+<a href="https://www.lightbend.com/legal/licenses" target="_blank">Licenses</a> |
+<a href="https://www.lightbend.com/legal/terms" target="_blank">Terms</a> |
+<a href="https://www.lightbend.com/legal/privacy" target="_blank">Privacy Policy</a> |
+<a href="https://akka.io/cookie/" target="_blank">Cookie Listing</a> |
+<a class="optanon-toggle-display">Cookie Settings</a>
+</p>
+</section>
+
+</footer>
+</section>
+</main>
+</div>
+
+<script type="text/javascript" src="../js/scrollsneak.js"></script>
+<script type="text/javascript">jQuery(document).foundation();</script>
+<script type="text/javascript" src="../js/groups.js"></script>
+<script type="text/javascript" src="../js/page.js"></script>
+<script type="text/javascript" src="../js/snippets.js"></script>
+<script type="text/javascript" src="../js/magellan.js"></script>
+<script type="text/javascript" src="../js/metadata-toggle.js"></script>
+<script type="text/javascript" src="../js/lbHeader.js"></script>
+
+<style type="text/css">@import "../lib/prettify/prettify.css";</style>
+<script type="text/javascript" src="../lib/prettify/prettify.js"></script>
+<script type="text/javascript" src="../lib/prettify/lang-scala.js"></script>
+<script type="text/javascript">//<![CDATA[
+jQuery(function(){window.prettyPrint && prettyPrint()});
+//]]></script>
+<!-- Algolia docs search -->
+<script type="text/javascript" src="https://cdn.jsdelivr.net/docsearch.js/2/docsearch.min.js"></script>
+<style>.algolia-autocomplete { display: block !important }</style>
+<script type="text/javascript">
+docsearch({
+appId: 'XUXZ6LW9B1',
+apiKey: '5b6260148e92f7c5e38338fcf7eaa3e0',
+indexName: 'akka_docs',
+inputSelector: '#search',
+algoliaOptions: {
+hitsPerPage: 5
+}
+});
+
+docsearch({
+appId: 'XUXZ6LW9B1',
+apiKey: '5b6260148e92f7c5e38338fcf7eaa3e0',
+indexName: 'akka_docs',
+inputSelector: '#overlay-search',
+algoliaOptions: {
+hitsPerPage: 5
+}
+});
+
+// set up "/" as global shortcut for focusing on search
+jQuery(document).keypress(function (event) {
+if (event.keyCode == 47) {
+jQuery("#search").focus();
+return false; // swallow key event, otherwise the / char would be input into the search box
+}
+});
+</script>
+
+<script type="text/javascript" src="../assets/js/warnOldVersion.js"></script>
+<script type="text/javascript">//<![CDATA[
+jQuery(function(jq){initOldVersionWarnings(jq, '2.9.1-M1', 'https://akka.io/')});
+//]]></script>
+
+
+</body>
+</html>

@@ -1,0 +1,790 @@
+<!DOCTYPE html>
+<html class="no-js" lang="en">
+
+<head>
+<title>Synchronous behavior testing &bull; Akka Documentation</title>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta name="description" content="Akka is a toolkit for building highly concurrent, distributed, and resilient message-driven applications for Java and Scala."/>
+<link rel="canonical" href="https://doc.akka.io/docs/akka/current/typed/testing-sync.html"/>
+<script type="text/javascript" src="../lib/jquery/jquery.min.js"></script>
+<script type="text/javascript" src="../lib/foundation/dist/js/foundation.min.js"></script>
+<link rel="stylesheet" type="text/css" href="../lib/normalize.css/normalize.css"/>
+<link rel="stylesheet" type="text/css" href="../lib/foundation/dist/css/foundation.min.css"/>
+<link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/docsearch.js/2/docsearch.min.css" />
+<link rel="stylesheet" type="text/css" href="../css/icons.css"/>
+<link rel="stylesheet" type="text/css" href="../css/page-8.css"/>
+<link rel="stylesheet" type="text/css" href="../css/banner-2.css"/>
+<link rel="shortcut icon" href="../images/favicon.ico" />
+<link rel="apple-touch-icon" sizes="180x180" href="../images/apple-touch-icon.png"/>
+<link rel="icon" type="image/png" sizes="32x32" href="../images/favicon-32x32.png"/>
+<link rel="icon" type="image/png" sizes="16x16" href="../images/favicon-16x16.png"/>
+<link rel="manifest" href="../images/manifest.json"/>
+<meta name="msapplication-TileImage" content="../images/mstile-150x150.png"/>
+<meta name="msapplication-TileColor" content="#15a9ce"/>
+<meta name="theme-color" content="#15a9ce"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<!-- OneTrust Cookies Consent Notice (Production Standard, akka.io, en-GB) start -->
+<script src="https://cdn.cookielaw.org/scripttemplates/otSDKStub.js"  type="text/javascript" charset="UTF-8" data-domain-script="28b912e7-09e9-43d5-91e4-3d1897044004" ></script>
+<script type="text/javascript">
+function OptanonWrapper() { }
+</script>
+<!-- OneTrust Cookies Consent Notice (Production Standard, akka.io, en-GB) end -->
+<!-- Google Tag Manager now loads Google Analytics and any other tracking scripts. GTM also performs respects a users cookie choices-->
+<script type="text/javascript">
+(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+})(window,document,'script','dataLayer','GTM-KBJGH35');
+</script>
+
+</head>
+
+<body id="underlay" data-toggler="nav-open">
+<div id="lightbend-banner" class="lightbend-banner akka full-width" data-category="OSS Lightbend Banner Impression" data-label="Akka Banner Impression">
+<div class="oss-wrapper">
+<div class="oss-brand">
+<a class="oss-track-link-label" data-category="OSS Lightbend Banner Clicks" data-label="Lightbend Logo - Akka Banner" href="https://www.lightbend.com">
+<img class="lightbend-logo" src="../images/banner-logos/lightbend-reverse.svg" alt="Lightbend" title="Lightbend">
+</a>
+</div>
+<div class="oss-ad no-drop-down">
+<nav id="lightbendRotator" class="lightbend-rotator">
+<a class="oss-track-link-label" data-category="OSS Lightbend Banner Clicks" data-label="Promo Rotator - Introducing Akka Cloud to Edge Continuum. Build once for the Cloud. Seamlessly deploy to the Edge. [Learn more] - Akka Banner" href="https://www.lightbend.com/blog/akka-edge-unifying-the-cloud-and-edge">
+Introducing Akka Cloud to Edge Continuum. Build once for the Cloud. Seamlessly deploy to the Edge. <span class="akka-btn">Learn more</span>
+</a>
+</nav>
+</div>
+</div>
+</div>
+
+<header class="site-header hide-for-large">
+<div class="sticky-header clearfix">
+<a href="https://akka.io"><img class="logo" src="../images/akka-logo-reverse.svg"/></a>
+
+<button class="menu-icon float-right" type="button" data-toggle="underlay overlay"></button>
+</div>
+<div id="overlay" class="overlay-nav" data-toggler="nav-open">
+<header class="nav-header">
+<div class="nav-header-title">
+<h1><a href="../index.html">Akka Documentation</a></h1>
+</div>
+<div class="nav-header-version">
+Version 2.9.1-M1
+</div>
+<div class="nav-header-groups">
+<select class="supergroup" name="Language"><option class="group" value="group-scala">Scala</option><option class="group" value="group-java">Java</option></select>
+<select class="supergroup" name="BuildTool"><option class="group" value="group-sbt">sbt</option><option class="group" value="group-maven">Maven</option><option class="group" value="group-gradle">Gradle</option></select>
+</div>
+<div id="overlay-search-container" class="nav-header-search">
+<input id="overlay-search" type="search" class="search" placeholder="Search" />
+</div>
+</header>
+<nav class="nav-toc">
+<ul>
+  <li><a href="../security/index.html" class="page">Security Announcements</a></li>
+  <li><a href="../typed/guide/index.html" class="page">Getting Started Guide</a></li>
+  <li><a href="../general/index.html" class="page">General Concepts</a></li>
+  <li><a href="../typed/index.html" class="page">Actors</a>
+  <ul>
+    <li><a href="../typed/actors.html" class="page">Introduction to Actors</a></li>
+    <li><a href="../typed/actor-lifecycle.html" class="page">Actor lifecycle</a></li>
+    <li><a href="../typed/interaction-patterns.html" class="page">Interaction Patterns</a></li>
+    <li><a href="../typed/fault-tolerance.html" class="page">Fault Tolerance</a></li>
+    <li><a href="../typed/actor-discovery.html" class="page">Actor discovery</a></li>
+    <li><a href="../typed/routers.html" class="page">Routers</a></li>
+    <li><a href="../typed/stash.html" class="page">Stash</a></li>
+    <li><a href="../typed/fsm.html" class="page">Behaviors as finite state machines</a></li>
+    <li><a href="../coordinated-shutdown.html" class="page">Coordinated Shutdown</a></li>
+    <li><a href="../typed/dispatchers.html" class="page">Dispatchers</a></li>
+    <li><a href="../typed/mailboxes.html" class="page">Mailboxes</a></li>
+    <li><a href="../typed/testing.html" class="page">Testing</a>
+    <ul>
+      <li><a href="../typed/testing.html#module-info" class="header">Module info</a></li>
+      <li><a href="../typed/testing.html#introduction" class="header">Introduction</a></li>
+      <li><a href="../typed/testing-async.html" class="page">Asynchronous testing</a></li>
+      <li><a href="../typed/testing-sync.html#synchronous-behavior-testing" class="active page">Synchronous behavior testing</a>
+      <ul>
+        <li><a href="../typed/testing-sync.html#spawning-children" class="header">Spawning children</a></li>
+        <li><a href="../typed/testing-sync.html#sending-messages" class="header">Sending messages</a></li>
+        <li><a href="../typed/testing-sync.html#testing-other-effects" class="header">Testing other effects</a></li>
+        <li><a href="../typed/testing-sync.html#checking-for-log-messages" class="header">Checking for Log Messages</a></li>
+      </ul></li>
+    </ul></li>
+    <li><a href="../typed/coexisting.html" class="page">Coexistence</a></li>
+    <li><a href="../typed/style-guide.html" class="page">Style guide</a></li>
+    <li><a href="../typed/from-classic.html" class="page">Learning Akka Typed from Classic</a></li>
+  </ul></li>
+  <li><a href="../typed/index-cluster.html" class="page">Cluster</a></li>
+  <li><a href="../typed/index-persistence.html" class="page">Persistence (Event Sourcing)</a></li>
+  <li><a href="../typed/index-persistence-durable-state.html" class="page">Persistence (Durable State)</a></li>
+  <li><a href="../stream/index.html" class="page">Streams</a></li>
+  <li><a href="../discovery/index.html" class="page">Discovery</a></li>
+  <li><a href="../index-utilities.html" class="page">Utilities</a></li>
+  <li><a href="../common/other-modules.html" class="page">Other Akka modules</a></li>
+  <li><a href="../additional/deploy.html" class="page">Package, Deploy and Run</a></li>
+  <li><a href="../project/index.html" class="page">Project Information</a></li>
+  <li><a href="../index-classic.html" class="page">Akka Classic</a></li>
+</ul>
+</nav>
+</div>
+</header>
+<div class="site-content-wrapper">
+<aside class="sticky-sidebar show-for-large">
+<header class="nav-header sticky-sidebar-header">
+<div class="nav-header-title">
+<h1><a href="../index.html">Akka Documentation</a></h1>
+</div>
+<div class="nav-header-version">
+Version 2.9.1-M1
+</div>
+<div class="nav-header-groups">
+<select class="supergroup" name="Language"><option class="group" value="group-scala">Scala</option><option class="group" value="group-java">Java</option></select>
+<select class="supergroup" name="BuildTool"><option class="group" value="group-sbt">sbt</option><option class="group" value="group-maven">Maven</option><option class="group" value="group-gradle">Gradle</option></select>
+</div>
+<div class="nav-header-search">
+<input id="search" type="search" class="search" placeholder="Search" />
+</div>
+</header>
+<nav class="site-nav sticky-sidebar-contents">
+<div class="nav-toc">
+<ul>
+  <li><a href="../security/index.html" class="page">Security Announcements</a></li>
+  <li><a href="../typed/guide/index.html" class="page">Getting Started Guide</a></li>
+  <li><a href="../general/index.html" class="page">General Concepts</a></li>
+  <li><a href="../typed/index.html" class="page">Actors</a>
+  <ul>
+    <li><a href="../typed/actors.html" class="page">Introduction to Actors</a></li>
+    <li><a href="../typed/actor-lifecycle.html" class="page">Actor lifecycle</a></li>
+    <li><a href="../typed/interaction-patterns.html" class="page">Interaction Patterns</a></li>
+    <li><a href="../typed/fault-tolerance.html" class="page">Fault Tolerance</a></li>
+    <li><a href="../typed/actor-discovery.html" class="page">Actor discovery</a></li>
+    <li><a href="../typed/routers.html" class="page">Routers</a></li>
+    <li><a href="../typed/stash.html" class="page">Stash</a></li>
+    <li><a href="../typed/fsm.html" class="page">Behaviors as finite state machines</a></li>
+    <li><a href="../coordinated-shutdown.html" class="page">Coordinated Shutdown</a></li>
+    <li><a href="../typed/dispatchers.html" class="page">Dispatchers</a></li>
+    <li><a href="../typed/mailboxes.html" class="page">Mailboxes</a></li>
+    <li><a href="../typed/testing.html" class="page">Testing</a>
+    <ul>
+      <li><a href="../typed/testing.html#module-info" class="header">Module info</a></li>
+      <li><a href="../typed/testing.html#introduction" class="header">Introduction</a></li>
+      <li><a href="../typed/testing-async.html" class="page">Asynchronous testing</a></li>
+      <li><a href="../typed/testing-sync.html#synchronous-behavior-testing" class="active page">Synchronous behavior testing</a>
+      <ul>
+        <li><a href="../typed/testing-sync.html#spawning-children" class="header">Spawning children</a></li>
+        <li><a href="../typed/testing-sync.html#sending-messages" class="header">Sending messages</a></li>
+        <li><a href="../typed/testing-sync.html#testing-other-effects" class="header">Testing other effects</a></li>
+        <li><a href="../typed/testing-sync.html#checking-for-log-messages" class="header">Checking for Log Messages</a></li>
+      </ul></li>
+    </ul></li>
+    <li><a href="../typed/coexisting.html" class="page">Coexistence</a></li>
+    <li><a href="../typed/style-guide.html" class="page">Style guide</a></li>
+    <li><a href="../typed/from-classic.html" class="page">Learning Akka Typed from Classic</a></li>
+  </ul></li>
+  <li><a href="../typed/index-cluster.html" class="page">Cluster</a></li>
+  <li><a href="../typed/index-persistence.html" class="page">Persistence (Event Sourcing)</a></li>
+  <li><a href="../typed/index-persistence-durable-state.html" class="page">Persistence (Durable State)</a></li>
+  <li><a href="../stream/index.html" class="page">Streams</a></li>
+  <li><a href="../discovery/index.html" class="page">Discovery</a></li>
+  <li><a href="../index-utilities.html" class="page">Utilities</a></li>
+  <li><a href="../common/other-modules.html" class="page">Other Akka modules</a></li>
+  <li><a href="../additional/deploy.html" class="page">Package, Deploy and Run</a></li>
+  <li><a href="../project/index.html" class="page">Project Information</a></li>
+  <li><a href="../index-classic.html" class="page">Akka Classic</a></li>
+</ul>
+</div>
+</nav>
+<footer class="nav-footer sticky-sidebar-footer">
+<a href="https://akka.io"><img class="logo" src="../images/akka-logo-reverse.svg"/></a>
+
+</footer>
+</aside>
+<main class="fixed-shift-for-large expanded row">
+<section class="site-content small-12 column">
+<article class="page-content row">
+<div class="small-12 column" id="docs">
+<h2><a href="#synchronous-behavior-testing" name="synchronous-behavior-testing" class="anchor"><span class="anchor-link"></span></a>Synchronous behavior testing</h2>
+<p>You are viewing the documentation for the new actor APIs, to view the Akka Classic documentation, see <a href="../testing.html">Classic Testing</a>.</p>
+<p>The <code>BehaviorTestKit</code> provides a very nice way of unit testing a <code>Behavior</code> in a deterministic way, but it has some limitations to be aware of.</p>
+<p>Certain <span class="group-scala"><a href="https://doc.akka.io/api/akka/2.8/akka/actor/typed/Behavior.html" title="akka.actor.typed.Behavior"><code>Behavior</code></a></span><span class="group-java"><a href="https://doc.akka.io/japi/akka/2.8/akka/actor/typed/Behavior.html" title="akka.actor.typed.Behavior"><code>Behavior</code></a></span>s will be hard to test synchronously and the <code>BehaviorTestKit</code> doesn&rsquo;t support testing of all features. In those cases the <a href="testing-async.html#asynchronous-testing">asynchronous ActorTestKit</a> is recommended. Example of limitations:</p>
+<ul>
+  <li>Spawning of <span class="group-scala"><code>Future</code></span><span class="group-java"><code>CompletionStage</code></span> or other asynchronous task and you rely on a callback to  complete before observing the effect you want to test.</li>
+  <li>Usage of scheduler is not supported.</li>
+  <li><code>EventSourcedBehavior</code> can&rsquo;t be fully tested, but it is possible to <a href="persistence-testing.html#unit-testing-with-the-behaviortestkit">test the core functionality</a></li>
+  <li>Interactions with other actors must be stubbed.</li>
+  <li>Blackbox testing style.</li>
+  <li>Supervision is not supported.</li>
+</ul>
+<p>The <code>BehaviorTestKit</code> will be improved and some of these problems will be removed but it will always have limitations.</p>
+<p>The following demonstrates how to test:</p>
+<ul>
+  <li>Spawning child actors</li>
+  <li>Spawning child actors anonymously</li>
+  <li>Sending a message either as a reply or to another actor</li>
+  <li>Sending a message to a child actor</li>
+  <li>Asking via the <code>ActorContext</code></li>
+</ul>
+<p>The examples below require the following imports:</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.9.1-M1/akka-actor-testkit-typed/src/test/scala/docs/akka/actor/testkit/typed/scaladsl/SyncTestingExampleSpec.scala#L8-L16" target="_blank" title="Go to snippet source">source</a><code class="language-scala">import akka.actor.testkit.typed.CapturedLogEvent
+import akka.actor.testkit.typed.Effect._
+import akka.actor.testkit.typed.scaladsl.BehaviorTestKit
+import akka.actor.testkit.typed.scaladsl.TestInbox
+import akka.actor.typed._
+import akka.actor.typed.scaladsl._
+import com.typesafe.config.ConfigFactory
+import org.slf4j.event.Level
+</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.9.1-M1/akka-actor-testkit-typed/src/test/java/jdocs/akka/actor/testkit/typed/javadsl/SyncTestingExampleTest.java#L8-L20" target="_blank" title="Go to snippet source">source</a><code class="language-java">import akka.actor.testkit.typed.CapturedLogEvent;
+import akka.actor.testkit.typed.Effect;
+import akka.actor.testkit.typed.javadsl.BehaviorTestKit;
+import akka.actor.testkit.typed.javadsl.TestInbox;
+import akka.actor.typed.*;
+import akka.actor.typed.javadsl.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Optional;
+import java.time.Duration;
+
+import com.typesafe.config.Config;
+import org.slf4j.event.Level;</code></pre></dd>
+</dl>
+<p>Each of the tests are testing an actor that based on the message executes a different effect to be tested:</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.9.1-M1/akka-actor-testkit-typed/src/test/scala/docs/akka/actor/testkit/typed/scaladsl/SyncTestingExampleSpec.scala#L32-L84" target="_blank" title="Go to snippet source">source</a><code class="language-scala">object Hello {
+  sealed trait Command
+  case object CreateAnonymousChild extends Command
+  case class CreateChild(childName: String) extends Command
+  case class SayHelloToChild(childName: String) extends Command
+  case object SayHelloToAnonymousChild extends Command
+  case class SayHello(who: ActorRef[String]) extends Command
+  case class LogAndSayHello(who: ActorRef[String]) extends Command
+  case class AskAQuestion(who: ActorRef[Question]) extends Command
+  case class GotAnAnswer(answer: String, from: ActorRef[Question]) extends Command
+  case class NoAnswerFrom(whom: ActorRef[Question]) extends Command
+
+  def apply(): Behaviors.Receive[Command] = Behaviors.receivePartial {
+    case (context, CreateChild(name)) =&gt;
+      context.spawn(childActor, name)
+      Behaviors.same
+    case (context, CreateAnonymousChild) =&gt;
+      context.spawnAnonymous(childActor)
+      Behaviors.same
+    case (context, SayHelloToChild(childName)) =&gt;
+      val child: ActorRef[String] = context.spawn(childActor, childName)
+      child ! &quot;hello&quot;
+      Behaviors.same
+    case (context, SayHelloToAnonymousChild) =&gt;
+      val child: ActorRef[String] = context.spawnAnonymous(childActor)
+      child ! &quot;hello stranger&quot;
+      Behaviors.same
+    case (_, SayHello(who)) =&gt;
+      who ! &quot;hello&quot;
+      Behaviors.same
+    case (context, LogAndSayHello(who)) =&gt;
+      context.log.info(&quot;Saying hello to {}&quot;, who.path.name)
+      who ! &quot;hello&quot;
+      Behaviors.same
+    case (context, AskAQuestion(who)) =&gt;
+      implicit val timeout: Timeout = 10.seconds
+      context.ask[Question, Answer](who, Question(&quot;do you know who I am?&quot;, _)) {
+        case Success(answer) =&gt; GotAnAnswer(answer.a, who)
+        case Failure(_)      =&gt; NoAnswerFrom(who)
+      }
+      Behaviors.same
+    case (context, GotAnAnswer(answer, from)) =&gt;
+      context.log.info2(&quot;Got an answer [{}] from {}&quot;, answer, from)
+      Behaviors.same
+    case (context, NoAnswerFrom(from)) =&gt;
+      context.log.info(&quot;Did not get an answer from {}&quot;, from)
+      Behaviors.same
+  }
+
+  // Included in Hello for brevity
+  case class Question(q: String, replyTo: ActorRef[Answer])
+  case class Answer(a: String)
+}</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.9.1-M1/akka-actor-testkit-typed/src/test/java/jdocs/akka/actor/testkit/typed/javadsl/SyncTestingExampleTest.java#L38-L208" target="_blank" title="Go to snippet source">source</a><code class="language-java">public static class Hello extends AbstractBehavior&lt;Hello.Command&gt; {
+
+  public interface Command {}
+
+  public static class CreateAChild implements Command {
+    public final String childName;
+
+    public CreateAChild(String childName) {
+      this.childName = childName;
+    }
+  }
+
+  public enum CreateAnAnonymousChild implements Command {
+    INSTANCE
+  }
+
+  public static class SayHelloToChild implements Command {
+    public final String childName;
+
+    public SayHelloToChild(String childName) {
+      this.childName = childName;
+    }
+  }
+
+  public enum SayHelloToAnonymousChild implements Command {
+    INSTANCE
+  }
+
+  public static class SayHello implements Command {
+    public final ActorRef&lt;String&gt; who;
+
+    public SayHello(ActorRef&lt;String&gt; who) {
+      this.who = who;
+    }
+  }
+
+  public static class LogAndSayHello implements Command {
+    public final ActorRef&lt;String&gt; who;
+
+    public LogAndSayHello(ActorRef&lt;String&gt; who) {
+      this.who = who;
+    }
+  }
+
+  public static class AskAQuestion implements Command {
+    public final ActorRef&lt;Question&gt; who;
+
+    public AskAQuestion(ActorRef&lt;Question&gt; who) {
+      this.who = who;
+    }
+  }
+
+  public static class GotAnAnswer implements Command {
+    public final String answer;
+    public final ActorRef&lt;Question&gt; from;
+
+    public GotAnAnswer(String answer, ActorRef&lt;Question&gt; from) {
+      this.answer = answer;
+      this.from = from;
+    }
+  }
+
+  public static class NoAnswerFrom implements Command {
+    public final ActorRef&lt;Question&gt; whom;
+
+    public NoAnswerFrom(ActorRef&lt;Question&gt; whom) {
+      this.whom = whom;
+    }
+  }
+
+  public static class Question {
+    public final String q;
+    public final ActorRef&lt;Answer&gt; replyTo;
+
+    public Question(String q, ActorRef&lt;Answer&gt; replyTo) {
+      this.q = q;
+      this.replyTo = replyTo;
+    }
+  }
+
+  public static class Answer {
+    public final String a;
+
+    public Answer(String a) {
+      this.a = a;
+    }
+  }
+
+  public static Behavior&lt;Command&gt; create() {
+    return Behaviors.setup(Hello::new);
+  }
+
+  private Hello(ActorContext&lt;Command&gt; context) {
+    super(context);
+  }
+
+  @Override
+  public Receive&lt;Command&gt; createReceive() {
+    return newReceiveBuilder()
+        .onMessage(CreateAChild.class, this::onCreateAChild)
+        .onMessage(CreateAnAnonymousChild.class, this::onCreateAnonymousChild)
+        .onMessage(SayHelloToChild.class, this::onSayHelloToChild)
+        .onMessage(SayHelloToAnonymousChild.class, this::onSayHelloToAnonymousChild)
+        .onMessage(SayHello.class, this::onSayHello)
+        .onMessage(LogAndSayHello.class, this::onLogAndSayHello)
+        .onMessage(AskAQuestion.class, this::onAskAQuestion)
+        .onMessage(GotAnAnswer.class, this::onGotAnAnswer)
+        .onMessage(NoAnswerFrom.class, this::onNoAnswerFrom)
+        .build();
+  }
+
+  private Behavior&lt;Command&gt; onCreateAChild(CreateAChild message) {
+    getContext().spawn(Child.create(), message.childName);
+    return Behaviors.same();
+  }
+
+  private Behavior&lt;Command&gt; onCreateAnonymousChild(CreateAnAnonymousChild message) {
+    getContext().spawnAnonymous(Child.create());
+    return Behaviors.same();
+  }
+
+  private Behavior&lt;Command&gt; onSayHelloToChild(SayHelloToChild message) {
+    ActorRef&lt;String&gt; child = getContext().spawn(Child.create(), message.childName);
+    child.tell(&quot;hello&quot;);
+    return Behaviors.same();
+  }
+
+  private Behavior&lt;Command&gt; onSayHelloToAnonymousChild(SayHelloToAnonymousChild message) {
+    ActorRef&lt;String&gt; child = getContext().spawnAnonymous(Child.create());
+    child.tell(&quot;hello stranger&quot;);
+    return Behaviors.same();
+  }
+
+  private Behavior&lt;Command&gt; onSayHello(SayHello message) {
+    message.who.tell(&quot;hello&quot;);
+    return Behaviors.same();
+  }
+
+  private Behavior&lt;Command&gt; onLogAndSayHello(LogAndSayHello message) {
+    getContext().getLog().info(&quot;Saying hello to {}&quot;, message.who.path().name());
+    message.who.tell(&quot;hello&quot;);
+    return Behaviors.same();
+  }
+
+  private Behavior&lt;Command&gt; onAskAQuestion(AskAQuestion message) {
+    getContext()
+        .ask(
+            Answer.class,
+            message.who,
+            Duration.ofSeconds(10),
+            (ActorRef&lt;Answer&gt; ref) -&gt; new Question(&quot;do you know who I am?&quot;, ref),
+            (response, throwable) -&gt; {
+              if (response != null) {
+                return new GotAnAnswer(response.a, message.who);
+              } else {
+                return new NoAnswerFrom(message.who);
+              }
+            });
+    return Behaviors.same();
+  }
+
+  private Behavior&lt;Command&gt; onGotAnAnswer(GotAnAnswer message) {
+    getContext().getLog().info(&quot;Got an answer[{}] from {}&quot;, message.answer, message.from);
+    return Behaviors.same();
+  }
+
+  private Behavior&lt;Command&gt; onNoAnswerFrom(NoAnswerFrom message) {
+    getContext().getLog().info(&quot;Did not get an answer from {}&quot;, message.whom);
+    return Behaviors.same();
+  }
+}</code></pre></dd>
+</dl>
+<p>For creating a child actor a noop actor is created:</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.9.1-M1/akka-actor-testkit-typed/src/test/scala/docs/akka/actor/testkit/typed/scaladsl/SyncTestingExampleSpec.scala#L26-L28" target="_blank" title="Go to snippet source">source</a><code class="language-scala">val childActor = Behaviors.receiveMessage[String] { _ =&gt;
+  Behaviors.same[String]
+}</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.9.1-M1/akka-actor-testkit-typed/src/test/java/jdocs/akka/actor/testkit/typed/javadsl/SyncTestingExampleTest.java#L30-L34" target="_blank" title="Go to snippet source">source</a><code class="language-java">public static class Child {
+  public static Behavior&lt;String&gt; create() {
+    return Behaviors.receive((context, message) -&gt; Behaviors.same());
+  }
+}</code></pre></dd>
+</dl>
+<p>All of the tests make use of the <span class="group-java"><a href="https://doc.akka.io/japi/akka/2.8/akka/actor/testkit/typed/javadsl/BehaviorTestKit.html" title="akka.actor.testkit.typed.javadsl.BehaviorTestKit"><code>BehaviorTestKit</code></a></span><span class="group-scala"><a href="https://doc.akka.io/api/akka/2.8/akka/actor/testkit/typed/scaladsl/BehaviorTestKit.html" title="akka.actor.testkit.typed.scaladsl.BehaviorTestKit"><code>BehaviorTestKit</code></a></span> to avoid the need for a real <code>ActorContext</code>. Some of the tests make use of the <span class="group-java"><a href="https://doc.akka.io/japi/akka/2.8/akka/actor/testkit/typed/javadsl/TestInbox.html" title="akka.actor.testkit.typed.javadsl.TestInbox"><code>TestInbox</code></a></span><span class="group-scala"><a href="https://doc.akka.io/api/akka/2.8/akka/actor/testkit/typed/scaladsl/TestInbox.html" title="akka.actor.testkit.typed.scaladsl.TestInbox"><code>TestInbox</code></a></span> which allows the creation of an <span class="group-scala"><a href="https://doc.akka.io/api/akka/2.8/akka/actor/typed/ActorRef.html" title="akka.actor.typed.ActorRef"><code>ActorRef</code></a></span><span class="group-java"><a href="https://doc.akka.io/japi/akka/2.8/akka/actor/typed/ActorRef.html" title="akka.actor.typed.ActorRef"><code>ActorRef</code></a></span> that can be used for synchronous testing, similar to the <code>TestProbe</code> used for asynchronous testing.</p>
+<h3><a href="#spawning-children" name="spawning-children" class="anchor"><span class="anchor-link"></span></a>Spawning children</h3>
+<p>With a name:</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.9.1-M1/akka-actor-testkit-typed/src/test/scala/docs/akka/actor/testkit/typed/scaladsl/SyncTestingExampleSpec.scala#L116-L118" target="_blank" title="Go to snippet source">source</a><code class="language-scala">val testKit = BehaviorTestKit(Hello())
+testKit.run(Hello.CreateChild(&quot;child&quot;))
+testKit.expectEffect(Spawned(childActor, &quot;child&quot;))</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.9.1-M1/akka-actor-testkit-typed/src/test/java/jdocs/akka/actor/testkit/typed/javadsl/SyncTestingExampleTest.java#L214-L216" target="_blank" title="Go to snippet source">source</a><code class="language-java">BehaviorTestKit&lt;Hello.Command&gt; test = BehaviorTestKit.create(Hello.create());
+test.run(new Hello.CreateAChild(&quot;child&quot;));
+assertEquals(&quot;child&quot;, test.expectEffectClass(Effect.Spawned.class).childName());</code></pre></dd>
+</dl>
+<p>Anonymously:</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.9.1-M1/akka-actor-testkit-typed/src/test/scala/docs/akka/actor/testkit/typed/scaladsl/SyncTestingExampleSpec.scala#L124-L126" target="_blank" title="Go to snippet source">source</a><code class="language-scala">val testKit = BehaviorTestKit(Hello())
+testKit.run(Hello.CreateAnonymousChild)
+testKit.expectEffect(SpawnedAnonymous(childActor))</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.9.1-M1/akka-actor-testkit-typed/src/test/java/jdocs/akka/actor/testkit/typed/javadsl/SyncTestingExampleTest.java#L223-L225" target="_blank" title="Go to snippet source">source</a><code class="language-java">BehaviorTestKit&lt;Hello.Command&gt; test = BehaviorTestKit.create(Hello.create());
+test.run(Hello.CreateAnAnonymousChild.INSTANCE);
+test.expectEffectClass(Effect.SpawnedAnonymous.class);</code></pre></dd>
+</dl>
+<h3><a href="#sending-messages" name="sending-messages" class="anchor"><span class="anchor-link"></span></a>Sending messages</h3>
+<p>For testing sending a message a <span class="group-java"><a href="https://doc.akka.io/japi/akka/2.8/akka/actor/testkit/typed/javadsl/TestInbox.html" title="akka.actor.testkit.typed.javadsl.TestInbox"><code>TestInbox</code></a></span><span class="group-scala"><a href="https://doc.akka.io/api/akka/2.8/akka/actor/testkit/typed/scaladsl/TestInbox.html" title="akka.actor.testkit.typed.scaladsl.TestInbox"><code>TestInbox</code></a></span> is created that provides an <span class="group-scala"><a href="https://doc.akka.io/api/akka/2.8/akka/actor/typed/ActorRef.html" title="akka.actor.typed.ActorRef"><code>ActorRef</code></a></span><span class="group-java"><a href="https://doc.akka.io/japi/akka/2.8/akka/actor/typed/ActorRef.html" title="akka.actor.typed.ActorRef"><code>ActorRef</code></a></span> and methods to assert against the messages that have been sent to it.</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.9.1-M1/akka-actor-testkit-typed/src/test/scala/docs/akka/actor/testkit/typed/scaladsl/SyncTestingExampleSpec.scala#L132-L135" target="_blank" title="Go to snippet source">source</a><code class="language-scala">val testKit = BehaviorTestKit(Hello())
+val inbox = TestInbox[String]()
+testKit.run(Hello.SayHello(inbox.ref))
+inbox.expectMessage(&quot;hello&quot;)</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.9.1-M1/akka-actor-testkit-typed/src/test/java/jdocs/akka/actor/testkit/typed/javadsl/SyncTestingExampleTest.java#L232-L235" target="_blank" title="Go to snippet source">source</a><code class="language-java">BehaviorTestKit&lt;Hello.Command&gt; test = BehaviorTestKit.create(Hello.create());
+TestInbox&lt;String&gt; inbox = TestInbox.create();
+test.run(new Hello.SayHello(inbox.getRef()));
+inbox.expectMessage(&quot;hello&quot;);</code></pre></dd>
+</dl>
+<p>Another use case is sending a message to a child actor you can do this by looking up the <span class="group-java"><a href="https://doc.akka.io/japi/akka/2.8/akka/actor/testkit/typed/javadsl/TestInbox.html" title="akka.actor.testkit.typed.javadsl.TestInbox"><code>TestInbox</code></a></span><span class="group-scala"><a href="https://doc.akka.io/api/akka/2.8/akka/actor/testkit/typed/scaladsl/TestInbox.html" title="akka.actor.testkit.typed.scaladsl.TestInbox"><code>TestInbox</code></a></span> for a child actor from the <span class="group-java"><a href="https://doc.akka.io/japi/akka/2.8/akka/actor/testkit/typed/javadsl/BehaviorTestKit.html" title="akka.actor.testkit.typed.javadsl.BehaviorTestKit"><code>BehaviorTestKit</code></a></span><span class="group-scala"><a href="https://doc.akka.io/api/akka/2.8/akka/actor/testkit/typed/scaladsl/BehaviorTestKit.html" title="akka.actor.testkit.typed.scaladsl.BehaviorTestKit"><code>BehaviorTestKit</code></a></span>:</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.9.1-M1/akka-actor-testkit-typed/src/test/scala/docs/akka/actor/testkit/typed/scaladsl/SyncTestingExampleSpec.scala#L141-L144" target="_blank" title="Go to snippet source">source</a><code class="language-scala">val testKit = BehaviorTestKit(Hello())
+testKit.run(Hello.SayHelloToChild(&quot;child&quot;))
+val childInbox = testKit.childInbox[String](&quot;child&quot;)
+childInbox.expectMessage(&quot;hello&quot;)</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.9.1-M1/akka-actor-testkit-typed/src/test/java/jdocs/akka/actor/testkit/typed/javadsl/SyncTestingExampleTest.java#L242-L245" target="_blank" title="Go to snippet source">source</a><code class="language-java">BehaviorTestKit&lt;Hello.Command&gt; testKit = BehaviorTestKit.create(Hello.create());
+testKit.run(new Hello.SayHelloToChild(&quot;child&quot;));
+TestInbox&lt;String&gt; childInbox = testKit.childInbox(&quot;child&quot;);
+childInbox.expectMessage(&quot;hello&quot;);</code></pre></dd>
+</dl>
+<p>For anonymous children the actor names are generated in a deterministic way:</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.9.1-M1/akka-actor-testkit-typed/src/test/scala/docs/akka/actor/testkit/typed/scaladsl/SyncTestingExampleSpec.scala#L150-L155" target="_blank" title="Go to snippet source">source</a><code class="language-scala">val testKit = BehaviorTestKit(Hello())
+testKit.run(Hello.SayHelloToAnonymousChild)
+val child = testKit.expectEffectType[SpawnedAnonymous[String]]
+
+val childInbox = testKit.childInbox(child.ref)
+childInbox.expectMessage(&quot;hello stranger&quot;)</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.9.1-M1/akka-actor-testkit-typed/src/test/java/jdocs/akka/actor/testkit/typed/javadsl/SyncTestingExampleTest.java#L252-L256" target="_blank" title="Go to snippet source">source</a><code class="language-java">BehaviorTestKit&lt;Hello.Command&gt; testKit = BehaviorTestKit.create(Hello.create());
+testKit.run(Hello.SayHelloToAnonymousChild.INSTANCE);
+// Anonymous actors are created as: $a $b etc
+TestInbox&lt;String&gt; childInbox = testKit.childInbox(&quot;$a&quot;);
+childInbox.expectMessage(&quot;hello stranger&quot;);</code></pre></dd>
+</dl>
+<p>An <a href="interaction-patterns.html#request-response-with-ask-between-two-actors">ask via <code>ActorContext</code></a> can be tested with the assistance of the <span class="group-scala"><a href="https://doc.akka.io/api/akka/2.8/akka/actor/testkit/typed/Effect$$AskInitiated.html" title="akka.actor.testkit.typed.Effect.AskInitiated"><code>Effect.AskInitiated</code></a></span><span class="group-java"><a href="https://doc.akka.io/japi/akka/2.8/akka/actor/testkit/typed/Effect.AskInitiated.html" title="akka.actor.testkit.typed.Effect.AskInitiated"><code>Effect.AskInitiated</code></a></span> <code>Effect</code>. The request message is sent to the target recipient and can be obtained from the <code>AskInitiated</code>. The interaction may be completed by calling <code>respondWith</code> or <code>timeout</code> on the <code>AskInitiated</code>, and the transformation of the response or timeout into the requestor&rsquo;s protocol may also be tested using the <code>adaptResponse</code> or <code>adaptTimeout</code> methods.</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.9.1-M1/akka-actor-testkit-typed/src/test/scala/docs/akka/actor/testkit/typed/scaladsl/SyncTestingExampleSpec.scala#L170-L202" target="_blank" title="Go to snippet source">source</a><code class="language-scala">val testKit = BehaviorTestKit(Hello())
+val askee = TestInbox[Hello.Question]()
+testKit.run(Hello.AskAQuestion(askee.ref))
+
+// The ask message is sent and can be inspected via the TestInbox
+// note that the &quot;replyTo&quot; address is not directly predictable
+val question = askee.receiveMessage()
+
+// The particulars of the `context.ask` call are captured as an Effect
+val effect = testKit.expectEffectType[AskInitiated[Hello.Question, Hello.Answer, Hello.Command]]
+
+testKit.clearLog()
+
+// The returned effect can be used to complete or time-out the ask at most once
+effect.respondWith(Hello.Answer(&quot;I think I met you somewhere, sometime&quot;))
+// (since we completed the ask, timing out is commented out)
+// effect.timeout()
+
+// Completing/timing-out the ask is processed synchronously
+testKit.logEntries().size shouldBe 1
+
+// The message (including the synthesized &quot;replyTo&quot; address) can be inspected from the effect
+val sentQuestion = effect.askMessage
+
+// The response adaptation can be tested as many times as you want without completing the ask
+val response1 = effect.adaptResponse(Hello.Answer(&quot;No.  Who are you?&quot;))
+val response2 = effect.adaptResponse(Hello.Answer(&quot;Hey Joe!&quot;))
+
+// ... as can the message sent on a timeout
+val timeoutResponse = effect.adaptTimeout
+
+// The response timeout can be inspected
+val responseTimeout = effect.responseTimeout</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.9.1-M1/akka-actor-testkit-typed/src/test/java/jdocs/akka/actor/testkit/typed/javadsl/SyncTestingExampleTest.java#L283-L319" target="_blank" title="Go to snippet source">source</a><code class="language-java">BehaviorTestKit&lt;Hello.Command&gt; test = BehaviorTestKit.create(Hello.create());
+TestInbox&lt;Hello.Question&gt; askee = TestInbox.create();
+test.run(new Hello.AskAQuestion(askee.getRef()));
+
+Hello.Question question = askee.receiveMessage();
+// Note that the replyTo address in the message is not a priori predictable, so shouldn&#39;t be
+// asserted against
+assertEquals(question.q, &quot;do you know who I am?&quot;);
+
+// Retrieve a description of the performed ask
+@SuppressWarnings(&quot;unchecked&quot;)
+Effect.AskInitiated&lt;Hello.Question, Hello.Answer, Hello.Command&gt; effect =
+    test.expectEffectClass(Effect.AskInitiated.class);
+
+test.clearLog();
+
+// The effect can be used to complete or time-out the ask at most once
+effect.respondWith(new Hello.Answer(&quot;I think I met you somewhere, sometime&quot;));
+// commented out because we&#39;ve completed the ask
+// effect.timeout();
+
+// Completing/timing-out the ask is processed synchronously
+List&lt;CapturedLogEvent&gt; allLogEntries = test.getAllLogEntries();
+assertEquals(allLogEntries.size(), 1);
+
+// The message, including the synthesized &quot;replyTo&quot;, can be inspected from the effect
+assertEquals(question, effect.askMessage());
+
+// The response adaptation can be tested as many times as you want without completing the ask
+Hello.Command response1 = effect.adaptResponse(new Hello.Answer(&quot;No.  Who are you?&quot;));
+assertEquals(((Hello.GotAnAnswer) response1).answer, &quot;No.  Who are you?&quot;);
+
+// ... as can the message sent on a timeout
+assertTrue(effect.adaptTimeout() instanceof Hello.NoAnswerFrom);
+
+// The response timeout is captured
+assertEquals(effect.responseTimeout().toSeconds(), 10L);</code></pre></dd>
+</dl>
+<h3><a href="#testing-other-effects" name="testing-other-effects" class="anchor"><span class="anchor-link"></span></a>Testing other effects</h3>
+<p>The <span class="group-java"><a href="https://doc.akka.io/japi/akka/2.8/akka/actor/testkit/typed/javadsl/BehaviorTestKit.html" title="akka.actor.testkit.typed.javadsl.BehaviorTestKit"><code>BehaviorTestKit</code></a></span><span class="group-scala"><a href="https://doc.akka.io/api/akka/2.8/akka/actor/testkit/typed/scaladsl/BehaviorTestKit.html" title="akka.actor.testkit.typed.scaladsl.BehaviorTestKit"><code>BehaviorTestKit</code></a></span> keeps track other effects you can verify, look at the sub-classes of <span class="group-scala"><a href="https://doc.akka.io/api/akka/2.8/akka/actor/testkit/typed/Effect.html" title="akka.actor.testkit.typed.Effect"><code>Effect</code></a></span><span class="group-java"><a href="https://doc.akka.io/japi/akka/2.8/akka/actor/testkit/typed/Effect.html" title="akka.actor.testkit.typed.Effect"><code>Effect</code></a></span></p>
+<ul>
+  <li>SpawnedAdapter</li>
+  <li>Stopped</li>
+  <li>Watched</li>
+  <li>WatchedWith</li>
+  <li>Unwatched</li>
+  <li>Scheduled</li>
+  <li>TimerScheduled</li>
+  <li>TimerCancelled</li>
+</ul>
+<h3><a href="#checking-for-log-messages" name="checking-for-log-messages" class="anchor"><span class="anchor-link"></span></a>Checking for Log Messages</h3>
+<p>The <span class="group-java"><a href="https://doc.akka.io/japi/akka/2.8/akka/actor/testkit/typed/javadsl/BehaviorTestKit.html" title="akka.actor.testkit.typed.javadsl.BehaviorTestKit"><code>BehaviorTestKit</code></a></span><span class="group-scala"><a href="https://doc.akka.io/api/akka/2.8/akka/actor/testkit/typed/scaladsl/BehaviorTestKit.html" title="akka.actor.testkit.typed.scaladsl.BehaviorTestKit"><code>BehaviorTestKit</code></a></span> also keeps track of everything that is being logged. Here, you can see an example on how to check if the behavior logged certain messages:</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.9.1-M1/akka-actor-testkit-typed/src/test/scala/docs/akka/actor/testkit/typed/scaladsl/SyncTestingExampleSpec.scala#L161-L164" target="_blank" title="Go to snippet source">source</a><code class="language-scala">val testKit = BehaviorTestKit(Hello())
+val inbox = TestInbox[String](&quot;Inboxer&quot;)
+testKit.run(Hello.LogAndSayHello(inbox.ref))
+testKit.logEntries() shouldBe Seq(CapturedLogEvent(Level.INFO, &quot;Saying hello to Inboxer&quot;))</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka/tree/v2.9.1-M1/akka-actor-testkit-typed/src/test/java/jdocs/akka/actor/testkit/typed/javadsl/SyncTestingExampleTest.java#L263-L276" target="_blank" title="Go to snippet source">source</a><code class="language-java">BehaviorTestKit&lt;Hello.Command&gt; test = BehaviorTestKit.create(Hello.create());
+TestInbox&lt;String&gt; inbox = TestInbox.create(&quot;Inboxer&quot;);
+test.run(new Hello.LogAndSayHello(inbox.getRef()));
+
+List&lt;CapturedLogEvent&gt; allLogEntries = test.getAllLogEntries();
+assertEquals(1, allLogEntries.size());
+CapturedLogEvent expectedLogEvent =
+    new CapturedLogEvent(
+        Level.INFO,
+        &quot;Saying hello to Inboxer&quot;,
+        Optional.empty(),
+        Optional.empty(),
+        new HashMap&lt;&gt;());
+assertEquals(expectedLogEvent, allLogEntries.get(0));</code></pre></dd>
+</dl>
+<p>See the other public methods and API documentation on <span class="group-java"><a href="https://doc.akka.io/japi/akka/2.8/akka/actor/testkit/typed/javadsl/BehaviorTestKit.html" title="akka.actor.testkit.typed.javadsl.BehaviorTestKit"><code>BehaviorTestKit</code></a></span><span class="group-scala"><a href="https://doc.akka.io/api/akka/2.8/akka/actor/testkit/typed/scaladsl/BehaviorTestKit.html" title="akka.actor.testkit.typed.scaladsl.BehaviorTestKit"><code>BehaviorTestKit</code></a></span> for other types of verification.</p>
+</div>
+</article>
+<div class="row">
+<div class="small-12 column">
+<section class="nav-prev-next row">
+<div class="nav-prev small-6 column">
+<a href="../typed/testing-async.html"><i class="icon-prev"></i> <span class="link-prev">Asynchronous testing</span></a>
+</div>
+<div class="nav-next small-6 column clearfix">
+<a class="float-right" href="../typed/coexisting.html">Coexistence <i class="icon-next"></i></a>
+</div>
+</section>
+</div>
+</div>
+<div class="source-github row">
+Found an error in this documentation? The source code for this page can be found <a href="https://github.com/akka/akka/tree/v2.9.1-M1/akka-docs/src/main/paradox/typed/testing-sync.md">here</a>.
+Please feel free to edit and contribute a pull request.
+</div>
+
+<footer class="page-footer row clearfix">
+<img class="akka-icon float-left show-for-medium" src="../images/akka-icon.svg" />
+<section class="copyright">
+<div>Akka is available under the <a href="https://www.lightbend.com/akka/license" target="_blank">Business Source License 1.1</a>.</div>
+<p class="legal">
+&copy; 2011-2023 <a href="https://www.lightbend.com" target="_blank">Lightbend, Inc.</a> |
+<a href="https://www.lightbend.com/legal/licenses" target="_blank">Licenses</a> |
+<a href="https://www.lightbend.com/legal/terms" target="_blank">Terms</a> |
+<a href="https://www.lightbend.com/legal/privacy" target="_blank">Privacy Policy</a> |
+<a href="https://akka.io/cookie/" target="_blank">Cookie Listing</a> |
+<a class="optanon-toggle-display">Cookie Settings</a>
+</p>
+</section>
+
+</footer>
+</section>
+</main>
+</div>
+
+<script type="text/javascript" src="../js/scrollsneak.js"></script>
+<script type="text/javascript">jQuery(document).foundation();</script>
+<script type="text/javascript" src="../js/groups.js"></script>
+<script type="text/javascript" src="../js/page.js"></script>
+<script type="text/javascript" src="../js/snippets.js"></script>
+<script type="text/javascript" src="../js/magellan.js"></script>
+<script type="text/javascript" src="../js/metadata-toggle.js"></script>
+<script type="text/javascript" src="../js/lbHeader.js"></script>
+
+<style type="text/css">@import "../lib/prettify/prettify.css";</style>
+<script type="text/javascript" src="../lib/prettify/prettify.js"></script>
+<script type="text/javascript" src="../lib/prettify/lang-scala.js"></script>
+<script type="text/javascript">//<![CDATA[
+jQuery(function(){window.prettyPrint && prettyPrint()});
+//]]></script>
+<!-- Algolia docs search -->
+<script type="text/javascript" src="https://cdn.jsdelivr.net/docsearch.js/2/docsearch.min.js"></script>
+<style>.algolia-autocomplete { display: block !important }</style>
+<script type="text/javascript">
+docsearch({
+appId: 'XUXZ6LW9B1',
+apiKey: '5b6260148e92f7c5e38338fcf7eaa3e0',
+indexName: 'akka_docs',
+inputSelector: '#search',
+algoliaOptions: {
+hitsPerPage: 5
+}
+});
+
+docsearch({
+appId: 'XUXZ6LW9B1',
+apiKey: '5b6260148e92f7c5e38338fcf7eaa3e0',
+indexName: 'akka_docs',
+inputSelector: '#overlay-search',
+algoliaOptions: {
+hitsPerPage: 5
+}
+});
+
+// set up "/" as global shortcut for focusing on search
+jQuery(document).keypress(function (event) {
+if (event.keyCode == 47) {
+jQuery("#search").focus();
+return false; // swallow key event, otherwise the / char would be input into the search box
+}
+});
+</script>
+
+<script type="text/javascript" src="../assets/js/warnOldVersion.js"></script>
+<script type="text/javascript">//<![CDATA[
+jQuery(function(jq){initOldVersionWarnings(jq, '2.9.1-M1', 'https://akka.io/')});
+//]]></script>
+
+
+</body>
+</html>
