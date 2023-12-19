@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html class="no-js" lang="en">
+
+<head>
+<title>I/O Layer Design &bull; Akka Documentation</title>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta name="description" content="Akka is a toolkit for building highly concurrent, distributed, and resilient message-driven applications for Java and Scala."/>
+<link rel="canonical" href="https://doc.akka.io/docs/akka/current/common/io-layer.html"/>
+<script type="text/javascript" src="../lib/jquery/jquery.min.js"></script>
+<script type="text/javascript" src="../lib/foundation/dist/js/foundation.min.js"></script>
+<link rel="stylesheet" type="text/css" href="../lib/normalize.css/normalize.css"/>
+<link rel="stylesheet" type="text/css" href="../lib/foundation/dist/css/foundation.min.css"/>
+<link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/docsearch.js/2/docsearch.min.css" />
+<link rel="stylesheet" type="text/css" href="../css/icons.css"/>
+<link rel="stylesheet" type="text/css" href="../css/page-8.css"/>
+<link rel="stylesheet" type="text/css" href="../css/banner-2.css"/>
+<link rel="shortcut icon" href="../images/favicon.ico" />
+<link rel="apple-touch-icon" sizes="180x180" href="../images/apple-touch-icon.png"/>
+<link rel="icon" type="image/png" sizes="32x32" href="../images/favicon-32x32.png"/>
+<link rel="icon" type="image/png" sizes="16x16" href="../images/favicon-16x16.png"/>
+<link rel="manifest" href="../images/manifest.json"/>
+<meta name="msapplication-TileImage" content="../images/mstile-150x150.png"/>
+<meta name="msapplication-TileColor" content="#15a9ce"/>
+<meta name="theme-color" content="#15a9ce"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<!-- OneTrust Cookies Consent Notice (Production Standard, akka.io, en-GB) start -->
+<script src="https://cdn.cookielaw.org/scripttemplates/otSDKStub.js"  type="text/javascript" charset="UTF-8" data-domain-script="28b912e7-09e9-43d5-91e4-3d1897044004" ></script>
+<script type="text/javascript">
+function OptanonWrapper() { }
+</script>
+<!-- OneTrust Cookies Consent Notice (Production Standard, akka.io, en-GB) end -->
+<!-- Google Tag Manager now loads Google Analytics and any other tracking scripts. GTM also performs respects a users cookie choices-->
+<script type="text/javascript">
+(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+})(window,document,'script','dataLayer','GTM-KBJGH35');
+</script>
+
+</head>
+
+<body id="underlay" data-toggler="nav-open">
+<div id="lightbend-banner" class="lightbend-banner akka full-width" data-category="OSS Lightbend Banner Impression" data-label="Akka Banner Impression">
+<div class="oss-wrapper">
+<div class="oss-brand">
+<a class="oss-track-link-label" data-category="OSS Lightbend Banner Clicks" data-label="Lightbend Logo - Akka Banner" href="https://www.lightbend.com">
+<img class="lightbend-logo" src="../images/banner-logos/lightbend-reverse.svg" alt="Lightbend" title="Lightbend">
+</a>
+</div>
+<div class="oss-ad no-drop-down">
+<nav id="lightbendRotator" class="lightbend-rotator">
+<a class="oss-track-link-label" data-category="OSS Lightbend Banner Clicks" data-label="Promo Rotator - Introducing Akka Cloud to Edge Continuum. Build once for the Cloud. Seamlessly deploy to the Edge. [Learn more] - Akka Banner" href="https://www.lightbend.com/blog/akka-edge-unifying-the-cloud-and-edge">
+Introducing Akka Cloud to Edge Continuum. Build once for the Cloud. Seamlessly deploy to the Edge. <span class="akka-btn">Learn more</span>
+</a>
+</nav>
+</div>
+</div>
+</div>
+
+<header class="site-header hide-for-large">
+<div class="sticky-header clearfix">
+<a href="https://akka.io"><img class="logo" src="../images/akka-logo-reverse.svg"/></a>
+
+<button class="menu-icon float-right" type="button" data-toggle="underlay overlay"></button>
+</div>
+<div id="overlay" class="overlay-nav" data-toggler="nav-open">
+<header class="nav-header">
+<div class="nav-header-title">
+<h1><a href="../index.html">Akka Documentation</a></h1>
+</div>
+<div class="nav-header-version">
+Version 2.9.1
+</div>
+<div class="nav-header-groups">
+<select class="supergroup" name="Language"><option class="group" value="group-scala">Scala</option><option class="group" value="group-java">Java</option></select>
+<select class="supergroup" name="BuildTool"><option class="group" value="group-sbt">sbt</option><option class="group" value="group-maven">Maven</option><option class="group" value="group-gradle">Gradle</option></select>
+</div>
+<div id="overlay-search-container" class="nav-header-search">
+<input id="overlay-search" type="search" class="search" placeholder="Search" />
+</div>
+</header>
+<nav class="nav-toc">
+<ul>
+  <li><a href="../security/index.html" class="page">Security Announcements</a></li>
+  <li><a href="../typed/guide/index.html" class="page">Getting Started Guide</a></li>
+  <li><a href="../general/index.html" class="page">General Concepts</a></li>
+  <li><a href="../typed/index.html" class="page">Actors</a></li>
+  <li><a href="../typed/index-cluster.html" class="page">Cluster</a></li>
+  <li><a href="../typed/index-persistence.html" class="page">Persistence (Event Sourcing)</a></li>
+  <li><a href="../typed/index-persistence-durable-state.html" class="page">Persistence (Durable State)</a></li>
+  <li><a href="../stream/index.html" class="page">Streams</a></li>
+  <li><a href="../discovery/index.html" class="page">Discovery</a></li>
+  <li><a href="../index-utilities.html" class="page">Utilities</a></li>
+  <li><a href="../common/other-modules.html" class="page">Other Akka modules</a></li>
+  <li><a href="../additional/deploy.html" class="page">Package, Deploy and Run</a></li>
+  <li><a href="../project/index.html" class="page">Project Information</a></li>
+  <li><a href="../index-classic.html" class="page">Akka Classic</a>
+  <ul>
+    <li><a href="../index-actors.html" class="page">Classic Actors</a></li>
+    <li><a href="../index-cluster.html" class="page">Classic Clustering</a></li>
+    <li><a href="../index-network.html" class="page">Classic Networking</a>
+    <ul>
+      <li><a href="../io.html" class="page">I/O</a>
+      <ul>
+        <li><a href="../io.html#dependency" class="header">Dependency</a></li>
+        <li><a href="../io.html#introduction" class="header">Introduction</a></li>
+        <li><a href="../io.html#terminology-concepts" class="header">Terminology, Concepts</a></li>
+        <li><a href="../io.html#architecture-in-depth" class="header">Architecture in-depth</a></li>
+        <li><a href="../common/io-layer.html#i-o-layer-design" class="active page">I/O Layer Design</a>
+        <ul>
+          <li><a href="../common/io-layer.html#requirements" class="header">Requirements</a></li>
+          <li><a href="../common/io-layer.html#basic-architecture" class="header">Basic Architecture</a></li>
+          <li><a href="../common/io-layer.html#design-benefits" class="header">Design Benefits</a></li>
+          <li><a href="../common/io-layer.html#how-to-go-about-adding-a-new-transport" class="header">How to go about Adding a New Transport</a></li>
+        </ul></li>
+      </ul></li>
+      <li><a href="../io-tcp.html" class="page">Using TCP</a></li>
+      <li><a href="../io-udp.html" class="page">Using UDP</a></li>
+      <li><a href="../io-dns.html" class="page">DNS Extension</a></li>
+    </ul></li>
+    <li><a href="../index-utilities-classic.html" class="page">Classic Utilities</a></li>
+  </ul></li>
+</ul>
+</nav>
+</div>
+</header>
+<div class="site-content-wrapper">
+<aside class="sticky-sidebar show-for-large">
+<header class="nav-header sticky-sidebar-header">
+<div class="nav-header-title">
+<h1><a href="../index.html">Akka Documentation</a></h1>
+</div>
+<div class="nav-header-version">
+Version 2.9.1
+</div>
+<div class="nav-header-groups">
+<select class="supergroup" name="Language"><option class="group" value="group-scala">Scala</option><option class="group" value="group-java">Java</option></select>
+<select class="supergroup" name="BuildTool"><option class="group" value="group-sbt">sbt</option><option class="group" value="group-maven">Maven</option><option class="group" value="group-gradle">Gradle</option></select>
+</div>
+<div class="nav-header-search">
+<input id="search" type="search" class="search" placeholder="Search" />
+</div>
+</header>
+<nav class="site-nav sticky-sidebar-contents">
+<div class="nav-toc">
+<ul>
+  <li><a href="../security/index.html" class="page">Security Announcements</a></li>
+  <li><a href="../typed/guide/index.html" class="page">Getting Started Guide</a></li>
+  <li><a href="../general/index.html" class="page">General Concepts</a></li>
+  <li><a href="../typed/index.html" class="page">Actors</a></li>
+  <li><a href="../typed/index-cluster.html" class="page">Cluster</a></li>
+  <li><a href="../typed/index-persistence.html" class="page">Persistence (Event Sourcing)</a></li>
+  <li><a href="../typed/index-persistence-durable-state.html" class="page">Persistence (Durable State)</a></li>
+  <li><a href="../stream/index.html" class="page">Streams</a></li>
+  <li><a href="../discovery/index.html" class="page">Discovery</a></li>
+  <li><a href="../index-utilities.html" class="page">Utilities</a></li>
+  <li><a href="../common/other-modules.html" class="page">Other Akka modules</a></li>
+  <li><a href="../additional/deploy.html" class="page">Package, Deploy and Run</a></li>
+  <li><a href="../project/index.html" class="page">Project Information</a></li>
+  <li><a href="../index-classic.html" class="page">Akka Classic</a>
+  <ul>
+    <li><a href="../index-actors.html" class="page">Classic Actors</a></li>
+    <li><a href="../index-cluster.html" class="page">Classic Clustering</a></li>
+    <li><a href="../index-network.html" class="page">Classic Networking</a>
+    <ul>
+      <li><a href="../io.html" class="page">I/O</a>
+      <ul>
+        <li><a href="../io.html#dependency" class="header">Dependency</a></li>
+        <li><a href="../io.html#introduction" class="header">Introduction</a></li>
+        <li><a href="../io.html#terminology-concepts" class="header">Terminology, Concepts</a></li>
+        <li><a href="../io.html#architecture-in-depth" class="header">Architecture in-depth</a></li>
+        <li><a href="../common/io-layer.html#i-o-layer-design" class="active page">I/O Layer Design</a>
+        <ul>
+          <li><a href="../common/io-layer.html#requirements" class="header">Requirements</a></li>
+          <li><a href="../common/io-layer.html#basic-architecture" class="header">Basic Architecture</a></li>
+          <li><a href="../common/io-layer.html#design-benefits" class="header">Design Benefits</a></li>
+          <li><a href="../common/io-layer.html#how-to-go-about-adding-a-new-transport" class="header">How to go about Adding a New Transport</a></li>
+        </ul></li>
+      </ul></li>
+      <li><a href="../io-tcp.html" class="page">Using TCP</a></li>
+      <li><a href="../io-udp.html" class="page">Using UDP</a></li>
+      <li><a href="../io-dns.html" class="page">DNS Extension</a></li>
+    </ul></li>
+    <li><a href="../index-utilities-classic.html" class="page">Classic Utilities</a></li>
+  </ul></li>
+</ul>
+</div>
+</nav>
+<footer class="nav-footer sticky-sidebar-footer">
+<a href="https://akka.io"><img class="logo" src="../images/akka-logo-reverse.svg"/></a>
+
+</footer>
+</aside>
+<main class="fixed-shift-for-large expanded row">
+<section class="site-content small-12 column">
+<article class="page-content row">
+<div class="small-12 column" id="docs">
+<h1><a href="#i-o-layer-design" name="i-o-layer-design" class="anchor"><span class="anchor-link"></span></a>I/O Layer Design</h1>
+<p>The <code>akka.io</code> package has been developed in collaboration between the Akka and <a href="http://spray.io">spray.io</a> teams. Its design incorporates the experiences with the <code>spray-io</code> module along with improvements that were jointly developed for more general consumption as an actor-based service.</p>
+<h2><a href="#requirements" name="requirements" class="anchor"><span class="anchor-link"></span></a>Requirements</h2>
+<p>In order to form a general and extensible IO layer basis for a wide range of applications, with Akka remoting and spray HTTP being the initial ones, the following requirements were established as key drivers for the design:</p>
+<ul>
+  <li>scalability to millions of concurrent connections</li>
+  <li>lowest possible latency in getting data from an input channel into the target actor’s mailbox</li>
+  <li>maximal throughput</li>
+  <li>optional back-pressure in both directions (i.e. throttling local senders as well as allowing local readers to throttle remote senders, where allowed by the protocol)</li>
+  <li>a purely actor-based API with immutable data representation</li>
+  <li>extensibility for integrating new transports by way of a very lean SPI; the goal is to not force I/O mechanisms into a lowest common denominator but instead allow completely protocol-specific user-level APIs.</li>
+</ul>
+<h2><a href="#basic-architecture" name="basic-architecture" class="anchor"><span class="anchor-link"></span></a>Basic Architecture</h2>
+<p>Each transport implementation will be made available as a separate Akka extension, offering an <span class="group-scala"><a href="https://doc.akka.io/api/akka/2.8/akka/actor/ActorRef.html" title="akka.actor.ActorRef"><code>ActorRef</code></a></span><span class="group-java"><a href="https://doc.akka.io/japi/akka/2.8/akka/actor/ActorRef.html" title="akka.actor.ActorRef"><code>ActorRef</code></a></span> representing the initial point of contact for client code. This &ldquo;manager&rdquo; accepts requests for establishing a communications channel (e.g. connect or listen on a TCP socket). Each communications channel is represented by one dedicated actor, which is exposed to client code for all interaction with this channel over its entire lifetime.</p>
+<p>The central element of the implementation is the transport-specific “selector” actor; in the case of TCP this would wrap a <a href="https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/channels/Selector.html" title="java.nio.channels.Selector"><code>java.nio.channels.Selector</code></a>. The channel actors register their interest in readability or writability of their channel by sending corresponding messages to their assigned selector actor. However, the actual channel reading and writing is performed by the channel actors themselves, which frees the selector actors from time-consuming tasks and thereby ensures low latency. The selector actor&rsquo;s only responsibility is the management of the underlying selector&rsquo;s key set and the actual select operation, which is the only operation to typically block.</p>
+<p>The assignment of channels to selectors is performed by the manager actor and remains unchanged for the entire lifetime of a channel. Thereby the management actor &ldquo;stripes&rdquo; new channels across one or more selector actors based on some implementation-specific distribution logic. This logic may be delegated (in part) to the selectors actors, which could, for example, choose to reject the assignment of a new channel when they consider themselves to be at capacity.</p>
+<p>The manager actor creates (and therefore supervises) the selector actors, which in turn create and supervise their channel actors. The actor hierarchy of one single transport implementation therefore consists of three distinct actor levels, with the management actor at the top-, the channel actors at the leaf- and the selector actors at the mid-level.</p>
+<p>Back-pressure for output is enabled by allowing the user to specify within its <code>Write</code> messages whether it wants to receive an acknowledgement for enqueuing that write to the O/S kernel. Back-pressure for input is enabled by sending the channel actor a message which temporarily disables read interest for the channel until reading is re-enabled with a corresponding resume command. In the case of transports with flow control—like TCP—the act of not consuming data at the receiving end (thereby causing them to remain in the kernels read buffers) is propagated back to the sender, linking these two mechanisms across the network.</p>
+<h2><a href="#design-benefits" name="design-benefits" class="anchor"><span class="anchor-link"></span></a>Design Benefits</h2>
+<p>Staying within the actor model for the whole implementation allows us to remove the need for explicit thread handling logic, and it also means that there are no locks involved (besides those which are part of the underlying transport library). Writing only actor code results in a cleaner implementation, while Akka’s efficient actor messaging does not impose a high tax for this benefit. In fact the event-based nature of I/O maps so well to the actor model that we expect clear performance and especially scalability benefits over traditional solutions with explicit thread management and synchronization.</p>
+<p>Another benefit of supervision hierarchies is that clean-up of resources comes naturally: shutting down a selector actor will automatically clean up all channel actors, allowing proper closing of the channels and sending the appropriate messages to user-level client actors. DeathWatch allows the channel actors to notice the demise of their user-level handler actors and terminate in an orderly fashion in that case as well; this naturally reduces the chances of leaking open channels.</p>
+<p>The choice of using <span class="group-scala"><a href="https://doc.akka.io/api/akka/2.8/akka/actor/ActorRef.html" title="akka.actor.ActorRef"><code>ActorRef</code></a></span><span class="group-java"><a href="https://doc.akka.io/japi/akka/2.8/akka/actor/ActorRef.html" title="akka.actor.ActorRef"><code>ActorRef</code></a></span> for exposing all functionality entails that these references can be distributed or delegated freely and in general handled as the user sees fit, including the use of remoting and life-cycle monitoring (just to name two).</p>
+<h2><a href="#how-to-go-about-adding-a-new-transport" name="how-to-go-about-adding-a-new-transport" class="anchor"><span class="anchor-link"></span></a>How to go about Adding a New Transport</h2>
+<p>The best start is to study the TCP reference implementation to get a good grip on the basic working principle and then design an implementation, which is similar in spirit, but adapted to the new protocol in question. There are vast differences between I/O mechanisms (e.g. compare file I/O to a message broker) and the goal of this I/O layer is explicitly <strong>not</strong> to shoehorn all of them into a uniform API, which is why only the basic architecture ideas are documented here.</p>
+</div>
+</article>
+<div class="row">
+<div class="small-12 column">
+<section class="nav-prev-next row">
+<div class="nav-prev small-6 column">
+<a href="../io.html"><i class="icon-prev"></i> <span class="link-prev">I/O</span></a>
+</div>
+<div class="nav-next small-6 column clearfix">
+<a class="float-right" href="../io-tcp.html">Using TCP <i class="icon-next"></i></a>
+</div>
+</section>
+</div>
+</div>
+<div class="source-github row">
+Found an error in this documentation? The source code for this page can be found <a href="https://github.com/akka/akka/tree/v2.9.1/akka-docs/src/main/paradox/common/io-layer.md">here</a>.
+Please feel free to edit and contribute a pull request.
+</div>
+
+<footer class="page-footer row clearfix">
+<img class="akka-icon float-left show-for-medium" src="../images/akka-icon.svg" />
+<section class="copyright">
+<div>Akka is available under the <a href="https://www.lightbend.com/akka/license" target="_blank">Business Source License 1.1</a>.</div>
+<p class="legal">
+&copy; 2011-2023 <a href="https://www.lightbend.com" target="_blank">Lightbend, Inc.</a> |
+<a href="https://www.lightbend.com/legal/licenses" target="_blank">Licenses</a> |
+<a href="https://www.lightbend.com/legal/terms" target="_blank">Terms</a> |
+<a href="https://www.lightbend.com/legal/privacy" target="_blank">Privacy Policy</a> |
+<a href="https://akka.io/cookie/" target="_blank">Cookie Listing</a> |
+<a class="optanon-toggle-display">Cookie Settings</a>
+</p>
+</section>
+
+</footer>
+</section>
+</main>
+</div>
+
+<script type="text/javascript" src="../js/scrollsneak.js"></script>
+<script type="text/javascript">jQuery(document).foundation();</script>
+<script type="text/javascript" src="../js/groups.js"></script>
+<script type="text/javascript" src="../js/page.js"></script>
+<script type="text/javascript" src="../js/snippets.js"></script>
+<script type="text/javascript" src="../js/magellan.js"></script>
+<script type="text/javascript" src="../js/metadata-toggle.js"></script>
+<script type="text/javascript" src="../js/lbHeader.js"></script>
+
+<style type="text/css">@import "../lib/prettify/prettify.css";</style>
+<script type="text/javascript" src="../lib/prettify/prettify.js"></script>
+<script type="text/javascript" src="../lib/prettify/lang-scala.js"></script>
+<script type="text/javascript">//<![CDATA[
+jQuery(function(){window.prettyPrint && prettyPrint()});
+//]]></script>
+<!-- Algolia docs search -->
+<script type="text/javascript" src="https://cdn.jsdelivr.net/docsearch.js/2/docsearch.min.js"></script>
+<style>.algolia-autocomplete { display: block !important }</style>
+<script type="text/javascript">
+docsearch({
+appId: 'XUXZ6LW9B1',
+apiKey: '5b6260148e92f7c5e38338fcf7eaa3e0',
+indexName: 'akka_docs',
+inputSelector: '#search',
+algoliaOptions: {
+hitsPerPage: 5
+}
+});
+
+docsearch({
+appId: 'XUXZ6LW9B1',
+apiKey: '5b6260148e92f7c5e38338fcf7eaa3e0',
+indexName: 'akka_docs',
+inputSelector: '#overlay-search',
+algoliaOptions: {
+hitsPerPage: 5
+}
+});
+
+// set up "/" as global shortcut for focusing on search
+jQuery(document).keypress(function (event) {
+if (event.keyCode == 47) {
+jQuery("#search").focus();
+return false; // swallow key event, otherwise the / char would be input into the search box
+}
+});
+</script>
+
+<script type="text/javascript" src="../assets/js/warnOldVersion.js"></script>
+<script type="text/javascript">//<![CDATA[
+jQuery(function(jq){initOldVersionWarnings(jq, '2.9.1', 'https://akka.io/')});
+//]]></script>
+
+
+</body>
+</html>
