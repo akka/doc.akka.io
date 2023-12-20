@@ -1,0 +1,730 @@
+<!DOCTYPE html>
+<html class="no-js" lang="en">
+
+<head>
+<title>Deploying the Restaurant Delivery Service &bull; Akka Edge</title>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta name="description" content="Akka Projection."/>
+<link rel="canonical" href="https://doc.akka.io/docs/akka-edge/current/guide/5-deploying-the-services.html"/>
+<script type="text/javascript" src="../lib/jquery/jquery.min.js"></script>
+<script type="text/javascript" src="../lib/foundation/dist/js/foundation.min.js"></script>
+<link rel="stylesheet" type="text/css" href="../lib/normalize.css/normalize.css"/>
+<link rel="stylesheet" type="text/css" href="../lib/foundation/dist/css/foundation.min.css"/>
+<link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/docsearch.js/2/docsearch.min.css" />
+<link rel="stylesheet" type="text/css" href="../css/icons.css"/>
+<link rel="stylesheet" type="text/css" href="../css/page-8.css"/>
+<link rel="stylesheet" type="text/css" href="../css/banner-2.css"/>
+<link rel="shortcut icon" href="../images/favicon.ico" />
+<link rel="apple-touch-icon" sizes="180x180" href="../images/apple-touch-icon.png"/>
+<link rel="icon" type="image/png" sizes="32x32" href="../images/favicon-32x32.png"/>
+<link rel="icon" type="image/png" sizes="16x16" href="../images/favicon-16x16.png"/>
+<link rel="manifest" href="../images/manifest.json"/>
+<meta name="msapplication-TileImage" content="../images/mstile-150x150.png"/>
+<meta name="msapplication-TileColor" content="#15a9ce"/>
+<meta name="theme-color" content="#15a9ce"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<!-- OneTrust Cookies Consent Notice (Production Standard, akka.io, en-GB) start -->
+<script src="https://cdn.cookielaw.org/scripttemplates/otSDKStub.js"  type="text/javascript" charset="UTF-8" data-domain-script="28b912e7-09e9-43d5-91e4-3d1897044004" ></script>
+<script type="text/javascript">
+function OptanonWrapper() { }
+</script>
+<!-- OneTrust Cookies Consent Notice (Production Standard, akka.io, en-GB) end -->
+<!-- Google Tag Manager now loads Google Analytics and any other tracking scripts. GTM also performs respects a users cookie choices-->
+<script type="text/javascript">
+(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+})(window,document,'script','dataLayer','GTM-KBJGH35');
+</script>
+
+</head>
+
+<body id="underlay" data-toggler="nav-open">
+<div id="lightbend-banner" class="lightbend-banner akka full-width" data-category="OSS Lightbend Banner Impression" data-label="Akka Banner Impression">
+<div class="oss-wrapper">
+<div class="oss-brand">
+<a class="oss-track-link-label" data-category="OSS Lightbend Banner Clicks" data-label="Lightbend Logo - Akka Banner" href="https://www.lightbend.com">
+<img class="lightbend-logo" src="../images/banner-logos/lightbend-reverse.svg" alt="Lightbend" title="Lightbend">
+</a>
+</div>
+<div class="oss-ad no-drop-down">
+<nav id="lightbendRotator" class="lightbend-rotator">
+<a class="oss-track-link-label" data-category="OSS Lightbend Banner Clicks" data-label="Promo Rotator - Introducing Akka Cloud to Edge Continuum. Build once for the Cloud. Seamlessly deploy to the Edge. [Learn more] - Akka Banner" href="https://www.lightbend.com/blog/akka-edge-unifying-the-cloud-and-edge">
+Introducing Akka Cloud to Edge Continuum. Build once for the Cloud. Seamlessly deploy to the Edge. <span class="akka-btn">Learn more</span>
+</a>
+</nav>
+</div>
+</div>
+</div>
+
+<header class="site-header hide-for-large">
+<div class="sticky-header clearfix">
+<a href="https://akka.io"><img class="logo" src="../images/akka-logo-reverse.svg"/></a>
+
+<button class="menu-icon float-right" type="button" data-toggle="underlay overlay"></button>
+</div>
+<div id="overlay" class="overlay-nav" data-toggler="nav-open">
+<header class="nav-header">
+<div class="nav-header-title">
+<h1><a href="../index.html">Akka Edge</a></h1>
+</div>
+<div class="nav-header-version">
+Version 1.5.1-M1
+</div>
+<div class="nav-header-groups">
+<select class="supergroup" name="Language"><option class="group" value="group-java">Java</option><option class="group" value="group-scala">Scala</option></select>
+</div>
+</header>
+<nav class="nav-toc">
+<ul>
+  <li><a href="../overview.html" class="page">Architectural Overview</a></li>
+  <li><a href="../use-cases.html" class="page">Example Use Cases</a></li>
+  <li><a href="../feature-summary.html" class="page">Feature Summary</a></li>
+  <li><a href="../guide.html" class="page">Guide</a>
+  <ul>
+    <li><a href="../guide/1-local-drone-control-service.html" class="page">Local Drone Control Service</a></li>
+    <li><a href="../guide/2-drone-location-to-cloud-service.html" class="page">Coarse Grained Location Replication</a></li>
+    <li><a href="../guide/3-restaurant-deliveries-service.html" class="page">Restaurant deliveries</a></li>
+    <li><a href="../guide/4-local-drone-delivery-selection.html" class="page">Local Drone Delivery Selection</a></li>
+    <li><a href="../guide/5-deploying-the-services.html#deploying-the-restaurant-delivery-service" class="active page">Deploying the Restaurant Delivery Service</a>
+    <ul>
+      <li><a href="../guide/5-deploying-the-services.html#setup-kubernetes-cluster" class="header">Setup Kubernetes cluster</a></li>
+      <li><a href="../guide/5-deploying-the-services.html#setup-database" class="header">Setup database</a></li>
+      <li><a href="../guide/5-deploying-the-services.html#namespace" class="header">Namespace</a></li>
+      <li><a href="../guide/5-deploying-the-services.html#role-based-access-control" class="header">Role based access control</a></li>
+      <li><a href="../guide/5-deploying-the-services.html#database-secret" class="header">Database secret</a></li>
+      <li><a href="../guide/5-deploying-the-services.html#database-schema" class="header">Database schema</a></li>
+      <li><a href="../guide/5-deploying-the-services.html#deploy-the-restaurant-drone-deliveries-service" class="header">Deploy the Restaurant Drone Deliveries Service</a></li>
+      <li><a href="../guide/5-deploying-the-services.html#load-balancer" class="header">Load balancer</a></li>
+      <li><a href="../guide/5-deploying-the-services.html#deploy-local-drone-control-instances" class="header">Deploy local drone control instances</a></li>
+    </ul></li>
+  </ul></li>
+  <li><a href="../lightweight-deployments.html" class="page">Lightweight deployments</a></li>
+</ul>
+</nav>
+</div>
+</header>
+<div class="site-content-wrapper">
+<aside class="sticky-sidebar show-for-large">
+<header class="nav-header sticky-sidebar-header">
+<div class="nav-header-title">
+<h1><a href="../index.html">Akka Edge</a></h1>
+</div>
+<div class="nav-header-version">
+Version 1.5.1-M1
+</div>
+<div class="nav-header-groups">
+<select class="supergroup" name="Language"><option class="group" value="group-java">Java</option><option class="group" value="group-scala">Scala</option></select>
+</div>
+</header>
+<nav class="site-nav sticky-sidebar-contents">
+<div class="nav-toc">
+<ul>
+  <li><a href="../overview.html" class="page">Architectural Overview</a></li>
+  <li><a href="../use-cases.html" class="page">Example Use Cases</a></li>
+  <li><a href="../feature-summary.html" class="page">Feature Summary</a></li>
+  <li><a href="../guide.html" class="page">Guide</a>
+  <ul>
+    <li><a href="../guide/1-local-drone-control-service.html" class="page">Local Drone Control Service</a></li>
+    <li><a href="../guide/2-drone-location-to-cloud-service.html" class="page">Coarse Grained Location Replication</a></li>
+    <li><a href="../guide/3-restaurant-deliveries-service.html" class="page">Restaurant deliveries</a></li>
+    <li><a href="../guide/4-local-drone-delivery-selection.html" class="page">Local Drone Delivery Selection</a></li>
+    <li><a href="../guide/5-deploying-the-services.html#deploying-the-restaurant-delivery-service" class="active page">Deploying the Restaurant Delivery Service</a>
+    <ul>
+      <li><a href="../guide/5-deploying-the-services.html#setup-kubernetes-cluster" class="header">Setup Kubernetes cluster</a></li>
+      <li><a href="../guide/5-deploying-the-services.html#setup-database" class="header">Setup database</a></li>
+      <li><a href="../guide/5-deploying-the-services.html#namespace" class="header">Namespace</a></li>
+      <li><a href="../guide/5-deploying-the-services.html#role-based-access-control" class="header">Role based access control</a></li>
+      <li><a href="../guide/5-deploying-the-services.html#database-secret" class="header">Database secret</a></li>
+      <li><a href="../guide/5-deploying-the-services.html#database-schema" class="header">Database schema</a></li>
+      <li><a href="../guide/5-deploying-the-services.html#deploy-the-restaurant-drone-deliveries-service" class="header">Deploy the Restaurant Drone Deliveries Service</a></li>
+      <li><a href="../guide/5-deploying-the-services.html#load-balancer" class="header">Load balancer</a></li>
+      <li><a href="../guide/5-deploying-the-services.html#deploy-local-drone-control-instances" class="header">Deploy local drone control instances</a></li>
+    </ul></li>
+  </ul></li>
+  <li><a href="../lightweight-deployments.html" class="page">Lightweight deployments</a></li>
+</ul>
+</div>
+</nav>
+<footer class="nav-footer sticky-sidebar-footer">
+<a href="https://akka.io"><img class="logo" src="../images/akka-logo-reverse.svg"/></a>
+
+</footer>
+</aside>
+<main class="fixed-shift-for-large expanded row">
+<section class="site-content small-12 column">
+<article class="page-content row">
+<div class="small-12 column" id="docs">
+<h1><a href="#deploying-the-restaurant-delivery-service" name="deploying-the-restaurant-delivery-service" class="anchor"><span class="anchor-link"></span></a>Deploying the Restaurant Delivery Service</h1>
+<p>In this part we will deploy <a href="3-restaurant-deliveries-service.html">Restaurant Deliveries Service</a> to Kubernetes.</p>
+<h2><a href="#setup-kubernetes-cluster" name="setup-kubernetes-cluster" class="anchor"><span class="anchor-link"></span></a>Setup Kubernetes cluster</h2>
+<p>Use instructions from your preferred cloud provider of how to start two Kubernetes clusters in two separate regions.</p>
+<p>As an example, we use Amazon EKS in regions <code>us-east-2</code>:</p>
+<pre><code>eksctl create cluster \
+  --name eks-akka-edge-us-east-2 \
+  --version 1.24 \
+  --region us-east-2 \
+  --nodegroup-name linux-nodes \
+  --node-type m5.xlarge \
+  --nodes 3 \
+  --nodes-min 1 \
+  --nodes-max 4 \
+  --with-oidc \
+  --managed
+</code></pre>
+<h2><a href="#setup-database" name="setup-database" class="anchor"><span class="anchor-link"></span></a>Setup database</h2>
+<p>Use instructions from your preferred cloud provider of how to run a PostgreSQL database in each of the two regions.</p>
+<p>As an example, we use <a href="https://console.aws.amazon.com/rds/home">Amazon RDS Postgres</a>. For a trial PostgreSQL you can select the following aside from defaults:</p>
+<ul>
+  <li>Standard create</li>
+  <li>PostgreSQL</li>
+  <li>Free tier (some regions don&rsquo;t offer free tier)</li>
+  <li>DB instance identifier: <code>restaurant-drone-deliveries-db</code></li>
+  <li>Master password: <code>&lt;a password&gt;</code></li>
+  <li>Turn off storage autoscaling</li>
+  <li>VPC: Use the same as your EKS cluster is running in</li>
+  <li>Create new VPC security group: <code>restaurant-drone-deliveries-sg</code></li>
+  <li>Turn off Automatic Backups in the Additional Configuration section.</li>
+</ul>
+<p>To allow the nodes in the EKS cluster to connect to the database you have to add a rule in the security group.</p>
+<p>Go to the <a href="https://console.aws.amazon.com/vpc/home">VPC console</a>. Select &ldquo;Security Groups&rdquo;.</p>
+<p>There are 3 security groups for the EKS cluster, you should select the one with description &ldquo;EKS created security group &hellip;&rdquo;. The one that has a name that doesn&rsquo;t contain <code>ControlPlaneSecurityGroup</code> and doesn&rsquo;t contain <code>ClusterSharedNodeSecurityGroup</code> . Make a note of this security group id for the EKS cluster.</p>
+<p>Go back to the <a href="https://console.aws.amazon.com/rds/home#databases">Amazon RDS console</a>. Select the database that you created. Click on the &ldquo;VPC security groups&rdquo; in the tab &ldquo;Connectivity &amp; security&rdquo;.</p>
+<p>Edit inbound rules &gt; add rule &gt; Custom TCP &gt; Port 5432 &gt; Source custom. Add the security group for the EKS cluster. Save rules.</p>
+<p>More details in <a href="https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_VPC.Scenarios.html#USER_VPC.Scenario1">A DB instance in a VPC accessed by an EC2 instance in the same VPC</a></p>
+<h2><a href="#namespace" name="namespace" class="anchor"><span class="anchor-link"></span></a>Namespace</h2>
+<p>Define a Kubernetes namespace with a <code>namespace.json</code> file:</p>
+<dl>
+  <dt>JSON</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka-projection/tree/master/samples/grpc/restaurant-drone-deliveries-service-scala/kubernetes/namespace.json" target="_blank" title="Go to snippet source">source</a><code class="language-json">{
+  &quot;kind&quot;: &quot;Namespace&quot;,
+  &quot;apiVersion&quot;: &quot;v1&quot;,
+  &quot;metadata&quot;: {
+    &quot;name&quot;: &quot;restaurant-drone-deliveries-namespace&quot;,
+    &quot;labels&quot;: {
+      &quot;name&quot;: &quot;restaurant-drone-deliveries-namespace&quot;
+    }
+  }
+}
+</code></pre></dd>
+</dl>
+<p>Create the namespace with:</p>
+<pre><code>kubectl apply -f kubernetes/namespace.json
+</code></pre>
+<p>For convenience, you can use this namespace by default:</p>
+<pre><code>kubectl config set-context --current --namespace=restaurant-drone-deliveries-namespace
+</code></pre>
+<h2><a href="#role-based-access-control" name="role-based-access-control" class="anchor"><span class="anchor-link"></span></a>Role based access control</h2>
+<p>For Akka Cluster bootstrap we need to define access control with a <code>rbac.yml</code> file:</p>
+<dl>
+  <dt>YAML</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka-projection/tree/master/samples/grpc/restaurant-drone-deliveries-service-scala/kubernetes/rbac.yml" target="_blank" title="Go to snippet source">source</a><code class="language-yml">kind: Role
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: pod-reader
+  namespace: restaurant-drone-deliveries-namespace
+rules:
+  - apiGroups: [&quot;&quot;] # &quot;&quot; indicates the core API group
+    resources: [&quot;pods&quot;]
+    verbs: [&quot;get&quot;, &quot;watch&quot;, &quot;list&quot;]
+---
+kind: RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: read-pods
+  namespace: restaurant-drone-deliveries-namespace
+subjects:
+  # Note the `name` line below. The first default refers to the namespace. The second refers to the service account name.
+  # For instance, `name: system:serviceaccount:myns:default` would refer to the default service account in namespace `myns`
+  - kind: User
+    name: system:serviceaccount:restaurant-drone-deliveries-namespace:default
+roleRef:
+  kind: Role
+  name: pod-reader
+  apiGroup: rbac.authorization.k8s.io</code></pre></dd>
+</dl>
+<p>Apply the access control with:</p>
+<pre><code>kubectl apply -f kubernetes/rbac.yml
+</code></pre>
+<h2><a href="#database-secret" name="database-secret" class="anchor"><span class="anchor-link"></span></a>Database secret</h2>
+<p>Create a Kubernetes secret with the connection details and credentials to the database:</p>
+<pre><code>kubectl create secret generic \
+    db-secret \
+    --from-literal=DB_HOST=restaurant-drone-deliveries-db.cgrtpi2lqrw8.us-east-2.rds.amazonaws.com \
+    --from-literal=DB_USER=postgres \
+    --from-literal=DB_PASSWORD=&lt;the password&gt;
+</code></pre>
+<h2><a href="#database-schema" name="database-schema" class="anchor"><span class="anchor-link"></span></a>Database schema</h2>
+<p>You can run <code>psql</code> from the Kubernetes cluster with</p>
+<pre><code>kubectl run -i --tty db-mgmt --image=postgres --restart=Never --rm \
+  --env=PGPASSWORD=&lt;the password&gt; -- \
+  psql -h restaurant-drone-deliveries-db.cgrtpi2lqrw8.us-east-2.rds.amazonaws.com -U postgres
+</code></pre>
+<p>Paste the DDL statements from the <code>ddl-scripts/create-tables.sql</code> to the <code>psql</code> prompt:</p>
+<dl>
+  <dt>SQL</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka-projection/tree/master/samples/grpc/restaurant-drone-deliveries-service-scala/ddl-scripts/create_tables.sql" target="_blank" title="Go to snippet source">source</a><code class="language-sql">CREATE TABLE IF NOT EXISTS event_journal(
+  slice INT NOT NULL,
+  entity_type VARCHAR(255) NOT NULL,
+  persistence_id VARCHAR(255) NOT NULL,
+  seq_nr BIGINT NOT NULL,
+  db_timestamp timestamp with time zone NOT NULL,
+
+  event_ser_id INTEGER NOT NULL,
+  event_ser_manifest VARCHAR(255) NOT NULL,
+  event_payload BYTEA NOT NULL,
+
+  deleted BOOLEAN DEFAULT FALSE NOT NULL,
+  writer VARCHAR(255) NOT NULL,
+  adapter_manifest VARCHAR(255),
+  tags TEXT ARRAY,
+
+  meta_ser_id INTEGER,
+  meta_ser_manifest VARCHAR(255),
+  meta_payload BYTEA,
+
+  PRIMARY KEY(persistence_id, seq_nr)
+);
+
+CREATE INDEX IF NOT EXISTS event_journal_slice_idx ON event_journal(slice, entity_type, db_timestamp, seq_nr);
+
+CREATE TABLE IF NOT EXISTS snapshot(
+  slice INT NOT NULL,
+  entity_type VARCHAR(255) NOT NULL,
+  persistence_id VARCHAR(255) NOT NULL,
+  seq_nr BIGINT NOT NULL,
+  db_timestamp timestamp with time zone,
+  write_timestamp BIGINT NOT NULL,
+  ser_id INTEGER NOT NULL,
+  ser_manifest VARCHAR(255) NOT NULL,
+  snapshot BYTEA NOT NULL,
+  tags TEXT ARRAY,
+  meta_ser_id INTEGER,
+  meta_ser_manifest VARCHAR(255),
+  meta_payload BYTEA,
+
+  PRIMARY KEY(persistence_id)
+);
+
+-- // #queryableColumn
+CREATE TABLE IF NOT EXISTS durable_state (
+  slice INT NOT NULL,
+  entity_type VARCHAR(255) NOT NULL,
+  persistence_id VARCHAR(255) NOT NULL,
+  revision BIGINT NOT NULL,
+  db_timestamp timestamp with time zone NOT NULL,
+
+  state_ser_id INTEGER NOT NULL,
+  state_ser_manifest VARCHAR(255),
+  state_payload BYTEA NOT NULL,
+  tags TEXT ARRAY,
+
+  -- additional column
+  location VARCHAR(255),
+
+  PRIMARY KEY(persistence_id, revision)
+);
+-- // #queryableColumn
+
+-- to query drones by location
+CREATE INDEX IF NOT EXISTS durable_state_drone_location_idx ON durable_state(location);
+
+
+-- Timestamp based offsets are stored in this table.
+CREATE TABLE IF NOT EXISTS akka_projection_timestamp_offset_store (
+  projection_name VARCHAR(255) NOT NULL,
+  projection_key VARCHAR(255) NOT NULL,
+  slice INT NOT NULL,
+  persistence_id VARCHAR(255) NOT NULL,
+  seq_nr BIGINT NOT NULL,
+  -- timestamp_offset is the db_timestamp of the original event
+  timestamp_offset timestamp with time zone NOT NULL,
+  -- timestamp_consumed is when the offset was stored
+  -- the consumer lag is timestamp_consumed - timestamp_offset
+  timestamp_consumed timestamp with time zone NOT NULL,
+  PRIMARY KEY(slice, projection_name, timestamp_offset, persistence_id, seq_nr)
+);
+
+CREATE TABLE IF NOT EXISTS akka_projection_management (
+  projection_name VARCHAR(255) NOT NULL,
+  projection_key VARCHAR(255) NOT NULL,
+  paused BOOLEAN NOT NULL,
+  last_updated BIGINT NOT NULL,
+  PRIMARY KEY(projection_name, projection_key)
+);</code></pre></dd>
+</dl>
+<h2><a href="#deploy-the-restaurant-drone-deliveries-service" name="deploy-the-restaurant-drone-deliveries-service" class="anchor"><span class="anchor-link"></span></a>Deploy the Restaurant Drone Deliveries Service</h2>
+<p>We are now going to deploy the <code>restaurant-drone-deliveries-service</code> to the created kubernetes cluster in <code>us-east-2</code>.</p>
+<p>This step is for deploying:</p>
+<ul>
+  <li>Java: <a href="https://github.com/akka/akka-projection/tree/main/samples/grpc/restaurant-drone-deliveries-service-java">https://github.com/akka/akka-projection/tree/main/samples/grpc/restaurant-drone-deliveries-service-java</a></li>
+  <li>Scala: <a href="https://github.com/akka/akka-projection/tree/main/samples/grpc/restaurant-drone-deliveries-service-scala">https://github.com/akka/akka-projection/tree/main/samples/grpc/restaurant-drone-deliveries-service-scala</a></li>
+</ul>
+<p>Build and publish the docker image to docker.io:</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre><code>sbt -Ddocker.username=&lt;username&gt; -Ddocker.registry=docker.io docker:publish
+</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre><code>mvn -DskipTests -Ddocker.registry=&lt;username&gt; clean package docker:push
+</code></pre></dd>
+</dl>
+<p>The Kubernetes <code>Deployment</code> in <code>deployment.yml</code> file:</p>
+<dl>
+  <dt>YAML</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka-projection/tree/master/samples/grpc/restaurant-drone-deliveries-service-scala/kubernetes/deployment.yml" target="_blank" title="Go to snippet source">source</a><code class="language-yml">apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: restaurant-drone-deliveries-service
+  name: restaurant-drone-deliveries-service
+  namespace: restaurant-drone-deliveries-namespace
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: restaurant-drone-deliveries-service
+  template:
+    metadata:
+      labels:
+        app: restaurant-drone-deliveries-service
+        actorSystemName: restaurant-drone-deliveries
+    spec:
+      containers:
+        - name: restaurant-drone-deliveries-service
+          # use specific image version from docker publish
+          image: restaurant-drone-deliveries-service:latest
+          # these will need to be increased/tuned for production environments!
+          resources:
+            limits:
+              memory: &quot;2Gi&quot;
+            requests:
+              memory: &quot;2Gi&quot;
+              cpu: &quot;1000m&quot;
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: management
+            periodSeconds: 10
+            failureThreshold: 3
+            initialDelaySeconds: 10
+          livenessProbe:
+            httpGet:
+              path: &quot;/alive&quot;
+              port: management
+            periodSeconds: 10
+            failureThreshold: 5
+            initialDelaySeconds: 20
+          ports:
+            # akka-management and bootstrap
+            - name: management
+              containerPort: 8558
+              protocol: TCP
+            - name: grpc
+              containerPort: 8101
+              protocol: TCP
+          env:
+            - name: NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: REQUIRED_CONTACT_POINT_NR
+              value: &quot;1&quot;
+            - name: JAVA_TOOL_OPTIONS
+              value: &quot;-XX:InitialRAMPercentage=75 -XX:MaxRAMPercentage=75 -Dakka.persistence.r2dbc.connection-factory.ssl.enabled=true -Dakka.persistence.r2dbc.connection-factory.ssl.mode=require&quot;
+            - name: DB_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: db-secret
+                  key: DB_HOST
+                  optional: true
+            - name: DB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: db-secret
+                  key: DB_USER
+                  optional: true
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: db-secret
+                  key: DB_PASSWORD
+                  optional: true</code></pre></dd>
+</dl>
+<p>Update the <code>image:</code> in the <code>deployment.yml</code> with the specific image version and location you published.</p>
+<pre><code>kubectl apply -f kubernetes/deployment.yml
+</code></pre>
+<h3><a href="#port-forward" name="port-forward" class="anchor"><span class="anchor-link"></span></a>Port forward</h3>
+<p>Create a Kubernetes <code>Service</code> and port forward to simplify access to the pods from your local machine:</p>
+<dl>
+  <dt>YAML</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka-projection/tree/master/samples/grpc/restaurant-drone-deliveries-service-scala/kubernetes/service.yml" target="_blank" title="Go to snippet source">source</a><code class="language-yml">apiVersion: v1
+kind: Service
+metadata:
+  name: restaurant-drone-deliveries-service-svc
+spec:
+  selector:
+    app: restaurant-drone-deliveries-service
+  type: NodePort
+  ports:
+    - protocol: TCP
+      port: 8101
+      targetPort: 8101</code></pre></dd>
+</dl>
+<pre><code>kubectl apply -f kubernetes/service.yml
+</code></pre>
+<p>Start port forward with:</p>
+<pre><code>kubectl port-forward svc/restaurant-drone-deliveries-service-svc 8101:8101
+</code></pre>
+<h3><a href="#exercise-the-service" name="exercise-the-service" class="anchor"><span class="anchor-link"></span></a>Exercise the service</h3>
+<p>Use <a href="https://github.com/fullstorydev/grpcurl">grpcurl</a> to exercise the service.</p>
+<p>Set up two restaurants: </p>
+<pre class="prettyprint"><code class="language-shell">grpcurl -d &#39;{&quot;restaurant_id&quot;:&quot;restaurant1&quot;,&quot;coordinates&quot;:{&quot;latitude&quot;: 59.330324, &quot;longitude&quot;: 18.039568}, &quot;local_control_location_id&quot;: &quot;sweden/stockholm/kungsholmen&quot; }&#39; -plaintext localhost:8101 central.deliveries.RestaurantDeliveriesService.SetUpRestaurant
+grpcurl -d &#39;{&quot;restaurant_id&quot;:&quot;restaurant2&quot;,&quot;coordinates&quot;:{&quot;latitude&quot;: 59.342046, &quot;longitude&quot;: 18.059095}, &quot;local_control_location_id&quot;: &quot;sweden/stockholm/norrmalm&quot; }&#39; -plaintext localhost:8101 central.deliveries.RestaurantDeliveriesService.SetUpRestaurant
+</code></pre>
+<p>Register a delivery for each restaurant:</p>
+<pre class="prettyprint"><code class="language-shell">grpcurl -d &#39;{&quot;restaurant_id&quot;:&quot;restaurant1&quot;,&quot;delivery_id&quot;: &quot;order1&quot;,&quot;coordinates&quot;:{&quot;latitude&quot;: 59.330841, &quot;longitude&quot;: 18.038885}}&#39; -plaintext localhost:8101 central.deliveries.RestaurantDeliveriesService.RegisterDelivery
+grpcurl -d &#39;{&quot;restaurant_id&quot;:&quot;restaurant2&quot;,&quot;delivery_id&quot;: &quot;order2&quot;,&quot;coordinates&quot;:{&quot;latitude&quot;: 59.340128, &quot;longitude&quot;: 18.056303}}&#39; -plaintext localhost:8101 central.deliveries.RestaurantDeliveriesService.RegisterDelivery
+</code></pre>
+<p>We have not set up any local drone delivery services yet so there are no drones to actually pick up the orders.</p>
+<h2><a href="#load-balancer" name="load-balancer" class="anchor"><span class="anchor-link"></span></a>Load balancer</h2>
+<p>To access the <code>restaurant-drone-deliveries-service</code> from <code>local-drone-control</code> services running in other regions or on the edge we need an Internet facing load balancer.</p>
+<p>There are many alternatives for secure access with a load balancer. An incomplete list of options:</p>
+<ul>
+  <li>Network load balancer such as <a href="https://docs.aws.amazon.com/eks/latest/userguide/network-load-balancing.html">AWS Load Balancer Controller</a> with TLS all the way between the services.</li>
+  <li>Application load balancer such as <a href="https://docs.aws.amazon.com/prescriptive-guidance/latest/patterns/deploy-a-grpc-based-application-on-an-amazon-eks-cluster-and-access-it-with-an-application-load-balancer.html">AWS Load Balancer Controller</a>, which terminates TLS.</li>
+  <li><a href="https://docs.nginx.com/nginx-ingress-controller/">NGINX Ingress Controller</a></li>
+  <li><a href="https://projectcontour.io">Contour</a></li>
+  <li><a href="https://linkerd.io/2.13/features/multicluster/">Linkerd multi-cluster</a></li>
+</ul>
+<p>Mutual authentication with TLS (mTLS) can be very useful where only other known services are allowed to interact with a service, and public access should be denied. See <a href="https://doc.akka.io/docs/akka-grpc/current/mtls.html">Akka gRPC documentation</a>.</p>
+<p>We are going to use a network load balancer for simplicity of this example, and we are not using TLS. Real applications would of course require TLS.</p>
+<p>Follow the instructions of how to <a href="https://docs.aws.amazon.com/eks/latest/userguide/aws-load-balancer-controller.html">install the AWS Load Balancer Controller add-on</a>.</p>
+<p>Create a Kubernetes <code>Service</code> that is configured for the load balancer:</p>
+<dl>
+  <dt>YAML</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka-projection/tree/master/samples/grpc/restaurant-drone-deliveries-service-scala/kubernetes/service-nlb.yml" target="_blank" title="Go to snippet source">source</a><code class="language-yml"># Network load balancer https://docs.aws.amazon.com/eks/latest/userguide/network-load-balancing.html
+apiVersion: v1
+kind: Service
+metadata:
+  name: restaurant-drone-deliveries-service-nlb
+  annotations:
+    service.beta.kubernetes.io/aws-load-balancer-type: external
+    service.beta.kubernetes.io/aws-load-balancer-nlb-target-type: ip
+    service.beta.kubernetes.io/aws-load-balancer-scheme: internet-facing
+spec:
+  selector:
+    app: restaurant-drone-deliveries-service
+  type: LoadBalancer
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 8101</code></pre></dd>
+</dl>
+<p>The external DNS name is shown by:</p>
+<pre><code>kubectl get services
+</code></pre>
+<h2><a href="#deploy-local-drone-control-instances" name="deploy-local-drone-control-instances" class="anchor"><span class="anchor-link"></span></a>Deploy local drone control instances</h2>
+<p>This step is for deploying:</p>
+<ul>
+  <li>Java: <a href="https://github.com/akka/akka-projection/tree/main/samples/grpc/local-drone-control-java">https://github.com/akka/akka-projection/tree/main/samples/grpc/local-drone-control-java</a></li>
+  <li>Scala: <a href="https://github.com/akka/akka-projection/tree/main/samples/grpc/local-drone-control-scala">https://github.com/akka/akka-projection/tree/main/samples/grpc/local-drone-control-scala</a></li>
+</ul>
+<h3><a href="#local-drone-control-namespace" name="local-drone-control-namespace" class="anchor"><span class="anchor-link"></span></a>Local Drone Control Namespace</h3>
+<p>Define a Kubernetes namespace with a <code>namespace.json</code> file:</p>
+<dl>
+  <dt>JSON</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka-projection/tree/master/samples/grpc/local-drone-control-scala/kubernetes/namespace.json" target="_blank" title="Go to snippet source">source</a><code class="language-json">{
+  &quot;kind&quot;: &quot;Namespace&quot;,
+  &quot;apiVersion&quot;: &quot;v1&quot;,
+  &quot;metadata&quot;: {
+    &quot;name&quot;: &quot;local-drone-control-namespace&quot;,
+    &quot;labels&quot;: {
+      &quot;name&quot;: &quot;local-drone-control-namespace&quot;
+    }
+  }
+}
+</code></pre></dd>
+</dl>
+<p>Create the namespace with:</p>
+<pre><code>kubectl apply -f kubernetes/namespace.json
+</code></pre>
+<p>For convenience, you can use this namespace by default:</p>
+<pre><code>kubectl config set-context --current --namespace=local-drone-control-namespace
+</code></pre>
+<h3><a href="#deploy-the-service" name="deploy-the-service" class="anchor"><span class="anchor-link"></span></a>Deploy the service</h3>
+<p>In the edge k8 clusters, update the environment variables in deployment.yaml for <code>LOCATION_ID</code>, selecting one of the predefined locations known to the restaurant-drone-deliveries service: <code>sweden/stockholm/kungsholmen</code>, <code>sweden/stockholm/södermalm</code>, <code>sweden/stockholm/norrmalm</code> or <code>sweden/stockholm/östermalm</code>.</p>
+<p>Set <code>CENTRAL_DRONE_CONTROL_HOST</code> to the public DNS hostname of your load balancer for the <code>restaurant-drone-deliveries-service</code>.</p>
+<dl>
+  <dt>YAML</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka-projection/tree/master/samples/grpc/local-drone-control-scala/kubernetes/deployment.yml" target="_blank" title="Go to snippet source">source</a><code class="language-yml">apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: local-drone-control-service
+  name: local-drone-control-service
+  namespace: local-drone-control-namespace
+spec:
+  # note: the default image cannot scale out as it uses a local database
+  replicas: 1
+  selector:
+    matchLabels:
+      app: local-drone-control-service
+  template:
+    metadata:
+      labels:
+        app: local-drone-control-service
+        actorSystemName: local-drone-control-service
+    spec:
+      containers:
+        - name: local-drone-control-service
+          # use specific image version from docker publish
+          image: local-drone-control:latest
+          # these will need to be increased/tuned for production environments!
+          resources:
+            limits:
+              memory: &quot;512Mi&quot;
+            requests:
+              memory: &quot;512Mi&quot;
+              cpu: &quot;1000m&quot;
+          ports:
+            - name: grpc
+              containerPort: 8080
+              protocol: TCP
+          env:
+            - name: NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: JAVA_TOOL_OPTIONS
+              value: &quot;-XX:InitialRAMPercentage=75 -XX:MaxRAMPercentage=75&quot;
+            - name: LOCATION_ID
+              # one of the location ids supported by the restaurant-drone-deliveries service
+              value: &quot;sweden/stockholm/kungsholmen&quot;
+            - name: CENTRAL_DRONE_CONTROL_HOST
+              # update with public endpoint for restaurant-drone-deliveries
+              value: k8s-restaura-restaura-5bd7dc845f-48570e637882db8c.elb.us-east-2.amazonaws.com
+            - name: CENTRAL_DRONE_CONTROL_PORT
+              value: &quot;80&quot;
+            - name: H2_DATABASE_PATH
+              # for state to survive restarts this would need to be a volume
+              # right now a restarted node will replay all orders from central
+              # and only report new drone updates
+              value: /tmp/drone-db</code></pre></dd>
+</dl>
+<p>Build the image and deploy in the same way as described previously.</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre><code>sbt -Ddocker.username=&lt;username&gt; -Ddocker.registry=docker.io Docker/publish
+</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre><code>mvn -DskipTests -Ddocker.registry=&lt;username&gt; clean package docker:push
+</code></pre></dd>
+</dl>
+<p>Update the <code>image:</code> in the <code>deployment.yml</code> with the specific image version and location you published.</p>
+<pre><code>kubectl apply -f kubernetes/debployment.yml
+</code></pre>
+<h3><a href="#port-forwards" name="port-forwards" class="anchor"><span class="anchor-link"></span></a>Port forwards</h3>
+<p>Create a Kubernetes <code>Service</code> and port forward to simplify access to the pods from your local machine:</p>
+<dl>
+  <dt>YAML</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka-projection/tree/master/samples/grpc/local-drone-control-scala/kubernetes/service.yml" target="_blank" title="Go to snippet source">source</a><code class="language-yml">apiVersion: v1
+kind: Service
+metadata:
+  name: local-drone-control-service-svc
+spec:
+  selector:
+    app: local-drone-control-service
+  type: NodePort
+  ports:
+    - protocol: TCP
+      port: 8080
+      targetPort: 8080</code></pre></dd>
+</dl>
+<pre><code>kubectl -f apply kubernetes/service.yml
+</code></pre>
+<p>Start port forward with:</p>
+<pre><code>kubectl port-forward svc/local-drone-control-service-svc 8080:8080
+</code></pre>
+<h3><a href="#exercise-the-local-drone-control-service-instance" name="exercise-the-local-drone-control-service-instance" class="anchor"><span class="anchor-link"></span></a>Exercise the local drone control service instance</h3>
+<p>Use <a href="https://github.com/fullstorydev/grpcurl">grpcurl</a> to exercise the service.</p>
+<pre><code>grpcurl -d &#39;{&quot;drone_id&quot;:&quot;drone3&quot;, &quot;coordinates&quot;: {&quot;longitude&quot;: 19.70125, &quot;latitude&quot;: 59.51834}, &quot;altitude&quot;: 5}&#39; -plaintext 127.0.0.1:8080 local.drones.DroneService.ReportLocation
+</code></pre>
+<p>Check that the coarse grained location of the drone was propagated to the cloud service:</p>
+<pre><code>grpcurl -d &#39;{&quot;drone_id&quot;:&quot;drone3&quot;}&#39; -plaintext &lt;public-cloud-service-dns-name&gt;:80 central.drones.DroneOverviewService.GetDroneOverview
+</code></pre>
+<p>List the orders that was propagated to the local control service, you should see an order we added an order when verifying that the restaurant-drone-deliveries service was functional earlier.</p>
+<pre><code>grpcurl -plaintext 127.0.0.1:8080 local.drones.DeliveriesQueueService.GetCurrentQueue
+</code></pre>
+</div>
+</article>
+<div class="row">
+<div class="small-12 column">
+<section class="nav-prev-next row">
+<div class="nav-prev small-6 column">
+<a href="../guide/4-local-drone-delivery-selection.html"><i class="icon-prev"></i> <span class="link-prev">Local Drone Delivery Selection</span></a>
+</div>
+<div class="nav-next small-6 column clearfix">
+<a class="float-right" href="../lightweight-deployments.html">Lightweight deployments <i class="icon-next"></i></a>
+</div>
+</section>
+</div>
+</div>
+<div class="source-github row">
+Found an error in this documentation? The source code for this page can be found <a href="https://github.com/akka/akka-projection/tree/master/akka-edge-docs/src/main/paradox/guide/5-deploying-the-services.md">here</a>.
+Please feel free to edit and contribute a pull request.
+</div>
+
+<footer class="page-footer row clearfix">
+<img class="akka-icon float-left show-for-medium" src="../images/akka-icon.svg" />
+<section class="copyright">
+<div>Akka Edge is available under the <a href="https://www.lightbend.com/akka/license" target="_blank">Business Source License 1.1</a>.</div>
+<p class="legal">
+&copy; 2011-2023 <a href="https://www.lightbend.com" target="_blank">Lightbend, Inc.</a> |
+<a href="https://www.lightbend.com/legal/licenses" target="_blank">Licenses</a> |
+<a href="https://www.lightbend.com/legal/terms" target="_blank">Terms</a> |
+<a href="https://www.lightbend.com/legal/privacy" target="_blank">Privacy Policy</a> |
+<a href="https://akka.io/cookie/" target="_blank">Cookie Listing</a> |
+<a class="optanon-toggle-display">Cookie Settings</a>
+</p>
+</section>
+
+</footer>
+</section>
+</main>
+</div>
+
+<script type="text/javascript" src="../js/scrollsneak.js"></script>
+<script type="text/javascript">jQuery(document).foundation();</script>
+<script type="text/javascript" src="../js/groups.js"></script>
+<script type="text/javascript" src="../js/page.js"></script>
+<script type="text/javascript" src="../js/snippets.js"></script>
+<script type="text/javascript" src="../js/magellan.js"></script>
+<script type="text/javascript" src="../js/metadata-toggle.js"></script>
+<script type="text/javascript" src="../js/lbHeader.js"></script>
+
+<style type="text/css">@import "../lib/prettify/prettify.css";</style>
+<script type="text/javascript" src="../lib/prettify/prettify.js"></script>
+<script type="text/javascript" src="../lib/prettify/lang-scala.js"></script>
+<script type="text/javascript">//<![CDATA[
+jQuery(function(){window.prettyPrint && prettyPrint()});
+//]]></script>
+<!-- hook for including project specific javascript into the generated docs -->
+
+</body>
+</html>

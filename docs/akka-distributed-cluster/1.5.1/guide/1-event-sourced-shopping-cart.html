@@ -1,0 +1,1063 @@
+<!DOCTYPE html>
+<html class="no-js" lang="en">
+
+<head>
+<title>Part 1: Event Sourced Shopping Cart &bull; Akka Distributed Cluster</title>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta name="description" content="Akka Projection."/>
+<link rel="canonical" href="https://doc.akka.io/docs/akka-distributed-cluster/current/guide/1-event-sourced-shopping-cart.html"/>
+<script type="text/javascript" src="../lib/jquery/jquery.min.js"></script>
+<script type="text/javascript" src="../lib/foundation/dist/js/foundation.min.js"></script>
+<link rel="stylesheet" type="text/css" href="../lib/normalize.css/normalize.css"/>
+<link rel="stylesheet" type="text/css" href="../lib/foundation/dist/css/foundation.min.css"/>
+<link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/docsearch.js/2/docsearch.min.css" />
+<link rel="stylesheet" type="text/css" href="../css/icons.css"/>
+<link rel="stylesheet" type="text/css" href="../css/page-8.css"/>
+<link rel="stylesheet" type="text/css" href="../css/banner-2.css"/>
+<link rel="shortcut icon" href="../images/favicon.ico" />
+<link rel="apple-touch-icon" sizes="180x180" href="../images/apple-touch-icon.png"/>
+<link rel="icon" type="image/png" sizes="32x32" href="../images/favicon-32x32.png"/>
+<link rel="icon" type="image/png" sizes="16x16" href="../images/favicon-16x16.png"/>
+<link rel="manifest" href="../images/manifest.json"/>
+<meta name="msapplication-TileImage" content="../images/mstile-150x150.png"/>
+<meta name="msapplication-TileColor" content="#15a9ce"/>
+<meta name="theme-color" content="#15a9ce"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<!-- OneTrust Cookies Consent Notice (Production Standard, akka.io, en-GB) start -->
+<script src="https://cdn.cookielaw.org/scripttemplates/otSDKStub.js"  type="text/javascript" charset="UTF-8" data-domain-script="28b912e7-09e9-43d5-91e4-3d1897044004" ></script>
+<script type="text/javascript">
+function OptanonWrapper() { }
+</script>
+<!-- OneTrust Cookies Consent Notice (Production Standard, akka.io, en-GB) end -->
+<!-- Google Tag Manager now loads Google Analytics and any other tracking scripts. GTM also performs respects a users cookie choices-->
+<script type="text/javascript">
+(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+})(window,document,'script','dataLayer','GTM-KBJGH35');
+</script>
+
+</head>
+
+<body id="underlay" data-toggler="nav-open">
+<div id="lightbend-banner" class="lightbend-banner akka full-width" data-category="OSS Lightbend Banner Impression" data-label="Akka Banner Impression">
+<div class="oss-wrapper">
+<div class="oss-brand">
+<a class="oss-track-link-label" data-category="OSS Lightbend Banner Clicks" data-label="Lightbend Logo - Akka Banner" href="https://www.lightbend.com">
+<img class="lightbend-logo" src="../images/banner-logos/lightbend-reverse.svg" alt="Lightbend" title="Lightbend">
+</a>
+</div>
+<div class="oss-ad no-drop-down">
+<nav id="lightbendRotator" class="lightbend-rotator">
+<a class="oss-track-link-label" data-category="OSS Lightbend Banner Clicks" data-label="Promo Rotator - Introducing Akka Cloud to Edge Continuum. Build once for the Cloud. Seamlessly deploy to the Edge. [Learn more] - Akka Banner" href="https://www.lightbend.com/blog/akka-edge-unifying-the-cloud-and-edge">
+Introducing Akka Cloud to Edge Continuum. Build once for the Cloud. Seamlessly deploy to the Edge. <span class="akka-btn">Learn more</span>
+</a>
+</nav>
+</div>
+</div>
+</div>
+
+<header class="site-header hide-for-large">
+<div class="sticky-header clearfix">
+<a href="https://akka.io"><img class="logo" src="../images/akka-logo-reverse.svg"/></a>
+
+<button class="menu-icon float-right" type="button" data-toggle="underlay overlay"></button>
+</div>
+<div id="overlay" class="overlay-nav" data-toggler="nav-open">
+<header class="nav-header">
+<div class="nav-header-title">
+<h1><a href="../index.html">Akka Distributed Cluster</a></h1>
+</div>
+<div class="nav-header-version">
+Version 1.5.1
+</div>
+<div class="nav-header-groups">
+<select class="supergroup" name="Language"><option class="group" value="group-java">Java</option><option class="group" value="group-scala">Scala</option></select>
+</div>
+</header>
+<nav class="nav-toc">
+<ul>
+  <li><a href="../overview.html" class="page">Architectural Overview</a></li>
+  <li><a href="../use-cases.html" class="page">Example Use Cases</a></li>
+  <li><a href="../feature-summary.html" class="page">Feature Summary</a></li>
+  <li><a href="../guide.html" class="page">Guide</a>
+  <ul>
+    <li><a href="../guide/1-event-sourced-shopping-cart.html#part-1-event-sourced-shopping-cart" class="active page">Part 1: Event Sourced Shopping Cart</a>
+    <ul>
+      <li><a href="../guide/1-event-sourced-shopping-cart.html#implementing-an-event-sourced-shopping-cart" class="header">Implementing an Event Sourced shopping cart</a></li>
+      <li><a href="../guide/1-event-sourced-shopping-cart.html#serialization" class="header">Serialization</a></li>
+      <li><a href="../guide/1-event-sourced-shopping-cart.html#client-access-with-akka-grpc" class="header">Client access with Akka gRPC</a></li>
+      <li><a href="../guide/1-event-sourced-shopping-cart.html#running-the-sample" class="header">Running the sample</a></li>
+      <li><a href="../guide/1-event-sourced-shopping-cart.html#whats-next-" class="header">What&rsquo;s next?</a></li>
+    </ul></li>
+    <li><a href="../guide/2-service-to-service.html" class="page">Part 2: Service to Service eventing</a></li>
+    <li><a href="../guide/3-active-active.html" class="page">Part 3: Active-active</a></li>
+    <li><a href="../guide/4-deploying.html" class="page">Part 4: Deploying with Kubernetes</a></li>
+  </ul></li>
+</ul>
+</nav>
+</div>
+</header>
+<div class="site-content-wrapper">
+<aside class="sticky-sidebar show-for-large">
+<header class="nav-header sticky-sidebar-header">
+<div class="nav-header-title">
+<h1><a href="../index.html">Akka Distributed Cluster</a></h1>
+</div>
+<div class="nav-header-version">
+Version 1.5.1
+</div>
+<div class="nav-header-groups">
+<select class="supergroup" name="Language"><option class="group" value="group-java">Java</option><option class="group" value="group-scala">Scala</option></select>
+</div>
+</header>
+<nav class="site-nav sticky-sidebar-contents">
+<div class="nav-toc">
+<ul>
+  <li><a href="../overview.html" class="page">Architectural Overview</a></li>
+  <li><a href="../use-cases.html" class="page">Example Use Cases</a></li>
+  <li><a href="../feature-summary.html" class="page">Feature Summary</a></li>
+  <li><a href="../guide.html" class="page">Guide</a>
+  <ul>
+    <li><a href="../guide/1-event-sourced-shopping-cart.html#part-1-event-sourced-shopping-cart" class="active page">Part 1: Event Sourced Shopping Cart</a>
+    <ul>
+      <li><a href="../guide/1-event-sourced-shopping-cart.html#implementing-an-event-sourced-shopping-cart" class="header">Implementing an Event Sourced shopping cart</a></li>
+      <li><a href="../guide/1-event-sourced-shopping-cart.html#serialization" class="header">Serialization</a></li>
+      <li><a href="../guide/1-event-sourced-shopping-cart.html#client-access-with-akka-grpc" class="header">Client access with Akka gRPC</a></li>
+      <li><a href="../guide/1-event-sourced-shopping-cart.html#running-the-sample" class="header">Running the sample</a></li>
+      <li><a href="../guide/1-event-sourced-shopping-cart.html#whats-next-" class="header">What&rsquo;s next?</a></li>
+    </ul></li>
+    <li><a href="../guide/2-service-to-service.html" class="page">Part 2: Service to Service eventing</a></li>
+    <li><a href="../guide/3-active-active.html" class="page">Part 3: Active-active</a></li>
+    <li><a href="../guide/4-deploying.html" class="page">Part 4: Deploying with Kubernetes</a></li>
+  </ul></li>
+</ul>
+</div>
+</nav>
+<footer class="nav-footer sticky-sidebar-footer">
+<a href="https://akka.io"><img class="logo" src="../images/akka-logo-reverse.svg"/></a>
+
+</footer>
+</aside>
+<main class="fixed-shift-for-large expanded row">
+<section class="site-content small-12 column">
+<article class="page-content row">
+<div class="small-12 column" id="docs">
+<h1><a href="#part-1-event-sourced-shopping-cart" name="part-1-event-sourced-shopping-cart" class="anchor"><span class="anchor-link"></span></a>Part 1: Event Sourced Shopping Cart</h1>
+<p>As the other features of Akka Distributed Cluster are build on top of Event Sourcing, let us start by implementing a shopping cart using the <a href="https://doc.akka.io/docs/akka/2.9/typed/persistence.html">Akka Event Sourced Behavior API</a>. When this first step is completed, end users will be able to add and remove items to a cart and finally check it out.</p>
+<p>We will build the cart as an Event Sourced entity, if you are unfamiliar with Event Sourcing, refer to the <a href="https://developer.lightbend.com/docs/akka-guide/microservices-tutorial/">Event Sourcing section in the Akka guide</a> for an explanation. The <a href="https://akka.io/blog/news/2020/01/07/akka-event-sourcing-video">Event Sourcing with Akka video</a> is also a good starting point for learning Event Sourcing.</p>
+<h2><a href="#implementing-an-event-sourced-shopping-cart" name="implementing-an-event-sourced-shopping-cart" class="anchor"><span class="anchor-link"></span></a>Implementing an Event Sourced shopping cart</h2>
+<h3><a href="#commands" name="commands" class="anchor"><span class="anchor-link"></span></a>Commands</h3>
+<p>Commands are the public API of an entity that other parts of the system use to interact with it. Entity state can only be changed by commands. The results of commands are emitted as events. A command can request state changes, and different events might be generated depending on the current state of the entity. A command can also be rejected if it has invalid input or can’t be handled by the current state of the entity.</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka-projection/tree/master/samples/grpc/shopping-cart-service-scala/src/main/scala/shopping/cart/ShoppingCart.scala#L100-L143" target="_blank" title="Go to snippet source">source</a><code class="language-scala">/**
+ * This interface defines all the commands (messages) that the ShoppingCart actor supports.
+ */
+sealed trait Command extends CborSerializable
+
+/**
+ * A command to add an item to the cart.
+ *
+ * It replies with `StatusReply[Summary]`, which is sent back to the caller when
+ * all the events emitted by this command are successfully persisted.
+ */
+final case class AddItem(
+    itemId: String,
+    quantity: Int,
+    replyTo: ActorRef[StatusReply[Summary]])
+    extends Command
+
+/**
+ * A command to remove an item from the cart.
+ */
+final case class RemoveItem(
+    itemId: String,
+    quantity: Int,
+    replyTo: ActorRef[StatusReply[Summary]])
+    extends Command
+
+/**
+ * A command to checkout the shopping cart.
+ */
+final case class Checkout(replyTo: ActorRef[StatusReply[Summary]])
+    extends Command
+
+/**
+ * A command to get the current state of the shopping cart.
+ */
+final case class Get(replyTo: ActorRef[Summary]) extends Command
+
+/**
+ * Summary of the shopping cart state, used in reply messages.
+ */
+final case class Summary(
+    items: Map[String, Int],
+    checkedOut: Boolean)
+    extends CborSerializable
+/**
+ * This interface defines all the events that the ShoppingCart supports.
+ */
+sealed trait Event extends CborSerializable
+
+final case class ItemUpdated(itemId: String, quantity: Int) extends Event
+
+final case class CheckedOut(eventTime: Instant) extends Event</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka-projection/tree/master/samples/grpc/shopping-cart-service-java/src/main/java/shopping/cart/ShoppingCart.java#L112-L176" target="_blank" title="Go to snippet source">source</a><code class="language-java">/** This interface defines all the commands (messages) that the ShoppingCart actor supports. */
+interface Command extends CborSerializable {}
+
+/**
+ * A command to add an item to the cart.
+ *
+ * &lt;p&gt;It replies with `StatusReply&amp;lt;Summary&amp;gt;`, which is sent back to the caller when all the
+ * events emitted by this command are successfully persisted.
+ */
+public static final class AddItem implements Command {
+  final String itemId;
+  final int quantity;
+  final ActorRef&lt;StatusReply&lt;Summary&gt;&gt; replyTo;
+
+  public AddItem(String itemId, int quantity, ActorRef&lt;StatusReply&lt;Summary&gt;&gt; replyTo) {
+    this.itemId = itemId;
+    this.quantity = quantity;
+    this.replyTo = replyTo;
+  }
+}
+
+/** A command to remove an item from the cart. */
+public static final class RemoveItem implements Command {
+  final String itemId;
+  final int quantity;
+  final ActorRef&lt;StatusReply&lt;Summary&gt;&gt; replyTo;
+
+  public RemoveItem(String itemId, int quantity, ActorRef&lt;StatusReply&lt;Summary&gt;&gt; replyTo) {
+    this.itemId = itemId;
+    this.quantity = quantity;
+    this.replyTo = replyTo;
+  }
+}
+
+/** A command to checkout the shopping cart. */
+public static final class Checkout implements Command {
+  final ActorRef&lt;StatusReply&lt;Summary&gt;&gt; replyTo;
+
+  @JsonCreator
+  public Checkout(ActorRef&lt;StatusReply&lt;Summary&gt;&gt; replyTo) {
+    this.replyTo = replyTo;
+  }
+}
+
+/** A command to get the current state of the shopping cart. */
+public static final class Get implements Command {
+  final ActorRef&lt;Summary&gt; replyTo;
+
+  @JsonCreator
+  public Get(ActorRef&lt;Summary&gt; replyTo) {
+    this.replyTo = replyTo;
+  }
+}
+
+/** Summary of the shopping cart state, used in reply messages. */
+public static final class Summary implements CborSerializable {
+  final Map&lt;String, Integer&gt; items;
+  final boolean checkedOut;
+
+  public Summary(Map&lt;String, Integer&gt; items, boolean checkedOut) {
+    // defensive copy since items is a mutable object
+    this.items = new HashMap&lt;&gt;(items);
+    this.checkedOut = checkedOut;
+  }
+}
+abstract static class Event implements CborSerializable {
+}
+
+static final class ItemUpdated extends Event {
+  public final String itemId;
+  public final int quantity;
+
+  public ItemUpdated(String itemId, int quantity) {
+    this.itemId = itemId;
+    this.quantity = quantity;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+
+    ItemUpdated other = (ItemUpdated) o;
+
+    if (quantity != other.quantity) return false;
+    return itemId.equals(other.itemId);
+  }
+
+  @Override
+  public int hashCode() {
+    int result = itemId.hashCode();
+    result = 31 * result + quantity;
+    return result;
+  }
+}
+
+static final class CheckedOut extends Event {
+  final Instant eventTime;
+
+  @JsonCreator
+  public CheckedOut(Instant eventTime) {
+    this.eventTime = eventTime;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+    CheckedOut that = (CheckedOut) o;
+    return Objects.equals(eventTime, that.eventTime);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(eventTime);
+  }
+}</code></pre></dd>
+</dl>
+<h3><a href="#state" name="state" class="anchor"><span class="anchor-link"></span></a>State</h3>
+<p>Items added to the Cart are added to a <code>Map</code>. The contents of the <code>Map</code> comprise the Cart’s state along with an optional checkout timestamp, which is set when the cart is checked out:</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka-projection/tree/master/samples/grpc/shopping-cart-service-scala/src/main/scala/shopping/cart/ShoppingCart.scala#L46-L87" target="_blank" title="Go to snippet source">source</a><code class="language-scala">final case class State(
+    items: Map[String, Int],
+    checkoutDate: Option[Instant])
+    extends CborSerializable {
+
+
+  def isCheckedOut: Boolean =
+    checkoutDate.isDefined
+
+  def isEmpty: Boolean =
+    items.isEmpty
+
+  def updateItem(itemId: String, quantity: Int): State = {
+    val newQuantity = items.getOrElse(itemId, 0) + quantity
+    if (newQuantity &gt; 0)
+      copy(items = items + (itemId -&gt; newQuantity))
+    else
+      copy(items = items.removed(itemId))
+  }
+
+  def checkout(now: Instant): State =
+    copy(checkoutDate = Some(now))
+
+  def toSummary: Summary = {
+    // filter out removed items
+    Summary(items, isCheckedOut)
+  }
+
+  def totalQuantity: Int =
+    items.map { case (_, quantity) =&gt; quantity }.sum
+
+  def tags: Set[String] = {
+    val total = totalQuantity
+    if (total == 0) Set.empty
+    else if (total &gt;= 100) Set(LargeQuantityTag)
+    else if (total &gt;= 10) Set(MediumQuantityTag)
+    else Set(SmallQuantityTag)
+  }
+
+}</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka-projection/tree/master/samples/grpc/shopping-cart-service-java/src/main/java/shopping/cart/ShoppingCart.java#L49-L107" target="_blank" title="Go to snippet source">source</a><code class="language-java">static final class State implements CborSerializable {
+  final Map&lt;String, Integer&gt; items;
+
+  private Optional&lt;Instant&gt; checkoutDate;
+
+  public State() {
+    this(new HashMap&lt;&gt;(), Optional.empty());
+  }
+
+  public State(Map&lt;String, Integer&gt; items, Optional&lt;Instant&gt; checkoutDate) {
+    this.items = items;
+    this.checkoutDate = checkoutDate;
+  }
+
+  public boolean isCheckedOut() {
+    return checkoutDate.isPresent();
+  }
+
+  public State checkout(Instant now) {
+    checkoutDate = Optional.of(now);
+    return this;
+  }
+
+  public Summary toSummary() {
+    return new Summary(items, isCheckedOut());
+  }
+
+  public State updateItem(String itemId, int quantity) {
+    int newQuantity = items.getOrDefault(itemId, 0) + quantity;
+    if (newQuantity &gt; 0)
+      items.put(itemId, newQuantity);
+    else
+      items.remove(itemId);
+    return this;
+  }
+
+  public boolean isEmpty() {
+    return items.isEmpty();
+  }
+
+  public int totalQuantity() {
+    return items.values().stream().reduce(0, Integer::sum);
+  }
+
+  public Set&lt;String&gt; tags() {
+    int total = totalQuantity();
+    if (total == 0)
+      return Collections.emptySet();
+    else if (total &gt;= 100)
+      return Collections.singleton(LARGE_QUANTITY_TAG);
+    else if (total &gt;= 10)
+      return Collections.singleton(MEDIUM_QUANTITY_TAG);
+    else
+      return Collections.singleton(SMALL_QUANTITY_TAG);
+  }
+}
+</code></pre></dd>
+</dl>
+<h3><a href="#command-handler" name="command-handler" class="anchor"><span class="anchor-link"></span></a>Command handler</h3>
+<p>The Cart entity will receive commands that request changes to Cart state. We will implement a command handler to process these commands and emit a reply, the handler logic selected is different depending on if the cart is checked out already, replying with an error, or if the cart is still open for adding and removing items.</p>
+<p>The command handler for an open cart looks like this:</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka-projection/tree/master/samples/grpc/shopping-cart-service-scala/src/main/scala/shopping/cart/ShoppingCart.scala#L205-L244" target="_blank" title="Go to snippet source">source</a><code class="language-scala">private def openShoppingCart(
+    state: State,
+    command: Command): ReplyEffect[Event, State] = {
+  command match {
+    case AddItem(itemId, quantity, replyTo) =&gt;
+     if (quantity &lt;= 0)
+        Effect.reply(replyTo)(
+          StatusReply.Error(&quot;Quantity must be greater than zero&quot;))
+      else
+        Effect
+          .persist(ItemUpdated(itemId, quantity))
+          .thenReply(replyTo) { updatedCart =&gt;
+            StatusReply.Success(updatedCart.toSummary)
+          }
+
+    case RemoveItem(itemId, quantity, replyTo) =&gt;
+      if (quantity &lt;= 0)
+        Effect.reply(replyTo)(
+          StatusReply.Error(&quot;Quantity must be greater than zero&quot;))
+      else
+        Effect
+          .persist(ItemUpdated(itemId, -quantity))
+          .thenReply(replyTo)(updatedCart =&gt;
+            StatusReply.Success(updatedCart.toSummary))
+
+
+    case Checkout(replyTo) =&gt;
+      if (state.isEmpty)
+        Effect.reply(replyTo)(
+          StatusReply.Error(&quot;Cannot checkout an empty shopping cart&quot;))
+      else
+        Effect
+          .persist(CheckedOut(Instant.now()))
+          .thenReply(replyTo)(updatedCart =&gt;
+            StatusReply.Success(updatedCart.toSummary))
+
+    case Get(replyTo) =&gt;
+      Effect.reply(replyTo)(state.toSummary)
+  }
+}</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka-projection/tree/master/samples/grpc/shopping-cart-service-java/src/main/java/shopping/cart/ShoppingCart.java#L287-L293" target="_blank" title="Go to snippet source">source</a><code class="language-java">private CommandHandlerWithReplyBuilderByState&lt;Command, Event, State, State&gt; openShoppingCart() {
+  return newCommandHandlerWithReplyBuilder()
+      .forState(state -&gt; !state.isCheckedOut())
+      .onCommand(AddItem.class, this::onAddItem)
+      .onCommand(RemoveItem.class, this::onRemoveItem)
+      .onCommand(Checkout.class, this::onCheckout);
+}</code></pre></dd>
+</dl><div class="group-java">
+<p>The actual logic for handling the commands is implemented in methods on the <code>ShoppingCart</code> class, for example the <code>onAddItem</code> method: </p>
+<dl>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka-projection/tree/master/samples/grpc/shopping-cart-service-java/src/main/java/shopping/cart/ShoppingCart.java#L297-L305" target="_blank" title="Go to snippet source">source</a><code class="language-java">private ReplyEffect&lt;Event, State&gt; onAddItem(State state, AddItem cmd) {
+  if (cmd.quantity &lt;= 0) {
+    return Effect().reply(cmd.replyTo, StatusReply.error(&quot;Quantity must be greater than zero&quot;));
+  } else {
+    return Effect()
+        .persist(new ItemUpdated(cmd.itemId, cmd.quantity))
+        .thenReply(cmd.replyTo, updatedCart -&gt; StatusReply.success(updatedCart.toSummary()));
+  }
+}</code></pre></dd>
+</dl></div>
+<h3><a href="#event-handler" name="event-handler" class="anchor"><span class="anchor-link"></span></a>Event handler</h3>
+<p>From commands, the entity creates events that represent state changes. Aligning with the command handler above, the entity’s event handler reacts to events and updates the state. The events are continuously persisted to the Event Journal datastore, while the entity state is kept in memory. Other parts of the application may listen to the events. In case of a restart, the entity recovers its latest state by replaying the events from the Event Journal.</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka-projection/tree/master/samples/grpc/shopping-cart-service-scala/src/main/scala/shopping/cart/ShoppingCart.scala#L268-L275" target="_blank" title="Go to snippet source">source</a><code class="language-scala">private def handleEvent(state: State, event: Event): State = {
+  event match {
+    case ItemUpdated(itemId, quantity) =&gt;
+      state.updateItem(itemId, quantity)
+    case CheckedOut(eventTime) =&gt;
+      state.checkout(eventTime)
+  }
+}</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka-projection/tree/master/samples/grpc/shopping-cart-service-java/src/main/java/shopping/cart/ShoppingCart.java#L361-L370" target="_blank" title="Go to snippet source">source</a><code class="language-java">@Override
+public EventHandler&lt;State, Event&gt; eventHandler() {
+  return newEventHandlerBuilder()
+      .forAnyState()
+      .onEvent(
+          ItemUpdated.class,
+          (state, evt) -&gt; state.updateItem(evt.itemId, evt.quantity))
+      .onEvent(CheckedOut.class, (state, evt) -&gt; state.checkout(evt.eventTime))
+      .build();
+}</code></pre></dd>
+</dl>
+<h3><a href="#wiring-it-all-together" name="wiring-it-all-together" class="anchor"><span class="anchor-link"></span></a>Wiring it all together</h3>
+<p>To glue the command handler, event handler, and state together, we need some initialization code. Our code will distribute the Cart entities over nodes in the Akka Cluster with <a href="https://doc.akka.io/docs/akka/2.9/typed/cluster-sharding.html">Cluster Sharding</a>, enable snapshots to reduce recovery time when the entity is started, and restart with backoff in the case of failure.</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka-projection/tree/master/samples/grpc/shopping-cart-service-scala/src/main/scala/shopping/cart/ShoppingCart.scala#L168-L190" target="_blank" title="Go to snippet source">source</a><code class="language-scala">def init(system: ActorSystem[_]): Unit = {
+  ClusterSharding(system).init(Entity(EntityKey)(entityContext =&gt;
+    ShoppingCart(entityContext.entityId)))
+}
+def apply(cartId: String): Behavior[Command] = {
+  EventSourcedBehavior
+    .withEnforcedReplies[Command, Event, State](
+      persistenceId = PersistenceId(EntityKey.name, cartId),
+      emptyState = State.empty,
+      commandHandler =
+        (state, command) =&gt; handleCommand(state, command),
+      eventHandler = (state, event) =&gt; handleEvent(state, event))
+    .withTaggerForState { case (state, _) =&gt;
+      state.tags
+    }
+    .withRetention(RetentionCriteria.snapshotEvery(numberOfEvents = 100))
+    .onPersistFailure(
+      SupervisorStrategy.restartWithBackoff(200.millis, 5.seconds, 0.1))
+}</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka-projection/tree/master/samples/grpc/shopping-cart-service-java/src/main/java/shopping/cart/ShoppingCart.java#L236-L247" target="_blank" title="Go to snippet source">source</a><code class="language-java">static final EntityTypeKey&lt;Command&gt; ENTITY_KEY =
+    EntityTypeKey.create(Command.class, &quot;ShoppingCart&quot;);
+
+public static void init(ActorSystem&lt;?&gt; system) {
+  ClusterSharding.get(system)
+      .init(
+          Entity.of(
+              ENTITY_KEY,
+              entityContext -&gt;
+                ShoppingCart.create(entityContext.getEntityId())
+              ));
+}</code></pre></dd>
+</dl>
+<h2><a href="#serialization" name="serialization" class="anchor"><span class="anchor-link"></span></a>Serialization</h2>
+<p>The state, commands and events of the entity must be serializable because they are written to the datastore or sent between nodes within the Akka cluster. The sample project includes built-in CBOR serialization using the <a href="https://doc.akka.io/docs/akka/2.9/serialization-jackson.html">Akka Serialization Jackson module</a>. This section describes how serialization is implemented. You do not need to do anything specific to take advantage of CBOR, but this section explains how it is included. The state, commands and events are marked as <code>akka.serialization.jackson.CborSerializable</code> which is configured to use the built-in CBOR serialization.</p>
+<h2><a href="#client-access-with-akka-grpc" name="client-access-with-akka-grpc" class="anchor"><span class="anchor-link"></span></a>Client access with Akka gRPC</h2>
+<p>To allow users to actually use the service we need a public API reachable over the internet. For this we will use <a href="https://doc.akka.io/docs/akka-grpc/2.4/">Akka gRPC</a> giving us a type safe, efficient protocol that allows clients to be written in many languages.</p>
+<p>The service descriptor for the API is defined in protobuf and mirrors the set of commands the entity accepts:</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka-projection/tree/master/samples/grpc/shopping-cart-service-scala/src/main/protobuf/ShoppingCartService.proto" target="_blank" title="Go to snippet source">source</a><code class="language-proto">syntax = &quot;proto3&quot;;
+
+option java_multiple_files = true;
+option java_package = &quot;shopping.cart.proto&quot;;
+
+package shoppingcart;
+
+// gRPC definition for ShoppingCartService
+
+service ShoppingCartService {
+    rpc AddItem (AddItemRequest) returns (Cart) {}
+    rpc RemoveItem (RemoveItemRequest) returns (Cart) {}
+    rpc Checkout (CheckoutRequest) returns (Cart) {}
+    rpc GetCart (GetCartRequest) returns (Cart) {}
+}
+
+
+message AddItemRequest {
+    string cartId = 1;
+    string itemId = 2;
+    int32 quantity = 3;
+}
+
+message RemoveItemRequest {
+    string cartId = 1;
+    string itemId = 2;
+    int32 quantity = 3;
+}
+
+message CheckoutRequest {
+    string cartId = 1;
+}
+
+message GetCartRequest {
+    string cartId = 1;
+}
+
+message Cart {
+    repeated Item items = 1;
+    bool checkedOut = 2;
+}
+
+message Item {
+    string itemId = 1;
+    int32 quantity = 2;
+}</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka-projection/tree/master/samples/grpc/shopping-cart-service-java/src/main/protobuf/ShoppingCartService.proto" target="_blank" title="Go to snippet source">source</a><code class="language-proto">syntax = &quot;proto3&quot;;
+
+option java_multiple_files = true;
+option java_package = &quot;shopping.cart.proto&quot;;
+
+package shoppingcart;
+
+// gRPC definition for ShoppingCartService
+
+service ShoppingCartService {
+    rpc AddItem (AddItemRequest) returns (Cart) {}
+    rpc RemoveItem (RemoveItemRequest) returns (Cart) {}
+    rpc Checkout (CheckoutRequest) returns (Cart) {}
+    rpc GetCart (GetCartRequest) returns (Cart) {}
+}
+
+message AddItemRequest {
+    string cartId = 1;
+    string itemId = 2;
+    int32 quantity = 3;
+}
+
+message RemoveItemRequest {
+    string cartId = 1;
+    string itemId = 2;
+    int32 quantity = 3;
+}
+
+message CheckoutRequest {
+    string cartId = 1;
+}
+
+message GetCartRequest {
+    string cartId = 1;
+}
+
+message Cart {
+    repeated Item items = 1;
+    bool checkedOut = 2;
+}
+
+message Item {
+    string itemId = 1;
+    int32 quantity = 2;
+}</code></pre></dd>
+</dl>
+<p>When compiling the project the Akka gRPC <span class="group-scala">sbt</span><span class="group-java">maven</span> plugin generates a service interface for us to implement. Our implementation of it interacts with the entity:</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka-projection/tree/master/samples/grpc/shopping-cart-service-scala/src/main/scala/shopping/cart/ShoppingCartServiceImpl.scala" target="_blank" title="Go to snippet source">source</a><code class="language-scala">package shopping.cart
+
+import java.util.concurrent.TimeoutException
+
+import scala.concurrent.Future
+
+import akka.actor.typed.ActorSystem
+import akka.cluster.sharding.typed.scaladsl.ClusterSharding
+import akka.grpc.GrpcServiceException
+import akka.util.Timeout
+import io.grpc.Status
+import org.slf4j.LoggerFactory
+
+// tag::moreOperations[]
+class ShoppingCartServiceImpl(system: ActorSystem[_])
+    extends proto.ShoppingCartService {
+
+  import system.executionContext
+
+  private val logger = LoggerFactory.getLogger(getClass)
+
+  implicit private val timeout: Timeout =
+    Timeout.create(
+      system.settings.config.getDuration(&quot;shopping-cart-service.ask-timeout&quot;))
+
+  private val sharding = ClusterSharding(system)
+
+  override def addItem(in: proto.AddItemRequest): Future[proto.Cart] = {
+    logger.info(&quot;addItem {} to cart {}&quot;, in.itemId, in.cartId)
+    val entityRef = sharding.entityRefFor(ShoppingCart.EntityKey, in.cartId)
+    val reply: Future[ShoppingCart.Summary] =
+      entityRef.askWithStatus(ShoppingCart.AddItem(in.itemId, in.quantity, _))
+    val response = reply.map(cart =&gt; toProtoCart(cart))
+    convertError(response)
+  }
+
+  override def removeItem(in: proto.RemoveItemRequest): Future[proto.Cart] = {
+    logger.info(&quot;updateItem {} to cart {}&quot;, in.itemId, in.cartId)
+    val entityRef = sharding.entityRefFor(ShoppingCart.EntityKey, in.cartId)
+
+    val reply: Future[ShoppingCart.Summary] =
+      entityRef.askWithStatus(  ShoppingCart.RemoveItem(in.itemId, in.quantity, _))
+    val response = reply.map(cart =&gt; toProtoCart(cart))
+    convertError(response)
+  }
+
+  override def checkout(in: proto.CheckoutRequest): Future[proto.Cart] = {
+    logger.info(&quot;checkout {}&quot;, in.cartId)
+    val entityRef = sharding.entityRefFor(ShoppingCart.EntityKey, in.cartId)
+    val reply: Future[ShoppingCart.Summary] =
+      entityRef.askWithStatus(ShoppingCart.Checkout(_))
+    val response = reply.map(cart =&gt; toProtoCart(cart))
+    convertError(response)
+  }
+
+  override def getCart(in: proto.GetCartRequest): Future[proto.Cart] = {
+    logger.info(&quot;getCart {}&quot;, in.cartId)
+    val entityRef = sharding.entityRefFor(ShoppingCart.EntityKey, in.cartId)
+    val response =
+      entityRef.ask(ShoppingCart.Get).map { cart =&gt;
+        if (cart.items.isEmpty)
+          throw new GrpcServiceException(
+            Status.NOT_FOUND.withDescription(s&quot;Cart ${in.cartId} not found&quot;))
+        else
+          toProtoCart(cart)
+      }
+    convertError(response)
+  }
+
+  private def toProtoCart(cart: ShoppingCart.Summary): proto.Cart = {
+    proto.Cart(
+      cart.items.iterator.map { case (itemId, quantity) =&gt;
+        proto.Item(itemId, quantity)
+      }.toSeq,
+      cart.checkedOut)
+  }
+
+  private def convertError[T](response: Future[T]): Future[T] = {
+    response.recoverWith {
+      case _: TimeoutException =&gt;
+        Future.failed(
+          new GrpcServiceException(
+            Status.UNAVAILABLE.withDescription(&quot;Operation timed out&quot;)))
+      case exc =&gt;
+        Future.failed(
+          new GrpcServiceException(
+            Status.INVALID_ARGUMENT.withDescription(exc.getMessage)))
+    }
+  }
+
+}</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka-projection/tree/master/samples/grpc/shopping-cart-service-java/src/main/java/shopping/cart/ShoppingCartServiceImpl.java" target="_blank" title="Go to snippet source">source</a><code class="language-java">package shopping.cart;
+
+import akka.actor.typed.ActorSystem;
+import akka.cluster.sharding.typed.javadsl.ClusterSharding;
+import akka.cluster.sharding.typed.javadsl.EntityRef;
+import akka.grpc.GrpcServiceException;
+import io.grpc.Status;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import shopping.cart.proto.AddItemRequest;
+import shopping.cart.proto.RemoveItemRequest;
+import shopping.cart.proto.Cart;
+import shopping.cart.proto.CheckoutRequest;
+import shopping.cart.proto.GetCartRequest;
+import shopping.cart.proto.Item;
+import shopping.cart.proto.ShoppingCartService;
+
+import java.time.Duration;
+import java.util.List;
+import java.util.concurrent.CompletionStage;
+import java.util.concurrent.TimeoutException;
+import java.util.stream.Collectors;
+
+public final class ShoppingCartServiceImpl implements ShoppingCartService {
+
+  private final Logger logger = LoggerFactory.getLogger(getClass());
+
+  private final Duration timeout;
+  private final ClusterSharding sharding;
+
+  public ShoppingCartServiceImpl(
+      ActorSystem&lt;?&gt; system) {
+
+    timeout = system.settings().config().getDuration(&quot;shopping-cart-service.ask-timeout&quot;);
+    sharding = ClusterSharding.get(system);
+  }
+
+  @Override
+  public CompletionStage&lt;Cart&gt; addItem(AddItemRequest in) {
+    logger.info(&quot;addItem {} to cart {}&quot;, in.getItemId(), in.getCartId());
+    EntityRef&lt;ShoppingCart.Command&gt; entityRef =
+        sharding.entityRefFor(ShoppingCart.ENTITY_KEY, in.getCartId());
+    CompletionStage&lt;ShoppingCart.Summary&gt; reply =
+        entityRef.askWithStatus(
+            replyTo -&gt; new ShoppingCart.AddItem(in.getItemId(), in.getQuantity(), replyTo),
+            timeout);
+    CompletionStage&lt;Cart&gt; cart = reply.thenApply(ShoppingCartServiceImpl::toProtoCart);
+    return convertError(cart);
+  }
+
+  @Override
+  public CompletionStage&lt;Cart&gt; removeItem(RemoveItemRequest in) {
+    logger.info(&quot;updateItem {}&quot;, in.getCartId());
+    EntityRef&lt;ShoppingCart.Command&gt; entityRef =
+        sharding.entityRefFor(ShoppingCart.ENTITY_KEY, in.getCartId());
+    CompletionStage&lt;ShoppingCart.Summary&gt; reply =
+        entityRef.askWithStatus(
+            replyTo -&gt; new ShoppingCart.RemoveItem(in.getItemId(), in.getQuantity(), replyTo),
+            timeout);
+    CompletionStage&lt;Cart&gt; cart = reply.thenApply(ShoppingCartServiceImpl::toProtoCart);
+    return convertError(cart);
+  }
+
+  @Override
+  public CompletionStage&lt;Cart&gt; checkout(CheckoutRequest in) {
+    logger.info(&quot;checkout {}&quot;, in.getCartId());
+    EntityRef&lt;ShoppingCart.Command&gt; entityRef =
+        sharding.entityRefFor(ShoppingCart.ENTITY_KEY, in.getCartId());
+    CompletionStage&lt;ShoppingCart.Summary&gt; reply =
+        entityRef.askWithStatus(replyTo -&gt; new ShoppingCart.Checkout(replyTo), timeout);
+    CompletionStage&lt;Cart&gt; cart = reply.thenApply(ShoppingCartServiceImpl::toProtoCart);
+    return convertError(cart);
+  }
+
+  @Override
+  public CompletionStage&lt;Cart&gt; getCart(GetCartRequest in) {
+    logger.info(&quot;getCart {}&quot;, in.getCartId());
+    EntityRef&lt;ShoppingCart.Command&gt; entityRef =
+        sharding.entityRefFor(ShoppingCart.ENTITY_KEY, in.getCartId());
+    CompletionStage&lt;ShoppingCart.Summary&gt; reply =
+        entityRef.ask(replyTo -&gt; new ShoppingCart.Get(replyTo), timeout);
+    CompletionStage&lt;Cart&gt; protoCart =
+        reply.thenApply(
+            cart -&gt; {
+              if (cart.items.isEmpty())
+                throw new GrpcServiceException(
+                    Status.NOT_FOUND.withDescription(&quot;Cart &quot; + in.getCartId() + &quot; not found&quot;));
+              else return toProtoCart(cart);
+            });
+    return convertError(protoCart);
+  }
+
+  private static Cart toProtoCart(ShoppingCart.Summary cart) {
+    List&lt;Item&gt; protoItems =
+        cart.items.entrySet().stream()
+            .map(
+                entry -&gt;
+                    Item.newBuilder()
+                        .setItemId(entry.getKey())
+                        .setQuantity(entry.getValue())
+                        .build())
+            .collect(Collectors.toList());
+
+    return Cart.newBuilder().setCheckedOut(cart.checkedOut).addAllItems(protoItems).build();
+  }
+
+  private static &lt;T&gt; CompletionStage&lt;T&gt; convertError(CompletionStage&lt;T&gt; response) {
+    return response.exceptionally(
+        ex -&gt; {
+          if (ex instanceof TimeoutException) {
+            throw new GrpcServiceException(
+                Status.UNAVAILABLE.withDescription(&quot;Operation timed out&quot;));
+          } else {
+            throw new GrpcServiceException(
+                Status.INVALID_ARGUMENT.withDescription(ex.getMessage()));
+          }
+        });
+  }
+}</code></pre></dd>
+</dl>
+<p>Finally, we need to start the HTTP server, making service implementation available for calls from external clients:</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka-projection/tree/master/samples/grpc/shopping-cart-service-scala/src/main/scala/shopping/cart/ShoppingCartServer.scala#L62-L94" target="_blank" title="Go to snippet source">source</a><code class="language-scala">def start(
+    interface: String,
+    port: Int,
+    system: ActorSystem[_],
+    grpcService: proto.ShoppingCartService): Unit = {
+  implicit val sys: ActorSystem[_] = system
+  implicit val ec: ExecutionContext =
+    system.executionContext
+
+  val service: HttpRequest =&gt; Future[HttpResponse] =
+    ServiceHandler.concatOrNotFound(
+      proto.ShoppingCartServiceHandler.partial(grpcService),
+      // ServerReflection enabled to support grpcurl without import-path and proto parameters
+      ServerReflection.partial(List(proto.ShoppingCartService)))
+
+  val bound =
+    Http()
+      .newServerAt(interface, port)
+      .bind(service)
+      .map(_.addToCoordinatedShutdown(3.seconds))
+
+  bound.onComplete {
+    case Success(binding) =&gt;
+      val address = binding.localAddress
+      system.log.info(
+        &quot;Shopping online at gRPC server {}:{}&quot;,
+        address.getHostString,
+        address.getPort)
+    case Failure(ex) =&gt;
+      system.log.error(&quot;Failed to bind gRPC endpoint, terminating system&quot;, ex)
+      system.terminate()
+  }
+}</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka-projection/tree/master/samples/grpc/shopping-cart-service-java/src/main/java/shopping/cart/ShoppingCartServer.java#L60-L88" target="_blank" title="Go to snippet source">source</a><code class="language-java">static void start(String host, int port, ActorSystem&lt;?&gt; system, ShoppingCartService grpcService) {
+  @SuppressWarnings(&quot;unchecked&quot;)
+  Function&lt;HttpRequest, CompletionStage&lt;HttpResponse&gt;&gt; service =
+      ServiceHandler.concatOrNotFound(
+          ShoppingCartServiceHandlerFactory.create(grpcService, system),
+          // ServerReflection enabled to support grpcurl without import-path and proto parameters
+          ServerReflection.create(
+              Collections.singletonList(ShoppingCartService.description), system));
+
+  CompletionStage&lt;ServerBinding&gt; bound =
+      Http.get(system).newServerAt(host, port).bind(service::apply);
+
+  bound.whenComplete(
+      (binding, ex) -&gt; {
+        if (binding != null) {
+          binding.addToCoordinatedShutdown(Duration.ofSeconds(3), system);
+          InetSocketAddress address = binding.localAddress();
+          system
+              .log()
+              .info(
+                  &quot;Shopping online at gRPC server {}:{}&quot;,
+                  address.getHostString(),
+                  address.getPort());
+        } else {
+          system.log().error(&quot;Failed to bind gRPC endpoint, terminating system&quot;, ex);
+          system.terminate();
+        }
+      });
+}</code></pre></dd>
+</dl>
+<p>The Akka HTTP server must be running with HTTP/2 to serve gRPC, this is done through config:</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka-projection/tree/master/samples/grpc/shopping-cart-service-scala/src/main/resources/grpc.conf#L2" target="_blank" title="Go to snippet source">source</a><code class="language-conf">akka.http.server.enable-http2 = on</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka-projection/tree/master/samples/grpc/shopping-cart-service-java/src/main/resources/grpc.conf#L2" target="_blank" title="Go to snippet source">source</a><code class="language-conf">akka.http.server.enable-http2 = on</code></pre></dd>
+</dl>
+<h2><a href="#running-the-sample" name="running-the-sample" class="anchor"><span class="anchor-link"></span></a>Running the sample</h2>
+<p>The complete sample can be downloaded, but note that it also includes the next step of the guide:</p>
+<ul>
+  <li>Scala: <a href="../attachments/shopping-scala.zip">shopping-scala.zip</a></li>
+  <li>Java: <a href="../attachments/shopping-java.zip">shopping-java.zip</a></li>
+</ul>
+<p>Before running the sample locally you will need to run a PostgreSQL instance in docker, it can be started with the included <code>docker-compose.yml</code>. Run it and create the needed database schema:</p>
+<pre class="prettyprint"><code class="language-shell">docker compose up --wait
+docker exec -i postgres_db psql -U postgres -t &lt; ddl-scripts/create_tables.sql
+</code></pre><div class="group-scala">
+<p>To start the sample:</p>
+<pre class="prettyprint"><code class="language-shell">sbt -Dconfig.resource=local1.conf run
+</code></pre>
+<p>And optionally one or two more Akka cluster nodes:</p>
+<pre class="prettyprint"><code class="language-shell">sbt -Dconfig.resource=local2.conf run
+sbt -Dconfig.resource=local3.conf run
+</code></pre></div><div class="group-java">
+<pre class="prettyprint"><code class="language-shell">mvn compile exec:exec -DAPP_CONFIG=local1.conf
+</code></pre>
+<p>And optionally one or two more Akka cluster nodes:</p>
+<pre class="prettyprint"><code class="language-shell">mvn compile exec:exec -DAPP_CONFIG=local2.conf
+mvn compile exec:exec -DAPP_CONFIG=local3.conf
+</code></pre></div>
+<p>Try it with <a href="https://github.com/fullstorydev/grpcurl">grpcurl</a>:</p>
+<pre class="prettyprint"><code class="language-shell"># add item to cart
+grpcurl -d &#39;{&quot;cartId&quot;:&quot;cart1&quot;, &quot;itemId&quot;:&quot;socks&quot;, &quot;quantity&quot;:3}&#39; -plaintext 127.0.0.1:8101 shoppingcart.ShoppingCartService.AddItem
+
+# get cart
+grpcurl -d &#39;{&quot;cartId&quot;:&quot;cart1&quot;}&#39; -plaintext 127.0.0.1:8101 shoppingcart.ShoppingCartService.GetCart
+
+# update quantity of item
+grpcurl -d &#39;{&quot;cartId&quot;:&quot;cart1&quot;, &quot;itemId&quot;:&quot;socks&quot;, &quot;quantity&quot;:5}&#39; -plaintext 127.0.0.1:8101 shoppingcart.ShoppingCartService.UpdateItem
+
+# check out cart
+grpcurl -d &#39;{&quot;cartId&quot;:&quot;cart1&quot;}&#39; -plaintext 127.0.0.1:8101 shoppingcart.ShoppingCartService.Checkout
+</code></pre>
+<p>or same <code>grpcurl</code> commands to port 8102 to reach node 2.</p>
+<h2><a href="#whats-next-" name="whats-next-" class="anchor"><span class="anchor-link"></span></a>What&rsquo;s next?</h2>
+<ul>
+  <li>Making the events of the service available for consumption in a separately deployed service</li>
+</ul>
+</div>
+</article>
+<div class="row">
+<div class="small-12 column">
+<section class="nav-prev-next row">
+<div class="nav-prev small-6 column">
+<a href="../guide.html"><i class="icon-prev"></i> <span class="link-prev">Guide</span></a>
+</div>
+<div class="nav-next small-6 column clearfix">
+<a class="float-right" href="../guide/2-service-to-service.html">Part 2: Service to Service eventing <i class="icon-next"></i></a>
+</div>
+</section>
+</div>
+</div>
+<div class="source-github row">
+Found an error in this documentation? The source code for this page can be found <a href="https://github.com/akka/akka-projection/tree/master/akka-distributed-cluster-docs/src/main/paradox/guide/1-event-sourced-shopping-cart.md">here</a>.
+Please feel free to edit and contribute a pull request.
+</div>
+
+<footer class="page-footer row clearfix">
+<img class="akka-icon float-left show-for-medium" src="../images/akka-icon.svg" />
+<section class="copyright">
+<div>Akka Distributed Cluster is available under the <a href="https://www.lightbend.com/akka/license" target="_blank">Business Source License 1.1</a>.</div>
+<p class="legal">
+&copy; 2011-2023 <a href="https://www.lightbend.com" target="_blank">Lightbend, Inc.</a> |
+<a href="https://www.lightbend.com/legal/licenses" target="_blank">Licenses</a> |
+<a href="https://www.lightbend.com/legal/terms" target="_blank">Terms</a> |
+<a href="https://www.lightbend.com/legal/privacy" target="_blank">Privacy Policy</a> |
+<a href="https://akka.io/cookie/" target="_blank">Cookie Listing</a> |
+<a class="optanon-toggle-display">Cookie Settings</a>
+</p>
+</section>
+
+</footer>
+</section>
+</main>
+</div>
+
+<script type="text/javascript" src="../js/scrollsneak.js"></script>
+<script type="text/javascript">jQuery(document).foundation();</script>
+<script type="text/javascript" src="../js/groups.js"></script>
+<script type="text/javascript" src="../js/page.js"></script>
+<script type="text/javascript" src="../js/snippets.js"></script>
+<script type="text/javascript" src="../js/magellan.js"></script>
+<script type="text/javascript" src="../js/metadata-toggle.js"></script>
+<script type="text/javascript" src="../js/lbHeader.js"></script>
+
+<style type="text/css">@import "../lib/prettify/prettify.css";</style>
+<script type="text/javascript" src="../lib/prettify/prettify.js"></script>
+<script type="text/javascript" src="../lib/prettify/lang-scala.js"></script>
+<script type="text/javascript">//<![CDATA[
+jQuery(function(){window.prettyPrint && prettyPrint()});
+//]]></script>
+<!-- hook for including project specific javascript into the generated docs -->
+
+</body>
+</html>

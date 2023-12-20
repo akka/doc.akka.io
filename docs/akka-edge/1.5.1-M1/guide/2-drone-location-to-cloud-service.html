@@ -1,0 +1,1585 @@
+<!DOCTYPE html>
+<html class="no-js" lang="en">
+
+<head>
+<title>Coarse Grained Location Replication &bull; Akka Edge</title>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta name="description" content="Akka Projection."/>
+<link rel="canonical" href="https://doc.akka.io/docs/akka-edge/current/guide/2-drone-location-to-cloud-service.html"/>
+<script type="text/javascript" src="../lib/jquery/jquery.min.js"></script>
+<script type="text/javascript" src="../lib/foundation/dist/js/foundation.min.js"></script>
+<link rel="stylesheet" type="text/css" href="../lib/normalize.css/normalize.css"/>
+<link rel="stylesheet" type="text/css" href="../lib/foundation/dist/css/foundation.min.css"/>
+<link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/docsearch.js/2/docsearch.min.css" />
+<link rel="stylesheet" type="text/css" href="../css/icons.css"/>
+<link rel="stylesheet" type="text/css" href="../css/page-8.css"/>
+<link rel="stylesheet" type="text/css" href="../css/banner-2.css"/>
+<link rel="shortcut icon" href="../images/favicon.ico" />
+<link rel="apple-touch-icon" sizes="180x180" href="../images/apple-touch-icon.png"/>
+<link rel="icon" type="image/png" sizes="32x32" href="../images/favicon-32x32.png"/>
+<link rel="icon" type="image/png" sizes="16x16" href="../images/favicon-16x16.png"/>
+<link rel="manifest" href="../images/manifest.json"/>
+<meta name="msapplication-TileImage" content="../images/mstile-150x150.png"/>
+<meta name="msapplication-TileColor" content="#15a9ce"/>
+<meta name="theme-color" content="#15a9ce"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<!-- OneTrust Cookies Consent Notice (Production Standard, akka.io, en-GB) start -->
+<script src="https://cdn.cookielaw.org/scripttemplates/otSDKStub.js"  type="text/javascript" charset="UTF-8" data-domain-script="28b912e7-09e9-43d5-91e4-3d1897044004" ></script>
+<script type="text/javascript">
+function OptanonWrapper() { }
+</script>
+<!-- OneTrust Cookies Consent Notice (Production Standard, akka.io, en-GB) end -->
+<!-- Google Tag Manager now loads Google Analytics and any other tracking scripts. GTM also performs respects a users cookie choices-->
+<script type="text/javascript">
+(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+})(window,document,'script','dataLayer','GTM-KBJGH35');
+</script>
+
+</head>
+
+<body id="underlay" data-toggler="nav-open">
+<div id="lightbend-banner" class="lightbend-banner akka full-width" data-category="OSS Lightbend Banner Impression" data-label="Akka Banner Impression">
+<div class="oss-wrapper">
+<div class="oss-brand">
+<a class="oss-track-link-label" data-category="OSS Lightbend Banner Clicks" data-label="Lightbend Logo - Akka Banner" href="https://www.lightbend.com">
+<img class="lightbend-logo" src="../images/banner-logos/lightbend-reverse.svg" alt="Lightbend" title="Lightbend">
+</a>
+</div>
+<div class="oss-ad no-drop-down">
+<nav id="lightbendRotator" class="lightbend-rotator">
+<a class="oss-track-link-label" data-category="OSS Lightbend Banner Clicks" data-label="Promo Rotator - Introducing Akka Cloud to Edge Continuum. Build once for the Cloud. Seamlessly deploy to the Edge. [Learn more] - Akka Banner" href="https://www.lightbend.com/blog/akka-edge-unifying-the-cloud-and-edge">
+Introducing Akka Cloud to Edge Continuum. Build once for the Cloud. Seamlessly deploy to the Edge. <span class="akka-btn">Learn more</span>
+</a>
+</nav>
+</div>
+</div>
+</div>
+
+<header class="site-header hide-for-large">
+<div class="sticky-header clearfix">
+<a href="https://akka.io"><img class="logo" src="../images/akka-logo-reverse.svg"/></a>
+
+<button class="menu-icon float-right" type="button" data-toggle="underlay overlay"></button>
+</div>
+<div id="overlay" class="overlay-nav" data-toggler="nav-open">
+<header class="nav-header">
+<div class="nav-header-title">
+<h1><a href="../index.html">Akka Edge</a></h1>
+</div>
+<div class="nav-header-version">
+Version 1.5.1-M1
+</div>
+<div class="nav-header-groups">
+<select class="supergroup" name="Language"><option class="group" value="group-java">Java</option><option class="group" value="group-scala">Scala</option></select>
+</div>
+</header>
+<nav class="nav-toc">
+<ul>
+  <li><a href="../overview.html" class="page">Architectural Overview</a></li>
+  <li><a href="../use-cases.html" class="page">Example Use Cases</a></li>
+  <li><a href="../feature-summary.html" class="page">Feature Summary</a></li>
+  <li><a href="../guide.html" class="page">Guide</a>
+  <ul>
+    <li><a href="../guide/1-local-drone-control-service.html" class="page">Local Drone Control Service</a></li>
+    <li><a href="../guide/2-drone-location-to-cloud-service.html#coarse-grained-location-replication" class="active page">Coarse Grained Location Replication</a>
+    <ul>
+      <li><a href="../guide/2-drone-location-to-cloud-service.html#coarse-grained-location-aggregation-and-publishing" class="header">Coarse grained location aggregation and publishing</a></li>
+      <li><a href="../guide/2-drone-location-to-cloud-service.html#producer-push-destination" class="header">Producer Push Destination</a></li>
+      <li><a href="../guide/2-drone-location-to-cloud-service.html#consuming-the-pushed-events" class="header">Consuming the pushed events</a></li>
+      <li><a href="../guide/2-drone-location-to-cloud-service.html#durable-state-drone-overview" class="header">Durable State Drone Overview</a></li>
+      <li><a href="../guide/2-drone-location-to-cloud-service.html#storing-query-representation-for-easier-querying" class="header">Storing query representation for easier querying</a></li>
+      <li><a href="../guide/2-drone-location-to-cloud-service.html#grpc-service" class="header">gRPC service</a></li>
+      <li><a href="../guide/2-drone-location-to-cloud-service.html#running-the-sample" class="header">Running the sample</a></li>
+      <li><a href="../guide/2-drone-location-to-cloud-service.html#whats-next-" class="header">What&rsquo;s next?</a></li>
+    </ul></li>
+    <li><a href="../guide/3-restaurant-deliveries-service.html" class="page">Restaurant deliveries</a></li>
+    <li><a href="../guide/4-local-drone-delivery-selection.html" class="page">Local Drone Delivery Selection</a></li>
+    <li><a href="../guide/5-deploying-the-services.html" class="page">Deploying the Restaurant Delivery Service</a></li>
+  </ul></li>
+  <li><a href="../lightweight-deployments.html" class="page">Lightweight deployments</a></li>
+</ul>
+</nav>
+</div>
+</header>
+<div class="site-content-wrapper">
+<aside class="sticky-sidebar show-for-large">
+<header class="nav-header sticky-sidebar-header">
+<div class="nav-header-title">
+<h1><a href="../index.html">Akka Edge</a></h1>
+</div>
+<div class="nav-header-version">
+Version 1.5.1-M1
+</div>
+<div class="nav-header-groups">
+<select class="supergroup" name="Language"><option class="group" value="group-java">Java</option><option class="group" value="group-scala">Scala</option></select>
+</div>
+</header>
+<nav class="site-nav sticky-sidebar-contents">
+<div class="nav-toc">
+<ul>
+  <li><a href="../overview.html" class="page">Architectural Overview</a></li>
+  <li><a href="../use-cases.html" class="page">Example Use Cases</a></li>
+  <li><a href="../feature-summary.html" class="page">Feature Summary</a></li>
+  <li><a href="../guide.html" class="page">Guide</a>
+  <ul>
+    <li><a href="../guide/1-local-drone-control-service.html" class="page">Local Drone Control Service</a></li>
+    <li><a href="../guide/2-drone-location-to-cloud-service.html#coarse-grained-location-replication" class="active page">Coarse Grained Location Replication</a>
+    <ul>
+      <li><a href="../guide/2-drone-location-to-cloud-service.html#coarse-grained-location-aggregation-and-publishing" class="header">Coarse grained location aggregation and publishing</a></li>
+      <li><a href="../guide/2-drone-location-to-cloud-service.html#producer-push-destination" class="header">Producer Push Destination</a></li>
+      <li><a href="../guide/2-drone-location-to-cloud-service.html#consuming-the-pushed-events" class="header">Consuming the pushed events</a></li>
+      <li><a href="../guide/2-drone-location-to-cloud-service.html#durable-state-drone-overview" class="header">Durable State Drone Overview</a></li>
+      <li><a href="../guide/2-drone-location-to-cloud-service.html#storing-query-representation-for-easier-querying" class="header">Storing query representation for easier querying</a></li>
+      <li><a href="../guide/2-drone-location-to-cloud-service.html#grpc-service" class="header">gRPC service</a></li>
+      <li><a href="../guide/2-drone-location-to-cloud-service.html#running-the-sample" class="header">Running the sample</a></li>
+      <li><a href="../guide/2-drone-location-to-cloud-service.html#whats-next-" class="header">What&rsquo;s next?</a></li>
+    </ul></li>
+    <li><a href="../guide/3-restaurant-deliveries-service.html" class="page">Restaurant deliveries</a></li>
+    <li><a href="../guide/4-local-drone-delivery-selection.html" class="page">Local Drone Delivery Selection</a></li>
+    <li><a href="../guide/5-deploying-the-services.html" class="page">Deploying the Restaurant Delivery Service</a></li>
+  </ul></li>
+  <li><a href="../lightweight-deployments.html" class="page">Lightweight deployments</a></li>
+</ul>
+</div>
+</nav>
+<footer class="nav-footer sticky-sidebar-footer">
+<a href="https://akka.io"><img class="logo" src="../images/akka-logo-reverse.svg"/></a>
+
+</footer>
+</aside>
+<main class="fixed-shift-for-large expanded row">
+<section class="site-content small-12 column">
+<article class="page-content row">
+<div class="small-12 column" id="docs">
+<h1><a href="#coarse-grained-location-replication" name="coarse-grained-location-replication" class="anchor"><span class="anchor-link"></span></a>Coarse Grained Location Replication</h1>
+<p>In the previous step of the guide we implemented the PoP local control service keeping track of drone locations.</p>
+<p>We also want to publish coarse grained location updates at a low frequency from the edge to a central cloud service. </p>
+<p><img src="../images/guide-section-2.svg" alt="Diagram showing local drone entities replication to cloud service" /></p>
+<p>In this step we will cover publishing and consuming those events, passing them to a stateful overview-version of the drone digital twin. We will use <a href="https://doc.akka.io/docs/akka-projection/1.5/grpc.html">Akka Projection gRPC</a> to do service-to-service events passing with an effectively once delivery guarantee, this without requiring a message broker in between services. The cloud and the many PoP services each has their own lifecycle and are deployed separately in different places.</p>
+<p>We will then implement a gRPC service for querying the coarse grained location of the global set of drones in the cloud service.</p>
+<h2><a href="#coarse-grained-location-aggregation-and-publishing" name="coarse-grained-location-aggregation-and-publishing" class="anchor"><span class="anchor-link"></span></a>Coarse grained location aggregation and publishing</h2>
+<p>We have already seen the additional <code>CoarseGrainedLocationChanged</code> event persisted in the previous step of the guide. Now we will update the local-drone-control service to also publish these aggregate events upstream to a cloud service so that it can keep a rough overview of where all drones are without needing to handle the global load of detailed and frequent updates from all drones.</p>
+<p>Normally for Akka gRPC projections the consumer initiates the connection, but in edge scenarios it might be problematic because of firewalls not allowing the cloud to connect to each PoP. The normal consumer initiated connections also means that all producers must be known up front by the consumer.</p>
+<p>To solve this the local control center push events to the cloud using <a href="https://doc.akka.io/docs/akka-projection/1.5/grpc-producer-push.html">Akka gRPC projection with producer push</a> which means the control center will initiate the connection.</p>
+<p>The actual pushing of events is implemented as a single actor behavior, if partitioning is needed for scaling that is also possible by letting multiple actors handle partitions of the entire stream of events from local drones.</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka-projection/tree/master/samples/grpc/local-drone-control-scala/src/main/scala/local/drones/DroneEvents.scala" target="_blank" title="Go to snippet source">source</a><code class="language-scala">package local.drones
+
+import akka.actor.typed.{ ActorSystem, Behavior }
+import akka.cluster.sharding.typed.scaladsl.ShardedDaemonProcess
+import akka.grpc.GrpcClientSettings
+import akka.persistence.Persistence
+import akka.persistence.query.Offset
+import akka.persistence.query.typed.EventEnvelope
+import akka.persistence.r2dbc.query.scaladsl.R2dbcReadJournal
+import akka.projection.ProjectionBehavior
+import akka.projection.ProjectionId
+import akka.projection.eventsourced.scaladsl.EventSourcedProvider
+import akka.projection.grpc.producer.EventProducerSettings
+import akka.projection.grpc.producer.scaladsl.EventProducer
+import akka.projection.grpc.producer.scaladsl.EventProducer.EventProducerSource
+import akka.projection.grpc.producer.scaladsl.EventProducerPush
+import akka.projection.r2dbc.scaladsl.R2dbcProjection
+import org.slf4j.LoggerFactory
+
+import scala.concurrent.Future
+
+object DroneEvents {
+
+  val logger = LoggerFactory.getLogger(&quot;local.drones.DroneEvents&quot;)
+
+  val StreamId = &quot;drone-events&quot;
+
+  def eventToCloudPushBehavior(settings: Settings)(
+      implicit system: ActorSystem[_]): Behavior[ProjectionBehavior.Command] = {
+    logger.info(
+      &quot;Pushing events to central cloud, origin id [{}]&quot;,
+      settings.locationId)
+
+    // turn events into a public protocol (protobuf) type before publishing
+    val eventTransformation =
+      EventProducer.Transformation.empty.registerAsyncEnvelopeMapper[
+        Drone.CoarseGrainedLocationChanged,
+        proto.CoarseDroneLocation] { envelope =&gt;
+        val event = envelope.event
+        Future.successful(
+          Some(proto.CoarseDroneLocation(Some(event.coordinates.toProto))))
+      }
+
+    val eventProducer = EventProducerPush[Drone.Event](
+      // location id is unique and informative, so use it as producer origin id as well
+      originId = settings.locationId,
+      eventProducerSource = EventProducerSource[Drone.Event](
+        Drone.EntityKey.name,
+        StreamId,
+        eventTransformation,
+        EventProducerSettings(system),
+        // only push coarse grained coordinate changes
+        producerFilter = envelope =&gt;
+          envelope.event.isInstanceOf[Drone.CoarseGrainedLocationChanged]),
+      GrpcClientSettings.fromConfig(&quot;central-drone-control&quot;))
+
+    // For scaling out the local service this would be split up in slices
+    // and run across a cluster with sharded daemon process, now it is instead
+    // a single projection actor pushing all event slices
+    val maxSlice = Persistence(system).numberOfSlices - 1
+    ProjectionBehavior(
+      R2dbcProjection.atLeastOnceFlow[Offset, EventEnvelope[Drone.Event]](
+        ProjectionId(&quot;drone-event-push&quot;, s&quot;0-$maxSlice&quot;),
+        settings = None,
+        // #startFromSnapshot
+        sourceProvider = EventSourcedProvider
+          .eventsBySlicesStartingFromSnapshots[Drone.State, Drone.Event](
+            system,
+            R2dbcReadJournal.Identifier,
+            eventProducer.eventProducerSource.entityType,
+            0,
+            maxSlice,
+            // start from latest drone snapshot and don&#39;t replay history
+            { (state: Drone.State) =&gt;
+              Drone.CoarseGrainedLocationChanged(
+                state.coarseGrainedCoordinates.get)
+            }),
+        // #startFromSnapshot
+        handler = eventProducer.handler()))
+  }
+
+  def initEventToCloudDaemonProcess(settings: Settings)(
+      implicit system: ActorSystem[_]): Unit = {
+    logger.info(
+      &quot;Pushing events to central cloud, origin id [{}]&quot;,
+      settings.locationId)
+
+    val nrOfEventProducers =
+      system.settings.config.getInt(&quot;local-drone-control.nr-of-event-producers&quot;)
+    val sliceRanges = Persistence(system).sliceRanges(nrOfEventProducers)
+
+    // turn events into a public protocol (protobuf) type before publishing
+    val eventTransformation =
+      EventProducer.Transformation.empty.registerAsyncEnvelopeMapper[
+        Drone.CoarseGrainedLocationChanged,
+        proto.CoarseDroneLocation] { envelope =&gt;
+        val event = envelope.event
+        Future.successful(
+          Some(proto.CoarseDroneLocation(Some(event.coordinates.toProto))))
+      }
+
+    val eventProducer = EventProducerPush[Drone.Event](
+      // location id is unique and informative, so use it as producer origin id as well
+      originId = settings.locationId,
+      eventProducerSource = EventProducerSource[Drone.Event](
+        Drone.EntityKey.name,
+        StreamId,
+        eventTransformation,
+        EventProducerSettings(system),
+        // only push coarse grained coordinate changes
+        producerFilter = envelope =&gt;
+          envelope.event.isInstanceOf[Drone.CoarseGrainedLocationChanged]),
+      GrpcClientSettings.fromConfig(&quot;central-drone-control&quot;))
+
+    def projectionForPartition(
+        partition: Int): Behavior[ProjectionBehavior.Command] = {
+      val sliceRange = sliceRanges(partition)
+      val minSlice = sliceRange.min
+      val maxSlice = sliceRange.max
+
+      ProjectionBehavior(
+        R2dbcProjection.atLeastOnceFlow[Offset, EventEnvelope[Drone.Event]](
+          ProjectionId(&quot;drone-event-push&quot;, s&quot;$minSlice-$maxSlice&quot;),
+          settings = None,
+          sourceProvider = EventSourcedProvider
+            .eventsBySlicesStartingFromSnapshots[Drone.State, Drone.Event](
+              system,
+              R2dbcReadJournal.Identifier,
+              eventProducer.eventProducerSource.entityType,
+              minSlice,
+              maxSlice,
+              // start from latest drone snapshot and don&#39;t replay history
+              { (state: Drone.State) =&gt;
+                Drone.CoarseGrainedLocationChanged(
+                  state.coarseGrainedCoordinates.get)
+              }),
+          handler = eventProducer.handler()))
+
+    }
+
+    ShardedDaemonProcess(system).init(
+      &quot;drone-event-push&quot;,
+      nrOfEventProducers,
+      projectionForPartition)
+
+  }
+
+}</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka-projection/tree/master/samples/grpc/local-drone-control-java/src/main/java/local/drones/DroneEvents.java" target="_blank" title="Go to snippet source">source</a><code class="language-java">package local.drones;
+
+import akka.actor.typed.ActorSystem;
+import akka.actor.typed.Behavior;
+import akka.cluster.sharding.typed.javadsl.ShardedDaemonProcess;
+import akka.grpc.GrpcClientSettings;
+import akka.japi.Pair;
+import akka.persistence.Persistence;
+import akka.persistence.query.typed.EventEnvelope;
+import akka.persistence.r2dbc.query.javadsl.R2dbcReadJournal;
+import akka.projection.ProjectionBehavior;
+import akka.projection.ProjectionId;
+import akka.projection.eventsourced.javadsl.EventSourcedProvider;
+import akka.projection.grpc.producer.EventProducerSettings;
+import akka.projection.grpc.producer.javadsl.EventProducerPush;
+import akka.projection.grpc.producer.javadsl.EventProducerSource;
+import akka.projection.grpc.producer.javadsl.Transformation;
+import akka.projection.r2dbc.javadsl.R2dbcProjection;
+import java.util.List;
+import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+public class DroneEvents {
+  private static final Logger logger = LoggerFactory.getLogger(DroneEvents.class);
+
+  public static final String StreamId = &quot;drone-events&quot;;
+
+  public static Behavior&lt;ProjectionBehavior.Command&gt; eventToCloudPushBehavior(
+      ActorSystem&lt;?&gt; system, Settings settings) {
+    logger.info(&quot;Pushing events to central cloud, origin id [{}]&quot;, settings.locationId);
+
+    // turn events into a public protocol (protobuf) type before publishing
+    var eventTransformation =
+        Transformation.empty()
+            .registerAsyncEnvelopeMapper(
+                Drone.CoarseGrainedLocationChanged.class,
+                (EventEnvelope&lt;Drone.CoarseGrainedLocationChanged&gt; envelope) -&gt; {
+                  var event = envelope.event();
+                  return CompletableFuture.completedFuture(
+                      Optional.of(
+                          local.drones.proto.CoarseDroneLocation.newBuilder()
+                              .setCoordinates(event.coordinates.toProto())
+                              .build()));
+                });
+
+    var eventProducer =
+        EventProducerPush.create(
+            // location id is unique and informative, so use it as producer origin id as well
+            settings.locationId,
+            new EventProducerSource(
+                Drone.ENTITY_KEY.name(),
+                StreamId,
+                eventTransformation,
+                EventProducerSettings.create(system),
+                // only push coarse grained coordinate changes
+                envelope -&gt; envelope.event() instanceof Drone.CoarseGrainedLocationChanged),
+            GrpcClientSettings.fromConfig(&quot;central-drone-control&quot;, system));
+
+    // For scaling out the local service this would be split up in slices
+    // and run across a cluster with sharded daemon process, now it is instead
+    // a single projection actor pushing all event slices
+    var maxSlice = Persistence.get(system).numberOfSlices() - 1;
+    return ProjectionBehavior.create(
+        R2dbcProjection.atLeastOnceFlow(
+            ProjectionId.of(&quot;drone-event-push&quot;, &quot;0-&quot; + maxSlice),
+            Optional.empty(),
+            // #startFromSnapshot
+            EventSourcedProvider.eventsBySlicesStartingFromSnapshots(
+                system,
+                R2dbcReadJournal.Identifier(),
+                eventProducer.eventProducerSource().entityType(),
+                0,
+                maxSlice,
+                // start from latest drone snapshot and don&#39;t replay history
+                (Drone.State state) -&gt;
+                    new Drone.CoarseGrainedLocationChanged(state.coarseGrainedCoordinates().get())),
+            // #startFromSnapshot
+            eventProducer.handler(system),
+            system));
+  }
+
+  public static void initEventToCloudDaemonProcess(ActorSystem&lt;Void&gt; system, Settings settings) {
+    var nrOfEventProducers =
+        system.settings().config().getInt(&quot;local-drone-control.nr-of-event-producers&quot;);
+    var sliceRanges = Persistence.get(system).getSliceRanges(nrOfEventProducers);
+
+    // turn events into a public protocol (protobuf) type before publishing
+    var eventTransformation =
+        Transformation.empty()
+            .registerAsyncEnvelopeMapper(
+                Drone.CoarseGrainedLocationChanged.class,
+                (EventEnvelope&lt;Drone.CoarseGrainedLocationChanged&gt; envelope) -&gt; {
+                  var event = envelope.event();
+                  return CompletableFuture.completedFuture(
+                      Optional.of(
+                          local.drones.proto.CoarseDroneLocation.newBuilder()
+                              .setCoordinates(event.coordinates.toProto())
+                              .build()));
+                });
+
+    var eventProducer =
+        EventProducerPush.create(
+            // location id is unique and informative, so use it as producer origin id as well
+            settings.locationId,
+            new EventProducerSource(
+                Drone.ENTITY_KEY.name(),
+                StreamId,
+                eventTransformation,
+                EventProducerSettings.create(system),
+                // only push coarse grained coordinate changes
+                envelope -&gt; envelope.event() instanceof Drone.CoarseGrainedLocationChanged),
+            GrpcClientSettings.fromConfig(&quot;central-drone-control&quot;, system));
+
+    ShardedDaemonProcess.get(system)
+        .init(
+            ProjectionBehavior.Command.class,
+            &quot;drone-event-push&quot;,
+            nrOfEventProducers,
+            idx -&gt; projectionForPartition(system, eventProducer, sliceRanges, idx));
+  }
+
+  private static Behavior&lt;ProjectionBehavior.Command&gt; projectionForPartition(
+      ActorSystem&lt;?&gt; system,
+      EventProducerPush&lt;Object&gt; eventProducer,
+      List&lt;Pair&lt;Integer, Integer&gt;&gt; sliceRanges,
+      int partition) {
+    var sliceRange = sliceRanges.get(partition);
+    var minSlice = sliceRange.first();
+    var maxSlice = sliceRange.second();
+
+    return ProjectionBehavior.create(
+        R2dbcProjection.atLeastOnceFlow(
+            ProjectionId.of(&quot;drone-event-push&quot;, minSlice + &quot;-&quot; + maxSlice),
+            Optional.empty(),
+            EventSourcedProvider.eventsBySlicesStartingFromSnapshots(
+                system,
+                R2dbcReadJournal.Identifier(),
+                eventProducer.eventProducerSource().entityType(),
+                minSlice,
+                maxSlice,
+                (Drone.State state) -&gt;
+                    new Drone.CoarseGrainedLocationChanged(state.coarseGrainedCoordinates().get())),
+            eventProducer.handler(system),
+            system));
+  }
+}</code></pre></dd>
+</dl>
+<p>Two important things to note:</p>
+<ol>
+  <li>A producer filter is applied to only push <code>CoarseGrainedLocationChanged</code> and not the fine-grained <code>PositionUpdated</code> events.</li>
+  <li>The internal domain representation of <code>CoarseGrainedLocationChanged</code> is transformed into an explicit public protocol  protobuf message <code>local.drones.proto.CoarseDroneLocation</code> message, for loose coupling between consumer and producer and  easier evolution over time without breaking wire compatibility.</li>
+  <li>The service defines a &ldquo;location name&rdquo; which is a unique identifier of the PoP in the format <code>country/city/part-of-city</code>,  it is used as <code>originId</code> for the producer push stream, identifying where the stream of events come from.</li>
+</ol>
+<h3><a href="#snapshots-as-starting-points" name="snapshots-as-starting-points" class="anchor"><span class="anchor-link"></span></a>Snapshots as starting points</h3>
+<p>One optimization to reduce the amount of events sent over the network if the local control service has been disconnected from the central cloud service is to use snapshots as starting points. Only delivering the latest coarse grained coordinate is enough, so we create a snapshot for each CoarseGrainedLocationChanged event:</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka-projection/tree/master/samples/grpc/local-drone-control-scala/src/main/scala/local/drones/Drone.scala#L100-L102" target="_blank" title="Go to snippet source">source</a><code class="language-scala">.snapshotWhen { (_, event, _) =&gt;
+  event.isInstanceOf[CoarseGrainedLocationChanged]
+}</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka-projection/tree/master/samples/grpc/local-drone-control-java/src/main/java/local/drones/Drone.java#L222-L225" target="_blank" title="Go to snippet source">source</a><code class="language-java">@Override
+public boolean shouldSnapshot(State state, Event event, long sequenceNr) {
+  return event instanceof CoarseGrainedLocationChanged;
+}</code></pre></dd>
+</dl>
+<p>The Projection for pushing the events is using <code>eventsBySlicesStartingFromSnapshots</code>:</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka-projection/tree/master/samples/grpc/local-drone-control-scala/src/main/scala/local/drones/DroneEvents.scala#L66-L77" target="_blank" title="Go to snippet source">source</a><code class="language-scala">sourceProvider = EventSourcedProvider
+  .eventsBySlicesStartingFromSnapshots[Drone.State, Drone.Event](
+    system,
+    R2dbcReadJournal.Identifier,
+    eventProducer.eventProducerSource.entityType,
+    0,
+    maxSlice,
+    // start from latest drone snapshot and don&#39;t replay history
+    { (state: Drone.State) =&gt;
+      Drone.CoarseGrainedLocationChanged(
+        state.coarseGrainedCoordinates.get)
+    }),</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka-projection/tree/master/samples/grpc/local-drone-control-java/src/main/java/local/drones/DroneEvents.java#L70-L78" target="_blank" title="Go to snippet source">source</a><code class="language-java">EventSourcedProvider.eventsBySlicesStartingFromSnapshots(
+    system,
+    R2dbcReadJournal.Identifier(),
+    eventProducer.eventProducerSource().entityType(),
+    0,
+    maxSlice,
+    // start from latest drone snapshot and don&#39;t replay history
+    (Drone.State state) -&gt;
+        new Drone.CoarseGrainedLocationChanged(state.coarseGrainedCoordinates().get())),</code></pre></dd>
+</dl>
+<p>Note that the <code>Drone.State</code>, i.e. the snapshot, is transformed to an event. This snapshot event should represent a possible starting point for the consumer. In this case it represents the latest coarse grained coordinate of the drone. </p>
+<h2><a href="#producer-push-destination" name="producer-push-destination" class="anchor"><span class="anchor-link"></span></a>Producer Push Destination</h2>
+<p>The producer push destination is a gRPC service where producers push events, the events are persisted in a local journal as is, or after a transformation to an internal representation. For more details see <a href="https://doc.akka.io/docs/akka-projection/1.5/grpc-producer-push.html">Akka gRPC projection with producer push documentation</a>.</p>
+<p>We&rsquo;ll implement the producer push destination in a new separate service, intended to run as a clustered deployment in the cloud, where all the local control services will push their aggregate events, the &ldquo;Restaurant Drone Deliveries Service&rdquo;. </p>
+<p>In addition to accepting the events, we pick the local control center location (which is in the format <code>country/city/part-of-city</code>) passed as producer <code>originId</code> on producer connection, and put it in a tag for the event.</p>
+<p>The setup logic looks like this:</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka-projection/tree/master/samples/grpc/restaurant-drone-deliveries-service-scala/src/main/scala/central/drones/LocalDroneEvents.scala#L31-L49" target="_blank" title="Go to snippet source">source</a><code class="language-scala">val DroneEventStreamId = &quot;drone-events&quot;
+
+// The type key used on the producer side is written directly into our journal so we
+// use it here as well when we consume the events
+private val ProducerEntityType = &quot;Drone&quot;
+
+def pushedEventsGrpcHandler(implicit system: ActorSystem[_])
+    : PartialFunction[HttpRequest, Future[HttpResponse]] = {
+  val destination = EventProducerPushDestination(
+    DroneEventStreamId,
+    local.drones.proto.DroneEventsProto.javaDescriptor.getFile :: Nil)
+    .withTransformationForOrigin((origin, _) =&gt;
+      EventProducerPushDestination.Transformation.empty
+        // tag all events with the location name of the local control it came from)
+        .registerTagMapper[local.drones.proto.CoarseDroneLocation](_ =&gt;
+          Set(&quot;location:&quot; + origin)))
+
+  EventProducerPushDestination.grpcServiceHandler(destination)(system)
+}</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka-projection/tree/master/samples/grpc/restaurant-drone-deliveries-service-java/src/main/java/central/drones/LocalDroneEvents.java#L37-L61" target="_blank" title="Go to snippet source">source</a><code class="language-java">// Note: stream id used in producer for the drone events
+public static final String DRONE_EVENT_STREAM_ID = &quot;drone-events&quot;;
+
+// The type key used on the producer side is written directly into our journal so we
+// use it here as well when we consume the events
+private static final String PRODUCER_ENTITY_TYPE = &quot;Drone&quot;;
+
+public static Function&lt;HttpRequest, CompletionStage&lt;HttpResponse&gt;&gt; pushedEventsGrpcHandler(
+    ActorSystem&lt;?&gt; system) {
+  var destination =
+      EventProducerPushDestination.create(
+              DRONE_EVENT_STREAM_ID,
+              Collections.singletonList(local.drones.proto.DroneEvents.getDescriptor()),
+              system)
+          .withTransformationForOrigin(
+              (origin, metadataa) -&gt;
+                  akka.projection.grpc.consumer.javadsl.Transformation.empty()
+                      // tag all events with the location name of the local control it came from
+                      .registerTagMapper(
+                          local.drones.proto.CoarseDroneLocation.class,
+                          envelope -&gt; Collections.singleton(&quot;location:&quot; + origin)));
+
+  return EventProducerPushDestination.grpcServiceHandler(destination, system);
+}
+</code></pre></dd>
+</dl>
+<p>The returned <span class="group-scala">PartialFunction</span><span class="group-java">Function</span> is an Akka HTTP gRPC request handler that can be bound directly in an HTTP server or combined with multiple other request handlers and then bound as a single server: </p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka-projection/tree/master/samples/grpc/restaurant-drone-deliveries-service-scala/src/main/scala/central/DroneDeliveriesServer.scala#L35-L43" target="_blank" title="Go to snippet source">source</a><code class="language-scala">val service = ServiceHandler.concatOrNotFound(
+  DroneOverviewServiceHandler.partial(droneOverviewService),
+  RestaurantDeliveriesServiceHandler.partial(restaurantDeliveriesService),
+  deliveryEventsProducerService,
+  pushedDroneEventsHandler,
+  ServerReflection.partial(
+    List(DroneOverviewService, RestaurantDeliveriesService)))
+
+val bound = Http(system).newServerAt(interface, port).bind(service)</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka-projection/tree/master/samples/grpc/restaurant-drone-deliveries-service-java/src/main/java/central/DroneDeliveriesServer.java#L34-L46" target="_blank" title="Go to snippet source">source</a><code class="language-java">@SuppressWarnings(&quot;unchecked&quot;)
+var service =
+    ServiceHandler.concatOrNotFound(
+        DroneOverviewServiceHandlerFactory.create(droneOverviewService, system),
+        RestaurantDeliveriesServiceHandlerFactory.create(restaurantDeliveriesService, system),
+        deliveryEventsProducerService,
+        pushedDroneEventsHandler,
+        ServerReflection.create(
+            Arrays.asList(
+                DroneOverviewService.description, RestaurantDeliveriesService.description),
+            system));
+
+var bound = Http.get(system).newServerAt(host, port).bind(service);</code></pre></dd>
+</dl>
+<p>As persistent storage for the event journal we are using PostgreSQL, we cannot use H2 like the local drone control service, as the central cloud service is clustered and needs an external database that can accept connections from multiple separate cluster nodes.</p>
+<p>Config to use PostgreSQL looks like this:</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka-projection/tree/master/samples/grpc/restaurant-drone-deliveries-service-scala/src/main/resources/persistence.conf" target="_blank" title="Go to snippet source">source</a><code class="language-conf">akka.persistence.r2dbc.connection-factory = ${akka.persistence.r2dbc.postgres}
+akka {
+  persistence {
+    journal.plugin = &quot;akka.persistence.r2dbc.journal&quot;
+    snapshot-store.plugin = &quot;akka.persistence.r2dbc.snapshot&quot;
+    state.plugin = &quot;akka.persistence.r2dbc.state&quot;
+
+    r2dbc {
+      connection-factory {
+        host = &quot;localhost&quot;
+        host = ${?DB_HOST}
+        port = 5432
+        database = &quot;postgres&quot;
+        user = &quot;postgres&quot;
+        user = ${?DB_USER}
+        password = &quot;postgres&quot;
+        password = ${?DB_PASSWORD}
+      }
+
+      // #locationColumn
+      state {
+        additional-columns {
+          &quot;CentralDrone&quot; = [&quot;central.drones.LocationColumn&quot;]
+        }
+      }
+      // #locationColumn
+
+    }
+  }
+
+  projection.r2dbc {
+    offset-store {
+      # only timestamp based offsets
+      offset-table = &quot;&quot;
+    }
+  }
+}
+
+// #firehose
+akka.projection.grpc {
+  producer {
+    # use the firehose for order events so that the local-drone-control consumers
+    # shares the same firehose instead of each lead to load on the database
+    query-plugin-id = &quot;akka.persistence.query.events-by-slice-firehose&quot;
+  }
+}
+
+akka.persistence.query.events-by-slice-firehose {
+  delegate-query-plugin-id = &quot;akka.persistence.r2dbc.query&quot;
+}
+// #firehose
+</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka-projection/tree/master/samples/grpc/restaurant-drone-deliveries-service-java/src/main/resources/persistence.conf" target="_blank" title="Go to snippet source">source</a><code class="language-conf">akka.persistence.r2dbc.connection-factory = ${akka.persistence.r2dbc.postgres}
+akka {
+  persistence {
+    journal.plugin = &quot;akka.persistence.r2dbc.journal&quot;
+    snapshot-store.plugin = &quot;akka.persistence.r2dbc.snapshot&quot;
+    state.plugin = &quot;akka.persistence.r2dbc.state&quot;
+
+    r2dbc {
+      connection-factory {
+        host = &quot;localhost&quot;
+        host = ${?DB_HOST}
+        port = 5432
+        database = &quot;postgres&quot;
+        user = &quot;postgres&quot;
+        user = ${?DB_USER}
+        password = &quot;postgres&quot;
+        password = ${?DB_PASSWORD}
+      }
+
+      // #locationColumn
+      state {
+        additional-columns {
+          &quot;CentralDrone&quot; = [&quot;central.drones.LocationColumn&quot;]
+        }
+      }
+      // #locationColumn
+
+    }
+  }
+
+  projection.r2dbc {
+    offset-store {
+      # only timestamp based offsets
+      offset-table = &quot;&quot;
+    }
+  }
+}
+
+// #firehose
+akka.projection.grpc {
+  producer {
+    # use the firehose for order events so that the local-drone-control consumers
+    # shares the same firehose instead of each lead to load on the database
+    query-plugin-id = &quot;akka.persistence.query.events-by-slice-firehose&quot;
+  }
+}
+
+akka.persistence.query.events-by-slice-firehose {
+  delegate-query-plugin-id = &quot;akka.persistence.r2dbc.query&quot;
+}
+// #firehose
+</code></pre></dd>
+</dl>
+<h2><a href="#consuming-the-pushed-events" name="consuming-the-pushed-events" class="anchor"><span class="anchor-link"></span></a>Consuming the pushed events</h2>
+<p>What we have set up only means that the pushed events are written into our local journal, to do something useful with the events we need to run a projection consuming the events. We&rsquo;ll turn them into commands and send them to an entity.</p>
+<p>The projection is run as <a href="https://doc.akka.io/docs/akka/2.9/typed/cluster-sharded-daemon-process.html">Akka Sharded Daemon Process</a> to partition the global stream of events among multiple consumers balanced over the nodes of the restaurant-drone-deliveries-service. </p>
+<p>The handler of the projection turns the protobuf message <code>CoarseDroneLocation</code> pushed by the producer and stored in the local journal into a <code>Drone.UpdateLocation</code> and sends it over Akka Cluster Sharding to the right drone overview entity:</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka-projection/tree/master/samples/grpc/restaurant-drone-deliveries-service-scala/src/main/scala/central/drones/LocalDroneEvents.scala#L53-L133" target="_blank" title="Go to snippet source">source</a><code class="language-scala">def initPushedEventsConsumer(implicit system: ActorSystem[_]): Unit = {
+
+  implicit val askTimeout: Timeout = system.settings.config
+    .getDuration(&quot;restaurant-drone-deliveries-service.drone-ask-timeout&quot;)
+    .toScala
+
+  val sharding = ClusterSharding(system)
+
+  def sourceProvider(sliceRange: Range): SourceProvider[
+    Offset,
+    EventEnvelope[local.drones.proto.CoarseDroneLocation]] =
+    EventSourcedProvider
+      .eventsBySlices[local.drones.proto.CoarseDroneLocation](
+        system,
+        readJournalPluginId = R2dbcReadJournal.Identifier,
+        ProducerEntityType,
+        sliceRange.min,
+        sliceRange.max)
+
+  def projection(sliceRange: Range)
+      : Projection[EventEnvelope[local.drones.proto.CoarseDroneLocation]] = {
+    val minSlice = sliceRange.min
+    val maxSlice = sliceRange.max
+    val projectionId =
+      ProjectionId(&quot;DroneEvents&quot;, s&quot;drone-$minSlice-$maxSlice&quot;)
+
+    val handler
+        : Handler[EventEnvelope[local.drones.proto.CoarseDroneLocation]] = {
+      (envelope: EventEnvelope[local.drones.proto.CoarseDroneLocation]) =&gt;
+        logger.info(
+          &quot;Saw projected event: {}-{}: {}&quot;,
+          envelope.persistenceId,
+          envelope.sequenceNr,
+          envelope.eventOption)
+
+        // Drone id without producer entity key
+        val droneId =
+          PersistenceId.extractEntityId(envelope.persistenceId)
+
+        // same drone but different entity type (our Drone representation)
+        val entityRef = sharding.entityRefFor(Drone.EntityKey, droneId)
+
+        envelope.event match {
+          case local.drones.proto.CoarseDroneLocation(coordinates, _) =&gt;
+            // we have encoded origin in a tag, extract it
+            val originName = envelope.tags
+              .find(_.startsWith(&quot;location:&quot;))
+              .get
+              .drop(&quot;location:&quot;.length)
+            entityRef.askWithStatus(
+              Drone.UpdateLocation(
+                originName,
+                CoarseGrainedCoordinates.fromProto(coordinates.get),
+                _))
+          case unknown =&gt;
+            throw new RuntimeException(
+              s&quot;Unknown event type: ${unknown.getClass}&quot;)
+        }
+    }
+
+    R2dbcProjection.atLeastOnceAsync(
+      projectionId,
+      settings = None,
+      sourceProvider(sliceRange),
+      handler = () =&gt; handler)
+  }
+
+  // Split the slices into N ranges
+  val numberOfSliceRanges: Int = system.settings.config.getInt(
+    &quot;restaurant-drone-deliveries-service.drones.projections-slice-count&quot;)
+  val sliceRanges = EventSourcedProvider.sliceRanges(
+    system,
+    R2dbcReadJournal.Identifier,
+    numberOfSliceRanges)
+
+  ShardedDaemonProcess(system).init(
+    name = &quot;LocalDronesProjection&quot;,
+    numberOfInstances = sliceRanges.size,
+    behaviorFactory = i =&gt; ProjectionBehavior(projection(sliceRanges(i))),
+    stopMessage = ProjectionBehavior.Stop)
+}</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka-projection/tree/master/samples/grpc/restaurant-drone-deliveries-service-java/src/main/java/central/drones/LocalDroneEvents.java#L65-L149" target="_blank" title="Go to snippet source">source</a><code class="language-java">private static class LocationHandler extends Handler&lt;EventEnvelope&lt;CoarseDroneLocation&gt;&gt; {
+
+  private final ClusterSharding sharding;
+  private final Duration askTimeout;
+
+  public LocationHandler(ActorSystem&lt;?&gt; system) {
+    this.sharding = ClusterSharding.get(system);
+    this.askTimeout =
+        system
+            .settings()
+            .config()
+            .getDuration(&quot;restaurant-drone-deliveries-service.drone-ask-timeout&quot;);
+  }
+
+  @Override
+  public CompletionStage&lt;Done&gt; process(EventEnvelope&lt;CoarseDroneLocation&gt; envelope) {
+    logger.info(
+        &quot;Saw projected event: {}-{}: {}&quot;,
+        envelope.persistenceId(),
+        envelope.sequenceNr(),
+        envelope.eventOption());
+
+    // Drone id without producer entity key
+    var droneId = PersistenceId.extractEntityId(envelope.persistenceId());
+
+    // same drone id as local but different entity type (our Drone overview representation)
+    var entityRef = sharding.entityRefFor(Drone.ENTITY_KEY, droneId);
+
+    // we have encoded origin in a tag, extract it
+    var originName =
+        envelope.getTags().stream()
+            .filter(tag -&gt; tag.startsWith(&quot;location:&quot;))
+            .findFirst()
+            .get()
+            .substring(&quot;location:&quot;.length());
+
+    return entityRef.askWithStatus(
+        replyTo -&gt;
+            new Drone.UpdateLocation(
+                originName,
+                CoarseGrainedCoordinates.fromProto(envelope.event().getCoordinates()),
+                replyTo),
+        askTimeout);
+  }
+}
+;
+
+public static void initPushedEventsConsumer(ActorSystem&lt;?&gt; system) {
+  // Split the slices into N ranges
+  var numberOfSliceRanges =
+      system
+          .settings()
+          .config()
+          .getInt(&quot;restaurant-drone-deliveries-service.drones.projections-slice-count&quot;);
+
+  var sliceRanges =
+      EventSourcedProvider.sliceRanges(
+          system, R2dbcReadJournal.Identifier(), numberOfSliceRanges);
+
+  ShardedDaemonProcess.get(system)
+      .init(
+          ProjectionBehavior.Command.class,
+          &quot;LocalDronesProjection&quot;,
+          sliceRanges.size(),
+          i -&gt; ProjectionBehavior.create(projection(system, sliceRanges.get(i))),
+          ProjectionBehavior.stopMessage());
+}
+
+private static Projection&lt;EventEnvelope&lt;CoarseDroneLocation&gt;&gt; projection(
+    ActorSystem&lt;?&gt; system, Pair&lt;Integer, Integer&gt; sliceRange) {
+  var minSlice = sliceRange.first();
+  var maxSlice = sliceRange.second();
+  var projectionId = ProjectionId.of(&quot;DroneEvents&quot;, &quot;drone-&quot; + minSlice + &quot;-&quot; + maxSlice);
+
+  SourceProvider&lt;Offset, EventEnvelope&lt;CoarseDroneLocation&gt;&gt; sourceProvider =
+      EventSourcedProvider.eventsBySlices(
+          system,
+          R2dbcReadJournal.Identifier(),
+          PRODUCER_ENTITY_TYPE,
+          sliceRange.first(),
+          sliceRange.second());
+
+  return R2dbcProjection.atLeastOnceAsync(
+      projectionId, Optional.empty(), sourceProvider, () -&gt; new LocationHandler(system), system);
+}</code></pre></dd>
+</dl>
+<h2><a href="#durable-state-drone-overview" name="durable-state-drone-overview" class="anchor"><span class="anchor-link"></span></a>Durable State Drone Overview</h2>
+<p>For the cloud representation of the drones, only containing the rough location, we use <a href="https://doc.akka.io/docs/akka/2.9/typed/durable-state/persistence.html">Durable State</a>, which instead of event sourcing is more like a key-value storage, where each actor command can lead to persisting the complete state of the actor.</p>
+<h3><a href="#commands" name="commands" class="anchor"><span class="anchor-link"></span></a>Commands</h3>
+<p>The cloud drone entity supports two commands, much like the PoP drone entity. The commands are <code>UpdateLocation</code> and <code>GetState</code>:</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka-projection/tree/master/samples/grpc/restaurant-drone-deliveries-service-scala/src/main/scala/central/drones/Drone.scala#L32-L40" target="_blank" title="Go to snippet source">source</a><code class="language-scala">sealed trait Command extends CborSerializable
+
+final case class UpdateLocation(
+    locationName: String,
+    coarseGrainedCoordinates: CoarseGrainedCoordinates,
+    replyTo: ActorRef[StatusReply[Done]])
+    extends Command
+
+final case class GetState(replyTo: ActorRef[State]) extends Command</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka-projection/tree/master/samples/grpc/restaurant-drone-deliveries-service-java/src/main/java/central/drones/Drone.java#L27-L52" target="_blank" title="Go to snippet source">source</a><code class="language-java">interface Command extends CborSerializable {}
+
+public static final class UpdateLocation implements Command {
+  public final String locationName;
+  public final CoarseGrainedCoordinates coarseGrainedCoordinates;
+  public final ActorRef&lt;StatusReply&lt;Done&gt;&gt; replyTo;
+
+  public UpdateLocation(
+      String locationName,
+      CoarseGrainedCoordinates coarseGrainedCoordinates,
+      ActorRef&lt;StatusReply&lt;Done&gt;&gt; replyTo) {
+    this.locationName = locationName;
+    this.coarseGrainedCoordinates = coarseGrainedCoordinates;
+    this.replyTo = replyTo;
+  }
+}
+
+public static final class GetState implements Command {
+  public final ActorRef&lt;State&gt; replyTo;
+
+  @JsonCreator
+  public GetState(ActorRef&lt;State&gt; replyTo) {
+    this.replyTo = replyTo;
+  }
+}
+</code></pre></dd>
+</dl>
+<h3><a href="#state" name="state" class="anchor"><span class="anchor-link"></span></a>State</h3>
+<p>The state of the drone contains the location name of the PoP it talked to last, the coarse grained coordinates it last reported if it did and the timestamp when that happened:</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka-projection/tree/master/samples/grpc/restaurant-drone-deliveries-service-scala/src/main/scala/central/drones/Drone.scala#L46-L50" target="_blank" title="Go to snippet source">source</a><code class="language-scala">final case class State(
+    locationName: String,
+    currentLocation: Option[CoarseGrainedCoordinates],
+    lastChange: Instant)
+    extends CborSerializable</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka-projection/tree/master/samples/grpc/restaurant-drone-deliveries-service-java/src/main/java/central/drones/Drone.java#L56-L70" target="_blank" title="Go to snippet source">source</a><code class="language-java">public static final class State implements CborSerializable {
+  public String locationName;
+  public Optional&lt;CoarseGrainedCoordinates&gt; currentLocation;
+  public Instant lastChange;
+
+  public State(
+      String locationName,
+      Optional&lt;CoarseGrainedCoordinates&gt; currentLocation,
+      Instant lastChange) {
+    this.locationName = locationName;
+    this.currentLocation = currentLocation;
+    this.lastChange = lastChange;
+  }
+}
+</code></pre></dd>
+</dl>
+<p>The initial state, signifying that the durable state newer saw any update uses a special location &ldquo;unknown&rdquo;, and an <span class="group-scala"><code>None</code></span><span class="group-java"><code>Optional.empty()</code></span> for its location.</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka-projection/tree/master/samples/grpc/restaurant-drone-deliveries-service-scala/src/main/scala/central/drones/Drone.scala#L54" target="_blank" title="Go to snippet source">source</a><code class="language-scala">private val emptyState = State(&quot;unknown&quot;, None, Instant.EPOCH)</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka-projection/tree/master/samples/grpc/restaurant-drone-deliveries-service-java/src/main/java/central/drones/Drone.java#L95-L99" target="_blank" title="Go to snippet source">source</a><code class="language-java">@Override
+public State emptyState() {
+  return new State(&quot;unknown&quot;, Optional.empty(), Instant.EPOCH);
+}
+</code></pre></dd>
+</dl>
+<h3><a href="#command-handler" name="command-handler" class="anchor"><span class="anchor-link"></span></a>Command handler</h3>
+<p>The command handler turns <code>UpdateLocation</code> commands into an update to its state and persists that and replies with the current state for the <code>GetState</code> command: </p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka-projection/tree/master/samples/grpc/restaurant-drone-deliveries-service-scala/src/main/scala/central/drones/Drone.scala#L73-L91" target="_blank" title="Go to snippet source">source</a><code class="language-scala">private def onCommand(context: ActorContext[Command])(
+    state: State,
+    command: Command): Effect[State] =
+  command match {
+    case UpdateLocation(locationName, coordinates, replyTo) =&gt;
+      context.log.info(
+        &quot;Updating location to [{}], [{}]&quot;,
+        locationName,
+        coordinates)
+      Effect
+        .persist(
+          state.copy(
+            locationName = locationName,
+            currentLocation = Some(coordinates)))
+        .thenReply(replyTo)(_ =&gt; StatusReply.ack())
+
+    case GetState(replyTo) =&gt;
+      Effect.reply(replyTo)(state)
+  }</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka-projection/tree/master/samples/grpc/restaurant-drone-deliveries-service-java/src/main/java/central/drones/Drone.java#L103-L130" target="_blank" title="Go to snippet source">source</a><code class="language-java">@Override
+public CommandHandler&lt;Command, State&gt; commandHandler() {
+  return newCommandHandlerBuilder()
+      .forAnyState()
+      .onCommand(UpdateLocation.class, this::onUpdateLocation)
+      .onCommand(
+          GetState.class,
+          (state, command) -&gt;
+              // reply with defensive copy since state is mutable
+              Effect()
+                  .reply(
+                      command.replyTo,
+                      new State(state.locationName, state.currentLocation, state.lastChange)))
+      .build();
+}
+
+private Effect&lt;State&gt; onUpdateLocation(State state, UpdateLocation command) {
+  context
+      .getLog()
+      .info(
+          &quot;Updating location to [{}], [{}]&quot;,
+          command.locationName,
+          command.coarseGrainedCoordinates);
+  state.locationName = command.locationName;
+  state.currentLocation = Optional.of(command.coarseGrainedCoordinates);
+  state.lastChange = Instant.now();
+  return Effect().persist(state).thenReply(command.replyTo, updatedState -&gt; StatusReply.ack());
+}</code></pre></dd>
+</dl>
+<h2><a href="#storing-query-representation-for-easier-querying" name="storing-query-representation-for-easier-querying" class="anchor"><span class="anchor-link"></span></a>Storing query representation for easier querying</h2>
+<p>The Akka R2DBC plugin contains a feature for <a href="https://doc.akka.io/docs/akka-persistence-r2dbc/1.2.0/durable-state-store.html#storing-query-representation">writing durable state query representation</a> in the same transaction as the state update. We&rsquo;ll use that to write the <code>locationName</code> to a queryable column in the PostgreSQL database.</p>
+<p>First step is to add a <code>location</code> column to the durable state table schema:</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka-projection/tree/master/samples/grpc/restaurant-drone-deliveries-service-scala/ddl-scripts/create_tables.sql#L45-L61" target="_blank" title="Go to snippet source">source</a><code class="language-sql">CREATE TABLE IF NOT EXISTS durable_state (
+  slice INT NOT NULL,
+  entity_type VARCHAR(255) NOT NULL,
+  persistence_id VARCHAR(255) NOT NULL,
+  revision BIGINT NOT NULL,
+  db_timestamp timestamp with time zone NOT NULL,
+
+  state_ser_id INTEGER NOT NULL,
+  state_ser_manifest VARCHAR(255),
+  state_payload BYTEA NOT NULL,
+  tags TEXT ARRAY,
+
+  -- additional column
+  location VARCHAR(255),
+
+  PRIMARY KEY(persistence_id, revision)
+);</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka-projection/tree/master/samples/grpc/restaurant-drone-deliveries-service-java/ddl-scripts/create_tables.sql#L45-L61" target="_blank" title="Go to snippet source">source</a><code class="language-sql">CREATE TABLE IF NOT EXISTS durable_state (
+  slice INT NOT NULL,
+  entity_type VARCHAR(255) NOT NULL,
+  persistence_id VARCHAR(255) NOT NULL,
+  revision BIGINT NOT NULL,
+  db_timestamp timestamp with time zone NOT NULL,
+
+  state_ser_id INTEGER NOT NULL,
+  state_ser_manifest VARCHAR(255),
+  state_payload BYTEA NOT NULL,
+  tags TEXT ARRAY,
+
+  -- additional column
+  location VARCHAR(255),
+
+  PRIMARY KEY(persistence_id, revision)
+);</code></pre></dd>
+</dl>
+<p>We then implement <span class="group-scala"><code>AdditionalColumn[Drone.State, String]</code></span><span class="group-java"><code>AdditionalColumn&lt;Drone.State, String&gt;</code></span>:</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka-projection/tree/master/samples/grpc/restaurant-drone-deliveries-service-scala/src/main/scala/central/drones/Drone.scala#L97-L108" target="_blank" title="Go to snippet source">source</a><code class="language-scala">/**
+ * Write local drone control location name column for querying drone locations per control location
+ */
+final class LocationColumn extends AdditionalColumn[Drone.State, String] {
+
+  override def columnName: String = &quot;location&quot;
+
+  override def bind(upsert: AdditionalColumn.Upsert[Drone.State])
+      : AdditionalColumn.Binding[String] =
+    AdditionalColumn.BindValue(upsert.value.locationName)
+
+}</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka-projection/tree/master/samples/grpc/restaurant-drone-deliveries-service-java/src/main/java/central/drones/LocationColumn.java" target="_blank" title="Go to snippet source">source</a><code class="language-java">package central.drones;
+
+import akka.persistence.r2dbc.state.javadsl.AdditionalColumn;
+
+/**
+ * Write local drone control location name column for querying drone locations per control location
+ */
+public final class LocationColumn extends AdditionalColumn&lt;Drone.State, String&gt; {
+
+  @Override
+  public Class&lt;String&gt; fieldClass() {
+    return String.class;
+  }
+
+  @Override
+  public String columnName() {
+    return &quot;location&quot;;
+  }
+
+  @Override
+  public Binding&lt;String&gt; bind(Upsert&lt;Drone.State&gt; upsert) {
+    return AdditionalColumn.bindValue(upsert.value().locationName);
+  }
+}</code></pre></dd>
+</dl>
+<p>Finally, we add configuration to make Akka Persistence R2DBC use the <code>LocationColumn</code> when writing state:</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka-projection/tree/master/samples/grpc/restaurant-drone-deliveries-service-scala/src/main/resources/persistence.conf#L21-L25" target="_blank" title="Go to snippet source">source</a><code class="language-conf">state {
+  additional-columns {
+    &quot;CentralDrone&quot; = [&quot;central.drones.LocationColumn&quot;]
+  }
+}</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka-projection/tree/master/samples/grpc/restaurant-drone-deliveries-service-java/src/main/resources/persistence.conf#L21-L25" target="_blank" title="Go to snippet source">source</a><code class="language-conf">state {
+  additional-columns {
+    &quot;CentralDrone&quot; = [&quot;central.drones.LocationColumn&quot;]
+  }
+}</code></pre></dd>
+</dl>
+<h2><a href="#grpc-service" name="grpc-service" class="anchor"><span class="anchor-link"></span></a>gRPC service</h2>
+<p>To make it possible for users of our service to query the drone overviews we define a gRPC service:</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka-projection/tree/master/samples/grpc/restaurant-drone-deliveries-service-scala/src/main/protobuf/central/drones/drone_overview_api.proto" target="_blank" title="Go to snippet source">source</a><code class="language-proto">syntax = &quot;proto3&quot;;
+
+option java_multiple_files = true;
+option java_package = &quot;central.drones.proto&quot;;
+
+package central.drones;
+
+import &quot;common/coordinates.proto&quot;;
+
+service DroneOverviewService {
+  rpc GetDroneOverview(GetDroneOverviewRequest) returns (GetDroneOverviewResponse) {}
+  rpc GetCoarseDroneLocations(CoarseDroneLocationsRequest) returns (CoarseDroneLocationsResponse) {}
+}
+
+message CoarseDroneLocationsRequest {
+  // name of the location
+  string location = 1;
+}
+
+message CoarseDroneLocationsResponse {
+  repeated CoarseDroneLocations coarse_locations = 1;
+}
+
+message CoarseDroneLocations {
+  common.Coordinates coordinates = 1;
+  repeated string drones = 2;
+}
+
+message GetDroneOverviewRequest {
+  string drone_id = 1;
+}
+
+message GetDroneOverviewResponse {
+  string location_name = 1;
+  double coarse_latitude = 2;
+  double coarse_longitude = 3;
+}</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka-projection/tree/master/samples/grpc/restaurant-drone-deliveries-service-java/src/main/protobuf/central/drones/drone_overview_api.proto" target="_blank" title="Go to snippet source">source</a><code class="language-proto">syntax = &quot;proto3&quot;;
+
+option java_multiple_files = true;
+option java_package = &quot;central.drones.proto&quot;;
+
+package central.drones;
+
+import &quot;common/coordinates.proto&quot;;
+
+service DroneOverviewService {
+  rpc GetDroneOverview(GetDroneOverviewRequest) returns (GetDroneOverviewResponse) {}
+  rpc GetCoarseDroneLocations(CoarseDroneLocationsRequest) returns (CoarseDroneLocationsResponse) {}
+}
+
+message CoarseDroneLocationsRequest {
+  // name of the location
+  string location = 1;
+}
+
+message CoarseDroneLocationsResponse {
+  repeated CoarseDroneLocations coarse_locations = 1;
+}
+
+message CoarseDroneLocations {
+  common.Coordinates coordinates = 1;
+  repeated string drones = 2;
+}
+
+message GetDroneOverviewRequest {
+  string drone_id = 1;
+}
+
+message GetDroneOverviewResponse {
+  string location_name = 1;
+  double coarse_latitude = 2;
+  double coarse_longitude = 3;
+}</code></pre></dd>
+</dl>
+<p>And implement the service interface Akka gRPC generates for it.</p>
+<p>The <code>getDroneOverview</code> method asks the drone entity directly about its current state. </p>
+<p>The <code>getCoarseDroneLocations</code> is a bit more involved, querying using the <code>locations</code> column, and then using the Akka Serialization infrastructure to deserialize the found drone <code>State</code> instances. Grouping the drones in the same coarse grained location and finally turning that map into a protobuf response message:</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka-projection/tree/master/samples/grpc/restaurant-drone-deliveries-service-scala/src/main/scala/central/drones/DroneOverviewServiceImpl.scala" target="_blank" title="Go to snippet source">source</a><code class="language-scala">package central.drones
+
+import scala.concurrent.ExecutionContext
+import scala.concurrent.Future
+
+import akka.actor.typed.ActorSystem
+import akka.cluster.sharding.typed.scaladsl.ClusterSharding
+import akka.grpc.GrpcServiceException
+import akka.persistence.r2dbc.session.scaladsl.R2dbcSession
+import akka.persistence.typed.PersistenceId
+import akka.serialization.SerializationExtension
+import akka.util.Timeout
+import central.DeliveriesSettings
+import central.drones.proto.DroneOverviewService
+import central.drones.proto.GetDroneOverviewRequest
+import central.drones.proto.GetDroneOverviewResponse
+import io.grpc.Status
+import org.slf4j.LoggerFactory
+
+class DroneOverviewServiceImpl(
+    system: ActorSystem[_],
+    settings: DeliveriesSettings)
+    extends DroneOverviewService {
+
+  private val logger = LoggerFactory.getLogger(getClass)
+
+  private implicit val ec: ExecutionContext = system.executionContext
+  private implicit val timeout: Timeout = settings.droneAskTimeout
+  private val serialization = SerializationExtension(system)
+  private val sharding = ClusterSharding(system)
+
+  private val findByLocationSql =
+    &quot;SELECT persistence_id, state_ser_id, state_ser_manifest, state_payload &quot; +
+    &quot;FROM durable_state &quot; +
+    &quot;WHERE location = $1&quot;
+
+  override def getCoarseDroneLocations(in: proto.CoarseDroneLocationsRequest)
+      : Future[proto.CoarseDroneLocationsResponse] = {
+    // query against additional columns for drone
+    logger.info(&quot;List drones for location {}&quot;, in.location)
+    R2dbcSession.withSession(system) { session =&gt;
+      session
+        .select(
+          session.createStatement(findByLocationSql).bind(0, in.location)) {
+          row =&gt;
+            val serializerId =
+              row.get(&quot;state_ser_id&quot;, classOf[java.lang.Integer])
+            val serializerManifest =
+              row.get(&quot;state_ser_manifest&quot;, classOf[String])
+            val payload = row.get(&quot;state_payload&quot;, classOf[Array[Byte]])
+            val state =
+              serialization
+                .deserialize(payload, serializerId, serializerManifest)
+                .get
+                .asInstanceOf[Drone.State]
+            val droneId = PersistenceId.extractEntityId(
+              row.get(&quot;persistence_id&quot;, classOf[String]))
+            state.currentLocation.map(coordinates =&gt; (droneId, coordinates))
+        }
+        .map { maybeLocations =&gt;
+          val locations = maybeLocations.flatten
+
+          if (locations.isEmpty)
+            throw new GrpcServiceException(Status.NOT_FOUND)
+          else {
+            val byLocation = locations.groupMap { case (_, coarse) =&gt; coarse } {
+              case (droneId, _) =&gt; droneId
+            }
+
+            proto.CoarseDroneLocationsResponse(byLocation.map {
+              case (location, entries) =&gt;
+                proto.CoarseDroneLocations(
+                  Some(common.proto
+                    .Coordinates(location.latitude, location.longitude)),
+                  entries)
+            }.toVector)
+          }
+        }
+    }
+  }
+
+  override def getDroneOverview(
+      in: GetDroneOverviewRequest): Future[GetDroneOverviewResponse] = {
+    // query against additional columns for drone
+    logger.info(&quot;Get drone overview for drone {}&quot;, in.droneId)
+
+    val entityRef = sharding.entityRefFor(Drone.EntityKey, in.droneId)
+
+    val reply: Future[Drone.State] = entityRef.ask(Drone.GetState(_))
+
+    reply.map(state =&gt;
+      GetDroneOverviewResponse(
+        locationName = state.locationName,
+        coarseLatitude = state.currentLocation.map(_.latitude).getOrElse(0.0),
+        coarseLongitude =
+          state.currentLocation.map(_.longitude).getOrElse(0.0)))
+  }
+}</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka-projection/tree/master/samples/grpc/restaurant-drone-deliveries-service-java/src/main/java/central/drones/DroneOverviewServiceImpl.java" target="_blank" title="Go to snippet source">source</a><code class="language-java">package central.drones;
+
+import akka.actor.typed.ActorSystem;
+import akka.cluster.sharding.typed.javadsl.ClusterSharding;
+import akka.grpc.GrpcServiceException;
+import akka.japi.Pair;
+import akka.persistence.r2dbc.session.javadsl.R2dbcSession;
+import akka.persistence.typed.PersistenceId;
+import akka.serialization.Serialization;
+import akka.serialization.SerializationExtension;
+import central.CoarseGrainedCoordinates;
+import central.DeliveriesSettings;
+import central.drones.proto.*;
+import io.grpc.Status;
+import java.util.*;
+import java.util.concurrent.CompletionStage;
+import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+public final class DroneOverviewServiceImpl implements DroneOverviewService {
+
+  private Logger logger = LoggerFactory.getLogger(DroneOverviewServiceImpl.class);
+
+  private final ActorSystem&lt;?&gt; system;
+  private final DeliveriesSettings settings;
+  private final Serialization serialization;
+  private final ClusterSharding sharding;
+
+  private static final String FIND_BY_LOCATION_SQL =
+      &quot;SELECT persistence_id, state_ser_id, state_ser_manifest, state_payload &quot;
+          + &quot;FROM durable_state &quot;
+          + &quot;WHERE location = $1&quot;;
+
+  public DroneOverviewServiceImpl(ActorSystem&lt;?&gt; system, DeliveriesSettings settings) {
+    this.system = system;
+    this.settings = settings;
+    this.serialization = SerializationExtension.get(system);
+    this.sharding = ClusterSharding.get(system);
+  }
+
+  @Override
+  public CompletionStage&lt;GetDroneOverviewResponse&gt; getDroneOverview(GetDroneOverviewRequest in) {
+    logger.info(&quot;Get drone overview for drone {}&quot;, in.getDroneId());
+    var entityRef = sharding.entityRefFor(Drone.ENTITY_KEY, in.getDroneId());
+    CompletionStage&lt;Drone.State&gt; response =
+        entityRef.ask(Drone.GetState::new, settings.droneAskTimeout);
+
+    return response.thenApply(
+        state -&gt; {
+          if (state.currentLocation.isPresent())
+            return GetDroneOverviewResponse.newBuilder()
+                .setLocationName(state.locationName)
+                .setCoarseLatitude(state.currentLocation.get().latitude)
+                .setCoarseLongitude(state.currentLocation.get().longitude)
+                .build();
+          else
+            throw new GrpcServiceException(
+                Status.NOT_FOUND.withDescription(&quot;No location known for &quot; + in.getDroneId()));
+        });
+  }
+
+  @Override
+  public CompletionStage&lt;CoarseDroneLocationsResponse&gt; getCoarseDroneLocations(
+      CoarseDroneLocationsRequest in) {
+    // query against additional columns for drone
+    logger.info(&quot;List drones for location {}&quot;, in.getLocation());
+    CompletionStage&lt;List&lt;Pair&lt;CoarseGrainedCoordinates, String&gt;&gt;&gt; queryResult =
+        R2dbcSession.withSession(
+            system,
+            session -&gt;
+                session.select(
+                    session.createStatement(FIND_BY_LOCATION_SQL).bind(0, in.getLocation()),
+                    row -&gt; {
+                      var serializerId = row.get(&quot;state_ser_id&quot;, Integer.class);
+                      var serializerManifest = row.get(&quot;state_ser_manifest&quot;, String.class);
+                      var payload = row.get(&quot;state_payload&quot;, byte[].class);
+                      var state =
+                          (Drone.State)
+                              serialization
+                                  .deserialize(payload, serializerId, serializerManifest)
+                                  .get();
+                      var droneId =
+                          PersistenceId.extractEntityId(row.get(&quot;persistence_id&quot;, String.class));
+
+                      // we expect it to always be present
+                      var coordinates = state.currentLocation.get();
+                      return Pair.create(coordinates, droneId);
+                    }));
+
+    return queryResult.thenApply(
+        (List&lt;Pair&lt;CoarseGrainedCoordinates, String&gt;&gt; droneIdAndLocations) -&gt; {
+          if (droneIdAndLocations.isEmpty()) throw new GrpcServiceException(Status.NOT_FOUND);
+          else {
+            // group drones by coarse location
+            Map&lt;CoarseGrainedCoordinates, Set&lt;String&gt;&gt; byLocation =
+                droneIdAndLocations.stream()
+                    .collect(
+                        Collectors.toMap(
+                            Pair::first,
+                            pair -&gt; new HashSet&lt;&gt;(Collections.singletonList(pair.second())),
+                            (existingSet, newSet) -&gt; {
+                              existingSet.addAll(newSet);
+                              return existingSet;
+                            }));
+
+            // turn into response protobuf message
+            var protoEntries =
+                byLocation.entrySet().stream()
+                    .map(
+                        entry -&gt;
+                            CoarseDroneLocations.newBuilder()
+                                .setCoordinates(entry.getKey().toProto())
+                                .addAllDrones(entry.getValue())
+                                .build())
+                    .collect(Collectors.toList());
+            return CoarseDroneLocationsResponse.newBuilder()
+                .addAllCoarseLocations(protoEntries)
+                .build();
+          }
+        });
+  }
+}</code></pre></dd>
+</dl>
+<p>Finally, we need to start the HTTP server, making service implementation available for calls from drones:</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka-projection/tree/master/samples/grpc/restaurant-drone-deliveries-service-scala/src/main/scala/central/DroneDeliveriesServer.scala#L35-L43" target="_blank" title="Go to snippet source">source</a><code class="language-scala">val service = ServiceHandler.concatOrNotFound(
+  DroneOverviewServiceHandler.partial(droneOverviewService),
+  RestaurantDeliveriesServiceHandler.partial(restaurantDeliveriesService),
+  deliveryEventsProducerService,
+  pushedDroneEventsHandler,
+  ServerReflection.partial(
+    List(DroneOverviewService, RestaurantDeliveriesService)))
+
+val bound = Http(system).newServerAt(interface, port).bind(service)</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka-projection/tree/master/samples/grpc/restaurant-drone-deliveries-service-java/src/main/java/central/DroneDeliveriesServer.java#L34-L46" target="_blank" title="Go to snippet source">source</a><code class="language-java">@SuppressWarnings(&quot;unchecked&quot;)
+var service =
+    ServiceHandler.concatOrNotFound(
+        DroneOverviewServiceHandlerFactory.create(droneOverviewService, system),
+        RestaurantDeliveriesServiceHandlerFactory.create(restaurantDeliveriesService, system),
+        deliveryEventsProducerService,
+        pushedDroneEventsHandler,
+        ServerReflection.create(
+            Arrays.asList(
+                DroneOverviewService.description, RestaurantDeliveriesService.description),
+            system));
+
+var bound = Http.get(system).newServerAt(host, port).bind(service);</code></pre></dd>
+</dl>
+<h2><a href="#running-the-sample" name="running-the-sample" class="anchor"><span class="anchor-link"></span></a>Running the sample</h2>
+<p>The complete sample can be downloaded from GitHub, but note that it also includes the next steps of the guide:</p>
+<ul>
+  <li>Java: <a href="https://github.com/akka/akka-projection/tree/main/samples/grpc/restaurant-drone-deliveries-service-java">https://github.com/akka/akka-projection/tree/main/samples/grpc/restaurant-drone-deliveries-service-java</a></li>
+  <li>Scala: <a href="https://github.com/akka/akka-projection/tree/main/samples/grpc/restaurant-drone-deliveries-service-scala">https://github.com/akka/akka-projection/tree/main/samples/grpc/restaurant-drone-deliveries-service-scala</a></li>
+</ul>
+<p>As this service consumes events from the service built in the previous step, start the local-drone-control service first: </p><div class="group-scala">
+<pre class="prettyprint"><code class="language-shell">sbt run
+</code></pre></div><div class="group-java">
+<pre class="prettyprint"><code class="language-shell">mvn compile exec:exec
+</code></pre></div>
+<p>Then start the drone-restaurant-deliveries-service.</p>
+<p>As the service needs a PostgreSQL instance running, start that up in a docker container and create the database schema:</p>
+<pre class="prettyprint"><code class="language-shell">docker compose up --wait
+docker exec -i postgres_db psql -U postgres -t &lt; ddl-scripts/create_tables.sql
+</code></pre>
+<p>Then start the service:</p><div class="group-scala">
+<pre class="prettyprint"><code class="language-shell">sbt -Dconfig.resource=local1.conf run
+</code></pre>
+<p>And optionally one or two more Akka cluster nodes, but note that the local drone controls are statically configured to the gRPC port of the first and will only publish events to that node.</p>
+<pre class="prettyprint"><code class="language-shell">sbt -Dconfig.resource=local2.conf run
+sbt -Dconfig.resource=local3.conf run
+</code></pre></div><div class="group-java">
+<pre class="prettyprint"><code class="language-shell">mvn compile exec:exec -DAPP_CONFIG=local1.conf
+</code></pre>
+<p>And optionally one or two more Akka cluster nodes, but note that the local drone controls are statically configured to the gRPC port of the first and will only publish events to that node.</p>
+<pre class="prettyprint"><code class="language-shell">mvn compile exec:exec -DAPP_CONFIG=local2.conf
+mvn compile exec:exec -DAPP_CONFIG=local3.conf
+</code></pre></div>
+<p>Now update one or more drones a few times with <a href="https://github.com/fullstorydev/grpcurl">grpcurl</a> against the local-drone-control:</p>
+<pre class="prettyprint"><code class="language-shell ">grpcurl -d &#39;{&quot;drone_id&quot;:&quot;drone1&quot;, &quot;coordinates&quot;: {&quot;longitude&quot;: 18.07125, &quot;latitude&quot;: 59.31834}, &quot;altitude&quot;: 5}&#39; -plaintext 127.0.0.1:8080 local.drones.DroneService.ReportLocation
+ 
+grpcurl -d &#39;{&quot;drone_id&quot;:&quot;drone1&quot;, &quot;coordinates&quot;: {&quot;longitude&quot;: 18.08125, &quot;latitude&quot;: 59.41834}, &quot;altitude&quot;: 10}&#39; -plaintext 127.0.0.1:8080 local.drones.DroneService.ReportLocation
+
+grpcurl -d &#39;{&quot;drone_id&quot;:&quot;drone2&quot;, &quot;coordinates&quot;: {&quot;longitude&quot;: 18.07125, &quot;latitude&quot;: 59.41834}, &quot;altitude&quot;: 8 }&#39; -plaintext 127.0.0.1:8080 local.drones.DroneService.ReportLocation
+
+grpcurl -d &#39;{&quot;drone_id&quot;:&quot;drone2&quot;, &quot;coordinates&quot;: {&quot;longitude&quot;: 18.07125, &quot;latitude&quot;: 59.41834}, &quot;altitude&quot;: 8 }&#39; -plaintext 127.0.0.1:8080 local.drones.DroneService.ReportLocation
+
+grpcurl -d &#39;{&quot;drone_id&quot;:&quot;drone2&quot;, &quot;coordinates&quot;: {&quot;longitude&quot;: 18.08114, &quot;latitude&quot;: 59.42122}, &quot;altitude&quot;: 8 }&#39; -plaintext 127.0.0.1:8080 local.drones.DroneService.ReportLocation
+</code></pre>
+<p>Then query the cloud service:</p>
+<pre class="prettyprint"><code class="language-shell">grpcurl -d &#39;{&quot;location&quot;:&quot;sweden/stockholm/kungsholmen&quot;}&#39; -plaintext localhost:8101 central.drones.DroneOverviewService/GetCoarseDroneLocations
+</code></pre>
+<p>If you posted the drone location updates above you should see the two drones listed at the same coarse grained coordinates.</p>
+<p>You can also query the individual drones for their specific coarse grained location:</p>
+<pre class="prettyprint"><code class="language-shell">grpcurl -d &#39;{&quot;drone_id&quot;:&quot;drone1&quot;}&#39; -plaintext localhost:8101 central.drones.DroneOverviewService.GetDroneOverview
+</code></pre>
+<h2><a href="#whats-next-" name="whats-next-" class="anchor"><span class="anchor-link"></span></a>What&rsquo;s next?</h2>
+<ul>
+  <li>Accept restaurant delivery orders in the restaurant-drone-deliveries-service</li>
+</ul>
+</div>
+</article>
+<div class="row">
+<div class="small-12 column">
+<section class="nav-prev-next row">
+<div class="nav-prev small-6 column">
+<a href="../guide/1-local-drone-control-service.html"><i class="icon-prev"></i> <span class="link-prev">Local Drone Control Service</span></a>
+</div>
+<div class="nav-next small-6 column clearfix">
+<a class="float-right" href="../guide/3-restaurant-deliveries-service.html">Restaurant deliveries <i class="icon-next"></i></a>
+</div>
+</section>
+</div>
+</div>
+<div class="source-github row">
+Found an error in this documentation? The source code for this page can be found <a href="https://github.com/akka/akka-projection/tree/master/akka-edge-docs/src/main/paradox/guide/2-drone-location-to-cloud-service.md">here</a>.
+Please feel free to edit and contribute a pull request.
+</div>
+
+<footer class="page-footer row clearfix">
+<img class="akka-icon float-left show-for-medium" src="../images/akka-icon.svg" />
+<section class="copyright">
+<div>Akka Edge is available under the <a href="https://www.lightbend.com/akka/license" target="_blank">Business Source License 1.1</a>.</div>
+<p class="legal">
+&copy; 2011-2023 <a href="https://www.lightbend.com" target="_blank">Lightbend, Inc.</a> |
+<a href="https://www.lightbend.com/legal/licenses" target="_blank">Licenses</a> |
+<a href="https://www.lightbend.com/legal/terms" target="_blank">Terms</a> |
+<a href="https://www.lightbend.com/legal/privacy" target="_blank">Privacy Policy</a> |
+<a href="https://akka.io/cookie/" target="_blank">Cookie Listing</a> |
+<a class="optanon-toggle-display">Cookie Settings</a>
+</p>
+</section>
+
+</footer>
+</section>
+</main>
+</div>
+
+<script type="text/javascript" src="../js/scrollsneak.js"></script>
+<script type="text/javascript">jQuery(document).foundation();</script>
+<script type="text/javascript" src="../js/groups.js"></script>
+<script type="text/javascript" src="../js/page.js"></script>
+<script type="text/javascript" src="../js/snippets.js"></script>
+<script type="text/javascript" src="../js/magellan.js"></script>
+<script type="text/javascript" src="../js/metadata-toggle.js"></script>
+<script type="text/javascript" src="../js/lbHeader.js"></script>
+
+<style type="text/css">@import "../lib/prettify/prettify.css";</style>
+<script type="text/javascript" src="../lib/prettify/prettify.js"></script>
+<script type="text/javascript" src="../lib/prettify/lang-scala.js"></script>
+<script type="text/javascript">//<![CDATA[
+jQuery(function(){window.prettyPrint && prettyPrint()});
+//]]></script>
+<!-- hook for including project specific javascript into the generated docs -->
+
+</body>
+</html>
