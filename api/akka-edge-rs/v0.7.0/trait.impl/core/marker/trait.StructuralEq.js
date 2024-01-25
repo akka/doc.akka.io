@@ -1,0 +1,4 @@
+(function() {var implementors = {
+"akka_persistence_rs":[["impl <a class=\"trait\" href=\"https://doc.rust-lang.org/1.75.0/core/marker/trait.StructuralEq.html\" title=\"trait core::marker::StructuralEq\">StructuralEq</a> for <a class=\"struct\" href=\"akka_persistence_rs/struct.PersistenceId.html\" title=\"struct akka_persistence_rs::PersistenceId\">PersistenceId</a>"]],
+"akka_projection_rs":[["impl <a class=\"trait\" href=\"https://doc.rust-lang.org/1.75.0/core/marker/trait.StructuralEq.html\" title=\"trait core::marker::StructuralEq\">StructuralEq</a> for <a class=\"struct\" href=\"akka_projection_rs/consumer_filter/struct.TopicMatcher.html\" title=\"struct akka_projection_rs::consumer_filter::TopicMatcher\">TopicMatcher</a>"]]
+};if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()
