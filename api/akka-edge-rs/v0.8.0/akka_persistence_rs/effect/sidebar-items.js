@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["Error"],"fn":["persist_deletion_event","persist_event","persist_event_if","reply","then","unhandled"],"struct":["And","PersistEvent","Reply","Then","ThenPersistEvent","ThenReply","Unhandled"],"trait":["Effect","EffectExt"],"type":["ReplyResult","ReplyTo","Result"]};

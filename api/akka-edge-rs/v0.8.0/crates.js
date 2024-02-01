@@ -1,0 +1,1 @@
+window.ALL_CRATES = ["akka_persistence_rs","akka_persistence_rs_commitlog","akka_projection_rs","akka_projection_rs_commitlog","akka_projection_rs_grpc"];

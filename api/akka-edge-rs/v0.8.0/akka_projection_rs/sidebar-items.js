@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["Handlers"],"mod":["consumer","consumer_filter","offset_store","volatile_offset_store"],"struct":["FnHandler","HandlerError","SourceProviderError","UnusedHandler","UnusedPendingHandler"],"trait":["Handler","PendingHandler","SourceProvider"]};
