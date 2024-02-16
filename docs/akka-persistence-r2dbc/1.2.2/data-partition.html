@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html class="no-js" lang="en">
+
+<head>
+<title>Data partitioning &bull; Akka Persistence R2DBC Documentation</title>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta name="description" content="An Akka Persistence backed by SQL database with R2DBC"/>
+<link rel="canonical" href="https://doc.akka.io/docs/akka-persistence-r2dbc/current/data-partition.html"/>
+<script type="text/javascript" src="lib/jquery/jquery.min.js"></script>
+<script type="text/javascript" src="lib/foundation/dist/js/foundation.min.js"></script>
+<link rel="stylesheet" type="text/css" href="lib/normalize.css/normalize.css"/>
+<link rel="stylesheet" type="text/css" href="lib/foundation/dist/css/foundation.min.css"/>
+<link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/docsearch.js/2/docsearch.min.css" />
+<link rel="stylesheet" type="text/css" href="css/icons.css"/>
+<link rel="stylesheet" type="text/css" href="css/page-8.css"/>
+<link rel="stylesheet" type="text/css" href="css/banner-2.css"/>
+<link rel="shortcut icon" href="images/favicon.ico" />
+<link rel="apple-touch-icon" sizes="180x180" href="images/apple-touch-icon.png"/>
+<link rel="icon" type="image/png" sizes="32x32" href="images/favicon-32x32.png"/>
+<link rel="icon" type="image/png" sizes="16x16" href="images/favicon-16x16.png"/>
+<link rel="manifest" href="images/manifest.json"/>
+<meta name="msapplication-TileImage" content="images/mstile-150x150.png"/>
+<meta name="msapplication-TileColor" content="#15a9ce"/>
+<meta name="theme-color" content="#15a9ce"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<!-- OneTrust Cookies Consent Notice (Production Standard, akka.io, en-GB) start -->
+<script src="https://cdn.cookielaw.org/scripttemplates/otSDKStub.js"  type="text/javascript" charset="UTF-8" data-domain-script="28b912e7-09e9-43d5-91e4-3d1897044004" ></script>
+<script type="text/javascript">
+function OptanonWrapper() { }
+</script>
+<!-- OneTrust Cookies Consent Notice (Production Standard, akka.io, en-GB) end -->
+<!-- Google Tag Manager now loads Google Analytics and any other tracking scripts. GTM also performs respects a users cookie choices-->
+<script type="text/javascript">
+(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+})(window,document,'script','dataLayer','GTM-KBJGH35');
+</script>
+
+</head>
+
+<body id="underlay" data-toggler="nav-open">
+<div id="lightbend-banner" class="lightbend-banner akka full-width" data-category="OSS Lightbend Banner Impression" data-label="Akka Banner Impression">
+<div class="oss-wrapper">
+<div class="oss-brand">
+<a class="oss-track-link-label" data-category="OSS Lightbend Banner Clicks" data-label="Lightbend Logo - Akka Banner" href="https://www.lightbend.com">
+<img class="lightbend-logo" src="images/banner-logos/lightbend-reverse.svg" alt="Lightbend" title="Lightbend">
+</a>
+</div>
+<div class="oss-ad no-drop-down">
+<nav id="lightbendRotator" class="lightbend-rotator">
+<a class="oss-track-link-label" data-category="OSS Lightbend Banner Clicks" data-label="Promo Rotator - Introducing Akka Cloud to Edge Continuum. Build once for the Cloud. Seamlessly deploy to the Edge. [Learn more] - Akka Banner" href="https://www.lightbend.com/blog/akka-edge-unifying-the-cloud-and-edge">
+Introducing Akka Cloud to Edge Continuum. Build once for the Cloud. Seamlessly deploy to the Edge. <span class="akka-btn">Learn more</span>
+</a>
+</nav>
+</div>
+</div>
+</div>
+
+<header class="site-header hide-for-large">
+<div class="sticky-header clearfix">
+<a href="https://akka.io"><img class="logo" src="images/akka-logo-reverse.svg"/></a>
+
+<button class="menu-icon float-right" type="button" data-toggle="underlay overlay"></button>
+</div>
+<div id="overlay" class="overlay-nav" data-toggler="nav-open">
+<header class="nav-header">
+<div class="nav-header-title">
+<h1><a href="index.html">Akka Persistence R2DBC Documentation</a></h1>
+</div>
+<div class="nav-header-version">
+Version 1.2.2
+</div>
+<div class="nav-header-groups">
+<select class="supergroup" name="Language"><option class="group" value="group-java">Java</option><option class="group" value="group-scala">Scala</option></select>
+<select class="supergroup" name="Dialect"><option class="group" value="group-postgres">Postgres</option><option class="group" value="group-yugabyte">Yugabyte</option><option class="group" value="group-h2">H2</option><option class="group" value="group-sqlserver">SQLServer</option></select>
+</div>
+</header>
+<nav class="nav-toc">
+<ul>
+  <li><a href="overview.html" class="page">Overview</a></li>
+  <li><a href="getting-started.html" class="page">Getting Started</a></li>
+  <li><a href="journal.html" class="page">Journal plugin</a></li>
+  <li><a href="snapshots.html" class="page">Snapshot store plugin</a></li>
+  <li><a href="durable-state-store.html" class="page">Durable state store plugin</a></li>
+  <li><a href="query.html" class="page">Query Plugin</a></li>
+  <li><a href="postgres_json.html" class="page">PostgreSQL JSON</a></li>
+  <li><a href="projection.html" class="page">Projection</a></li>
+  <li><a href="config.html" class="page">Configuration</a></li>
+  <li><a href="data-partition.html#data-partitioning" class="active page">Data partitioning</a>
+  <ul>
+    <li><a href="data-partition.html#example" class="header">Example</a></li>
+    <li><a href="data-partition.html#configuration" class="header">Configuration</a></li>
+    <li><a href="data-partition.html#schema" class="header">Schema</a></li>
+    <li><a href="data-partition.html#changing-data-partitions" class="header">Changing data partitions</a></li>
+  </ul></li>
+  <li><a href="cleanup.html" class="page">Database Cleanup</a></li>
+  <li><a href="migration.html" class="page">Migration tool</a></li>
+  <li><a href="migration-guide.html" class="page">Migration Guide</a></li>
+  <li><a href="contributing.html" class="page">Contributing</a></li>
+</ul>
+</nav>
+</div>
+</header>
+<div class="site-content-wrapper">
+<aside class="sticky-sidebar show-for-large">
+<header class="nav-header sticky-sidebar-header">
+<div class="nav-header-title">
+<h1><a href="index.html">Akka Persistence R2DBC Documentation</a></h1>
+</div>
+<div class="nav-header-version">
+Version 1.2.2
+</div>
+<div class="nav-header-groups">
+<select class="supergroup" name="Language"><option class="group" value="group-java">Java</option><option class="group" value="group-scala">Scala</option></select>
+<select class="supergroup" name="Dialect"><option class="group" value="group-postgres">Postgres</option><option class="group" value="group-yugabyte">Yugabyte</option><option class="group" value="group-h2">H2</option><option class="group" value="group-sqlserver">SQLServer</option></select>
+</div>
+</header>
+<nav class="site-nav sticky-sidebar-contents">
+<div class="nav-toc">
+<ul>
+  <li><a href="overview.html" class="page">Overview</a></li>
+  <li><a href="getting-started.html" class="page">Getting Started</a></li>
+  <li><a href="journal.html" class="page">Journal plugin</a></li>
+  <li><a href="snapshots.html" class="page">Snapshot store plugin</a></li>
+  <li><a href="durable-state-store.html" class="page">Durable state store plugin</a></li>
+  <li><a href="query.html" class="page">Query Plugin</a></li>
+  <li><a href="postgres_json.html" class="page">PostgreSQL JSON</a></li>
+  <li><a href="projection.html" class="page">Projection</a></li>
+  <li><a href="config.html" class="page">Configuration</a></li>
+  <li><a href="data-partition.html#data-partitioning" class="active page">Data partitioning</a>
+  <ul>
+    <li><a href="data-partition.html#example" class="header">Example</a></li>
+    <li><a href="data-partition.html#configuration" class="header">Configuration</a></li>
+    <li><a href="data-partition.html#schema" class="header">Schema</a></li>
+    <li><a href="data-partition.html#changing-data-partitions" class="header">Changing data partitions</a></li>
+  </ul></li>
+  <li><a href="cleanup.html" class="page">Database Cleanup</a></li>
+  <li><a href="migration.html" class="page">Migration tool</a></li>
+  <li><a href="migration-guide.html" class="page">Migration Guide</a></li>
+  <li><a href="contributing.html" class="page">Contributing</a></li>
+</ul>
+</div>
+</nav>
+<footer class="nav-footer sticky-sidebar-footer">
+<a href="https://akka.io"><img class="logo" src="images/akka-logo-reverse.svg"/></a>
+
+</footer>
+</aside>
+<main class="fixed-shift-for-large expanded row">
+<section class="site-content small-12 column">
+<article class="page-content row">
+<div class="small-12 column" id="docs">
+<h1><a href="#data-partitioning" name="data-partitioning" class="anchor"><span class="anchor-link"></span></a>Data partitioning</h1>
+<p>Using a single non-distributed database can become a bottleneck for applications that have high throughput requirements. To be able to spread the load over more than one database the event journal, snapshot store and durable state can be split up over multiple tables and physical backend databases.</p>
+<p>The data is partitioned by the slices that are used for <a href="query.html#eventsbyslices"><code>eventsBySlices</code></a> and <a href="https://doc.akka.io/docs/akka-projection/current/r2dbc.html">Projections</a>. You can configure how many data partitions that are needed. A data partition corresponds to a separate database table. For example, 4 data partitions means that slice range (0 to 255) maps to data partition 0, (256 to 511) to data partition 1, (512 to 767) to data partition 2, and (768 to 1023) to data partition 3.</p>
+<p>Number of data partitions must be between 1 and 1024 and a whole number divisor of 1024 (number of slices), e.g. 2, 4, 8, 16. The tables will have the data partition as suffix, e.g. event_journal_0, event_journal_1.</p>
+<p>Those tables can be located in physically separate databases. Number of databases must be a whole number divisor of number of partitions, and less than or equal to number of partitions. For example, 8 data partitions and 2 databases means that there will be a total of 8 tables in 2 databases, i.e. 4 tables in each database.</p>
+<h2><a href="#example" name="example" class="anchor"><span class="anchor-link"></span></a>Example</h2>
+<p>If we configure 8 data partitions and 4 databases it will look like this:</p>
+<p><img src="images/data-partition.svg" alt="Diagram of data partitions" /></p>
+<p>Based on the persistence id an individual entity will map to a specific slice and the entity will read and write to the table that covers corresponding slice range.</p>
+<p>If we have 16 projection instances each projection instance will consume events from 64 slices. The query to retrieve events from these slices always map to one single table that covers the slice range. There can be more projection instances than number of data partitions (tables), but not less. Less projection instances than number of data partitions would result in queries that would span over more than one table, which would be inefficient and therefore not allowed.</p>
+<p>Each database may host several of the data partition tables. Each database requires a separate connection factory and connection pool.</p>
+<h2><a href="#configuration" name="configuration" class="anchor"><span class="anchor-link"></span></a>Configuration</h2>
+<p>The data partitions are configured with:</p>
+<pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/akka/akka-persistence-r2dbc/tree/v1.2.2/core/src/main/resources/reference.conf#L187-L213" target="_blank" title="Go to snippet source">source</a><code class="language-conf"># Number of tables and databases that the data will be split into. The selection of data
+# partition is made from the slice of the persistenceId.
+# For example, 4 data partitions means that slice range (0 to 255) maps to data partition 0,
+# (256 to 511) to data partition 1, (512 to 767) to data partition 3, and (768 to 1023) to
+# data partition 3.
+# This configuration cannot be changed in a rolling update, since the data must be moved
+# between the tables if number of data partitions is changed.
+# The number of Projection instances when using eventsBySlices must be greater than or equal
+# to the number of data partitions, because a query for a slice range cannot span over more
+# than one data partition.
+akka.persistence.r2dbc.data-partition {
+  # How many tables the data will be partitioned over. The tables will have
+  # the data partition as suffix, e.g. event_journal_0, event_journal_1.
+  # Must be between 1 and 1024 and a whole number divisor of 1024 (number of slices).
+  # When number-of-partitions is 1 the table name is without suffix.
+  number-of-partitions = 1
+  # How many databases the tables will be partitioned over. A database corresponds to a connection
+  # factory with its own connection pool.
+  # Must be a whole number divisor of number-of-partitions, and less than or equal to number-of-partitions.
+  # For example, number-of-partitions=8 and number-of-databases=2 means that there will be a total of
+  # 8 tables in 2 databases, i.e. 4 tables in each database.
+  # The connection-factory setting will have the data partition range as suffix, e.g. with 8 data partitions and
+  # 2 databases the connection factory settings are connection-factory-0-3, connection-factory-4-7.
+  # When number-of-databases is 1 there will only be one connection factory, without suffix.
+  # number-of-databases &gt; 1 not supported by H2.
+  number-of-databases = 1
+}</code></pre>
+<p>When using more than one database you must define corresponding number of connection factories. The connection-factory setting will have the data partition range as suffix, e.g. with 8 data partitions and 4 databases the connection factory settings would be:</p>
+<pre class="prettyprint"><code class="language-hcon">akka.persistence.r2dbc {
+  data-partition {
+    number-of-partitions = 8
+    number-of-databases = 4
+  }
+
+  connection-factory = ${akka.persistence.r2dbc.postgres}
+  connection-factory-0-1 = ${akka.persistence.r2dbc.connection-factory}
+  connection-factory-0-1.host = ${?DB_HOST_0}
+  connection-factory-2-3 = ${akka.persistence.r2dbc.connection-factory}
+  connection-factory-2-3.host = ${?DB_HOST_1}
+  connection-factory-4-5 = ${akka.persistence.r2dbc.connection-factory}
+  connection-factory-4-5.host = ${?DB_HOST_2}
+  connection-factory-6-7 = ${akka.persistence.r2dbc.connection-factory}
+  connection-factory-6-7.host = ${?DB_HOST_3}
+}
+</code></pre>
+<h2><a href="#schema" name="schema" class="anchor"><span class="anchor-link"></span></a>Schema</h2>
+<p>Each data partition corresponds to a table. You can copy the DDL statements for the tables and indexes from <a href="getting-started.html#creating-the-schema">Creating the schema</a> but change the table and index names to include data partition suffix. For example <code>event_journal_0</code>, <code>event_journal_0_slice_idx</code>, <code>event_journal_1</code>, <code>event_journal_1_slice_idx</code>. Note that the index must also reference the parent table with same data partition suffix.</p>
+<h2><a href="#changing-data-partitions" name="changing-data-partitions" class="anchor"><span class="anchor-link"></span></a>Changing data partitions</h2>
+<p>The configuration of data partitions and databases <strong>must not</strong> be changed in a rolling update, since the data must be moved between the tables and databases if the configuration is changed. The application must be stopped while moving the data.</p>
+<p>The data can be copied between tables with SQL such as: </p>
+<pre class="prettyprint"><code class="language-sql">CREATE TABLE event_journal_0 AS (SELECT * FROM event_journal WHERE slice BETWEEN 0 AND 127);
+CREATE TABLE event_journal_1 AS (SELECT * FROM event_journal WHERE slice BETWEEN 128 AND 255);
+</code></pre>
+<p>Remember to also <a href="data-partition.html#schema">create the slice index</a>.</p>
+<p>Alternatively, <a href="data-partition.html#schema">create the tables</a> first and insert the data with SQL such as:</p>
+<pre class="prettyprint"><code class="language-sql">INSERT INTO event_journal_0 SELECT * FROM event_journal WHERE slice BETWEEN 0 AND 127;
+INSERT INTO event_journal_1 SELECT * FROM event_journal WHERE slice BETWEEN 128 AND 255;
+</code></pre>
+<p>There are many other ways to move in an efficient way depending on what database you use, such as backups, sqldump and other export/import tools.</p>
+<p>The number of tables and their names don&rsquo;t change by the number of configured databases. If you think you will need more than one database in the future it can be good to start with for example 8 data partitions (tables) in a single database. That will make it easier to move the full tables to the additional databases later.</p>
+</div>
+</article>
+<div class="row">
+<div class="small-12 column">
+<section class="nav-prev-next row">
+<div class="nav-prev small-6 column">
+<a href="config.html"><i class="icon-prev"></i> <span class="link-prev">Configuration</span></a>
+</div>
+<div class="nav-next small-6 column clearfix">
+<a class="float-right" href="cleanup.html">Database Cleanup <i class="icon-next"></i></a>
+</div>
+</section>
+</div>
+</div>
+<div class="source-github row">
+Found an error in this documentation? The source code for this page can be found <a href="https://github.com/akka/akka-persistence-r2dbc/tree/v1.2.2/docs/src/main/paradox/data-partition.md">here</a>.
+Please feel free to edit and contribute a pull request.
+</div>
+
+<footer class="page-footer row clearfix">
+<img class="akka-icon float-left show-for-medium" src="images/akka-icon.svg" />
+<section class="copyright">
+<div>Akka Persistence plugin for R2DBC is available under the <a href="https://www.lightbend.com/akka/license" target="_blank">Business Source License 1.1</a>.</div>
+<p class="legal">
+&copy; 2011-2024 <a href="https://www.lightbend.com" target="_blank">Lightbend, Inc.</a> |
+<a href="https://www.lightbend.com/legal/licenses" target="_blank">Licenses</a> |
+<a href="https://www.lightbend.com/legal/terms" target="_blank">Terms</a> |
+<a href="https://www.lightbend.com/legal/privacy" target="_blank">Privacy Policy</a> |
+<a href="https://akka.io/cookie/" target="_blank">Cookie Listing</a> |
+<a class="optanon-toggle-display">Cookie Settings</a>
+</p>
+</section>
+
+</footer>
+</section>
+</main>
+</div>
+
+<script type="text/javascript" src="js/scrollsneak.js"></script>
+<script type="text/javascript">jQuery(document).foundation();</script>
+<script type="text/javascript" src="js/groups.js"></script>
+<script type="text/javascript" src="js/page.js"></script>
+<script type="text/javascript" src="js/snippets.js"></script>
+<script type="text/javascript" src="js/magellan.js"></script>
+<script type="text/javascript" src="js/metadata-toggle.js"></script>
+<script type="text/javascript" src="js/lbHeader.js"></script>
+
+<style type="text/css">@import "lib/prettify/prettify.css";</style>
+<script type="text/javascript" src="lib/prettify/prettify.js"></script>
+<script type="text/javascript" src="lib/prettify/lang-scala.js"></script>
+<script type="text/javascript">//<![CDATA[
+jQuery(function(){window.prettyPrint && prettyPrint()});
+//]]></script>
+<script type="text/javascript" src="assets/js/warnOldVersion.js"></script>
+<script type="text/javascript">//<![CDATA[
+jQuery(function(jq){initOldVersionWarnings(jq, '1.2.2', 'https://doc.akka.io/docs/akka-persistence-r2dbc/current/')});
+//]]></script>
+
+
+</body>
+</html>
