@@ -51,8 +51,8 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 </div>
 <div class="oss-ad no-drop-down">
 <nav id="lightbendRotator" class="lightbend-rotator">
-<a class="oss-track-link-label" data-category="OSS Lightbend Banner Clicks" data-label="Promo Rotator - Lightbend Changed its Software Licensing Model for Akka Technology. [License FAQ] - Akka Banner" href="https://www.lightbend.com/akka/license-faq">
-<strong>Lightbend</strong> Changed its Software Licensing Model for Akka Technology. <span class="akka-btn">License FAQ</span>
+<a class="oss-track-link-label" data-category="OSS Lightbend Banner Clicks" data-label="Promo Rotator - Introducing Akka Cloud to Edge Continuum. Build once for the Cloud. Seamlessly deploy to the Edge. [Learn more] - Akka Banner" href="https://www.lightbend.com/blog/akka-edge-unifying-the-cloud-and-edge">
+Introducing Akka Cloud to Edge Continuum. Build once for the Cloud. Seamlessly deploy to the Edge. <span class="akka-btn">Learn more</span>
 </a>
 </nav>
 </div>
@@ -80,7 +80,17 @@ Version 2.0.0
 <nav class="nav-toc">
 <ul>
   <li><a href="index.html#versions" class="header">Versions</a></li>
-  <li><a href="azure-eventhubs.html#azure-event-hubs" class="active page">Azure Event Hubs</a></li>
+  <li><a href="azure-eventhubs.html#azure-event-hubs" class="active page">Azure Event Hubs</a>
+  <ul>
+    <li><a href="azure-eventhubs.html#artifacts" class="header">Artifacts</a></li>
+    <li><a href="azure-eventhubs.html#connecting-to-event-hubs" class="header">Connecting to Event Hubs</a></li>
+    <li><a href="azure-eventhubs.html#producing-to-event-hubs" class="header">Producing to Event Hubs</a></li>
+    <li><a href="azure-eventhubs.html#consuming-from-event-hubs" class="header">Consuming from Event Hubs</a></li>
+    <li><a href="azure-eventhubs.html#checkpointing" class="header">Checkpointing</a></li>
+    <li><a href="azure-eventhubs.html#error-handling-and-vs-" class="header">Error handling and &ldquo;at-least-once&rdquo; vs. &ldquo;at-most-once&rdquo;</a></li>
+    <li><a href="azure-eventhubs.html#consuming-producing-and-checkpointing-in-one-stream" class="header">Consuming, producing, and checkpointing in one stream</a></li>
+    <li><a href="azure-eventhubs.html#serialization" class="header">Serialization</a></li>
+  </ul></li>
   <li><a href="mqttv5.html" class="page">MQTT v5</a></li>
 </ul>
 </nav>
@@ -103,7 +113,17 @@ Version 2.0.0
 <div class="nav-toc">
 <ul>
   <li><a href="index.html#versions" class="header">Versions</a></li>
-  <li><a href="azure-eventhubs.html#azure-event-hubs" class="active page">Azure Event Hubs</a></li>
+  <li><a href="azure-eventhubs.html#azure-event-hubs" class="active page">Azure Event Hubs</a>
+  <ul>
+    <li><a href="azure-eventhubs.html#artifacts" class="header">Artifacts</a></li>
+    <li><a href="azure-eventhubs.html#connecting-to-event-hubs" class="header">Connecting to Event Hubs</a></li>
+    <li><a href="azure-eventhubs.html#producing-to-event-hubs" class="header">Producing to Event Hubs</a></li>
+    <li><a href="azure-eventhubs.html#consuming-from-event-hubs" class="header">Consuming from Event Hubs</a></li>
+    <li><a href="azure-eventhubs.html#checkpointing" class="header">Checkpointing</a></li>
+    <li><a href="azure-eventhubs.html#error-handling-and-vs-" class="header">Error handling and &ldquo;at-least-once&rdquo; vs. &ldquo;at-most-once&rdquo;</a></li>
+    <li><a href="azure-eventhubs.html#consuming-producing-and-checkpointing-in-one-stream" class="header">Consuming, producing, and checkpointing in one stream</a></li>
+    <li><a href="azure-eventhubs.html#serialization" class="header">Serialization</a></li>
+  </ul></li>
   <li><a href="mqttv5.html" class="page">MQTT v5</a></li>
 </ul>
 </div>
@@ -117,7 +137,1081 @@ Version 2.0.0
 <section class="site-content small-12 column">
 <article class="page-content row">
 <div class="small-12 column" id="docs">
-<h1><a href="#azure-event-hubs" name="azure-event-hubs" class="anchor"><span class="anchor-link"></span></a>Azure Event Hubs</h1>
+<h1><a href="#azure-event-hubs" name="azure-event-hubs" class="anchor"><span class="anchor-link"></span></a>Azure Event Hubs</h1><div class="callout note "><div class="callout-title">Azure Event Hubs</div>
+<p>Azure Event Hubs is a real-time data streaming platform which is proprietary to the Microsoft Azure cloud.</p>
+<p>While Event Hubs supports some Apache Kafka APIs, we do not recommend using Alpakka Kafka. Our experience has been that it is easy to find oneself using Kafka functionality with Alpakka Kafka which is not fully supported by Event Hubs.</p>
+<p>For information about setting up and managing Event Hubs infrastructure, we refer you to the <a href="https://learn.microsoft.com/en-us/azure/event-hubs/">official documentation</a>.</p>
+<p>This connector uses the native/AMQP protocol to interact with Event Hubs.</p>
+<p>A note about the nomenclature: &ldquo;Event Hubs&rdquo; (plural) is the name of the product. The analogue to a Kafka topic is the singular hub. This documentation uses &ldquo;Event Hubs hub&rdquo; to refer to a singular hub and &ldquo;Event Hubs topics&rdquo; to refer to the plural (in the interest of <em>not</em> having &ldquo;Event Hubs hubs&rdquo;).</p></div>
+<p>The Azure Event Hubs connector provides and Akka Stream source to consume from and flows/sinks to produce and checkpoint to Azure Event Hubs topics. It is based on the official <a href="https://learn.microsoft.com/en-us/azure/event-hubs/">Microsoft Azure Java SDK</a>.</p>
+<table class="project-info">
+<tr><th colspan="2">Project Info: Azure Event Hubs</th></tr>
+  <tr><th>Artifact</th><td><div>com.lightbend.akka</div>
+  <div>akka-stream-azure-eventhubs</div>
+  <div>2.0.0</div></td></tr>
+  <tr><th>JDK versions</th><td><div>Adopt OpenJDK 11</div></td></tr>
+  <tr><th>Scala versions</th><td>2.13.11</td></tr>
+  <tr><th>JPMS module name</th><td>akka.stream.alpakka.azure.eventhubs</td></tr>
+  <tr><th>License</th><td><div><a href="https://downloads.lightbend.com/website/legal/LightbendSubscriptionAgreement.pdf" target="_blank" rel="noopener noreferrer">Lightbend Subscription Agreement</a></div>
+  </td></tr>
+  <tr><th>Readiness level</th><td><div class="readiness-level"><a href="https://doc.akka.io/docs/akka-dependencies/current/support-terminology.html#community-driven" target="_blank" rel="noopener">Community-driven</a></div>
+  <div>Since 2.0, 2023-09-04</div>
+  </td></tr>
+  <tr><th>Home page</th><td><a href="https://doc.akka.io/docs/akka-enhancements/current/index.html">https://doc.akka.io/docs/akka-enhancements/current/index.html</a></td></tr>
+  <tr><th>API documentation</th><td>
+  <div><a href="https://doc.akka.io/api/akka-enhancements/snapshot/akka/stream/alpakka/mqttv5/index.html" target="_blank" rel="noopener noreferrer">API (Scaladoc)</a></div>
+  </td></tr>
+  <tr><th>Forums</th><td>
+  <div><a href="https://portal.lightbend.com/" target="_blank" rel="noopener noreferrer">Lightbend Customer Portal</a></div>
+  </td></tr>
+  <tr><th>Issues</th><td><a href="https://github.com/akka/alpakka/labels/p%3Aeventhubs" target="_blank" rel="noopener noreferrer">Issue tracker</a></td></tr>
+  <tr><th>Sources</th><td><a href="https://github.com/lightbend/akka-enhancements" target="_blank" rel="noopener noreferrer">https://github.com/lightbend/akka-enhancements</a></td></tr>
+</table>
+
+<h2><a href="#artifacts" name="artifacts" class="anchor"><span class="anchor-link"></span></a>Artifacts</h2>
+
+<p>These artifacts are available on request from Lightbend, please contact your sales representative.</p>
+
+<p>Additionally, add the dependencies as below.</p>
+<dl class="dependency"><dt>sbt</dt><dd><pre class="prettyprint"><code class="language-scala">val AkkaVersion = "2.8.4"
+libraryDependencies ++= Seq(
+  "com.lightbend.akka" %% "akka-stream-azure-eventhubs" % "2.0.0",
+  "com.typesafe.akka" %% "akka-stream" % AkkaVersion
+)</code></pre></dd><dt>Maven</dt><dd><pre class="prettyprint"><code class="language-xml">&lt;properties&gt;
+  &lt;akka.version&gt;2.8.4&lt;/akka.version&gt;
+  &lt;scala.binary.version&gt;2.13&lt;/scala.binary.version&gt;
+&lt;/properties&gt;
+&lt;dependencies&gt
+  &lt;dependency&gt;
+    &lt;groupId&gt;com.lightbend.akka&lt;/groupId&gt;
+    &lt;artifactId&gt;akka-stream-azure-eventhubs_${scala.binary.version}&lt;/artifactId&gt;
+    &lt;version&gt;2.0.0&lt;/version&gt;
+  &lt;/dependency&gt
+  &lt;dependency&gt;
+    &lt;groupId&gt;com.typesafe.akka&lt;/groupId&gt;
+    &lt;artifactId&gt;akka-stream_${scala.binary.version}&lt;/artifactId&gt;
+    &lt;version&gt;${akka.version}&lt;/version&gt;
+  &lt;/dependency&gt
+&lt;/dependencies&gt;</code></pre></dd><dt>Gradle</dt><dd><pre class="prettyprint"><code class="language-gradle">def versions = [
+  AkkaVersion: "2.8.4",
+  ScalaBinary: "2.13"
+]
+dependencies {
+  implementation "com.lightbend.akka:akka-stream-azure-eventhubs_${versions.ScalaBinary}:2.0.0"
+  implementation "com.typesafe.akka:akka-stream_${versions.ScalaBinary}:${versions.AkkaVersion}"
+}</code></pre></dd></dl>
+<p>The table below shows the direct dependencies of this module and the second tab shows all libraries it depends on transitively.</p>
+<dl class="dependencies"><dt>Direct dependencies</dt><dd><table>
+  <thead><tr><th>Organization</th><th>Artifact</th><th>Version</th></thead>
+  <tbody>
+    <tr><td>com.azure</td><td>azure-messaging-eventhubs</td><td><a href="https://mvnrepository.com/artifact/com.azure/azure-messaging-eventhubs/5.16.1" target="_blank">5.16.1</a></td></tr>
+    <tr><td>com.typesafe.akka</td><td>akka-actor-typed_2.13</td><td><a href="https://mvnrepository.com/artifact/com.typesafe.akka/akka-actor-typed_2.13/2.8.4" target="_blank">2.8.4</a></td></tr>
+    <tr><td>com.typesafe.akka</td><td>akka-stream_2.13</td><td><a href="https://mvnrepository.com/artifact/com.typesafe.akka/akka-stream_2.13/2.8.4" target="_blank">2.8.4</a></td></tr>
+    <tr><td>org.scala-lang</td><td>scala-library</td><td><a href="https://mvnrepository.com/artifact/org.scala-lang/scala-library/2.13.11" target="_blank">2.13.11</a></td></tr>
+  </tbody>
+</table></dd>
+<dt>Dependency tree</dt><dd><pre>
+com.azure    azure-messaging-eventhubs    <a href="https://mvnrepository.com/artifact/com.azure/azure-messaging-eventhubs/5.16.1" target="_blank">5.16.1</a>
+    com.azure    azure-core-amqp    <a href="https://mvnrepository.com/artifact/com.azure/azure-core-amqp/2.8.11" target="_blank">2.8.11</a>    The MIT License (MIT)
+        com.azure    azure-core    <a href="https://mvnrepository.com/artifact/com.azure/azure-core/1.44.1" target="_blank">1.44.1</a>    The MIT License (MIT)
+            com.azure    azure-json    <a href="https://mvnrepository.com/artifact/com.azure/azure-json/1.1.0" target="_blank">1.1.0</a>    The MIT License (MIT)
+            com.fasterxml.jackson.core    jackson-annotations    <a href="https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-annotations/2.13.5" target="_blank">2.13.5</a>    The Apache Software License, Version 2.0
+            com.fasterxml.jackson.core    jackson-core    <a href="https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-core/2.13.5" target="_blank">2.13.5</a>    The Apache Software License, Version 2.0
+            com.fasterxml.jackson.core    jackson-databind    <a href="https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-databind/2.13.5" target="_blank">2.13.5</a>    The Apache Software License, Version 2.0
+                com.fasterxml.jackson.core    jackson-annotations    <a href="https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-annotations/2.13.5" target="_blank">2.13.5</a>    The Apache Software License, Version 2.0
+                com.fasterxml.jackson.core    jackson-core    <a href="https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-core/2.13.5" target="_blank">2.13.5</a>    The Apache Software License, Version 2.0
+            com.fasterxml.jackson.datatype    jackson-datatype-jsr310    <a href="https://mvnrepository.com/artifact/com.fasterxml.jackson.datatype/jackson-datatype-jsr310/2.13.5" target="_blank">2.13.5</a>
+                com.fasterxml.jackson.core    jackson-annotations    <a href="https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-annotations/2.13.5" target="_blank">2.13.5</a>    The Apache Software License, Version 2.0
+                com.fasterxml.jackson.core    jackson-core    <a href="https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-core/2.13.5" target="_blank">2.13.5</a>    The Apache Software License, Version 2.0
+                com.fasterxml.jackson.core    jackson-databind    <a href="https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-databind/2.13.5" target="_blank">2.13.5</a>    The Apache Software License, Version 2.0
+                    com.fasterxml.jackson.core    jackson-annotations    <a href="https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-annotations/2.13.5" target="_blank">2.13.5</a>    The Apache Software License, Version 2.0
+                    com.fasterxml.jackson.core    jackson-core    <a href="https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-core/2.13.5" target="_blank">2.13.5</a>    The Apache Software License, Version 2.0
+            io.projectreactor    reactor-core    <a href="https://mvnrepository.com/artifact/io.projectreactor/reactor-core/3.4.33" target="_blank">3.4.33</a>    Apache License, Version 2.0
+                org.reactivestreams    reactive-streams    <a href="https://mvnrepository.com/artifact/org.reactivestreams/reactive-streams/1.0.4" target="_blank">1.0.4</a>    MIT-0
+            org.slf4j    slf4j-api    <a href="https://mvnrepository.com/artifact/org.slf4j/slf4j-api/1.7.36" target="_blank">1.7.36</a>
+        com.microsoft.azure    qpid-proton-j-extensions    <a href="https://mvnrepository.com/artifact/com.microsoft.azure/qpid-proton-j-extensions/1.2.4" target="_blank">1.2.4</a>    The MIT License (MIT)
+            org.apache.qpid    proton-j    <a href="https://mvnrepository.com/artifact/org.apache.qpid/proton-j/0.33.8" target="_blank">0.33.8</a>
+            org.slf4j    slf4j-api    <a href="https://mvnrepository.com/artifact/org.slf4j/slf4j-api/1.7.36" target="_blank">1.7.36</a>
+        org.apache.qpid    proton-j    <a href="https://mvnrepository.com/artifact/org.apache.qpid/proton-j/0.33.8" target="_blank">0.33.8</a>
+    com.azure    azure-core    <a href="https://mvnrepository.com/artifact/com.azure/azure-core/1.44.1" target="_blank">1.44.1</a>    The MIT License (MIT)
+        com.azure    azure-json    <a href="https://mvnrepository.com/artifact/com.azure/azure-json/1.1.0" target="_blank">1.1.0</a>    The MIT License (MIT)
+        com.fasterxml.jackson.core    jackson-annotations    <a href="https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-annotations/2.13.5" target="_blank">2.13.5</a>    The Apache Software License, Version 2.0
+        com.fasterxml.jackson.core    jackson-core    <a href="https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-core/2.13.5" target="_blank">2.13.5</a>    The Apache Software License, Version 2.0
+        com.fasterxml.jackson.core    jackson-databind    <a href="https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-databind/2.13.5" target="_blank">2.13.5</a>    The Apache Software License, Version 2.0
+            com.fasterxml.jackson.core    jackson-annotations    <a href="https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-annotations/2.13.5" target="_blank">2.13.5</a>    The Apache Software License, Version 2.0
+            com.fasterxml.jackson.core    jackson-core    <a href="https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-core/2.13.5" target="_blank">2.13.5</a>    The Apache Software License, Version 2.0
+        com.fasterxml.jackson.datatype    jackson-datatype-jsr310    <a href="https://mvnrepository.com/artifact/com.fasterxml.jackson.datatype/jackson-datatype-jsr310/2.13.5" target="_blank">2.13.5</a>
+            com.fasterxml.jackson.core    jackson-annotations    <a href="https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-annotations/2.13.5" target="_blank">2.13.5</a>    The Apache Software License, Version 2.0
+            com.fasterxml.jackson.core    jackson-core    <a href="https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-core/2.13.5" target="_blank">2.13.5</a>    The Apache Software License, Version 2.0
+            com.fasterxml.jackson.core    jackson-databind    <a href="https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-databind/2.13.5" target="_blank">2.13.5</a>    The Apache Software License, Version 2.0
+                com.fasterxml.jackson.core    jackson-annotations    <a href="https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-annotations/2.13.5" target="_blank">2.13.5</a>    The Apache Software License, Version 2.0
+                com.fasterxml.jackson.core    jackson-core    <a href="https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-core/2.13.5" target="_blank">2.13.5</a>    The Apache Software License, Version 2.0
+        io.projectreactor    reactor-core    <a href="https://mvnrepository.com/artifact/io.projectreactor/reactor-core/3.4.33" target="_blank">3.4.33</a>    Apache License, Version 2.0
+            org.reactivestreams    reactive-streams    <a href="https://mvnrepository.com/artifact/org.reactivestreams/reactive-streams/1.0.4" target="_blank">1.0.4</a>    MIT-0
+        org.slf4j    slf4j-api    <a href="https://mvnrepository.com/artifact/org.slf4j/slf4j-api/1.7.36" target="_blank">1.7.36</a>
+com.typesafe.akka    akka-actor-typed_2.13    <a href="https://mvnrepository.com/artifact/com.typesafe.akka/akka-actor-typed_2.13/2.8.4" target="_blank">2.8.4</a>    BUSL-1.1
+    com.typesafe.akka    akka-actor_2.13    <a href="https://mvnrepository.com/artifact/com.typesafe.akka/akka-actor_2.13/2.8.4" target="_blank">2.8.4</a>    BUSL-1.1
+        com.typesafe    config    <a href="https://mvnrepository.com/artifact/com.typesafe/config/1.4.2" target="_blank">1.4.2</a>    Apache-2.0
+        org.scala-lang.modules    scala-java8-compat_2.13    <a href="https://mvnrepository.com/artifact/org.scala-lang.modules/scala-java8-compat_2.13/1.0.0" target="_blank">1.0.0</a>    Apache-2.0
+            org.scala-lang    scala-library    <a href="https://mvnrepository.com/artifact/org.scala-lang/scala-library/2.13.11" target="_blank">2.13.11</a>    Apache-2.0
+        org.scala-lang    scala-library    <a href="https://mvnrepository.com/artifact/org.scala-lang/scala-library/2.13.11" target="_blank">2.13.11</a>    Apache-2.0
+    com.typesafe.akka    akka-slf4j_2.13    <a href="https://mvnrepository.com/artifact/com.typesafe.akka/akka-slf4j_2.13/2.8.4" target="_blank">2.8.4</a>    BUSL-1.1
+        com.typesafe.akka    akka-actor_2.13    <a href="https://mvnrepository.com/artifact/com.typesafe.akka/akka-actor_2.13/2.8.4" target="_blank">2.8.4</a>    BUSL-1.1
+            com.typesafe    config    <a href="https://mvnrepository.com/artifact/com.typesafe/config/1.4.2" target="_blank">1.4.2</a>    Apache-2.0
+            org.scala-lang.modules    scala-java8-compat_2.13    <a href="https://mvnrepository.com/artifact/org.scala-lang.modules/scala-java8-compat_2.13/1.0.0" target="_blank">1.0.0</a>    Apache-2.0
+                org.scala-lang    scala-library    <a href="https://mvnrepository.com/artifact/org.scala-lang/scala-library/2.13.11" target="_blank">2.13.11</a>    Apache-2.0
+            org.scala-lang    scala-library    <a href="https://mvnrepository.com/artifact/org.scala-lang/scala-library/2.13.11" target="_blank">2.13.11</a>    Apache-2.0
+        org.scala-lang    scala-library    <a href="https://mvnrepository.com/artifact/org.scala-lang/scala-library/2.13.11" target="_blank">2.13.11</a>    Apache-2.0
+        org.slf4j    slf4j-api    <a href="https://mvnrepository.com/artifact/org.slf4j/slf4j-api/1.7.36" target="_blank">1.7.36</a>
+    org.scala-lang    scala-library    <a href="https://mvnrepository.com/artifact/org.scala-lang/scala-library/2.13.11" target="_blank">2.13.11</a>    Apache-2.0
+    org.slf4j    slf4j-api    <a href="https://mvnrepository.com/artifact/org.slf4j/slf4j-api/1.7.36" target="_blank">1.7.36</a>
+com.typesafe.akka    akka-stream_2.13    <a href="https://mvnrepository.com/artifact/com.typesafe.akka/akka-stream_2.13/2.8.4" target="_blank">2.8.4</a>    BUSL-1.1
+    com.typesafe.akka    akka-actor_2.13    <a href="https://mvnrepository.com/artifact/com.typesafe.akka/akka-actor_2.13/2.8.4" target="_blank">2.8.4</a>    BUSL-1.1
+        com.typesafe    config    <a href="https://mvnrepository.com/artifact/com.typesafe/config/1.4.2" target="_blank">1.4.2</a>    Apache-2.0
+        org.scala-lang.modules    scala-java8-compat_2.13    <a href="https://mvnrepository.com/artifact/org.scala-lang.modules/scala-java8-compat_2.13/1.0.0" target="_blank">1.0.0</a>    Apache-2.0
+            org.scala-lang    scala-library    <a href="https://mvnrepository.com/artifact/org.scala-lang/scala-library/2.13.11" target="_blank">2.13.11</a>    Apache-2.0
+        org.scala-lang    scala-library    <a href="https://mvnrepository.com/artifact/org.scala-lang/scala-library/2.13.11" target="_blank">2.13.11</a>    Apache-2.0
+    com.typesafe.akka    akka-protobuf-v3_2.13    <a href="https://mvnrepository.com/artifact/com.typesafe.akka/akka-protobuf-v3_2.13/2.8.4" target="_blank">2.8.4</a>    BUSL-1.1
+    com.typesafe    ssl-config-core_2.13    <a href="https://mvnrepository.com/artifact/com.typesafe/ssl-config-core_2.13/0.6.1" target="_blank">0.6.1</a>    Apache-2.0
+        com.typesafe    config    <a href="https://mvnrepository.com/artifact/com.typesafe/config/1.4.2" target="_blank">1.4.2</a>    Apache-2.0
+        org.scala-lang    scala-library    <a href="https://mvnrepository.com/artifact/org.scala-lang/scala-library/2.13.11" target="_blank">2.13.11</a>    Apache-2.0
+    org.reactivestreams    reactive-streams    <a href="https://mvnrepository.com/artifact/org.reactivestreams/reactive-streams/1.0.4" target="_blank">1.0.4</a>    MIT-0
+    org.scala-lang    scala-library    <a href="https://mvnrepository.com/artifact/org.scala-lang/scala-library/2.13.11" target="_blank">2.13.11</a>    Apache-2.0
+org.scala-lang    scala-library    <a href="https://mvnrepository.com/artifact/org.scala-lang/scala-library/2.13.11" target="_blank">2.13.11</a>    Apache-2.0</pre></dd>
+</dl>
+
+<p>The code snippets in this document assume the following imports:</p>
+
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/lightbend/akka-enhancements/tree/master/azure-eventhubs/src/test/scala/docs/scaladsl/EventHubsDocSpec.scala#L12-L24" target="_blank" title="Go to snippet source">source</a><code class="language-scala">import akka.stream.alpakka.azure.eventhubs._
+import akka.stream.alpakka.azure.eventhubs.scaladsl._
+import akka.stream.scaladsl._
+import com.azure.messaging.eventhubs._
+import scala.concurrent.duration._</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/lightbend/akka-enhancements/tree/master/azure-eventhubs/src/test/java/docs/javadsl/EventHubsDocTest.java#L12-L18" target="_blank" title="Go to snippet source">source</a><code class="language-java">import akka.actor.ActorSystem;
+import akka.japi.Pair;
+import akka.stream.*;
+import akka.stream.alpakka.azure.eventhubs.*;
+import akka.stream.alpakka.azure.eventhubs.javadsl.*;
+import akka.stream.javadsl.*;
+import com.azure.messaging.eventhubs.*;</code></pre></dd>
+</dl>
+<h2><a href="#connecting-to-event-hubs" name="connecting-to-event-hubs" class="anchor"><span class="anchor-link"></span></a>Connecting to Event Hubs</h2>
+<p>The stages in this connector defer connecting to and authentication/authorization for Event Hubs to the underlying client&rsquo;s builders (e.g. <a href="https://learn.microsoft.com/en-us/java/api/com.azure.messaging.eventhubs.eventhubclientbuilder?view=azure-java-stable"><code>EventHubClientBuilder</code></a> and <a href="https://learn.microsoft.com/en-us/java/api/com.azure.messaging.eventhubs.eventprocessorclientbuilder?view=azure-java-stable"><code>EventProcessorClientBuilder</code></a>). As a developer convenience, if connection strings (embedding the appropriate auth tokens) <a href="https://learn.microsoft.com/en-us/azure/event-hubs/event-hubs-java-get-started-send?tabs=connection-string%2Croles-azure-portal#get-the-connection-string">obtained from the Azure Event Hubs UI</a> are being used, the <span class="group-scala"><a href="/api/akka-enhancements/snapshot/akka/stream/alpakka/azure/eventhubs/ClientFromConfig$.html" title="akka.stream.alpakka.azure.eventhubs.ClientFromConfig"><code>ClientFromConfig</code></a></span><span class="group-java"><a href="/akka/stream/alpakka/azure/eventhubs/ClientFromConfig.html" title="akka.stream.alpakka.azure.eventhubs.ClientFromConfig"><code>ClientFromConfig</code></a></span> can construct client instances from a Config object formatted as:</p>
+<dl>
+  <dt>reference.conf (HOCON)
+  </dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/lightbend/akka-enhancements/tree/master/azure-eventhubs/src/main/resources/reference.conf#L11-L18" target="_blank" title="Go to snippet source">source</a><code class="language-conf">alpakka.azure.eventhubs.eventhub {
+  # The connection string for the event hub
+  # (see https://learn.microsoft.com/en-us/azure/event-hubs/event-hubs-java-get-started-send?tabs=connection-string%2Croles-azure-portal#get-the-connection-string)
+  connection-string = &quot;&quot;
+
+  # The name of the particular event hub
+  hub-name = &quot;&quot;
+}</code></pre></dd>
+</dl>
+<p>If not using connection strings, programmatic construction must be used.</p>
+<h2><a href="#producing-to-event-hubs" name="producing-to-event-hubs" class="anchor"><span class="anchor-link"></span></a>Producing to Event Hubs</h2>
+<p>The producer flows produce to exactly one hub, which is the one to which the provided <a href="https://learn.microsoft.com/en-us/java/api/com.azure.messaging.eventhubs.eventhubproducerasyncclient?view=azure-java-stable"><code>EventHubProducerAsyncClient</code></a> has been bound. An <code>EventHubProducerAsyncClient</code> may be constructed programmatically (using an <code>EventHubClientBuilder</code>) or from Config (see <a href="#connecting-to-event-hubs">&ldquo;Connecting to Event Hubs&rdquo;</a>).</p>
+<p>The flows consume events wrapped in envelopes constructed using the methods in <span class="group-scala"><a href="/api/akka-enhancements/snapshot/akka/stream/alpakka/azure/eventhubs/ProducerMessage$.html" title="akka.stream.alpakka.azure.eventhubs.ProducerMessage"><code>ProducerMessage</code></a></span><span class="group-java"><a href="/akka/stream/alpakka/azure/eventhubs/ProducerMessage.html" title="akka.stream.alpakka.azure.eventhubs.ProducerMessage"><code>ProducerMessage</code></a></span>. The envelopes may contain a pass-through value which the producer flow will emit downstream after successfully publishing the event to the hub. This can be used to ensure at-least-once publishing to Event Hubs (e.g. by passing through a <span class="group-scala"><code>Promise</code></span><span class="group-java"><code>CompletableFuture</code></span> to be completed, an offset/sequence number to be committed, or an <code>ActorRef</code> to send an acknowledgement to).</p>
+<h3><a href="#partitioning" name="partitioning" class="anchor"><span class="anchor-link"></span></a>Partitioning</h3>
+<p>Event Hubs topics have 1 or more partitions. The envelopes describe how the event(s) within the envelope should be routed to partitions. The choice of partitioning has implications for ordering/consistency and availability.</p>
+<ul>
+  <li>
+  <p><code>ProducerMessage.roundRobinPartitioning</code> (default): randomly choose a partition to which the underlying client is able to connect. Use of this partitioning will not guarantee the ordering of produced messages (it will be up to consumers who care about ordering to reconstruct order from the published events). This partitioning is the default in order to match the defaults of the underlying client, but one of the other partitionings may be easier to reason about in many cases.</p></li>
+  <li>
+  <p><code>ProducerMessage.explicitPartitioning</code>: explicitly routes events to a specific partition. It is up to the application code to interrogate Event Hubs to obtain valid partition IDs. The advantage of this partitioning over <code>partitionByKey</code> is that it allows the partition used to be stable as partitions are added to the hub, at the cost of making determining which partition to use an application concern.</p></li>
+  <li>
+  <p><code>ProducerMessage.partitionByKey</code>: the underlying client will hash the provided string and select a partition based on that hash. As long as partitions are not added, the selected partition for a given key will be stable, however if partitions are added, the selected partition will likely change.</p></li>
+</ul>
+<h3><a href="#producing-multiple-events" name="producing-multiple-events" class="anchor"><span class="anchor-link"></span></a>Producing multiple events</h3>
+<p>Zero or more events may be placed into an envelope.</p>
+<ul>
+  <li>
+  <p><code>ProducerMessage.empty</code>: An envelope with no events. This is perhaps most useful for carrying along the pass-through; it may also be useful as a starting point to progressively fill an envelope through multiple processing stages.</p></li>
+  <li>
+  <p><code>ProducerMessage.single</code>: An envelope with a single event.</p></li>
+  <li>
+  <p><code>ProducerMessage.multi</code>: An envelope with multiple events (in order). The producer flow may perform multiple produce operations to produce the events and these operations may be retried independently. If an event A is successfully produced, all events preceding A were successfully produced <em>at least once</em>, but this does not preclude such a preceding event from also being produced again (due to retry).</p></li>
+  <li>
+  <p><code>ProducerMessage.batch</code>: An envelope with events which will be produced atomically, in one produce operation (either all events were produced or none were). The total size of the events plus Event Hubs metadata must not exceed the maximum size allowed by the topic. Note that the stage does not perform any deduplication: in the presence of retries and restarts, a batch could be produced multiple times.</p></li>
+</ul>
+<p>It is possible to add events to an existing envelope, though care must be taken to not exceed batch-size limits for the Event Hubs topic being produced to. For <code>batch</code> envelopes, the batch-size limit applies to the total size of the events, plus Event Hubs metadata while for <code>multi</code> (and <code>single</code>) envelopes, the limit applies to individual events (plus the metadata associated with producing a single event). The batch-size limit is obtained by the underlying client <a href="https://learn.microsoft.com/en-us/azure/event-hubs/event-hubs-quotas">based on the provisioned tier for the hub</a>. It is generally advised in event-driven systems to keep one&rsquo;s events &ldquo;fairly small&rdquo;: if events are no larger than 1 KiB, batches of hundreds of events are allowed.</p>
+<p>All events in a <code>multi</code> envelope will share the <a href="#partitioning">partitioning</a>. If the partitioning is <code>roundRobinPartitioning</code>, each individual produce operation will be independently routed (that is to say, the combination of <code>multi</code> and <code>roundRobinPartitioning</code> will not guarantee that all events in the envelope go to the same partition; for envelopes with many events, this does mean that the success of the envelope will not depend on the availability of any particular partition).</p>
+<p>As events in a <code>batch</code> envelope are produced in a single operation, they will be routed to the same partition, though in a situation where an attempted operation is incorrectly reported by the underlying client to have failed (e.g. a network partition resulted in the acknowledgement from the target partition not being received) and the <code>roundRobinPartitioning</code> is being used, the retry may successfully produce to a different partition.</p>
+<p>If producing multiple events as a semantic unit (e.g. if projecting events from Akka Persistence where such events have a correlation ID to the command which gave rise to them) and one is certain that the events will fit inside a batch, it is likely best to produce them via a <code>batch</code> envelope to preserve the semantic meaning. Conversely, if batching is employed purely as a performance optimization, <code>multi</code> should be considered.</p>
+<p>The producer flows do not automatically coalesce envelopes into batches. Such functionality should be implemented by the application.</p>
+<h3><a href="#producer-settings" name="producer-settings" class="anchor"><span class="anchor-link"></span></a>Producer settings</h3>
+<p>The behavior of a producer flow may be customized via <span class="group-scala"><a href="/api/akka-enhancements/snapshot/akka/stream/alpakka/azure/eventhubs/scaladsl/ProducerSettings.html" title="akka.stream.alpakka.azure.eventhubs.scaladsl.ProducerSettings"><code>ProducerSettings</code></a></span><span class="group-java"><a href="/akka/stream/alpakka/azure/eventhubs/javadsl/ProducerSettings.html" title="akka.stream.alpakka.azure.eventhubs.javadsl.ProducerSettings"><code>ProducerSettings</code></a></span>, which may be obtained from config or programmatically built.</p>
+<p>The defaults used when constructing from config are</p>
+<dl>
+  <dt>reference.conf (HOCON)
+  </dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/lightbend/akka-enhancements/tree/master/azure-eventhubs/src/main/resources/reference.conf#L22-L64" target="_blank" title="Go to snippet source">source</a><code class="language-conf">alpakka.azure.eventhubs.producer {
+  # Maximum number of produce attempts in-flight at any time, without regard to
+  #   partitioning
+  max-parallelism = 100
+
+  # Maximum number of produce attempts in-flight for a given (potentially logical) partition.
+  # 
+  # Setting to greater than 1 may result in produced events being out-of-order.
+  #
+  # Event Hubs supports three partitioning strategies, which in this connector may
+  #  be set per-event or per-batch, though it is probably a good idea to pick one
+  #  strategy and stick to it for a given producer stage
+  #
+  # * round-robin: events are sent to any available partition.  Since this
+  #     strategy intrinsically does not guarantee ordering of events, it is
+  #     recommended to set produces-per-partition to the same value as max-parallelism if
+  #     no other partitioning strategy is being used with this producer
+  #
+  # * by key: the partitioning key is hashed and assigned to a consistent
+  #     physical partition (assuming no physical partitions are added or removed).
+  #     If produces-per-partition is 1, then ordering of events for a given key is
+  #     guaranteed in the absence of a change in the number of physical partitions.
+  #     Events with different partitioning keys observe no ordering guarantee,
+  #     even if the respective partitioning keys end up assigned to the same
+  #     physical partition.  It is highly recommended if using this strategy
+  #     to leave produces-per-partition at the default 1.
+  #
+  # * explicit: the event is assigned to a specific physical partition.  Increasing
+  #     this setting from the default 1 may increase throughput but may reorder
+  #     events.
+  produces-per-partition = 1
+
+  # Whether a producer stage should close the underlying client when stopping.
+  #   If sharing the underlying client, this should be set to false
+  close-producer-on-stop = true
+
+  # Produce attempts may be automatically retried with an exponential backoff
+  retry {
+    max-attempts = 1
+    min-backoff = 100ms
+    max-backoff = 10s
+  }
+}</code></pre></dd>
+</dl>
+<p>When constructing <code>ProducerSettings</code> from an <code>ActorSystem</code>, the config section <code>alpakka.azure.eventhubs.producer</code> is used. <code>ProducerSettings</code> may also be constructed from another config object with the same layout as above.</p>
+<h3><a href="#producer-flow" name="producer-flow" class="anchor"><span class="anchor-link"></span></a><code>Producer.flow</code></h3>
+<p>In this example, we convert an application type into a <code>ProducerMessage</code>. Since it is desirable to preserve ordering per-<code>subject</code>, we partition based on the subject of the events and ensure that <code>produces-per-partition</code> is 1.</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/lightbend/akka-enhancements/tree/master/azure-eventhubs/src/test/scala/docs/scaladsl/EventHubsDocSpec.scala#L50-L85" target="_blank" title="Go to snippet source">source</a><code class="language-scala">// A minimal class demonstrating an &quot;application level&quot; view of an event
+case class Event(subject: String, payload: Array[Byte])
+
+val producerClient: EventHubProducerAsyncClient =
+  ClientFromConfig.producer(producerConfig)
+
+val producerSettings = ProducerSettings(actorSystem).withProducesPerPartition(1)
+
+val flow: Flow[Event, String, NotUsed] =
+  Flow[Event]
+    .map { event =&gt;
+      ProducerMessage.single(
+        new EventData(event.payload),
+        event.subject,
+        ProducerMessage.partitionByKey(event.subject))
+    }
+    .via(Producer.flow(producerSettings, producerClient))
+    .wireTap(subject =&gt; actorSystem.log.debug(&quot;Published event for subject [{}]&quot;, subject))</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/lightbend/akka-enhancements/tree/master/azure-eventhubs/src/test/java/docs/javadsl/EventHubsDocTest.java#L64-L105" target="_blank" title="Go to snippet source">source</a><code class="language-java">public class Event {
+  public final String subject;
+  public final byte[] payload;
+
+  public Event(String subject, byte[] payload) {
+    this.subject = subject;
+    this.payload = payload;
+  }
+}
+
+EventHubProducerAsyncClient producerClient = ClientFromConfig.producer(producerConfig);
+
+ProducerSettings producerSettings = ProducerSettings.create(actorSystem).withProducesPerPartition(1);
+
+Flow&lt;Event, String, NotUsed&gt; flow =
+  Flow.of(Event.class)
+    .map(event -&gt;
+      ProducerMessage.single(
+        new EventData(event.payload),
+        event.subject,
+        ProducerMessage.partitionByKey(event.subject))
+    )
+    .via(Producer.flow(producerSettings, producerClient))
+    .wireTap(subject -&gt; actorSystem.log().debug(&quot;Published event for subject [{}]&quot;, subject));</code></pre></dd>
+</dl>
+<h3><a href="#producer-flowwithcontext" name="producer-flowwithcontext" class="anchor"><span class="anchor-link"></span></a><code>Producer.flowWithContext</code></h3>
+<p>This example is similar, but instead of a pass-through, an <code>Offset</code> (e.g. <a href="https://doc.akka.io/docs/akka-projection/current/eventsourced.html">using Akka Projection to obtain events from event-sourced actors</a>) is passed as context so that our progress can be committed (thus ensuring at-least-once production).</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/lightbend/akka-enhancements/tree/master/azure-eventhubs/src/test/scala/docs/scaladsl/EventHubsDocSpec.scala#L95-L109" target="_blank" title="Go to snippet source">source</a><code class="language-scala">// see Producer.flow documentation for Event class
+
+val producerClient: EventHubProducerAsyncClient =
+  ClientFromConfig.producer(producerConfig)
+
+val producerSettings = ProducerSettings(actorSystem).withProducesPerPartition(1)
+
+val flow: FlowWithContext[Event, Offset, NotUsed, Offset, NotUsed] =
+  FlowWithContext[Event, Offset]
+    .map { event =&gt;
+      ProducerMessage.singleWithPartitioning(
+        new EventData(event.payload),
+        ProducerMessage.partitionByKey(event.subject))
+    }
+    .via(Producer.flowWithContext(producerSettings, producerClient))</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/lightbend/akka-enhancements/tree/master/azure-eventhubs/src/test/java/docs/javadsl/EventHubsDocTest.java#L115-L128" target="_blank" title="Go to snippet source">source</a><code class="language-java">// see Producer.flow documentation for Event class
+
+EventHubProducerAsyncClient producerClient = ClientFromConfig.producer(producerConfig);
+
+ProducerSettings producerSettings = ProducerSettings.create(actorSystem).withProducesPerPartition(1);
+
+FlowWithContext&lt;Event, Offset, NotUsed, Offset, NotUsed&gt; flow =
+  FlowWithContext.&lt;Event, Offset&gt;create()
+    .map(event -&gt;
+      ProducerMessage.singleWithPartitioning(
+        new EventData(event.payload),
+        ProducerMessage.partitionByKey(event.subject))
+    )
+    .via(Producer.flowWithContext(producerSettings, producerClient));</code></pre></dd>
+</dl>
+<p>Note that it is possible to carry a per-event pass-through in addition to propagating context.</p>
+<h2><a href="#consuming-from-event-hubs" name="consuming-from-event-hubs" class="anchor"><span class="anchor-link"></span></a>Consuming from Event Hubs</h2>
+<p>The consumer sources subscribe to Event Hubs topics and feed events to an Akka Stream.</p>
+<p>Each of the sources, when materialized, uses the provided <a href="https://learn.microsoft.com/en-us/java/api/com.azure.messaging.eventhubs.eventprocessorclientbuilder?view=azure-java-stable"><code>EventProcessorClientBuilder</code></a> (<a href="#connecting-to-event-hubs">see above</a>) to build a client to consume from a hub; the underlying client responds to partition rebalances and this client manages <a href="#checkpointing">checkpointing</a> with the provided <span class="group-scala"><a href="/api/akka-enhancements/snapshot/akka/stream/alpakka/azure/eventhubs/scaladsl/CheckpointSettings.html" title="akka.stream.alpakka.azure.eventhubs.scaladsl.CheckpointSettings"><code>CheckpointSettings</code></a></span><span class="group-java"><a href="/akka/stream/alpakka/azure/eventhubs/javadsl/CheckpointSettings.html" title="akka.stream.alpakka.azure.eventhubs.javadsl.CheckpointSettings"><code>CheckpointSettings</code></a></span> via the provided <a href="https://learn.microsoft.com/en-us/java/api/com.azure.messaging.eventhubs.checkpointstore?view=azure-java-stable"><code>CheckpointStore</code></a>.</p>
+<h3><a href="#choosing-a-source" name="choosing-a-source" class="anchor"><span class="anchor-link"></span></a>Choosing a source</h3>
+<p>These factory methods are part of the <span class="group-scala"><a href="/api/akka-enhancements/snapshot/akka/stream/alpakka/azure/eventhubs/scaladsl/Consumer$.html" title="akka.stream.alpakka.azure.eventhubs.scaladsl.Consumer"><code>Consumer</code></a></span><span class="group-java"><a href="/akka/stream/alpakka/azure/eventhubs/javadsl/Consumer.html" title="akka.stream.alpakka.azure.eventhubs.javadsl.Consumer"><code>Consumer</code></a></span> API.</p>
+<table>
+  <thead>
+    <tr>
+      <th>Factory method </th>
+      <th>Element type </th>
+      <th>Notes </th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>sourceWithCheckpointableContext</code> </td>
+      <td><a href="https://learn.microsoft.com/en-us/java/api/com.azure.messaging.eventhubs.eventdata?view=azure-java-stable"><code>EventData</code></a> </td>
+      <td><code>Checkpointable</code> is passed as <a href="https://doc.akka.io/docs/akka/current/stream/stream-context.html">context</a> </td>
+    </tr>
+    <tr>
+      <td><code>source</code> </td>
+      <td>user-specified </td>
+      <td>Uses a provided function to wrap <code>EventData</code> and <code>Checkpointable</code> into an application-specific type </td>
+    </tr>
+    <tr>
+      <td><code>pairSource</code> </td>
+      <td><span class="group-scala"><code>(EventData, Checkpointable)</code></span><span class="group-java"><a href="https://doc.akka.io/japi/akka/current/akka/japi/Pair.html"><code>Pair&lt;EventData, Checkpointable&gt;</code></a></span> </td>
+      <td> </td>
+    </tr>
+  </tbody>
+</table>
+<p>The sources materialize to a <span class="group-scala"><a href="/api/akka-enhancements/snapshot/akka/stream/alpakka/azure/eventhubs/scaladsl/Consumer$$Control.html" title="akka.stream.alpakka.azure.eventhubs.scaladsl.Consumer.Control"><code>Consumer.Control</code></a></span><span class="group-java"><a href="/akka/stream/alpakka/azure/eventhubs/javadsl/Consumer.Control.html" title="akka.stream.alpakka.azure.eventhubs.javadsl.Consumer.Control"><code>Consumer.Control</code></a></span> instance. The pattern for a &ldquo;controlled shutdown&rdquo; of a consumer is:</p>
+<ul>
+  <li><em>Call <code>stop()</code> on the control instance</em>. This will cause the source to stop emitting events downstream and the source will complete. The consumption infrastructure will remain available in order to handle future checkpoint attempts.</li>
+  <li><em>Wait for the entire stream to complete processing</em>, to ensure that a checkpoint attempt is made for all processed events.</li>
+  <li><em>Call <code>shutdown()</code> on the control instance</em>. This signals the consumption infrastructure that no more checkpoint attempts will be made. The infrastructure will shutdown when those attempts have completed.</li>
+</ul>
+<p>Typically, the stream completion will be signaled via a <span class="group-scala"><code>Future[Done]</code></span><span class="group-java"><code>CompletionStage&lt;Done&gt;</code></span>: the checkpointing sinks and <code>Sink.ignore</code> are examples of stages which materialize as such a future. If stream completion is signaled by such a future, the <code>drainAndShutdown</code> method on the control encapsulates this pattern.</p>
+<h3><a href="#consumer-settings" name="consumer-settings" class="anchor"><span class="anchor-link"></span></a>Consumer settings</h3>
+<p>The behavior of the consumer sources may be customized via <span class="group-scala"><a href="/api/akka-enhancements/snapshot/akka/stream/alpakka/azure/eventhubs/scaladsl/ConsumerSettings.html" title="akka.stream.alpakka.azure.eventhubs.scaladsl.ConsumerSettings"><code>ConsumerSettings</code></a></span><span class="group-java"><a href="/akka/stream/alpakka/azure/eventhubs/javadsl/ConsumerSettings.html" title="akka.stream.alpakka.azure.eventhubs.javadsl.ConsumerSettings"><code>ConsumerSettings</code></a></span>, which may be obtained from config or programmatically built.</p>
+<p>The defaults used when constructing from config are</p>
+<dl>
+  <dt>reference.conf (HOCON)
+  </dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/lightbend/akka-enhancements/tree/master/azure-eventhubs/src/main/resources/reference.conf#L68-L128" target="_blank" title="Go to snippet source">source</a><code class="language-conf">alpakka.azure.eventhubs.consumer {
+  # The consumer group to use.  Note that Event Hubs requires consumer groups to
+  # be pre-allocated on the hub.  This must be set.
+  consumer-group = &quot;&quot;
+
+  # When consuming events, the client will try to accumulate a batch of at most this
+  # size.  Batching is per-partition.
+  batch-size = 1000
+
+  # A batch from a partition will become available after this time period, whether
+  # or not it has &#39;batch-size&#39; events.  A batch becomes available before this interval
+  # has passed (and when not backpressured) a new interval will start: accordingly
+  # if partitions have a sufficient backlog of events, consumption rates per-partition may
+  # substantially exceed &#39;batch-size&#39; times &#39;batch-interval&#39; 
+  batch-interval = 1s
+
+  # Advisory capacity for buffers in the stage.  When there are more than this many
+  # events in the main buffer, all partitions consumed from will backpressure.  Must be
+  # at least &#39;batch-size&#39;.  The less this is relative to &#39;batch-size&#39; times the number of
+  # partitions assigned at a given time to a consumer, the more time partitions will spend
+  # backpressured.
+  buffer-size = 1000
+
+  # If non-empty, this identifier is used to identify the consumer stage in logs; it
+  # is useful if starting multiple consumers in the same process.
+  consumer-id = &quot;&quot;
+
+  # If no checkpoint is found and no initial position was programmatically specified,
+  # whether to consume from the &#39;earliest&#39; position, &#39;latest&#39; position, or the underlying
+  # consumer&#39;s &#39;default&#39; (which as of Azure SDK 5.15.6 is latest).
+  #
+  # Valid values: &#39;earliest&#39;, &#39;latest&#39;, &#39;default&#39;, or empty (equivalent to default)
+  fallback-position = default
+
+  # Which strategy to use for load-balancing partitions between consumers of the same
+  # Event Hub in the same group using the same checkpoint store.
+  #
+  # Valid values:
+  #   * &#39;balanced&#39;: each consumer acquires one partition at a time until all partitions
+  #       are acquired and each consumer owns an approximately equal number of partitions.
+  #       This reduces rebalances in response to membership changes, but at startup will
+  #       delay the point where all partitions are being consumed.
+  #   * &#39;greedy&#39;: each consumer attempts to acquire any unclaimed partitions.  Compared
+  #       to the &#39;balanced&#39; strategy, this will have a faster time to all partitions
+  #       being consumed and a faster response to membership changes, but it will result
+  #       in more rebalances.
+  #   * &#39;default&#39; or empty: Use the underlying consumer&#39;s default strategy (which as of
+  #       Azure SDK 5.15.6 is the balanced strategy)
+  load-balancing-strategy = default
+
+  # How frequently this consumer will check that partition ownership is balanced and apply the
+  # load balancing strategy (see &#39;load-balancing-strategy&#39;).  If empty, use the
+  # underlying consumer&#39;s default
+  load-balancing-interval = &quot;&quot;
+
+  # This consumer will consider partition claims which have not been renewed within this interval
+  # to have expired and the partition to be claimable.  It will take at least this amount of
+  # time for any partitions owned by a failed or stopped consumer to be reclaimed.  If empty,
+  # the underlying client&#39;s default applies.
+  partition-ownership-interval = &quot;&quot;
+}</code></pre></dd>
+</dl>
+<p>The sources apply these settings to the <a href="https://learn.microsoft.com/en-us/java/api/com.azure.messaging.eventhubs.eventprocessorclientbuilder?view=azure-java-stable"><code>EventProcessorClientBuilder</code></a>. The builder is (as of this writing) mutable and each setting is write-once. Accordingly, the following settings <em>should not be set</em> on the <code>EventProcessorClientBuilder</code> provided to a consumer source:</p>
+<table>
+  <thead>
+    <tr>
+      <th><code>EventProcessorClientBuilder</code> setting </th>
+      <th>Alternative to setting on the <code>EventProcessorClientBuilder</code> </th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>consumerGroup</code> </td>
+      <td>Set via <code>ConsumerSettings</code> </td>
+    </tr>
+    <tr>
+      <td><code>checkpointStore</code> </td>
+      <td>Provide separately to source </td>
+    </tr>
+    <tr>
+      <td><code>initialPartitionEventPosition</code> </td>
+      <td>Set via <code>ConsumerSettings</code> </td>
+    </tr>
+    <tr>
+      <td><code>loadBalancingStrategy</code> </td>
+      <td>Set via <code>ConsumerSettings</code> </td>
+    </tr>
+    <tr>
+      <td><code>loadBalancingUpdateInterval</code> </td>
+      <td>Set via <code>ConsumerSettings</code> </td>
+    </tr>
+    <tr>
+      <td><code>partitionOwnershipExpirationInterval</code> </td>
+      <td>Set via <code>ConsumerSettings</code> </td>
+    </tr>
+    <tr>
+      <td><code>processError</code> </td>
+      <td>Must not be set </td>
+    </tr>
+    <tr>
+      <td><code>processEvent</code> </td>
+      <td>Must not be set </td>
+    </tr>
+    <tr>
+      <td><code>processEventBatch</code> </td>
+      <td>Must not be set </td>
+    </tr>
+    <tr>
+      <td><code>processPartitionClose</code> </td>
+      <td>Must not be set </td>
+    </tr>
+    <tr>
+      <td><code>processPartitionInitialization</code> </td>
+      <td>Must not be set </td>
+    </tr>
+  </tbody>
+</table>
+<p>The <code>EventProcessorClientBuilder</code> should not be reused: each source should be provided a new instance for every <code>run</code> or restart.</p>
+<h3><a href="#consumer-sourcewithcheckpointablecontext" name="consumer-sourcewithcheckpointablecontext" class="anchor"><span class="anchor-link"></span></a><code>Consumer.sourceWithCheckpointableContext</code></h3>
+<p>In this example, we consume from our hub and transform the events into an application representation (following the same convention of using the subject of the event as the partitioning key as in the producer examples above) before handing them to a <code>businessLogicFlow</code> and checkpointing when the business logic is complete.</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/lightbend/akka-enhancements/tree/master/azure-eventhubs/src/test/scala/docs/scaladsl/EventHubsDocSpec.scala#L50-L145" target="_blank" title="Go to snippet source">source</a><code class="language-scala">// A minimal class demonstrating an &quot;application level&quot; view of an event
+case class Event(subject: String, payload: Array[Byte])
+
+def parseEvent(bytes: Array[Byte]): Event = ???
+
+val checkpointSettings =
+  CheckpointSettings(
+    checkpointTimeout = 30.seconds,
+    maxBatch = 1000,
+    maxInterval = 1.second,
+    partitions = 1,
+    maxInflight = 1)
+
+// bring your own implementation of buildCheckpointStore
+val checkpointStore = buildCheckpointStore(checkpointConfig)
+
+val eventProcessorBuilder = ClientFromConfig.processorClientBuilder(consumerConfig)
+val consumerSettings = ConsumerSettings(actorSystem).withConsumerGroup(&quot;eventhubs-example&quot;)
+
+val source: SourceWithContext[Event, Checkpointable, Consumer.Control] =
+  Consumer
+    .sourceWithCheckpointableContext(
+      consumerSettings,
+      eventProcessorBuilder,
+      checkpointSettings,
+      checkpointStore)
+    .map { eventData =&gt;
+      Event(eventData.getPartitionKey, eventData.getBody)
+    }
+
+val (control, streamDone) =
+  source
+    .via(businessLogicFlow) // Important: businessLogicFlow has Checkpointable as output context
+    .toMat(Checkpointer.sinkWithCheckpointableContext(checkpointSettings))(Keep.both)
+    .run()
+
+// The stream will consume until there is a failure or the business logic completes the stream.
+// To stop it cleanly:
+control.drainAndShutdown(streamDone)</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/lightbend/akka-enhancements/tree/master/azure-eventhubs/src/test/java/docs/javadsl/EventHubsDocTest.java#L64-L165" target="_blank" title="Go to snippet source">source</a><code class="language-java">public class Event {
+  public final String subject;
+  public final byte[] payload;
+
+  public Event(String subject, byte[] payload) {
+    this.subject = subject;
+    this.payload = payload;
+  }
+}
+
+private static Event parseEvent(byte[] bytes) { throw new scala.NotImplementedError(); }
+// bring your own implementation of buildCheckpointStore
+CheckpointStore checkpointStore = buildCheckpointStore(checkpointConfig);
+
+EventProcessorClientBuilder eventProcessorBuilder = ClientFromConfig.processorClientBuilder(consumerConfig);
+ConsumerSettings consumerSettings = ConsumerSettings.create(actorSystem).withConsumerGroup(&quot;eventhubs-example&quot;);
+
+SourceWithContext&lt;Event, Checkpointable, Consumer.Control&gt; source =
+  Consumer.sourceWithCheckpointableContext(
+      consumerSettings,
+      eventProcessorBuilder,
+      checkpointSettings,
+      checkpointStore)
+    .map(eventData -&gt; new Event(eventData.getPartitionKey(), eventData.getBody()));
+
+Pair&lt;Consumer.Control, CompletionStage&lt;Done&gt;&gt; controlAndStreamCompletion =
+  source.via(businessLogicFlow)
+    .toMat(Checkpointer.sinkWithCheckpointableContext(checkpointSettings), Keep.both())
+    .run(actorSystem);
+
+// The stream will consume until there is a failure or the business logic completes the stream.
+// To stop it cleanly:
+controlAndStreamCompletion.first().
+  drainAndShutdown(
+    controlAndStreamCompletion.second(),
+    actorSystem.dispatcher());</code></pre></dd>
+</dl>
+<h3><a href="#consumer-source" name="consumer-source" class="anchor"><span class="anchor-link"></span></a><code>Consumer.source</code></h3>
+<p>This example is essentially the same as above: the difference here is that the application representation includes the <code>Checkpointable</code> rather than relying on the stream to pass it alongside as context. The business logic flow emits the <code>Checkpointable</code> when done processing. It is advised to prefer <code>sourceWithCheckpointableContext</code>, though this variant does not constrain as much as <code>FlowWithContext</code>.</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/lightbend/akka-enhancements/tree/master/azure-eventhubs/src/test/scala/docs/scaladsl/EventHubsDocSpec.scala#L157-L176" target="_blank" title="Go to snippet source">source</a><code class="language-scala">// bring your own implementation of buildCheckpointStore
+val checkpointStore = buildCheckpointStore(checkpointConfig)
+
+val eventProcessorBuilder = ClientFromConfig.processorClientBuilder(consumerConfig)
+val consumerSettings = ConsumerSettings(actorSystem).withConsumerGroup(&quot;eventhubs-example&quot;)
+
+val source: Source[DomainType, Consumer.Control] =
+  Consumer.source(consumerSettings, eventProcessorBuilder, checkpointSettings, checkpointStore) {
+    (eventData, checkpointable) =&gt; DomainType.fromEventHubs(eventData, checkpointable)
+  }
+
+val (control, streamDone) =
+  source
+    .via(businessLogicFlow) // Important: businessLogicFlow outputs Checkpointable
+    .toMat(Checkpointer.sink(checkpointSettings))(Keep.both)
+    .run()
+
+// The stream will consume until there is a failure or the business logic completes the stream.
+// To stop it cleanly:
+control.drainAndShutdown(streamDone)</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/lightbend/akka-enhancements/tree/master/azure-eventhubs/src/test/java/docs/javadsl/EventHubsDocTest.java#L54-L202" target="_blank" title="Go to snippet source">source</a><code class="language-java">static DomainType fromEventHubs(EventData eventData, Checkpointable checkpointable) {
+  return new DomainType(eventData.getPartitionKey(), eventData.getBody(), checkpointable);
+}
+// bring your own implementation of buildCheckpointStore
+CheckpointStore checkpointStore = buildCheckpointStore(checkpointConfig);
+
+EventProcessorClientBuilder eventProcessorBuilder = ClientFromConfig.processorClientBuilder(consumerConfig);
+ConsumerSettings consumerSettings = ConsumerSettings.create(actorSystem).withConsumerGroup(&quot;eventhubs-example&quot;);
+
+Source&lt;DomainType, Consumer.Control&gt; source =
+  Consumer.source(
+    consumerSettings,
+    eventProcessorBuilder,
+    checkpointSettings,
+    checkpointStore,
+    DomainType::fromEventHubs);
+
+Pair&lt;Consumer.Control, CompletionStage&lt;Done&gt;&gt; controlAndStreamCompletion =
+  source.via(businessLogicFlow)
+    .toMat(Checkpointer.sink(checkpointSettings), Keep.both())
+    .run(actorSystem);
+
+// The stream will consume until there is a failure or the business logic completes the stream.
+// To stop it cleanly:
+controlAndStreamCompletion.first()
+  .drainAndShutdown(
+    controlAndStreamCompletion.second(),
+    actorSystem.dispatcher());</code></pre></dd>
+</dl>
+<h3><a href="#consumer-pairsource" name="consumer-pairsource" class="anchor"><span class="anchor-link"></span></a><code>Consumer.pairSource</code></h3>
+<p>This example is essentially the same as above: the difference here is that there&rsquo;s no application representation as we operate on pairs of <code>EventData</code> and <code>Checkpointable</code>.</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/lightbend/akka-enhancements/tree/master/azure-eventhubs/src/test/scala/docs/scaladsl/EventHubsDocSpec.scala#L188-L205" target="_blank" title="Go to snippet source">source</a><code class="language-scala">// bring your own implementation of buildCheckpointStore
+val checkpointStore = buildCheckpointStore(checkpointConfig)
+
+val eventProcessorBuilder = ClientFromConfig.processorClientBuilder(consumerConfig)
+val consumerSettings = ConsumerSettings(actorSystem).withConsumerGroup(&quot;eventhubs-example&quot;)
+
+val source: Source[(EventData, Checkpointable), Consumer.Control] =
+  Consumer.pairSource(consumerSettings, eventProcessorBuilder, checkpointSettings, checkpointStore)
+
+val (control, streamDone) =
+  source
+    .via(businessLogicFlow) // Important: businessLogicFlow outputs Checkpointable
+    .toMat(Checkpointer.sink(checkpointSettings))(Keep.both)
+    .run()
+
+// The stream will consume until there is a failure or the business logic completes the stream.
+// To stop it cleanly:
+control.drainAndShutdown(streamDone)</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/lightbend/akka-enhancements/tree/master/azure-eventhubs/src/test/java/docs/javadsl/EventHubsDocTest.java#L215-L238" target="_blank" title="Go to snippet source">source</a><code class="language-java">// bring your own implementation of buildCheckpointStore
+CheckpointStore checkpointStore = buildCheckpointStore(checkpointConfig);
+
+EventProcessorClientBuilder eventProcessorBuilder = ClientFromConfig.processorClientBuilder(consumerConfig);
+ConsumerSettings consumerSettings = ConsumerSettings.create(actorSystem).withConsumerGroup(&quot;eventhubs-example&quot;);
+
+Source&lt;Pair&lt;EventData, Checkpointable&gt;, Consumer.Control&gt; source =
+  Consumer.pairSource(
+    consumerSettings,
+    eventProcessorBuilder,
+    checkpointSettings,
+    checkpointStore);
+
+Pair&lt;Consumer.Control, CompletionStage&lt;Done&gt;&gt; controlAndStreamCompletion =
+  source.via(businessLogicFlow)
+    .toMat(Checkpointer.sink(checkpointSettings), Keep.both())
+    .run(actorSystem);
+
+// The stream will consume until there is a failure or the business logic completes the stream.
+// To stop it cleanly:
+controlAndStreamCompletion.first()
+  .drainAndShutdown(
+    controlAndStreamCompletion.second(),
+    actorSystem.dispatcher());</code></pre></dd>
+</dl>
+<h2><a href="#checkpointing" name="checkpointing" class="anchor"><span class="anchor-link"></span></a>Checkpointing</h2>
+<p>The checkpointing flows and sinks checkpoint event positions to the <a href="https://learn.microsoft.com/en-us/java/api/com.azure.messaging.eventhubs.checkpointstore?view=azure-java-stable"><code>CheckpointStore</code></a> used by the <a href="#consuming-from-event-hubs">consumer stage</a> which received the event. Each of the stages consumes a <span class="group-scala"><a href="/api/akka-enhancements/snapshot/akka/stream/alpakka/azure/eventhubs/Checkpointable.html" title="akka.stream.alpakka.azure.eventhubs.Checkpointable"><code>Checkpointable</code></a></span><span class="group-java"><a href="/api/akka-enhancements/snapshot/akka/stream/alpakka/azure/eventhubs/Checkpointable.html" title="akka.stream.alpakka.azure.eventhubs.Checkpointable"><code>Checkpointable</code></a></span> describing the event position.</p>
+<p>Any implementation of <code>CheckpointStore</code> may be used: this connector does not depend on any specific implementation. Microsoft provides two implementations:</p>
+<ul>
+  <li><a href="https://learn.microsoft.com/en-us/java/api/overview/azure/messaging-eventhubs-checkpointstore-blob-readme?view=azure-java-stable">Azure Blob Storage Checkpoint Store</a> uses Azure Storage Blobs as the backing storage</li>
+  <li><a href="https://learn.microsoft.com/en-us/java/api/overview/azure/messaging-eventhubs-checkpointstore-jedis-readme?view=azure-java-preview">Azure Redis Checkpoint Store</a> (currently in preview) uses Redis as the backing storage</li>
+</ul>
+<p>Construction and configuration of the <code>CheckpointStore</code> implementation is done programmatically according to the documentation of the particular implementation.</p>
+<p>These factory methods are part of the <span class="group-scala"><a href="/api/akka-enhancements/snapshot/akka/stream/alpakka/azure/eventhubs/scaladsl/Checkpointer$.html" title="akka.stream.alpakka.azure.eventhubs.scaladsl.Checkpointer"><code>Checkpointer</code></a></span><span class="group-java"><a href="/akka/stream/alpakka/azure/eventhubs/javadsl/Consumer.html" title="akka.stream.alpakka.azure.eventhubs.javadsl.Consumer"><code>Consumer</code></a></span> API.</p>
+<table>
+  <thead>
+    <tr>
+      <th>Factory method </th>
+      <th>Emits </th>
+      <th>Notes </th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>batchFlow</code> </td>
+      <td><code>Checkpointable</code> </td>
+      <td>The emitted <code>Checkpointable</code> contains the event position actually checkpointed. This is suitable for logging or otherwise tracking checkpoint progress. </td>
+    </tr>
+    <tr>
+      <td><code>flow</code> </td>
+      <td><code>Done</code> </td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td><code>flowWithCheckpointableContext</code> </td>
+      <td><code>Done</code> </td>
+      <td><code>Checkpointable</code> is emitted as context. </td>
+    </tr>
+    <tr>
+      <td><code>sink</code> </td>
+      <td>Not Applicable </td>
+      <td>Materialized future completes when stream completes (all pending checkpoints have succeeded or failed). </td>
+    </tr>
+    <tr>
+      <td><code>sinkWithCheckpointableContext</code> </td>
+      <td>Not Applicable </td>
+      <td>Materialized future completes when stream completes (all pending checkpoints have succeeded or failed). </td>
+    </tr>
+  </tbody>
+</table>
+<p>All the flows and sinks support batching according to the passed <a href="#checkpointing-settings">settings</a> and will fail if a checkpoint attempt fails.</p>
+<h3><a href="#checkpointing-settings" name="checkpointing-settings" class="anchor"><span class="anchor-link"></span></a>Checkpointing settings</h3>
+<p>The behavior of the checkpointing flows and sinks may be customized via <span class="group-scala"><a href="/api/akka-enhancements/snapshot/akka/stream/alpakka/azure/eventhubs/scaladsl/CheckpointSettings.html" title="akka.stream.alpakka.azure.eventhubs.scaladsl.CheckpointSettings"><code>CheckpointSettings</code></a></span><span class="group-java"><a href="/akka/stream/alpakka/azure/eventhubs/javadsl/CheckpointSettings.html" title="akka.stream.alpakka.azure.eventhubs.javadsl.CheckpointSettings"><code>CheckpointSettings</code></a></span>, which may be obtained from config or programmatically built.</p>
+<p>The defaults used when constructing from config are</p>
+<dl>
+  <dt>reference.conf (HOCON)
+  </dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/lightbend/akka-enhancements/tree/master/azure-eventhubs/src/main/resources/reference.conf#L134-L159" target="_blank" title="Go to snippet source">source</a><code class="language-conf">alpakka.azure.eventhubs.checkpoint {
+  # If a checkpoint attempt takes longer than this, consider it failed
+  timeout = 30s
+
+  # In a stream, accumulate up to this many checkpoints before checkpointing
+  # the latest.  Setting to 1 will checkpoint every checkpointable in the stream.
+  # Increasing will generally improve stream throughput, at the cost of
+  # reprocessing more events after partition rebalances or consumer restarts
+  max-batch = 100
+
+  # In a stream, if this interval passes since the last checkpoint attempt and there have
+  # been received checkpoints, checkpoint even if max-batch checkpoints haven&#39;t
+  # yet been accumulated
+  max-interval = 1s
+
+  # Affects how the batching logic deals with multiple partitions, which may in
+  # some cases improve throughput (e.g. with a checkpoint store implementation
+  # which has different latencies for different partitions)
+  partitions = 1
+
+  # Limit how many checkpoint attempts are in-flight.  If multiple checkpoints
+  # are in-flight for the same partition in the same consumer group to the same
+  # checkpoint store, deduplication will occur, favoring the latest checkpoint
+  # in the partition.  If `partitions` is greater than one, this is per-partition.
+  max-inflight = 1
+}</code></pre></dd>
+</dl>
+<p>These defaults are compatible with <a href="#error-handling-and-vs-">&ldquo;at-least-once&rdquo; processing</a> of events: each event will likely only be processed once, but in failure cases, the events may be processed multiple times.</p>
+<h2><a href="#error-handling-and-vs-" name="error-handling-and-vs-" class="anchor"><span class="anchor-link"></span></a>Error handling and &ldquo;at-least-once&rdquo; vs. &ldquo;at-most-once&rdquo;</h2>
+<h3><a href="#consumer-errors" name="consumer-errors" class="anchor"><span class="anchor-link"></span></a>Consumer errors</h3>
+<p>Errors from the underlying <code>EventProcessorClient</code> will be forwarded to the consumer sources and fail the connected streams.</p>
+<h3><a href="#producer-errors" name="producer-errors" class="anchor"><span class="anchor-link"></span></a>Producer errors</h3>
+<p>Produces are retried by both the underlying client and this connector. Exceeding the provisioned throughput limits for a given hub will not (by itself) result in a failure. In the event that the retries are exhausted, the producer stage will fail the stream.</p>
+<h3><a href="#restarting-the-stream-with-a-backoff" name="restarting-the-stream-with-a-backoff" class="anchor"><span class="anchor-link"></span></a>Restarting the stream with a backoff</h3>
+<p>Akka Streams provides <a href="https://doc.akka.io/docs/akka/current/stream/stream-error.html#delayed-restarts-with-a-backoff-stage">graph stages which will gracefully restart on failure</a>, with a configurable backoff. This can be taken advantage of to restart a failing stream its associated consumer.</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/lightbend/akka-enhancements/tree/master/azure-eventhubs/src/test/scala/docs/scaladsl/EventHubsDocSpec.scala#L217-L250" target="_blank" title="Go to snippet source">source</a><code class="language-scala">import akka.stream.RestartSettings
+import java.util.concurrent.atomic.AtomicReference
+
+// bring your own implementation of buildCheckpointStore
+val checkpointStore = buildCheckpointStore(checkpointConfig)
+
+val consumerSettings = ConsumerSettings(actorSystem).withConsumerGroup(&quot;eventhubs-example&quot;)
+
+// For storing the control from the most recent materialization
+val control = new AtomicReference[Option[Consumer.Control]](None)
+
+val restartSettings = RestartSettings(minBackoff = 3.seconds, maxBackoff = 30.seconds, randomFactor = 0.2)
+val restartingSource =
+  RestartSource.onFailuresWithBackoff(restartSettings) { () =&gt;
+    Consumer
+      .source(
+        consumerSettings,
+        // Be sure to get a new processor client builder every restart
+        ClientFromConfig.processorClientBuilder(consumerConfig),
+        checkpointSettings,
+        checkpointStore) { (eventData, checkpointable) =&gt;
+        DomainType.fromEventHubs(eventData, checkpointable)
+      }
+      .mapMaterializedValue { c =&gt;
+        // Store the control from this start
+        control.set(Some(c))
+      }
+      .via(businessLogicFlow)
+  }
+
+val streamCompletion = restartingSource.runWith(Checkpointer.sink(checkpointSettings))
+
+// To drain and shutdown the stream
+control.get().foreach(_.drainAndShutdown(streamCompletion))</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/lightbend/akka-enhancements/tree/master/azure-eventhubs/src/test/java/docs/javadsl/EventHubsDocTest.java#L251-L292" target="_blank" title="Go to snippet source">source</a><code class="language-java">// bring your own implementation of buildCheckpointStore
+CheckpointStore checkpointStore = buildCheckpointStore(checkpointConfig);
+
+ConsumerSettings consumerSettings = ConsumerSettings.create(actorSystem).withConsumerGroup(&quot;eventhubs-example&quot;);
+
+// For storing the control from the most recent materialization
+AtomicReference&lt;Optional&lt;Consumer.Control&gt;&gt; wrappedControl =
+  new AtomicReference&lt;Optional&lt;Consumer.Control&gt;&gt;(Optional.empty());
+
+RestartSettings restartSettings =
+  RestartSettings.create(
+    Duration.of(3, SECONDS),    // minBackoff
+    Duration.of(30, SECONDS),   // maxBackoff
+    0.2);                       // randomFactor
+
+Source&lt;Checkpointable, NotUsed&gt; restartingSource =
+  RestartSource.onFailuresWithBackoff(
+    restartSettings,
+    () -&gt;
+      Consumer.source(
+          consumerSettings,
+          // Be sure to get a new client builder every restart
+          ClientFromConfig.processorClientBuilder(consumerConfig),
+          checkpointSettings,
+          checkpointStore,
+          DomainType::fromEventHubs)
+        .mapMaterializedValue(control -&gt; {
+          // Store the control from this start
+          wrappedControl.set(Optional.of(control));
+          return NotUsed.notUsed();
+        })
+        .via(businessLogicFlow)
+  );
+
+CompletionStage&lt;Done&gt; streamCompletion =
+  restartingSource.runWith(Checkpointer.sink(checkpointSettings), actorSystem);
+
+// To drain and shutdown the stream
+wrappedControl.get().ifPresent(control -&gt;
+  control.drainAndShutdown(
+    streamCompletion,
+    actorSystem.dispatcher()));</code></pre></dd>
+</dl>
+<p>If using a <code>RestartSource</code>, note that failures in the sink will not trigger the source&rsquo;s restart logic. If using a <code>Checkpointer</code> sink, this implies that failures to checkpoint will not cause stream restarts, while <code>Checkpointer</code> flows (if within the restart source) will trigger stream restarts on checkpoint failures. Conversely, if the failure to checkpoint results from the unavailability or failure of the checkpoint store, it may be unlikely (relative to, e.g., failures in the &ldquo;business logic&rdquo; of the stream) that consumption will succeed on restart; this may argue for a different approach to checkpoint failures (e.g. longer backoff or escalating the failure by terminating the application so that some external coordination starts consuming elsewhere).</p>
+<h3><a href="#processing-guarantees" name="processing-guarantees" class="anchor"><span class="anchor-link"></span></a>Processing guarantees</h3>
+<p>In many applications for which Event Hubs is well suited, it is a requirement that every event in a hub being consumed gets processed at least once. The default settings for consumption and checkpointing work well with this requirement (assuming no external manipulation of the checkpoint store: if that happens, &ldquo;all bets are off&rdquo;). However, care is needed to ensure that the stream logic does not inadvertently weaken these semantics: surprising and difficult-to-resolve bugs can ensue from having weaker semantics than expected.</p>
+<p>One pattern which often weakens at-least-once semantics is multiple side effects per checkpointable. If multiple side effects are required, it is critical to delay the checkpoint until all side effects have succeeded. For example, if the side effects involve <a href="#producing-multiple-events">producing multiple events</a> to an Event Hubs hub, using <code>ProducerMessage.multi</code> or <code>ProducerMessage.batch</code> to produce events is called for. If consumed events are batched for more efficient processing, it is imperative that the checkpointable of the last event in the batch be the &ldquo;surviving&rdquo; checkpointable and that it not be emitted until every event in the batch is deemed processed. In other situations, it is often reasonable to perform the side effects serially.</p>
+<p>Processing events out of order often weakens at-least-once semantics, as reordering can result in a later event position being checkpointed before an earlier position (this situation may also weaken at-most-once semantics!). To avoid processing events out of order, use only stages which preserve ordering. Most Akka Streams built-in operators preserve ordering: a notable exception is <code>mapAsyncUnordered</code>, which should never be used if at-least-once processing is desired. Another general exception is the pattern of <code>groupBy</code> followed by <code>mergeSubstreams</code>: use <code>mapAsyncPartitioned</code> (or perhaps techniques outside of streams, such as an ask to an actor) instead.</p>
+<p>If at-most-once processing semantics are desired, it is possible to obtain these semantics with this connector. &ldquo;Hard&rdquo; at-most-once requires checkpointing before processing each event. This precludes batching of checkpoints: while at-most-once messaging in Akka generally results in greater throughput than at-least-once messaging, the inability to batch checkpoints likely makes at-most-once processing of events from Event Hubs exhibit <em>reduced</em> throughput compared to at-least-once processing. Hard at-most-once should thus only be used in situations where there is a correctness requirement that no event ever be processed multiple times.</p>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/lightbend/akka-enhancements/tree/master/azure-eventhubs/src/test/scala/docs/scaladsl/EventHubsDocSpec.scala#L262-L302" target="_blank" title="Go to snippet source">source</a><code class="language-scala">// bring your own implementation of buildCheckpointStore
+val checkpointStore = buildCheckpointStore(checkpointConfig)
+
+val eventProcessorBuilder = ClientFromConfig.processorClientBuilder(consumerConfig)
+val consumerSettings = ConsumerSettings(actorSystem).withConsumerGroup(&quot;eventhubs-example&quot;)
+
+// Batching checkpoints is incompatible with hard at-most-once processing
+val checkpointSettings =
+  CheckpointSettings(
+    checkpointTimeout = 30.seconds,
+    maxBatch = 1,
+    maxInterval = 1.second,
+    partitions = 1,
+    maxInflight = 1)
+
+val (control, streamDone) =
+  Consumer
+    .pairSource(consumerSettings, eventProcessorBuilder, checkpointSettings, checkpointStore)
+    .via(
+      // Must checkpoint (with no batching!) before processing
+      Flow
+        .fromGraph(GraphDSL.create() { implicit builder: GraphDSL.Builder[NotUsed] =&gt;
+          import akka.stream.FlowShape
+          import GraphDSL.Implicits._
+
+          val breaker = builder.add(Unzip[EventData, Checkpointable]())
+          val maker = builder.add(Zip[EventData, Done]())
+
+          breaker.out0 ~&gt; maker.in0
+          breaker.out1 ~&gt; Checkpointer.flow(checkpointSettings) ~&gt; maker.in1
+
+          FlowShape(breaker.in, maker.out)
+        })
+        .map(_._1))
+    .via(businessLogicFlow)
+    .toMat(Sink.ignore)(Keep.both)
+    .run()
+
+// The stream will consume until there is a failure or the business logic completes the stream.
+// To stop it cleanly:
+control.drainAndShutdown(streamDone)</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/lightbend/akka-enhancements/tree/master/azure-eventhubs/src/test/java/docs/javadsl/EventHubsDocTest.java#L304-L356" target="_blank" title="Go to snippet source">source</a><code class="language-java">// bring your own implementation of buildCheckpointStore
+CheckpointStore checkpointStore = buildCheckpointStore(checkpointConfig);
+
+EventProcessorClientBuilder eventProcessorBuilder = ClientFromConfig.processorClientBuilder(consumerConfig);
+ConsumerSettings consumerSettings = ConsumerSettings.create(actorSystem).withConsumerGroup(&quot;eventhubs-example&quot;);
+
+// Batching checkpoints is incompatible with hard at-most-once processing
+CheckpointSettings checkpointSettings =
+  CheckpointSettings.create(
+    Duration.of(30, SECONDS), // checkpointTimeout
+    1,                        // maxBatch
+    Duration.of(1, SECONDS),  // maxInterval
+    1,                        // partitions
+    1);                       // maxInflight
+
+Pair&lt;Consumer.Control, CompletionStage&lt;Done&gt;&gt; controlWithCompletion =
+  Consumer.pairSource(
+      consumerSettings,
+      eventProcessorBuilder,
+      checkpointSettings,
+      checkpointStore)
+    .via(
+      // Must checkpoint (with no batching!) before processing
+      Flow.&lt;Pair&lt;EventData, Checkpointable&gt;, Pair&lt;EventData, Done&gt;, NotUsed&gt;fromGraph(
+        GraphDSL.create(
+          builder -&gt; {
+            FanOutShape2&lt;Pair&lt;EventData, Checkpointable&gt;, EventData, Checkpointable&gt; breaker =
+              builder.add(Unzip.create(EventData.class, Checkpointable.class));
+
+            FanInShape2&lt;EventData, Done, Pair&lt;EventData, Done&gt;&gt; maker =
+              builder.add(Zip.&lt;EventData, Done&gt;create());
+
+            builder.from(breaker.out0()).toInlet(maker.in0());
+            builder.from(breaker.out1())
+              .&lt;Done&gt;via(Checkpointer.flow(checkpointSettings).shape())
+              .toInlet(maker.in1());
+
+            return FlowShape.of(
+                breaker.in(), maker.out());
+          })
+      )
+      .map(Pair::first)
+    )
+    .via(businessLogicFlow)
+    .toMat(Sink.ignore(), Keep.both())
+    .run(actorSystem);
+
+// The stream will consume until there is a failure or the business logic completes the stream
+// To stop it cleanly:
+controlWithCompletion.first()
+  .drainAndShutdown(
+    controlWithCompletion.second(),
+    actorSystem.dispatcher());</code></pre></dd>
+</dl>
+<h2><a href="#consuming-producing-and-checkpointing-in-one-stream" name="consuming-producing-and-checkpointing-in-one-stream" class="anchor"><span class="anchor-link"></span></a>Consuming, producing, and checkpointing in one stream</h2>
+<p>The general approach for consuming, producing, and checkpointing in one stream is to:</p>
+<ul>
+  <li>have a <code>Consumer.sourceWithCheckpointableContext</code></li>
+  <li>transform the <code>EventData</code> into envelopes (using <code>ProducerMessage.empty</code> to filter out events while propagating the <code>Checkpointable</code>)</li>
+  <li>use a <code>Producer.flowWithContext</code> to produce events to the target hub</li>
+  <li>checkpoint the events with <code>Checkpointer.sinkWithCheckpointableContext</code></li>
+</ul>
+<dl>
+  <dt>Scala</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/lightbend/akka-enhancements/tree/master/azure-eventhubs/src/test/scala/docs/scaladsl/EventHubsDocSpec.scala#L312-L351" target="_blank" title="Go to snippet source">source</a><code class="language-scala">val citiesToRegions = Map(
+  &quot;Stockholm&quot; -&gt; &quot;Nordic&quot;,
+  &quot;Lausanne&quot; -&gt; &quot;Central&quot;,
+  &quot;Nice&quot; -&gt; &quot;Mediterranean&quot;,
+  &quot;Amsterdam&quot; -&gt; &quot;Northwest&quot;,
+  &quot;Dublin&quot; -&gt; &quot;Northwest&quot;,
+  &quot;Helsinki&quot; -&gt; &quot;Nordic&quot;,
+  &quot;Prague&quot; -&gt; &quot;Central&quot;,
+  &quot;Barcelona&quot; -&gt; &quot;Mediterranean&quot;)
+
+val producerClient = ClientFromConfig.producer(producerConfig)
+val producerSettings = ProducerSettings(actorSystem)
+
+val checkpointStore = buildCheckpointStore(checkpointConfig)
+val eventProcessorBuilder = ClientFromConfig.processorClientBuilder(consumerConfig)
+val consumerSettings = ConsumerSettings(actorSystem).withConsumerGroup(&quot;eventhubs-example&quot;)
+
+val endToEndStream =
+  Consumer
+    .sourceWithCheckpointableContext(
+      consumerSettings,
+      eventProcessorBuilder,
+      checkpointSettings,
+      checkpointStore)
+    .map { eventData =&gt;
+      try {
+        val count = eventData.getBodyAsString.toInt
+        val region = citiesToRegions.getOrElse(eventData.getPartitionKey, &quot;Unknown&quot;)
+        ProducerMessage.singleWithPartitioning(
+          new EventData(count.toString),
+          ProducerMessage.partitionByKey(region))
+      } catch {
+        case _: NumberFormatException =&gt; ProducerMessage.empty()
+      }
+    }
+    .via(Producer.flowWithContext(producerSettings, producerClient))
+    .via(Checkpointer.flowWithCheckpointableContext(checkpointSettings))
+    .toMat(Sink.ignore)(Consumer.DrainingControl.apply)
+
+val control = endToEndStream.run()</code></pre></dd>
+  <dt>Java</dt>
+  <dd>
+  <pre class="prettyprint"><button class="snippet-button copy-snippet" title="Copy snippet to clipboard">copy</button><a class="snippet-button go-to-source" href="https://github.com/lightbend/akka-enhancements/tree/master/azure-eventhubs/src/test/java/docs/javadsl/EventHubsDocTest.java#L366-L407" target="_blank" title="Go to snippet source">source</a><code class="language-java">ConcurrentHashMap&lt;String, String&gt; citiesToRegions = new ConcurrentHashMap&lt;String, String&gt;();
+citiesToRegions.put(&quot;Stockholm&quot;, &quot;Nordic&quot;);
+citiesToRegions.put(&quot;Lausanne&quot;, &quot;Central&quot;);
+citiesToRegions.put(&quot;Nice&quot;, &quot;Mediterranean&quot;);
+citiesToRegions.put(&quot;Amsterdam&quot;, &quot;Northwest&quot;);
+citiesToRegions.put(&quot;Dublin&quot;, &quot;Northwest&quot;);
+citiesToRegions.put(&quot;Helsinki&quot;, &quot;Nordic&quot;);
+citiesToRegions.put(&quot;Prague&quot;, &quot;Central&quot;);
+citiesToRegions.put(&quot;Barcelona&quot;, &quot;Mediterranean&quot;);
+
+EventHubProducerAsyncClient producerClient = ClientFromConfig.producer(producerConfig);
+ProducerSettings producerSettings = ProducerSettings.create(actorSystem);
+
+CheckpointStore checkpointStore = buildCheckpointStore(checkpointConfig);
+EventProcessorClientBuilder eventProcessorBuilder = ClientFromConfig.processorClientBuilder(consumerConfig);
+ConsumerSettings consumerSettings = ConsumerSettings.create(actorSystem).withConsumerGroup(&quot;eventhubs-example&quot;);
+
+RunnableGraph&lt;Consumer.DrainingControl&lt;Done&gt;&gt; endToEndStream =
+  Consumer.sourceWithCheckpointableContext(
+      consumerSettings,
+      eventProcessorBuilder,
+      checkpointSettings,
+      checkpointStore)
+    .map(eventData -&gt; {
+      try {
+        // Parsing to validate
+        int count = Integer.parseInt(eventData.getBodyAsString());
+        String region = citiesToRegions.get(eventData.getPartitionKey());
+        region = (region == null) ? &quot;Unknown&quot; : region;
+
+        return ProducerMessage.singleWithPartitioning(
+          new EventData(eventData.getBody()),
+          ProducerMessage.partitionByKey(region));
+      } catch (NumberFormatException nfe) {
+        return ProducerMessage.empty();
+      }
+    })
+    .via(Producer.flowWithContext(producerSettings, producerClient))
+    .via(Checkpointer.flowWithCheckpointableContext(checkpointSettings))
+    .toMat(Sink.ignore(), Consumer::createDrainingControl);
+
+Consumer.DrainingControl&lt;Done&gt; control = endToEndStream.run(actorSystem);</code></pre></dd>
+</dl>
+<h2><a href="#serialization" name="serialization" class="anchor"><span class="anchor-link"></span></a>Serialization</h2>
+<p>As with Alpakka Kafka, our firm recommendation is that serialization to and deserialization from byte arrays be performed in the stream (e.g. as <code>map</code> stages), as this eases implementation of desired error handling strategies.</p>
 </div>
 </article>
 <div class="row">
@@ -133,7 +1227,7 @@ Version 2.0.0
 </div>
 </div>
 <div class="source-github row">
-Found an error in this documentation? The source code for this page can be found <a href="https://github.com/lightbend/akka-commercial-addons/tree/v2.0.0/docs/src/main/paradox/azure-eventhubs.md">here</a>.
+Found an error in this documentation? The source code for this page can be found <a href="https://github.com/lightbend/akka-enhancements/tree/master/docs/src/main/paradox/azure-eventhubs.md">here</a>.
 Please feel free to edit and contribute a pull request.
 </div>
 
