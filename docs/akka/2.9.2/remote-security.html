@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html class="no-js" lang="en">
+
+<head>
+<title>Remote Security &bull; Akka Documentation</title>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta name="description" content="Details about security aspects of the remoting module for Akka Cluster."/>
+<link rel="canonical" href="https://doc.akka.io/docs/akka/current/remote-security.html"/>
+<script type="text/javascript" src="lib/jquery/jquery.min.js"></script>
+<script type="text/javascript" src="lib/foundation/dist/js/foundation.min.js"></script>
+<link rel="stylesheet" type="text/css" href="lib/normalize.css/normalize.css"/>
+<link rel="stylesheet" type="text/css" href="lib/foundation/dist/css/foundation.min.css"/>
+<link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/docsearch.js/2/docsearch.min.css" />
+<link rel="stylesheet" type="text/css" href="css/icons.css"/>
+<link rel="stylesheet" type="text/css" href="css/page-8.css"/>
+<link rel="stylesheet" type="text/css" href="css/banner-2.css"/>
+<link rel="shortcut icon" href="images/favicon.ico" />
+<link rel="apple-touch-icon" sizes="180x180" href="images/apple-touch-icon.png"/>
+<link rel="icon" type="image/png" sizes="32x32" href="images/favicon-32x32.png"/>
+<link rel="icon" type="image/png" sizes="16x16" href="images/favicon-16x16.png"/>
+<link rel="manifest" href="images/manifest.json"/>
+<meta name="msapplication-TileImage" content="images/mstile-150x150.png"/>
+<meta name="msapplication-TileColor" content="#15a9ce"/>
+<meta name="theme-color" content="#15a9ce"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<!-- OneTrust Cookies Consent Notice (Production Standard, akka.io, en-GB) start -->
+<script src="https://cdn.cookielaw.org/scripttemplates/otSDKStub.js"  type="text/javascript" charset="UTF-8" data-domain-script="28b912e7-09e9-43d5-91e4-3d1897044004" ></script>
+<script type="text/javascript">
+function OptanonWrapper() { }
+</script>
+<!-- OneTrust Cookies Consent Notice (Production Standard, akka.io, en-GB) end -->
+<!-- Google Tag Manager now loads Google Analytics and any other tracking scripts. GTM also performs respects a users cookie choices-->
+<script type="text/javascript">
+(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+})(window,document,'script','dataLayer','GTM-KBJGH35');
+</script>
+
+</head>
+
+<body id="underlay" data-toggler="nav-open">
+<div id="lightbend-banner" class="lightbend-banner akka full-width" data-category="OSS Lightbend Banner Impression" data-label="Akka Banner Impression">
+<div class="oss-wrapper">
+<div class="oss-brand">
+<a class="oss-track-link-label" data-category="OSS Lightbend Banner Clicks" data-label="Lightbend Logo - Akka Banner" href="https://www.lightbend.com">
+<img class="lightbend-logo" src="images/banner-logos/lightbend-reverse.svg" alt="Lightbend" title="Lightbend">
+</a>
+</div>
+<div class="oss-ad no-drop-down">
+<nav id="lightbendRotator" class="lightbend-rotator">
+<a class="oss-track-link-label" data-category="OSS Lightbend Banner Clicks" data-label="Promo Rotator - Introducing Akka Cloud to Edge Continuum. Build once for the Cloud. Seamlessly deploy to the Edge. [Learn more] - Akka Banner" href="https://www.lightbend.com/blog/akka-edge-unifying-the-cloud-and-edge">
+Introducing Akka Cloud to Edge Continuum. Build once for the Cloud. Seamlessly deploy to the Edge. <span class="akka-btn">Learn more</span>
+</a>
+</nav>
+</div>
+</div>
+</div>
+
+<header class="site-header hide-for-large">
+<div class="sticky-header clearfix">
+<a href="https://akka.io"><img class="logo" src="images/akka-logo-reverse.svg"/></a>
+
+<button class="menu-icon float-right" type="button" data-toggle="underlay overlay"></button>
+</div>
+<div id="overlay" class="overlay-nav" data-toggler="nav-open">
+<header class="nav-header">
+<div class="nav-header-title">
+<h1><a href="index.html">Akka Documentation</a></h1>
+</div>
+<div class="nav-header-version">
+Version 2.9.2
+</div>
+<div class="nav-header-groups">
+<select class="supergroup" name="Language"><option class="group" value="group-scala">Scala</option><option class="group" value="group-java">Java</option></select>
+<select class="supergroup" name="BuildTool"><option class="group" value="group-sbt">sbt</option><option class="group" value="group-maven">Maven</option><option class="group" value="group-gradle">Gradle</option></select>
+</div>
+<div id="overlay-search-container" class="nav-header-search">
+<input id="overlay-search" type="search" class="search" placeholder="Search" />
+</div>
+</header>
+<nav class="nav-toc">
+<ul>
+  <li><a href="security/index.html" class="page">Security Announcements</a></li>
+  <li><a href="typed/guide/index.html" class="page">Getting Started Guide</a></li>
+  <li><a href="general/index.html" class="page">General Concepts</a></li>
+  <li><a href="typed/index.html" class="page">Actors</a></li>
+  <li><a href="typed/index-cluster.html" class="page">Cluster</a>
+  <ul>
+    <li><a href="typed/cluster.html" class="page">Cluster Usage</a></li>
+    <li><a href="typed/cluster-concepts.html" class="page">Cluster Specification</a></li>
+    <li><a href="typed/cluster-membership.html" class="page">Cluster Membership Service</a></li>
+    <li><a href="typed/failure-detector.html" class="page">Phi Accrual Failure Detector</a></li>
+    <li><a href="typed/distributed-data.html" class="page">Distributed Data</a></li>
+    <li><a href="typed/cluster-singleton.html" class="page">Cluster Singleton</a></li>
+    <li><a href="typed/cluster-sharding.html" class="page">Cluster Sharding</a></li>
+    <li><a href="typed/cluster-sharding-concepts.html" class="page">Cluster Sharding concepts</a></li>
+    <li><a href="typed/cluster-sharded-daemon-process.html" class="page">Sharded Daemon Process</a></li>
+    <li><a href="typed/cluster-dc.html" class="page">Multi-DC Cluster</a></li>
+    <li><a href="typed/distributed-pub-sub.html" class="page">Distributed Publish Subscribe in Cluster</a></li>
+    <li><a href="typed/reliable-delivery.html" class="page">Reliable delivery</a></li>
+    <li><a href="serialization.html" class="page">Serialization</a></li>
+    <li><a href="serialization-jackson.html" class="page">Serialization with Jackson</a></li>
+    <li><a href="multi-jvm-testing.html" class="page">Multi JVM Testing</a></li>
+    <li><a href="multi-node-testing.html" class="page">Multi Node Testing</a></li>
+    <li><a href="remoting-artery.html" class="page">Remoting</a></li>
+    <li><a href="remote-security.html#remote-security" class="active page">Remote Security</a>
+    <ul>
+      <li><a href="remote-security.html#configuring-ssl-tls-for-akka-remoting" class="header">Configuring SSL/TLS for Akka Remoting</a></li>
+      <li><a href="remote-security.html#mtls-with-rotated-certificates-in-kubernetes" class="header">mTLS with rotated certificates in Kubernetes</a></li>
+      <li><a href="remote-security.html#untrusted-mode" class="header">Untrusted Mode</a></li>
+    </ul></li>
+    <li><a href="split-brain-resolver.html" class="page">Split Brain Resolver</a></li>
+    <li><a href="coordination.html" class="page">Coordination</a></li>
+    <li><a href="typed/choosing-cluster.html" class="page">Choosing Akka Cluster</a></li>
+  </ul></li>
+  <li><a href="typed/index-persistence.html" class="page">Persistence (Event Sourcing)</a></li>
+  <li><a href="typed/index-persistence-durable-state.html" class="page">Persistence (Durable State)</a></li>
+  <li><a href="stream/index.html" class="page">Streams</a></li>
+  <li><a href="discovery/index.html" class="page">Discovery</a></li>
+  <li><a href="index-utilities.html" class="page">Utilities</a></li>
+  <li><a href="common/other-modules.html" class="page">Other Akka modules</a></li>
+  <li><a href="additional/deploy.html" class="page">Package, Deploy and Run</a></li>
+  <li><a href="project/index.html" class="page">Project Information</a></li>
+  <li><a href="index-classic.html" class="page">Akka Classic</a></li>
+</ul>
+</nav>
+</div>
+</header>
+<div class="site-content-wrapper">
+<aside class="sticky-sidebar show-for-large">
+<header class="nav-header sticky-sidebar-header">
+<div class="nav-header-title">
+<h1><a href="index.html">Akka Documentation</a></h1>
+</div>
+<div class="nav-header-version">
+Version 2.9.2
+</div>
+<div class="nav-header-groups">
+<select class="supergroup" name="Language"><option class="group" value="group-scala">Scala</option><option class="group" value="group-java">Java</option></select>
+<select class="supergroup" name="BuildTool"><option class="group" value="group-sbt">sbt</option><option class="group" value="group-maven">Maven</option><option class="group" value="group-gradle">Gradle</option></select>
+</div>
+<div class="nav-header-search">
+<input id="search" type="search" class="search" placeholder="Search" />
+</div>
+</header>
+<nav class="site-nav sticky-sidebar-contents">
+<div class="nav-toc">
+<ul>
+  <li><a href="security/index.html" class="page">Security Announcements</a></li>
+  <li><a href="typed/guide/index.html" class="page">Getting Started Guide</a></li>
+  <li><a href="general/index.html" class="page">General Concepts</a></li>
+  <li><a href="typed/index.html" class="page">Actors</a></li>
+  <li><a href="typed/index-cluster.html" class="page">Cluster</a>
+  <ul>
+    <li><a href="typed/cluster.html" class="page">Cluster Usage</a></li>
+    <li><a href="typed/cluster-concepts.html" class="page">Cluster Specification</a></li>
+    <li><a href="typed/cluster-membership.html" class="page">Cluster Membership Service</a></li>
+    <li><a href="typed/failure-detector.html" class="page">Phi Accrual Failure Detector</a></li>
+    <li><a href="typed/distributed-data.html" class="page">Distributed Data</a></li>
+    <li><a href="typed/cluster-singleton.html" class="page">Cluster Singleton</a></li>
+    <li><a href="typed/cluster-sharding.html" class="page">Cluster Sharding</a></li>
+    <li><a href="typed/cluster-sharding-concepts.html" class="page">Cluster Sharding concepts</a></li>
+    <li><a href="typed/cluster-sharded-daemon-process.html" class="page">Sharded Daemon Process</a></li>
+    <li><a href="typed/cluster-dc.html" class="page">Multi-DC Cluster</a></li>
+    <li><a href="typed/distributed-pub-sub.html" class="page">Distributed Publish Subscribe in Cluster</a></li>
+    <li><a href="typed/reliable-delivery.html" class="page">Reliable delivery</a></li>
+    <li><a href="serialization.html" class="page">Serialization</a></li>
+    <li><a href="serialization-jackson.html" class="page">Serialization with Jackson</a></li>
+    <li><a href="multi-jvm-testing.html" class="page">Multi JVM Testing</a></li>
+    <li><a href="multi-node-testing.html" class="page">Multi Node Testing</a></li>
+    <li><a href="remoting-artery.html" class="page">Remoting</a></li>
+    <li><a href="remote-security.html#remote-security" class="active page">Remote Security</a>
+    <ul>
+      <li><a href="remote-security.html#configuring-ssl-tls-for-akka-remoting" class="header">Configuring SSL/TLS for Akka Remoting</a></li>
+      <li><a href="remote-security.html#mtls-with-rotated-certificates-in-kubernetes" class="header">mTLS with rotated certificates in Kubernetes</a></li>
+      <li><a href="remote-security.html#untrusted-mode" class="header">Untrusted Mode</a></li>
+    </ul></li>
+    <li><a href="split-brain-resolver.html" class="page">Split Brain Resolver</a></li>
+    <li><a href="coordination.html" class="page">Coordination</a></li>
+    <li><a href="typed/choosing-cluster.html" class="page">Choosing Akka Cluster</a></li>
+  </ul></li>
+  <li><a href="typed/index-persistence.html" class="page">Persistence (Event Sourcing)</a></li>
+  <li><a href="typed/index-persistence-durable-state.html" class="page">Persistence (Durable State)</a></li>
+  <li><a href="stream/index.html" class="page">Streams</a></li>
+  <li><a href="discovery/index.html" class="page">Discovery</a></li>
+  <li><a href="index-utilities.html" class="page">Utilities</a></li>
+  <li><a href="common/other-modules.html" class="page">Other Akka modules</a></li>
+  <li><a href="additional/deploy.html" class="page">Package, Deploy and Run</a></li>
+  <li><a href="project/index.html" class="page">Project Information</a></li>
+  <li><a href="index-classic.html" class="page">Akka Classic</a></li>
+</ul>
+</div>
+</nav>
+<footer class="nav-footer sticky-sidebar-footer">
+<a href="https://akka.io"><img class="logo" src="images/akka-logo-reverse.svg"/></a>
+
+</footer>
+</aside>
+<main class="fixed-shift-for-large expanded row">
+<section class="site-content small-12 column">
+<article class="page-content row">
+<div class="small-12 column" id="docs">
+<h1><a href="#remote-security" name="remote-security" class="anchor"><span class="anchor-link"></span></a>Remote Security</h1>
+<p>An <span class="group-scala"><a href="https://doc.akka.io/api/akka/2.9/akka/actor/ActorSystem.html" title="akka.actor.ActorSystem"><code>ActorSystem</code></a></span><span class="group-java"><a href="https://doc.akka.io/japi/akka/2.9/akka/actor/ActorSystem.html" title="akka.actor.ActorSystem"><code>ActorSystem</code></a></span> should not be exposed via <a href="typed/cluster.html">Akka Cluster</a> or <a href="remoting-artery.html">Akka Remote</a> over plain Aeron/UDP or TCP to an untrusted network (e.g. Internet). It should be protected by network security, such as a firewall. If that is not considered as enough protection <a href="remote-security.html#remote-tls">TLS with mutual authentication</a> should be enabled.</p>
+<p>Best practice is that Akka remoting nodes should only be accessible from the adjacent network. Note that if TLS is enabled with mutual authentication there is still a risk that an attacker can gain access to a valid certificate by compromising any node with certificates issued by the same internal PKI tree.</p>
+<p>By default, <a href="serialization.html#java-serialization">Java serialization</a> is disabled in Akka. That is also security best-practice because of its multiple <a href="https://community.microfocus.com/cyberres/fortify/f/fortify-discussions/317555/the-perils-of-java-deserialization">known attack surfaces</a>.</p>
+<a id="remote-tls"></a>
+<h2><a href="#configuring-ssl-tls-for-akka-remoting" name="configuring-ssl-tls-for-akka-remoting" class="anchor"><span class="anchor-link"></span></a>Configuring SSL/TLS for Akka Remoting</h2>
+<p>In addition to what is described here, see also <a href="remote-security.html#mtls-with-rotated-certificates-in-kubernetes">mTLS with rotated certificates in Kubernetes</a>.</p>
+<p>SSL can be used as the remote transport by using the <code>tls-tcp</code> transport:</p>
+<pre><code>akka.remote.artery {
+  transport = tls-tcp
+}
+</code></pre>
+<p>Next the actual SSL/TLS parameters have to be configured:</p>
+<pre><code>akka.remote.artery {
+  transport = tls-tcp
+
+  ssl.config-ssl-engine {
+    key-store = &quot;/example/path/to/mykeystore.jks&quot;
+    trust-store = &quot;/example/path/to/mytruststore.jks&quot;
+
+    key-store-password = ${SSL_KEY_STORE_PASSWORD}
+    key-password = ${SSL_KEY_PASSWORD}
+    trust-store-password = ${SSL_TRUST_STORE_PASSWORD}
+
+    protocol = &quot;TLSv1.2&quot;
+
+    enabled-algorithms = [TLS_DHE_RSA_WITH_AES_128_GCM_SHA256]
+  }
+}
+</code></pre>
+<p>Always use <a href="https://github.com/lightbend/config#optional-system-or-env-variable-overrides">substitution from environment variables</a> for passwords. Don&rsquo;t define real passwords in config files.</p>
+<p>According to <a href="https://www.rfc-editor.org/rfc/rfc7525.html">RFC 7525</a> the recommended algorithms to use with TLS 1.2 (as of writing this document) are:</p>
+<ul>
+  <li>TLS_DHE_RSA_WITH_AES_128_GCM_SHA256</li>
+  <li>TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256</li>
+  <li>TLS_DHE_RSA_WITH_AES_256_GCM_SHA384</li>
+  <li>TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384</li>
+</ul>
+<p>You should always check the latest information about security and algorithm recommendations though before you configure your system.</p>
+<p>Creating and working with keystores and certificates is well documented in the <a href="https://lightbend.github.io/ssl-config/CertificateGeneration.html#using-keytool">Generating X.509 Certificates</a> section of Lightbend&rsquo;s SSL-Config library.</p>
+<p>Since an Akka remoting is inherently <a href="general/remoting.html#symmetric-communication">peer-to-peer</a> both the key-store as well as trust-store need to be configured on each remoting node participating in the cluster.</p>
+<p>The official <a href="https://docs.oracle.com/javase/8/docs/technotes/guides/security/jsse/JSSERefGuide.html">Java Secure Socket Extension documentation</a> as well as the <a href="https://docs.oracle.com/cd/E19509-01/820-3503/6nf1il6er/index.html">Oracle documentation on creating KeyStore and TrustStores</a> are both great resources to research when setting up security on the JVM. Please consult those resources when troubleshooting and configuring SSL.</p>
+<p>Mutual authentication between TLS peers is enabled by default. Mutual authentication means that the passive side (the TLS server side) of a connection will also request and verify a certificate from the connecting peer. Without this mode only the client side is requesting and verifying certificates. While Akka is a peer-to-peer technology, each connection between nodes starts out from one side (the &ldquo;client&rdquo;) towards the other (the &ldquo;server&rdquo;).</p>
+<p>Note that if TLS is enabled with mutual authentication there is still a risk that an attacker can gain access to a valid certificate by compromising any node with certificates issued by the same internal PKI tree.</p>
+<p>It&rsquo;s recommended that you enable hostname verification with <code>akka.remote.artery.ssl.config-ssl-engine.hostname-verification=on</code>. When enabled it will verify that the destination hostname matches the hostname in the peer&rsquo;s certificate.</p>
+<p>In deployments where hostnames are dynamic and not known up front it can make sense to leave the hostname verification off.</p>
+<p>You have a few choices how to set up certificates and hostname verification:</p>
+<ul>
+  <li>Have a single set of keys and a single certificate for all nodes and <em>disable</em> hostname checking
+    <ul>
+      <li>The single set of keys and the single certificate is distributed to all nodes. The certificate can  be self-signed as it is distributed both as a certificate for authentication but also as the trusted certificate.</li>
+      <li>If the keys/certificate are lost, someone else can connect to your cluster.</li>
+      <li>Adding nodes to the cluster is simple as the key material can be deployed / distributed to the new node.</li>
+    </ul>
+  </li>
+  <li>Have a single set of keys and a single certificate for all nodes that contains all of the host names and <em>enable</em>  hostname checking.
+    <ul>
+      <li>This means that only the hosts mentioned in the certificate can connect to the cluster.</li>
+      <li>It cannot be checked, though, if the node you talk to is actually the node it is supposed to be (or if it is one  of the other nodes). This seems like a minor restriction as you&rsquo;ll have to trust all cluster nodes the same in an  Akka cluster anyway.</li>
+      <li>The certificate can be self-signed in which case the same single certificate is distributed and trusted on all  nodes (but see the next bullet)</li>
+      <li>Adding a new node means that its host name needs to conform to the trusted host names in the certificate.  That either means to foresee new hosts, use a wildcard certificate, or use a full CA in the first place,  so you can later issue more certificates if more nodes are to be added (but then you already get into the  territory of the next solution).</li>
+      <li>If a certificate is stolen, it can only be used to connect to the cluster from a node reachable via a hostname  that is trusted in the certificate. It would require tampering with DNS to allow other nodes to get access to  the cluster (however, tampering DNS might be easier in an internal setting than on internet scale).</li>
+    </ul>
+  </li>
+  <li>Have a CA and then keys/certificates, one for each node, and <em>enable</em> host name checking.
+    <ul>
+      <li>Basically like internet HTTPS but that you only trust the internal CA and then issue certificates for each new node.</li>
+      <li>Needs a PKI, the CA certificate is trusted on all nodes, the individual certificates are used for authentication.</li>
+      <li>Only the CA certificate and the key/certificate for a node is distributed.</li>
+      <li>If keys/certificates are stolen, only the same node can access the cluster (unless DNS is tampered with as well).  You can revoke single certificates.</li>
+    </ul>
+  </li>
+</ul>
+<p>See also a description of the settings in the <a href="remoting-artery.html#remote-configuration-artery">Remote Configuration</a> section.</p><div class="callout note "><div class="callout-title">Note</div>
+<p>When using SHA1PRNG on Linux it&rsquo;s recommended specify <code>-Djava.security.egd=file:/dev/urandom</code> as argument to the JVM to prevent blocking. It is NOT as secure because it reuses the seed.</p></div>
+<h2><a href="#mtls-with-rotated-certificates-in-kubernetes" name="mtls-with-rotated-certificates-in-kubernetes" class="anchor"><span class="anchor-link"></span></a>mTLS with rotated certificates in Kubernetes</h2>
+<p>Akka remoting’s has support for using mTLS certificates that are frequently rotated. This support is designed to work with cert-manager and other Kubernetes based secret providers with a minimum of configuration. This feature is important for secure Akka deployments to prevent malicious hosts from joining the Akka Cluster or eavesdropping on your Akka Cluster communication, and therefore you need to use mTLS to secure the communication.</p><div class="callout note "><div class="callout-title">Service mesh</div>
+<p>Encryption and authentication via a service mesh is not an option for Akka Cluster as described in <a href="general/remoting.html#service-mesh">Service mesh</a>. </p></div>
+<p>Provisioning of the certificates needed by Akka are using <a href="https://cert-manager.io/">cert-manager</a>. The Kubernetes cluster should have a standard <a href="https://cert-manager.io/docs/installation/">cert-manager installation</a>.</p>
+<h3><a href="#understanding-the-certificates" name="understanding-the-certificates" class="anchor"><span class="anchor-link"></span></a>Understanding the certificates</h3>
+<p>First off, a few concepts: cert-manager has a concept of <code>Certificates</code> and <code>Issuers</code>. A Certificate is a Custom Resource Definition (CRD) that you deploy that cert-manager will reconcile into a Kubernetes <code>Secret</code> containing a TLS certificate. The <code>Certificate</code> references an <code>Issuer</code>, and the <code>Issuer</code> describes how Certificates that reference it should be issued.</p>
+<p>In order to support frequently rotated certificates, Akka can’t just use a self signed certificate, since self signed certificates need to be the same at both ends to authenticate each other properly, and during the time when the certificate is being rotated, two different Akka nodes may have different certificates. Instead, Akka needs certificates issued by a certificate authority (CA). The CA verifies whether a certificate should be trusted or not, so during rotation, both the old and the new certificate can work together, because both are signed by the same CA. So, when we issue our certificates, we’ll use cert-managers CA <code>Issuer</code> type.</p>
+<p>The CA Issuer itself needs a certificate to do its signing, and this certificate we’ll also provision using cert-manager. That certificate we’re not going to rotate - its private key never gets shared with anything outside of cert-manager, and so rotating it is not as necessary. Because of this, it will use a self signed certificate, and provisioning that certificate can be done by using a cert-manager self signed <code>Issuer</code> type.</p>
+<p>So, in total, we’re going to have two issuers, a self signed issuer that issues certificates for the CA issuer, and then that CA issuer will issue certificates that are frequently rotated for our Akka service to use. The self signed issuer, certificate, and CA issuer can be reused across different Akka deployments.</p>
+<h3><a href="#kubernetes-resources" name="kubernetes-resources" class="anchor"><span class="anchor-link"></span></a>Kubernetes resources</h3>
+<p>First we deploy the self signed issuer:</p>
+<pre><code>apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: self-signed-issuer
+spec:
+  selfSigned: {}
+</code></pre>
+<p>We’re creating this for the whole cluster, self signed issuers don’t have any state or configuration, there’s no reason to have more than one for your entire cluster.</p>
+<p>Next we create a self signed certificate for our CA issuer to use that references this issuer:</p>
+<pre><code>apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: akka-tls-ca-certificate
+  namespace: default
+spec:
+  issuerRef:
+    name: self-signed-issuer
+    kind: ClusterIssuer
+  secretName: akka-tls-ca-certificate
+  commonName: default.akka.cluster.local
+  # 100 years
+  duration: 876000h
+  # 99 years
+  renewBefore: 867240h
+  isCA: true
+  privateKey:
+    rotationPolicy: Always
+</code></pre>
+<p>We’ve created this in the default namespace, which will be the same namespace that our Akka service is deployed to. If you’re using a different namespace, you’ll need to update accordingly.</p>
+<p>The <code>commonName</code> isn’t very important, it’s not actually used anywhere, though may be useful for debugging purposes if you’re ever looking into why a particular certificate isn’t trusted by a service. We use a naming convention for common names and DNS names that follows the pattern <code>&lt;service-name&gt;.&lt;namespace&gt;.akka.cluster.local</code>. The CA uses the same convention without the service name. This convention doesn’t need to be followed, but it makes it easy to reason about the purpose of any given certificate.</p>
+<p>Now we create the CA issuer:</p>
+<pre><code>apiVersion: cert-manager.io/v1
+kind: Issuer
+metadata:
+  name: akka-tls-ca-issuer
+  namespace: default
+spec:
+  ca:
+    secretName: akka-tls-ca-certificate
+</code></pre>
+<p>This uses the secret that we configured to be provisioned in the certificate above. Finally, we provision the certificate that our Akka service is going to use - we’re assuming that the name of the service in this case is <code>my-service</code>:</p>
+<pre><code>apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: my-service-akka-tls-certificate
+  namespace: default
+spec:
+  issuerRef:
+    name: akka-tls-ca-issuer
+  secretName: my-service-akka-tls-certificate
+  dnsNames:
+  - my-service.default.akka.cluster.local
+  duration: 24h
+  renewBefore: 16h
+  privateKey:
+    rotationPolicy: Always
+</code></pre>
+<p>The actual <code>dnsName</code> configured isn’t important, since Akka cluster does not actually use these names for looking up the service, as long as it’s unique to the service within the issuer. Akka’s mTLS support will verify that the DNS name supplied by an incoming connection matches the DNS name supplied in its own secret, and reject it otherwise. Again, we’re using the naming convention for the <code>dnsName</code> mentioned above.</p>
+<p>This certificate is configured to last for 24 hours, and rotate every 16 hours.</p>
+<p>If you have more Akka services that you wish to deploy in the same namespace, you can reuse the same CA Issuer, you only need to deploy an additional Certificate for each service.</p>
+<h3><a href="#enable-tls-with-rotatingkeyssslengineprovider" name="enable-tls-with-rotatingkeyssslengineprovider" class="anchor"><span class="anchor-link"></span></a>Enable TLS with RotatingKeysSSLEngineProvider</h3>
+<p>Add the following Akka configuration:</p>
+<pre><code>akka.remote.artery {
+  transport = tls-tcp
+  ssl.ssl-engine-provider = &quot;akka.remote.artery.tcp.ssl.RotatingKeysSSLEngineProvider&quot;
+}
+</code></pre>
+<p>This instructs Akka to use TLS, with the <code>RotatingKeysSSLEngineProvider</code>, an SSL engine provider that is designed to pick up Kubernetes TLS secrets, and poll the file system for when they get rotated. It also applies authorization by matching the incoming DNS name with the DNS name of its own certificate.</p>
+<h3><a href="#configuring-the-kubernetes-deployment" name="configuring-the-kubernetes-deployment" class="anchor"><span class="anchor-link"></span></a>Configuring the Kubernetes deployment</h3>
+<p>In the Kubernetes <code>Deployment</code> for the Akka application you need to mount the certificate at the path <code>/var/run/secrets/akka-tls/rotating-keys-engine</code>. This is the default path that the <code>RotatingKeysSSLEngineProvider</code> uses to pick up its certificates. So, add the following volume to your pod:</p>
+<pre><code>      volumes:
+      - name: akka-tls
+        secret:
+          secretName: my-service-akka-tls-certificate
+</code></pre>
+<p>And then you can mount that in your container:</p>
+<pre><code>        volumeMounts:
+        - name: akka-tls
+          mountPath: /var/run/secrets/akka-tls/rotating-keys-engine
+</code></pre>
+<p>The complete deployment YAML when adding those to the Deployment Spec from <a href="https://doc.akka.io/docs/akka-management/current/kubernetes-deployment/preparing-for-production.html#deployment-spec">Deploying Akka Cluster to Kubernetes</a>:</p>
+<pre><code>apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: appka
+  name: appka
+  namespace: appka-1
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: appka
+  template:
+    metadata:
+      labels:
+        app: appka
+    spec:
+      containers:
+      - name: appka
+        image: akka-sample-cluster-kubernetes-scala:latest
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: management
+        livenessProbe:
+          httpGet:
+            path: /alive
+            port: management
+        ports:
+        - name: management
+          containerPort: 8558
+          protocol: TCP
+        - name: http
+          containerPort: 8080
+          protocol: TCP
+        resources:
+          limits:
+            memory: 1024Mi
+          requests:
+            cpu: 2
+            memory: 1024Mi
+        volumeMounts:
+        - name: akka-tls
+          mountPath: /var/run/secrets/akka-tls/rotating-keys-engine
+      volumes:
+      - name: akka-tls
+        secret:
+          secretName: my-service-akka-tls-certificate
+</code></pre>
+<h2><a href="#untrusted-mode" name="untrusted-mode" class="anchor"><span class="anchor-link"></span></a>Untrusted Mode</h2>
+<p>As soon as an actor system can connect to another remotely, it may in principle send any possible message to any actor contained within that remote system. One example may be sending a <span class="group-scala"><a href="https://doc.akka.io/api/akka/2.9/akka/actor/PoisonPill.html" title="akka.actor.PoisonPill"><code>PoisonPill</code></a></span><span class="group-java"><a href="https://doc.akka.io/japi/akka/2.9/akka/actor/PoisonPill.html" title="akka.actor.PoisonPill"><code>PoisonPill</code></a></span> to the system guardian, shutting that system down. This is not always desired, and it can be disabled with the following setting:</p>
+<pre><code>akka.remote.artery.untrusted-mode = on
+</code></pre>
+<p>This disallows sending of system messages (actor life-cycle commands, DeathWatch, etc.) and any message extending <span class="group-scala"><a href="https://doc.akka.io/api/akka/2.9/akka/actor/PossiblyHarmful.html" title="akka.actor.PossiblyHarmful"><code>PossiblyHarmful</code></a></span><span class="group-java"><a href="https://doc.akka.io/japi/akka/2.9/akka/actor/PossiblyHarmful.html" title="akka.actor.PossiblyHarmful"><code>PossiblyHarmful</code></a></span> to the system on which this flag is set. Should a client send them nonetheless they are dropped and logged (at DEBUG level in order to reduce the possibilities for a denial of service attack). <code>PossiblyHarmful</code> covers the predefined messages like <span class="group-scala"><a href="https://doc.akka.io/api/akka/2.9/akka/actor/PoisonPill.html" title="akka.actor.PoisonPill"><code>PoisonPill</code></a></span><span class="group-java"><a href="https://doc.akka.io/japi/akka/2.9/akka/actor/PoisonPill.html" title="akka.actor.PoisonPill"><code>PoisonPill</code></a></span> and <span class="group-scala"><a href="https://doc.akka.io/api/akka/2.9/akka/actor/Kill.html" title="akka.actor.Kill"><code>Kill</code></a></span><span class="group-java"><a href="https://doc.akka.io/japi/akka/2.9/akka/actor/Kill.html" title="akka.actor.Kill"><code>Kill</code></a></span>, but it can also be added as a marker trait to user-defined messages.</p><div class="callout warning "><div class="callout-title">Warning</div>
+<p>Untrusted mode does not give full protection against attacks by itself. It makes it slightly harder to perform malicious or unintended actions but it should be noted that <a href="serialization.html#java-serialization">Java serialization</a> should still not be enabled. Additional protection can be achieved when running in an untrusted network by network security (e.g. firewalls) and/or enabling <a href="remote-security.html#remote-tls">TLS with mutual authentication</a>.</p></div>
+<p>Messages sent with actor selection are by default discarded in untrusted mode, but permission to receive actor selection messages can be granted to specific actors defined in configuration:</p>
+<pre><code>akka.remote.artery.trusted-selection-paths = [&quot;/user/receptionist&quot;, &quot;/user/namingService&quot;]
+</code></pre>
+<p>The actual message must still not be of type <code>PossiblyHarmful</code>.</p>
+<p>In summary, the following operations are ignored by a system configured in untrusted mode when incoming via the remoting layer:</p>
+<ul>
+  <li>remote deployment (which also means no remote supervision)</li>
+  <li>remote DeathWatch</li>
+  <li><span class="group-scala"><a href="https://doc.akka.io/api/akka/2.9/akka/actor/ActorRefFactory.html#stop(actor:akka.actor.ActorRef):Unit" title="akka.actor.ActorRefFactory"><code>system.stop()</code></a></span><span class="group-java"><a href="https://doc.akka.io/japi/akka/2.9/akka/actor/ActorRefFactory.html#stop(akka.actor.ActorRef)" title="akka.actor.ActorRefFactory"><code>system.stop()</code></a></span>, <span class="group-scala"><a href="https://doc.akka.io/api/akka/2.9/akka/actor/PoisonPill.html" title="akka.actor.PoisonPill"><code>PoisonPill</code></a></span><span class="group-java"><a href="https://doc.akka.io/japi/akka/2.9/akka/actor/PoisonPill.html" title="akka.actor.PoisonPill"><code>PoisonPill</code></a></span>, <span class="group-scala"><a href="https://doc.akka.io/api/akka/2.9/akka/actor/Kill.html" title="akka.actor.Kill"><code>Kill</code></a></span><span class="group-java"><a href="https://doc.akka.io/japi/akka/2.9/akka/actor/Kill.html" title="akka.actor.Kill"><code>Kill</code></a></span></li>
+  <li>sending any message which extends from the <span class="group-scala"><a href="https://doc.akka.io/api/akka/2.9/akka/actor/PossiblyHarmful.html" title="akka.actor.PossiblyHarmful"><code>PossiblyHarmful</code></a></span><span class="group-java"><a href="https://doc.akka.io/japi/akka/2.9/akka/actor/PossiblyHarmful.html" title="akka.actor.PossiblyHarmful"><code>PossiblyHarmful</code></a></span> marker interface, which includes <span class="group-scala"><a href="https://doc.akka.io/api/akka/2.9/akka/actor/Terminated.html" title="akka.actor.Terminated"><code>Terminated</code></a></span><span class="group-java"><a href="https://doc.akka.io/japi/akka/2.9/akka/actor/Terminated.html" title="akka.actor.Terminated"><code>Terminated</code></a></span></li>
+  <li>messages sent with actor selection, unless destination defined in <code>trusted-selection-paths</code>.</li>
+</ul><div class="callout note "><div class="callout-title">Note</div>
+<p>Enabling the untrusted mode does not remove the capability of the client to freely choose the target of its message sends, which means that messages not prohibited by the above rules can be sent to any actor in the remote system. It is good practice for a client-facing system to only contain a well-defined set of entry point actors, which then forward requests (possibly after performing validation) to another actor system containing the actual worker actors. If messaging between these two server-side systems is done using local <span class="group-scala"><a href="https://doc.akka.io/api/akka/2.9/akka/actor/ActorRef.html" title="akka.actor.ActorRef"><code>ActorRef</code></a></span><span class="group-java"><a href="https://doc.akka.io/japi/akka/2.9/akka/actor/ActorRef.html" title="akka.actor.ActorRef"><code>ActorRef</code></a></span> (they can be exchanged safely between actor systems within the same JVM), you can restrict the messages on this interface by marking them <span class="group-scala"><a href="https://doc.akka.io/api/akka/2.9/akka/actor/PossiblyHarmful.html" title="akka.actor.PossiblyHarmful"><code>PossiblyHarmful</code></a></span><span class="group-java"><a href="https://doc.akka.io/japi/akka/2.9/akka/actor/PossiblyHarmful.html" title="akka.actor.PossiblyHarmful"><code>PossiblyHarmful</code></a></span> so that a client cannot forge them.</p></div>
+</div>
+</article>
+<div class="row">
+<div class="small-12 column">
+<section class="nav-prev-next row">
+<div class="nav-prev small-6 column">
+<a href="remoting-artery.html"><i class="icon-prev"></i> <span class="link-prev">Remoting</span></a>
+</div>
+<div class="nav-next small-6 column clearfix">
+<a class="float-right" href="split-brain-resolver.html">Split Brain Resolver <i class="icon-next"></i></a>
+</div>
+</section>
+</div>
+</div>
+<div class="source-github row">
+Found an error in this documentation? The source code for this page can be found <a href="https://github.com/akka/akka/tree/v2.9.2/akka-docs/src/main/paradox/remote-security.md">here</a>.
+Please feel free to edit and contribute a pull request.
+</div>
+
+<footer class="page-footer row clearfix">
+<img class="akka-icon float-left show-for-medium" src="images/akka-icon.svg" />
+<section class="copyright">
+<div>Akka is available under the <a href="https://www.lightbend.com/akka/license" target="_blank">Business Source License 1.1</a>.</div>
+<p class="legal">
+&copy; 2011-2024 <a href="https://www.lightbend.com" target="_blank">Lightbend, Inc.</a> |
+<a href="https://www.lightbend.com/legal/licenses" target="_blank">Licenses</a> |
+<a href="https://www.lightbend.com/legal/terms" target="_blank">Terms</a> |
+<a href="https://www.lightbend.com/legal/privacy" target="_blank">Privacy Policy</a> |
+<a href="https://akka.io/cookie/" target="_blank">Cookie Listing</a> |
+<a class="optanon-toggle-display">Cookie Settings</a>
+</p>
+</section>
+
+</footer>
+</section>
+</main>
+</div>
+
+<script type="text/javascript" src="js/scrollsneak.js"></script>
+<script type="text/javascript">jQuery(document).foundation();</script>
+<script type="text/javascript" src="js/groups.js"></script>
+<script type="text/javascript" src="js/page.js"></script>
+<script type="text/javascript" src="js/snippets.js"></script>
+<script type="text/javascript" src="js/magellan.js"></script>
+<script type="text/javascript" src="js/metadata-toggle.js"></script>
+<script type="text/javascript" src="js/lbHeader.js"></script>
+
+<style type="text/css">@import "lib/prettify/prettify.css";</style>
+<script type="text/javascript" src="lib/prettify/prettify.js"></script>
+<script type="text/javascript" src="lib/prettify/lang-scala.js"></script>
+<script type="text/javascript">//<![CDATA[
+jQuery(function(){window.prettyPrint && prettyPrint()});
+//]]></script>
+<!-- Algolia docs search -->
+<script type="text/javascript" src="https://cdn.jsdelivr.net/docsearch.js/2/docsearch.min.js"></script>
+<style>.algolia-autocomplete { display: block !important }</style>
+<script type="text/javascript">
+docsearch({
+appId: 'XUXZ6LW9B1',
+apiKey: '5b6260148e92f7c5e38338fcf7eaa3e0',
+indexName: 'akka_docs',
+inputSelector: '#search',
+algoliaOptions: {
+hitsPerPage: 5
+}
+});
+
+docsearch({
+appId: 'XUXZ6LW9B1',
+apiKey: '5b6260148e92f7c5e38338fcf7eaa3e0',
+indexName: 'akka_docs',
+inputSelector: '#overlay-search',
+algoliaOptions: {
+hitsPerPage: 5
+}
+});
+
+// set up "/" as global shortcut for focusing on search
+jQuery(document).keypress(function (event) {
+if (event.keyCode == 47) {
+jQuery("#search").focus();
+return false; // swallow key event, otherwise the / char would be input into the search box
+}
+});
+</script>
+
+<script type="text/javascript" src="assets/js/warnOldVersion.js"></script>
+<script type="text/javascript">//<![CDATA[
+jQuery(function(jq){initOldVersionWarnings(jq, '2.9.2', 'https://akka.io/')});
+//]]></script>
+
+
+</body>
+</html>
